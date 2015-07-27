@@ -9,6 +9,7 @@
 #include <limits.h>
 #include <fstream>
 #include <unistd.h>
+#include <string.h>
 
 using namespace std;
 
@@ -145,7 +146,7 @@ struct Object {
 /* 2^OBJECTS_PER_PAGE_BITS equals to the count of objects on page (by default; can de changed) */
 #define OBJECTS_PER_PAGE_BITS 5
 struct PageDescriptor {
-	size_t obj_size;
+	size_t obj_size; // sizeof object (whole object (ex. in array of case --- whole array) with a header)
 	size_t page_size;
 	size_t mask; // a mask for pointers that points on this page (is used to find object begin)
 	void * free; // pointer on the next after the last allocated Object. If Page is full --- NULL
@@ -211,7 +212,8 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
 	while (new_page == NULL) {
 		assert(objects_on_page_bits < 16); // can fails there
 		assert(page_size == (obj_size << objects_on_page_bits));
-		new_page = (void *)memalign(VIRTUAL_MEMORY_CELL, page_size);
+		// NB! if insted of memalign(page_size, page_size) call memalign(VIRTUAL_MEMORY_CELL, page_size);  WILL BE BUG!!!!
+		new_page = (void *)memalign(page_size, page_size);
 		if (new_page == NULL) {
 			page_size = (page_size << 1); objects_on_page_bits++;
 		} else {
@@ -258,11 +260,12 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
 		PageDescriptor * d = &(sle->descrs[i]);
 		if (d->obj_size == 0) { continue; }
 		size_t page_end = (size_t)d->page + d->page_size;
-		assert((d->free == NULL) || (((size_t)d->free > (size_t)d->page)) && ((size_t)d->free < page_end));
+		assert((d->free == NULL) || (((size_t)d->free >= (size_t)d->page)) && ((size_t)d->free < page_end));
 		if (d->free != NULL) {
 			assert(page_end >= (size_t)d->free + d->obj_size);
 			void * res = d->free;
 			size_t new_free = (size_t)d->free + d->obj_size;
+			assert(new_free - (size_t)d->free == d->obj_size);
 			d->free =  new_free + d->obj_size <= page_end ? (void *)new_free : NULL;
 			myfile << "\t\t res = "<< res << " free = "<< d->free << " page =" << d->page  << " obj_size = " << d->obj_size << " page_size =" << d->page_size << "  mask = " << d->mask << endl;
 
@@ -271,10 +274,9 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
 			obj->array_count = count;
 			obj->meta = meta;
 			obj->begin = res;
-			myfile << "gcmalloc: end1" << endl;
 
-			void * mptr = (void *)((size_t)res + d->obj_size / 2);
-			myfile << "page " << d->page << " mask " << d->mask << " ptr " << res << " res " << (void *)((size_t)d->mask & (size_t)mptr) << endl;
+			assert((void *)((size_t)d->mask & (size_t)((size_t)res + d->obj_size / 2)) == res); /// this asssert checks mask
+			myfile << "gcmalloc: end1" << endl;
 			return res;
 		}
 	}
@@ -294,10 +296,42 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
 	return allocate_on_new_page(d, size, meta, count);
 }
 
-/* removes one object */
-void remove (void * ptr) {
-	// p = find_page_
+/* returns object header by the pointer somewhere in */
+Object * get_object_header (PageDescriptor * d, void * ptr) {
+	size_t obj_beg = ((size_t)ptr & d->mask);
+	myfile << "get_object_header : obj_beg = " << (void *)obj_beg << endl;
+	assert(obj_beg >= (size_t)d->page);
+	assert(obj_beg < (size_t)d->free);
+	Object * res = (Object *)(obj_beg + d->obj_size - sizeof(Object));
+	assert((size_t)res > (size_t)d->page && (size_t)res < (size_t)d->free);
+	return res;
 }
+inline Object * get_object_header (void * ptr) {
+	return get_object_header((PageDescriptor *)IT_get_page_descr(ptr), ptr);
+}
+
+/* removes one object from page */
+void remove_object (void * ptr) {
+	PageDescriptor * d = (PageDescriptor *)IT_get_page_descr(ptr);
+	myfile << "remove_object : PageDescriptor = " << (void *)d << endl;
+	if (d == NULL) { myfile << "remove_object : incorrect pointer" << endl; return; }
+	Object * obj = get_object_header(d, ptr);
+	myfile << "remove_object : obj = " << (void *)obj << endl;
+
+	if ((size_t)obj + sizeof(Object) == (size_t)d->free) {
+		d->free = obj->begin;
+		assert((size_t)d->free >= (size_t)d->page);
+	}
+	myfile << "remove_object : remove " << obj->begin << endl;
+	memset(obj->begin, 0, ((size_t)d->obj_size) / sizeof(int));
+}
+
+//////////
+// MARK //
+//////////
+
+
+
 
 ///////////
 // TESTS //

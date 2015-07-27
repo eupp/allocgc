@@ -331,6 +331,11 @@ void remove_object (void * ptr) {
 	memset(obj->begin, 0, ((size_t)d->obj_size) / sizeof(int));
 }
 
+/* doesn't clear mark and pin bits */
+void sweep (void) {
+	// TODO
+}
+
 //////////
 // MARK //
 //////////

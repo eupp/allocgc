@@ -144,13 +144,18 @@ struct Object {
 // segregated storage page header
 /// its size might be aligned on power of two
 /* 2^OBJECTS_PER_PAGE_BITS equals to the count of objects on page (by default; can de changed) */
-#define OBJECTS_PER_PAGE_BITS 5
+#define OBJECTS_PER_PAGE_BITS	((size_t)5)
+#define OBJECTS_PER_PAGE_COUNT	(1 << OBJECTS_PER_PAGE_BITS - 1)
+#define BITS_PER_LONG			(sizeof(long) * CHAR_BIT)
+#define MARK_BITS_ARRAY_SIZE	(OBJECTS_PER_PAGE_COUNT / BITS_PER_LONG)
 struct PageDescriptor {
 	size_t obj_size; // sizeof object (whole object (ex. in array of case --- whole array) with a header)
 	size_t page_size;
 	size_t mask; // a mask for pointers that points on this page (is used to find object begin)
 	void * free; // pointer on the next after the last allocated Object. If Page is full --- NULL
 	void * page; // pointer on the page itself
+	long mark_bits[MARK_BITS_ARRAY_SIZE]; //mark bits for objects in
+	long pin_bits[MARK_BITS_ARRAY_SIZE]; //pin bits for objects in
 };
 
 // devided on obejct size
@@ -330,8 +335,59 @@ void remove_object (void * ptr) {
 // MARK //
 //////////
 
+PageDescriptor * calculate_ob_i_and_mask (size_t * ob_i, long * mask, void * ptr) {
+	PageDescriptor * d = (PageDescriptor *)IT_get_page_descr(ptr);
+	if (d == NULL) { return NULL; }
+	size_t pot = power_of_two(d->obj_size), bi = SYSTEM_BIT_SIZE - OBJECTS_PER_PAGE_BITS - pot;
+	*ob_i = (d->mask << bi) >> (bi + pot);
+	size_t mb_i = *ob_i / BITS_PER_LONG,
+		bit_i = *ob_i % BITS_PER_LONG;
+	*mask = (long)1 << (BITS_PER_LONG - bit_i - 1);
+	return d;
+}
 
+/* 
+mark_pin --- flase => pin bit; true => mark_bit
+return values:
+	 0 --- succesfully marked
+	 1 --- already marked
+	-1 --- incorrect pointer(not in the heap) */
+int mark_object (void * ptr, bool mark_pin) {
+	// ob_i --- calculate object number on the page
+	size_t ob_i; long mask; PageDescriptor * d = calculate_ob_i_and_mask(&ob_i, &mask, ptr);
+	if (d == NULL) { return -1; }
+	long * array = mark_pin == true ? d->mark_bits : d->pin_bits;
+	if (array[ob_i] & mask == mask) { return 1; }
+	array[ob_i] |= mask;
+	return 0;
+}
 
+int clear_object_bit (void * ptr, bool mark_pin) {
+	size_t ob_i; long mask; PageDescriptor * d = calculate_ob_i_and_mask(&ob_i, &mask, ptr);
+	if (d == NULL) { return -1; }
+	long * array = mark_pin == true ? d->mark_bits : d->pin_bits;
+	array[ob_i] &= ~mask;
+	return 0;
+}
+
+int clear_all_object_bits (void * ptr) {
+	size_t ob_i; long mask; PageDescriptor * d = calculate_ob_i_and_mask(&ob_i, &mask, ptr);
+	if (d == NULL) { return -1; }
+	d->mark_bits[ob_i] &= ~mask; d->pin_bits[ob_i] &= ~mask;
+	return 0;
+}
+
+int get_object_bit (void * ptr, bool mark_pin) {
+	size_t ob_i; long mask; PageDescriptor * d = calculate_ob_i_and_mask(&ob_i, &mask, ptr);
+	if (d == NULL) { return -1; }
+	long * array = mark_pin == true ? d->mark_bits : d->pin_bits;
+	return (array[ob_i] & mask) == mask;
+}
+
+void clear_page_flags (PageDescriptor * d) {
+	memset(d->mark_bits, 0, MARK_BITS_ARRAY_SIZE);
+	memset(d->pin_bits, 0, MARK_BITS_ARRAY_SIZE);
+}
 
 ///////////
 // TESTS //

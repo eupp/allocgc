@@ -10,14 +10,14 @@
 #include <fstream>
 #include <unistd.h>
 #include <string.h>
+#include "go.h"
 
 using namespace std;
 
 ofstream myfile;
 
-#define VIRTUAL_MEMORY_CELL sysconf(_SC_PAGE_SIZE)
+#define VIRTUAL_MEMORY_CELL (size_t)sysconf(_SC_PAGE_SIZE)
 #define VIRTUAL_MEMORY_CELL_BITS power_of_two(VIRTUAL_MEMORY_CELL)
-// int posix_memalign(void **memptr, size_t alignment, size_t size);
 #define SYSTEM_BIT_SIZE ((size_t)64)
 // #define SMALL_BIT_ALIGN VIRTUAL_MEMORY_CELL_BITS
 #define SMALL_BIT_ALIGN ((size_t)3)
@@ -45,7 +45,7 @@ int power_of_two (size_t size) {
 }
 int occuped_virtual_pages (size_t size) {
     if ((size & (size -1)) != 0 || size < VIRTUAL_MEMORY_CELL) { return -1; }
-    return size >> VIRTUAL_MEMORY_CELL_BITS;
+    return (int)(size >> VIRTUAL_MEMORY_CELL_BITS);
 }
 
 //////////////
@@ -58,7 +58,7 @@ int occuped_virtual_pages (size_t size) {
 /* align size to the closest greater power of two */
 size_t align_to_power_of_two (size_t size) {
     assert(size > 0);
-    int i = size & (size -1);
+    size_t i = size & (size -1);
     // if size === power of two then return it
     if (i == 0) { return size; }
     // otherwise --- round it up
@@ -68,7 +68,7 @@ size_t align_to_power_of_two (size_t size) {
 /* align size to be a power of two and to be a multiple of VIRTUAL_MEMORY_CELL */
 size_t align_object_size (size_t size) {
     assert(size > 0);
-    int i = size & (size -1);
+    size_t i = size & (size -1);
     // if size === power of two then return it
     if (i == 0) { return size > VIRTUAL_MEMORY_CELL ? size : VIRTUAL_MEMORY_CELL; }
     // otherwise --- round it up
@@ -84,7 +84,7 @@ struct Object {
     // NB! meta have to contains single object size
     void * meta; // pointer on the metainformation
     void * begin; // pointer on th object begin
-    // we use last two bits of begin pointer to be a pin and mask bits respectively
+    // NB: FALSE in currnt version: we use last two bits of begin pointer to be a pin and mask bits respectively
 };
 
 // segregated storage page header
@@ -164,7 +164,6 @@ void IT_remove_index (void * cell) {
 
 void IT_print_tree (void) {
 	printf("tree:\n");
-	size_t bits_curr = SYSTEM_BIT_SIZE - IT_FIRST_LEVEL_SIZE;
 	size_t * level = tree_level_one, *level2, *level3;
 	for (size_t i = 0; i < (((size_t) 1) << IT_OTHER_LEVELS_SIZE); i++) {
 		if (level[i] == 0) { continue; }
@@ -175,10 +174,8 @@ void IT_print_tree (void) {
 			for (size_t k = 0; k < (((size_t) 1) << IT_OTHER_LEVELS_SIZE); k++) {
 				if (level3[k] == 0) { continue; }
 				printf("%zu ", level3[k]);
-			}
-			printf("\n\n");
-		}
-		printf("\n\n\n");
+			} printf("\n\n");
+		} printf("\n\n\n");
 	}
 }
 
@@ -205,7 +202,7 @@ void init_segregated_storage (void) {
 
     size_t sle_size = 4; // i.e. min size == 32 (i.e. round_up_to_power_of_two(16(i.e. 16 === sizeof(Object)) + ?))
     for (int i = 0; i < SEGREGATED_STORAGE_SIZE; i++, sle_size++) {
-        segregated_storage[i].size = sle_size;
+        segregated_storage[i].size = (uint)sle_size;
         segregated_storage[i].first = NULL;
     }
 }
@@ -221,13 +218,13 @@ SegregatedListElement * allocate_new_SegregatedListElement (int ss_i) {
 }
 
 size_t calculate_mask (size_t page_size, size_t obj_size, void * page_addr) {
-    size_t page_count_bits = power_of_two(page_size), obj_size_bits = power_of_two(obj_size);
-    size_t bit_diff = page_count_bits - obj_size_bits;
+    int page_count_bits = power_of_two(page_size), obj_size_bits = power_of_two(obj_size),
+        bit_diff = page_count_bits - obj_size_bits;
     assert(page_count_bits != -1 && obj_size_bits != -1);
     return ((size_t)page_addr | ((1 << bit_diff) - 1) << obj_size_bits);
 }
 
-void * index_new_page (PageDescriptor * d) {
+void index_new_page (PageDescriptor * d) {
     size_t page = (size_t)d->page, size = d->page_size;
     for (void * i = (void *)page; (size_t)i - page < size; i = (void *)((size_t)i + VIRTUAL_MEMORY_CELL)) {
 	    assert(((size_t)i & ((size_t)1 << VIRTUAL_MEMORY_CELL_BITS) - 1) == 0);
@@ -238,6 +235,7 @@ void * index_new_page (PageDescriptor * d) {
 void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, size_t count) {
     // i.e. it is no space (following our allocating stotegy)
     // so allocate new page
+	assert(d != NULL);
     myfile << "\tallocate_on_new_page" << endl;
     size_t objects_on_page_bits = OBJECTS_PER_PAGE_BITS;
     assert(power_of_two(obj_size) + objects_on_page_bits < 64 - VIRTUAL_MEMORY_CELL_BITS);
@@ -247,7 +245,7 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
         assert(objects_on_page_bits < 16); // can fails there
         assert(page_size == (obj_size << objects_on_page_bits));
         // NB! if insted of memalign(page_size, page_size) call memalign(VIRTUAL_MEMORY_CELL, page_size);  WILL BE BUG!!!!
-        new_page = (void *)memalign(page_size, page_size);
+        new_page = memalign(page_size, page_size);
         if (new_page == NULL) {
             page_size = (page_size << 1); objects_on_page_bits++;
         } else {
@@ -261,7 +259,8 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
     d->page_size = page_size;
     d->free = (void *)((size_t)d->page + d->obj_size);
     d->mask = calculate_mask(page_size, obj_size, new_page);
-    myfile << "\t\t res = page = " << d->page << " free = " << d->free << " obj_size = " << d->obj_size << " page_size = " << d->page_size << " mask = " << d->mask << endl;
+    myfile << "\t\t res = page = " << d->page << " free = " << d->free << " obj_size = " << d->obj_size
+        << " page_size = " << d->page_size << " mask = " << d->mask << endl;
     // add new cells to index tree
     index_new_page(d);
 
@@ -297,14 +296,15 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
     myfile << "gcmalloc: " << endl;
     size_t size = align_object_size(s * count + sizeof(Object));
     void * res = NULL;
-    int pot = power_of_two(size);
-    int ss_i = pot - SMALL_BIT_ALIGN - 1;
-    myfile << "s = " << s << " meta = " << meta << " count = " << count << " ||| locals: size = " << size << " pot = " << pot << " ss_i = " << ss_i << endl;
+    int pot = power_of_two(size), ss_i = pot - (int)SMALL_BIT_ALIGN - 1;
+    myfile << "s = " << s << " meta = " << meta << " count = " << count << " ||| locals: size = " << size
+        << " pot = " << pot << " ss_i = " << ss_i << endl;
     assert(ss_i > -1);
-    size_t sle_size = 1 << pot;
+    size_t sle_size = (size_t)1 << pot;
     assert(sle_size != 0);
     assert(sle_size == ((size_t)1 << segregated_storage[ss_i].size));
-    SegregatedListElement * sle = segregated_storage[ss_i].first != NULL ? segregated_storage[ss_i].first : allocate_new_SegregatedListElement(ss_i);
+    SegregatedListElement * sle = segregated_storage[ss_i].first != NULL ? segregated_storage[ss_i].first
+                                                                         : allocate_new_SegregatedListElement(ss_i);
     assert(sle != NULL);
 
     // TODO: it is possible to speed up allocation just try only to allocate Obj in sle->descr[i]
@@ -318,12 +318,13 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
         assert((d->free == NULL) || (((size_t)d->free >= (size_t)d->page)) && ((size_t)d->free < page_end));
         if (d->free != NULL) {
             assert(page_end >= (size_t)d->free + d->obj_size);
-            void * res = d->free;
+            res = d->free;
             size_t new_free = (size_t)d->free + d->obj_size;
             assert(new_free - (size_t)d->free == d->obj_size);
             d->free = new_free + d->obj_size <= page_end ? (void *)new_free : NULL;
 	        assert(d->free > res || d->free == NULL);
-            myfile << "\t\t res = "<< res << " free = "<< d->free << " page =" << d->page  << " obj_size = " << d->obj_size << " page_size =" << d->page_size << "  mask = " << d->mask << endl;
+            myfile << "\t\t res = "<< res << " free = "<< d->free << " page =" << d->page  << " obj_size = "
+                << d->obj_size << " page_size =" << d->page_size << "  mask = " << d->mask << endl;
 
             Object * obj = (Object *)((size_t)res + size - sizeof(Object));
             myfile << "\t\t obj = " << obj << endl;
@@ -331,7 +332,8 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
             obj->meta = meta;
             obj->begin = res;
 
-            assert((void *)((size_t)d->mask & (size_t)((size_t)res + d->obj_size / 2)) == res); /// this asssert checks mask
+	        /// this asssert checks mask
+            assert((void *)((size_t)d->mask & (size_t)((size_t)res + d->obj_size / 2)) == res);
             myfile << "gcmalloc: end1" << endl;
             return res;
         }
@@ -339,17 +341,18 @@ void * gcmalloc (size_t s, void * meta, size_t count = 1) {
 
 	assert(sle->last_descr <= SSE_DESCR_COUNT);
     if (sle->last_descr == SSE_DESCR_COUNT) {
-        // TODO: try call GC
-        // if enought space after --- allocate
+        // TODO: after gc call we need to try allocate memory again
+	    // TODO: it is suitable to provide full and partial garbage collection strategies together
+	    gc();
+        // if enough space after --- allocate
+	    // TODO: (look in TODO upstairs)
         // otherwise --- allocate new sle
         SegregatedListElement * new_sle = allocate_new_SegregatedListElement(ss_i);
 	    new_sle->next = sle; sle = new_sle;
 	    segregated_storage[ss_i].first = new_sle;
     }
-	PageDescriptor * d = &(sle->descrs[sle->last_descr]);
 	sle->last_descr++;
-    assert(d != NULL);
-    return allocate_on_new_page(d, size, meta, count);
+    return allocate_on_new_page(&(sle->descrs[sle->last_descr]), size, meta, count);
 }
 
 /* returns object header by the pointer somewhere in */
@@ -394,10 +397,9 @@ void sweep (void) {
 PageDescriptor * calculate_ob_i_and_mask (size_t * ob_i, long * mask, void * ptr) {
     PageDescriptor * d = (PageDescriptor *)IT_get_page_descr(ptr);
     if (d == NULL) { return NULL; }
-    size_t pot = power_of_two(d->obj_size), bi = SYSTEM_BIT_SIZE - OBJECTS_PER_PAGE_BITS - pot;
+    int pot = power_of_two(d->obj_size), bi = (int)SYSTEM_BIT_SIZE - (int)OBJECTS_PER_PAGE_BITS - pot;
     *ob_i = (d->mask << bi) >> (bi + pot);
-    size_t mb_i = *ob_i / BITS_PER_LONG,
-            bit_i = *ob_i % BITS_PER_LONG;
+    size_t bit_i = *ob_i % BITS_PER_LONG;
     *mask = (long)1 << (BITS_PER_LONG - bit_i - 1);
     return d;
 }
@@ -445,7 +447,9 @@ void clear_page_flags (PageDescriptor * d) {
     memset(d->pin_bits, 0, MARK_BITS_ARRAY_SIZE);
 }
 
-bool mark_after_overflow() {}
+bool mark_after_overflow() {
+// TODO
+}
 
 ///////////
 // TESTS //

@@ -184,13 +184,13 @@ void IT_print_tree (void) {
 #define SSE_SIZE 4096
 #define SSE_DESCR_COUNT ((SSE_SIZE - sizeof(SegregatedListElement)) / sizeof(PageDescriptor))
 struct SegregatedListElement {
-    SegregatedListElement * next;
+    SegregatedListElement * next, * prev;
     uint last_descr; // last descr of last allocated page
     PageDescriptor descrs[0];
 };
 struct SegregatedList {
     uint size; // log_2 (sizeof objects that are stored in this Segregated List)
-    SegregatedListElement * first; // pointer on the first SegregatedListElement
+    SegregatedListElement * first, * last; // pointer on the first SegregatedListElement
 };
 SegregatedList segregated_storage[SEGREGATED_STORAGE_SIZE];
 
@@ -200,17 +200,16 @@ void init_segregated_storage (void) {
     size_t sle_size = 4; // i.e. min size == 32 (i.e. round_up_to_power_of_two(16(i.e. 16 === sizeof(Object)) + ?))
     for (int i = 0; i < SEGREGATED_STORAGE_SIZE; i++, sle_size++) {
         segregated_storage[i].size = (uint)sle_size;
-        segregated_storage[i].first = NULL;
+        segregated_storage[i].first = segregated_storage[i].last = NULL;
     }
 }
 
 SegregatedListElement * allocate_new_SegregatedListElement (int ss_i) {
     SegregatedListElement * sle = (SegregatedListElement *)mmap(NULL, SSE_SIZE,
                                                                 PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-    sle->next = segregated_storage[ss_i].first;
+    sle->next = sle->prev = NULL;
     sle->last_descr = 0;
     for (int i = 0; i < SSE_DESCR_COUNT; i++) { sle->descrs[i] = {0, 0, 0, NULL, NULL}; }
-    segregated_storage[ss_i].first = sle;
     return sle;
 }
 
@@ -290,7 +289,6 @@ base_meta * get_meta_inf (void * ptr) {  /*!< get the block with meta_inf*/
 }
 
 // TODO we need some gc strotegy
-size_t sle_counter = 0;
 void * gcmalloc (size_t s, void * meta, size_t count = 1) {
 gcmalloc_begin:
     myfile << "gcmalloc: " << endl;
@@ -303,8 +301,11 @@ gcmalloc_begin:
     size_t sle_size = (size_t)1 << pot;
     assert(sle_size != 0);
     assert(sle_size == ((size_t)1 << segregated_storage[ss_i].size));
-    SegregatedListElement * sle = segregated_storage[ss_i].first != NULL ? segregated_storage[ss_i].first
-                                                                         : allocate_new_SegregatedListElement(ss_i);
+	SegregatedListElement * sle = segregated_storage[ss_i].first;
+	if (sle == NULL) {
+		sle = allocate_new_SegregatedListElement(ss_i);
+		segregated_storage[ss_i].first = segregated_storage[ss_i].last = sle;
+	}
     assert(sle != NULL);
 
     // TODO: it is possible to speed up allocation just try only to allocate Obj in sle->descr[i]
@@ -343,24 +344,24 @@ gcmalloc_begin:
     if (sle->last_descr == SSE_DESCR_COUNT) {
         // TODO: after gc call we need to try allocate memory again
 	    // TODO: it is suitable to provide full and partial garbage collection strategies together
-	    sle_counter++;
-	    if (sle_counter == 10) {
-		    sle_counter = 0;
-printf("call gc\n");
-		    myfile << "gcmalloc : call gc" << endl;
-//		    gc();
-		    myfile << "gcmalloc : after gc goto begin \n" << endl;
-		    goto gcmalloc_begin;
-	    }
+//	    sle_counter++;
+//	    if (sle_counter == 10) {
+//		    sle_counter = 0;
+//printf("call gc\n");
+//		    myfile << "gcmalloc : call gc" << endl;
+////		    gc();
+//		    myfile << "gcmalloc : after gc goto begin \n" << endl;
+//		    goto gcmalloc_begin;
+//	    }
         // if enough space after --- allocate
 	    // TODO: (look in TODO upstairs)
         // otherwise --- allocate new sle
         SegregatedListElement * new_sle = allocate_new_SegregatedListElement(ss_i);
-	    new_sle->next = sle; sle = new_sle;
+	    new_sle->next = sle; new_sle->prev = NULL; sle->prev = new_sle; sle = new_sle;
 	    segregated_storage[ss_i].first = new_sle;
     }
 	sle->last_descr++;
-    return allocate_on_new_page(&(sle->descrs[sle->last_descr]), size, meta, count);
+    return allocate_on_new_page(&(sle->descrs[sle->last_descr-1]), size, meta, count);
 }
 
 /* returns object header by the pointer somewhere in */
@@ -475,6 +476,49 @@ struct MovedObjectsListElement {
 	void * to;
 	MovedObjectsListElement * next;
 };
+
+extern void clear_page_flags(PageDescriptor *);
+bool get_next_descr(SegregatedListElement *& sle1, int * descr_i_1, PageDescriptor *& d1, PageDescriptor * d2) {
+get_next_descr_begin:
+	if (*descr_i_1 < (int)(SSE_DESCR_COUNT - 1)) {
+		(*descr_i_1)++;
+		if (d1) { clear_page_flags(d1); }
+		d1 = &sle1->descrs[*descr_i_1];
+		if (d1 == d2) {
+			return true;
+		}
+		if (d1->obj_size == 0) {
+			goto get_next_descr_begin;
+		} else {
+			return false;
+		}
+	}
+	*descr_i_1 = -1;
+	sle1 = sle1->next;
+	assert (sle1 != NULL);
+	goto get_next_descr_begin;
+}
+bool get_prev_descr(SegregatedListElement *& sle2, int * descr_i_2, PageDescriptor *& d2, PageDescriptor * d1) {
+get_prev_descr_begin:
+	if (*descr_i_2 > (int)0) {
+		(*descr_i_2)--;
+		if (d2) { clear_page_flags(d2); }
+		d2 = &sle2->descrs[*descr_i_2];
+		if (d1 == d2) {
+			return true;
+		}
+		if (d2->obj_size == 0) {
+			goto get_prev_descr_begin;
+		} else {
+			return false;
+		}
+	}
+	*descr_i_2 = SSE_DESCR_COUNT;
+	sle2 = sle2->prev;
+	assert (sle2 != NULL);
+	goto get_prev_descr_begin;
+}
+
 struct MovedObjectsList {
 	MovedObjectsListElement * first;
 	MovedObjectsList () : first(NULL) {}
@@ -491,6 +535,7 @@ void * get_new_destination (void * f) {
 	}
 	return NULL;
 }
+
 void clear_moved_objects_list (void) {
 	for (MovedObjectsListElement * del = mol.first, * prev = NULL; del != NULL; ) {
 		prev = del->next;
@@ -499,15 +544,18 @@ void clear_moved_objects_list (void) {
 	}
 	mol.first = NULL;
 }
+size_t fixed_count = 0, moved_count = 0, marked_objects = 0, marked_objects_in_sweep = 0, pined_objects_in_sweep = 0;
 
 void fix_one_ptr (void * ptr) {
 	if (ptr != NULL) {
-		void *next = get_next_obj(ptr);
-//		void * next = ptr;
+//		void *next = get_next_obj(ptr);
+		void * next = *(void **)ptr;
 		if (next != NULL) {
 			void * new_destination = get_new_destination(next);
 			if (new_destination != NULL) {
-				*(void **) ptr = move_ptr(*(void **) ptr, new_destination);
+//				printf("fix ptr from %p to %p\n", *(void**)ptr, new_destination);
+				*(void **) ptr = new_destination; // move_ptr(*(void **) ptr, new_destination);
+				fixed_count++;
 			}
 		}
 	}
@@ -520,24 +568,12 @@ void fix_ptr_in_object(void * object, void * meta_ptr) {
 	if (count == 0) { return; }
 	for (int i = 0; i < meta->count; i++) {
 		for (int j = 0; j < count; j++) {
-			void * p = (char *)data + meta->shell[2 + j];
-//			fix_one_ptr(p);
-			if (p != NULL) {
-				void *next = get_next_obj(p);
-				if (next != NULL) {
-					void *new_destination = get_new_destination(next);
-					if (new_destination != NULL) {
-						void * new_p = move_ptr(*(void **)p, new_destination);
-						*(void **) p = new_p;
-						void * new_p2 = (void **)new_p;
-						void * new_p3 = (void **)new_p;
-					}
-				}
-			}
+			fix_one_ptr((char *) data + meta->shell[2 + j]);
 		}
 		data += size;
 	}
 }
+
 void gcmalloc_fix_ptr (void) {
 	int i = 0;
 	for (SegregatedList * sl = &segregated_storage[i]; i < SEGREGATED_STORAGE_SIZE; i++, sl = &segregated_storage[i]) {
@@ -547,8 +583,10 @@ void gcmalloc_fix_ptr (void) {
 				size_t header_size = sizeof(Object), page_end = (size_t)d->page + d->page_size, object_size = d->obj_size;
 				for (Object * obj = (Object *)((size_t)d->page + d->obj_size - header_size); (size_t)obj < page_end;
 				                                                        obj = (Object *)((size_t)obj + object_size)) {
-					if (obj->meta == NULL) { continue; }
-					fix_ptr_in_object(obj->begin, (base_meta *)obj);
+					if (obj->meta != NULL) {
+						obj->begin = (void *)obj - d->obj_size + sizeof(Object);
+						fix_ptr_in_object(obj->begin, (base_meta *) obj);
+					}
 				}
 			}
 		}
@@ -557,14 +595,188 @@ void gcmalloc_fix_ptr (void) {
 	fix_roots();
 	clear_moved_objects_list();
 }
+extern void clear_page_flags(PageDescriptor *);
+void two_fingers_compact_full (void) {
+// TODO maybe forward pointers?
+// TODO somewhere we need to deallocate free space
+	int i = 0;
+	for (SegregatedList * sl = &segregated_storage[i]; i < SEGREGATED_STORAGE_SIZE; i++, sl = &segregated_storage[i]) {
+		SegregatedListElement * sle1 = sl->first, * sle2 = sl->last;
+		if (!sle1) { continue; }
+		int descr_i_1 = -1, descr_i_2 = SSE_DESCR_COUNT - 1;
+		PageDescriptor * d1 = &sle2->descrs[descr_i_2], * d2 = &sle1->descrs[descr_i_1];
+		bool stop = get_next_descr(sle1, &descr_i_1, d1, d2) || get_prev_descr(sle2, &descr_i_2, d2, d1);
+		uint bit_in_size_t = BITS_PER_LONG;
+		int sf_i = OBJECTS_PER_PAGE_COUNT - 1, ff_i = 0, last_occupated_object = -1;
+		bool sf_mark = false, sf_pin, ff_mark = true, ff_pin, descrs_met = false;
+		while (true) {
+			while (!sf_mark) {
+				if (sf_i == -1) {
+					if (descrs_met) {
+						goto end_action;
+					}
+					if (d2 != NULL) {
+						d2->free = last_occupated_object == -1 || last_occupated_object == OBJECTS_PER_PAGE_COUNT - 1
+						           ? NULL
+                                   : (void *)((size_t)d2->page + d2->obj_size * (last_occupated_object + 1));
+					}
+					clear_page_flags(d2);
+					stop = stop || get_prev_descr(sle2, &descr_i_2, d2, d1);
+					if (stop) {
+						descrs_met = true;
+					}
+					last_occupated_object = -1, sf_mark = false, sf_pin = false, sf_i = OBJECTS_PER_PAGE_COUNT - 1;
+				}
+				sf_mark = (bool) (d2->mark_bits[sf_i / bit_in_size_t] &
+				                  ((long) 1 << (bit_in_size_t - (sf_i % bit_in_size_t) - 1)));
+				sf_pin = (bool) (d2->pin_bits[sf_i / bit_in_size_t] &
+				                 ((long) 1 << (bit_in_size_t - (sf_i % bit_in_size_t) - 1)));
+				if (sf_mark) {
+					marked_objects_in_sweep++;
+					goto start_loop_ff;
+				} else if (sf_pin) {
+					pined_objects_in_sweep++;
+					last_occupated_object = last_occupated_object == -1 ? sf_i : last_occupated_object;
+				} else {
+					memset((void *) ((size_t) d2->page + d2->obj_size * sf_i), 0, d2->obj_size);
+				}
+				sf_i--;
+			}
 
-/* produces segregated storage compatificanion
+			start_loop_ff:
+			while (ff_mark) {
+				if (ff_i == OBJECTS_PER_PAGE_COUNT) {
+					if (descrs_met) {
+						if (d2 != NULL) {
+							d2->free = last_occupated_object == -1 || last_occupated_object == OBJECTS_PER_PAGE_COUNT - 1
+							           ? NULL
+							           : (void *)((size_t)d2->page + d2->obj_size * (last_occupated_object + 1));
+						}
+						goto end_action;
+					}
+					if (d1 != NULL) {
+						d1->free = NULL;
+					}
+					clear_page_flags(d1);
+					stop = stop || get_next_descr(sle1, &descr_i_1, d1, d2);
+					if (stop) {
+						descrs_met = true;
+					}
+					ff_mark = false; ff_pin = false; ff_i = 0;
+				}
+				ff_mark = (bool)(d1->mark_bits[ff_i / bit_in_size_t] & ((long)1 << (bit_in_size_t - (ff_i % bit_in_size_t) - 1)));
+				ff_pin = (bool)(d1->pin_bits[ff_i / bit_in_size_t] & ((long)1 << (bit_in_size_t - (ff_i % bit_in_size_t) - 1)));
+				if (ff_mark) {
+					marked_objects_in_sweep++;
+				} else if (ff_pin) {
+					pined_objects_in_sweep++;
+				} else {
+					memset((void *)((size_t)d1->page + d1->obj_size * ff_i), 0, d1->obj_size);
+					goto move_object;
+				}
+				ff_i++;
+			}
+			if (ff_i >= sf_i && descrs_met) {
+				clear_page_flags(d1);
+				goto end_action;
+			}
+
+			move_object:
+			void * to_place = (void *)((size_t)d1->page + d1->obj_size * ff_i),
+					* from_place = (void *)((size_t)d2->page + d2->obj_size * sf_i);
+			memcpy(to_place, from_place, d1->obj_size);
+			memset(from_place, 0, d1->obj_size);
+			// TODO change to forward pointer!
+			add_moved_record(from_place, to_place);
+//			printf("moved %p to %p %i %i\n", from_place, to_place, sf_i, ff_i);
+			moved_count++;
+
+			sf_mark = false, ff_mark = true, ff_i++, sf_i--;
+		}
+	}
+	end_action:
+	gcmalloc_fix_ptr();
+	printf("moved count == %zu\n", moved_count);
+	printf("fixed count == %zu\n", fixed_count);
+	printf("marked count == %zu %zu pined count = %zu\n", marked_objects, marked_objects_in_sweep, pined_objects_in_sweep);
+	moved_count = fixed_count = marked_objects_in_sweep = marked_objects_in_sweep = pined_objects_in_sweep = 0;
+}
+
+void two_fingers_compact (void) {
+// TODO rewrite to two fingers algorithm and then maybe forward pointers?
+	int i = 0;
+	for (SegregatedList * sl = &segregated_storage[i]; i < SEGREGATED_STORAGE_SIZE; i++, sl = &segregated_storage[i]) {
+		for (SegregatedListElement * sle = sl->first; sle != NULL; sle = sle->next) {
+			for (uint descr_i = 0; descr_i < SSE_DESCR_COUNT; descr_i++) {
+				PageDescriptor *d = &(sle->descrs[descr_i]);
+				if (d->obj_size == 0) {
+					continue;
+				}
+				int ff_i = -1, sf_i = OBJECTS_PER_PAGE_COUNT + 1;
+				uint bit_in_size_t = BITS_PER_LONG;
+				bool ff_mark , ff_pin, sf_mark, sf_pin;
+				while (true) {
+					do {
+						sf_i--;
+						sf_mark = (bool)(d->mark_bits[sf_i / bit_in_size_t] & ((long)1 << (bit_in_size_t - (sf_i % bit_in_size_t) - 1)));
+						sf_pin = (bool)(d->pin_bits[sf_i / bit_in_size_t] & ((long)1 << (bit_in_size_t - (sf_i % bit_in_size_t) - 1)));
+						if (sf_mark) {
+							marked_objects_in_sweep++;
+						} else if (sf_pin) {
+							pined_objects_in_sweep++;
+						} else {
+							memset((void *)((size_t)d->page + d->obj_size * sf_i), 0, d->obj_size);
+						}
+					} while ((!sf_mark || sf_pin) && ff_i < sf_i);
+					do {
+						if (ff_i >= sf_i - 1) {
+							goto fingers_met;
+						}
+						ff_i++;
+						ff_mark = (bool)(d->mark_bits[ff_i / bit_in_size_t] & ((long)1 << (bit_in_size_t - (ff_i % bit_in_size_t) - 1)));
+						ff_pin = (bool)(d->pin_bits[ff_i / bit_in_size_t] & ((long)1 << (bit_in_size_t - (ff_i % bit_in_size_t) - 1)));
+						if (ff_mark && ff_i != sf_i) {
+							marked_objects_in_sweep++;
+						} else if (ff_pin) {
+							pined_objects_in_sweep++;
+						} else {
+							memset((void *)((size_t)d->page + d->obj_size * ff_i), 0, d->obj_size);
+						}
+					} while ((ff_mark || ff_pin) &&  ff_i < sf_i);
+					if (ff_i >= sf_i) {
+						goto fingers_met;
+					}
+					// move object
+					void * to_place = (void *)((size_t)d->page + d->obj_size * ff_i),
+							* from_place = (void *)((size_t)d->page + d->obj_size * sf_i);
+					memcpy(to_place, from_place, d->obj_size);
+					memset(from_place, 0, d->obj_size);
+					// TODO change to forward pointer!
+					add_moved_record(from_place, to_place);
+					printf("moved %p to %p %i %i\n", from_place, to_place, sf_i, ff_i);
+					moved_count++;
+				}
+				fingers_met:
+				d->free = sf_i != OBJECTS_PER_PAGE_COUNT ? (void *)((size_t)d->page + d->obj_size * (sf_i + 1)) : NULL;
+				clear_page_flags(d);
+			}
+		}
+	}
+	gcmalloc_fix_ptr();
+	printf("moved count == %zu\n", moved_count);
+	printf("fixed count == %zu\n", fixed_count);
+	printf("marked count == %zu %zu pined count = %zu\n", marked_objects, marked_objects_in_sweep, pined_objects_in_sweep);
+	moved_count = fixed_count = marked_objects_in_sweep = marked_objects_in_sweep = pined_objects_in_sweep = 0;
+}
+
+/* produces segregated storage compactification
  * if some SegregatedListElement is fully free --- calls deallocates its deallocation
  * clears mark and pin bits
  * calls fix_ptr after compactification
  * */
 void sweep (void) {
 // TODO check this function
+// TODO rewrite to two fingers algorithm and then maybe forward pointers?
 	int i = 0;
 	for (SegregatedList * sl = &segregated_storage[i]; i < SEGREGATED_STORAGE_SIZE; i++, sl = &segregated_storage[i]) {
 		FreeList * sl_freeList = (FreeList *)malloc(sizeof(FreeList));
@@ -595,12 +807,13 @@ void sweep (void) {
 						                                                           + CHAR_BIT * sizeof(size_t) - 1 - in_mark_pin_i) * d->obj_size);
 						assert((size_t)current_object_begin - (size_t)d->page < d->page_size);
 						if (mark) {
+							marked_objects_in_sweep++;
 							if (pin) { // cannot move object
 								last_occupied_object_on_page = current_object_begin;
 								continue;
 							} else { // try to move object if possible
 								size_t to_place = 0;
-								PageDescriptor * destination_d = sl_freeList->remove_first(&to_place);
+								PageDescriptor * destination_d = sle_freeList->remove_first(&to_place);
 								assert(destination_d == NULL || destination_d->obj_size != (size_t) 0);
 								if (to_place == 0) {
 									destination_d = sl_freeList->remove_first(&to_place);
@@ -610,8 +823,15 @@ void sweep (void) {
 								if (to_place != 0) {
 									// move object
 									memcpy((void *)to_place, current_object_begin, d->obj_size);
+									void * bm1 = ((base_meta *)((void *)to_place + d->obj_size - sizeof(Object)))->shell,
+										* bm2 = ((base_meta *)(current_object_begin + d->obj_size - sizeof(Object)))->shell;
 									// clear memory area that was occupied by object was moved
+									assert((void *)to_place != current_object_begin);
+									assert(destination_d->obj_size == d->obj_size);
+									assert(current_object_begin + d->obj_size <= (void*)to_place ||
+											       current_object_begin >= (void*)to_place + d->obj_size);
 									memset(current_object_begin, 0, d->obj_size);
+									assert(bm1 == bm2);
 									// if object is moved on current page then update last_occupied_object_on_page
 									if ((destination_d->page == d->page) && (size_t)to_place > (size_t)last_occupied_object_on_page) {
 										last_occupied_object_on_page = (void *)to_place;
@@ -635,6 +855,9 @@ void sweep (void) {
 									}
 									// add record about this movement in a table
 									add_moved_record(current_object_begin, (void *)to_place);
+//									printf("objetc %p moved to %p\n", current_object_begin, (void *)to_place);
+									assert(destination_d->free != destination_d->page);
+									moved_count++;
 								} else { // object is not moved ==> update last_occupied_object_on_page
 									last_occupied_object_on_page = current_object_begin;
 								}
@@ -652,7 +875,7 @@ void sweep (void) {
 				} else { // update d->free and last_occupied_descr
 					last_occupied_descr = descr_i;
 					void * new_d_free = (void *)((size_t)last_occupied_object_on_page + d->obj_size);
-					d->free = (size_t)new_d_free + d->obj_size <= (size_t)d->page + d->page_size ? new_d_free : NULL;
+					d->free = (size_t)new_d_free < (size_t)d->page + d->page_size ? new_d_free : NULL;
 					assert(d->free == NULL || ((size_t)d->free >= (size_t)d->page) && (size_t)d->free < (size_t)d->page + d->page_size);
 				}
 			}
@@ -681,6 +904,9 @@ void sweep (void) {
 		sl_freeList->clear_list();
 		free(sl_freeList);
 	}
+	printf("moved xount == %zu\n", moved_count);
+	printf("fixed xount == %zu\n", fixed_count);
+	printf("marked xount == %zu %zu\n", marked_objects, marked_objects_in_sweep);
 	gcmalloc_fix_ptr();
 }
 
@@ -693,6 +919,7 @@ PageDescriptor * calculate_ob_i_and_mask (size_t * ob_i, long * mask, void * ptr
     if (d == NULL) { return NULL; }
     int pot = power_of_two(d->obj_size), bi = (int)SYSTEM_BIT_SIZE - (int)OBJECTS_PER_PAGE_BITS - pot;
     *ob_i = ((d->mask & (size_t)ptr) << bi) >> (bi + pot);
+assert(ptr == d->page + *ob_i * d->obj_size);
     size_t bit_i = *ob_i % BITS_PER_LONG;
     *mask = (long)1 << (BITS_PER_LONG - bit_i - 1);
     return d;
@@ -711,6 +938,7 @@ int mark_object (void * ptr, bool mark_pin) {
     long * array = mark_pin ? d->mark_bits : d->pin_bits;
     if ((array[ob_i / BITS_PER_LONG] & mask) == mask) { return 1; }
     array[ob_i / BITS_PER_LONG] |= mask;
+	marked_objects++;
     return 0;
 
 }
@@ -738,8 +966,9 @@ int get_object_mark (void * ptr, bool mark_pin) {
 }
 
 void clear_page_flags (PageDescriptor * d) {
-    memset(d->mark_bits, 0, MARK_BITS_ARRAY_SIZE);
-    memset(d->pin_bits, 0, MARK_BITS_ARRAY_SIZE);
+	if (d == NULL) { return; }
+    memset(d->mark_bits, 0, MARK_BITS_ARRAY_SIZE * sizeof(long));
+    memset(d->pin_bits, 0, MARK_BITS_ARRAY_SIZE * sizeof(long));
 }
 
 bool mark_after_overflow() {

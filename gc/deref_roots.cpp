@@ -56,7 +56,7 @@ void register_dereferenced_root(void* root, size_t size) {
     }
     pthread_mutex_unlock(&deref_mutex);
     if (need_gc) {
-        gc(false);
+//        gc(false);
         expand_count = 0;
         if (expand_factor != 1) {
             expand_factor /= 2;

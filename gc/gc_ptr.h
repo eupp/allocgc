@@ -28,6 +28,8 @@
 #define get_both_flags(x)       (uintptr_t) ((uintptr_t)x & (uintptr_t)3)
 #define restore_flags(x, fl)    (void*)     ((uintptr_t)x | (uintptr_t)fl)
 
+using namespace _GC_;
+
 /**
 * @class Composite_pointer
 * @brief represents tertiary pointer level;

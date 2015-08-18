@@ -15,6 +15,7 @@ constexpr int PAGE_SIZE = 4096;
 constexpr int ELEM_PER_PAGE = PAGE_SIZE / sizeof(StackElement);
 
 void StackMap::register_stack_root(void * newAddr) {
+	dprintf("register root %p\n", newAddr);
 	if (free_list == nullptr) {
 		StackElement * data = (StackElement *) mmap(nullptr, PAGE_SIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		assert(data != MAP_FAILED);
@@ -39,16 +40,18 @@ void StackMap::delete_stack_root(void * address) {
 		// so we need to find and replace object that might be deleted
 		// by object that is on the top
 		dprintf("wrong element on the top ");
-		StackElement * temp = top;
+		StackElement *temp = top;
 		while (temp != nullptr) {
 			if (temp->addr == address) {
 				temp->addr = top->addr;
-				break;
+				goto end_a;
 			}
 			temp = temp->next;
 		}
+		assert(false);
 	}
-	StackElement* deleted = top;
+	end_a:
+	StackElement *deleted = top;
 	top = top->next;
 	deleted->next = free_list;
 	free_list = deleted;

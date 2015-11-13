@@ -1,0 +1,1 @@
+There is no makefile(temporally), because to work with msmalloc now it is necessary to build full project from makefile-s.

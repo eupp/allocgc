@@ -6,9 +6,11 @@
 *****************************************************************************************/
 
 #pragma once
-#include "stack.h"
+
 #include <stdint.h>
-#include "malloc.h"
+
+#include "stack.h"
+#include "gcmalloc_util.h"
 #include "deref_roots.h"
 #include "threading.h"
 

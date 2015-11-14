@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdlib>
+
 namespace _GC_ {
 	/**
 	* @class base_meta

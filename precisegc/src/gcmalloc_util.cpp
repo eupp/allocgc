@@ -1,4 +1,5 @@
-#include <malloc.h>
+#include "gcmalloc_util.h"
+
 #include "go.h"
 #include "index_tree.h"
 #include "gc_ptr.h"
@@ -325,6 +326,7 @@ void clear_moved_objects_list (void) {
 	}
 	mol.first = NULL;
 }
+
 size_t fixed_count = 0, moved_count = 0, marked_objects = 0, marked_objects_in_sweep = 0, pined_objects_in_sweep = 0;
 
 #define forward_pointer(ptr)            (*((void**) ptr))

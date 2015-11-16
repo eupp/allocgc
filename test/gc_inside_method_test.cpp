@@ -22,12 +22,13 @@ public:
         return value;
     }
 
-    void test(gc_ptr<A> parent) {
+    int test(gc_ptr<A> parent) {
         parent->b.setNULL();
         gc();
         gc_new<A>();
         gc_new<A>();
         gc_new<A>();
+        return value;
     }
 };
 
@@ -35,8 +36,7 @@ TEST(gc_inside_method_test, test)
 {
     gc_ptr<A> a = gc_new<A>();
     int v1 = a->b->get_value();
-    a->b->test(a);
-    int v2 = a->b->get_value();
+    int v2 = a->b->test(a);
     EXPECT_EQ(v1, v2);
 }
 
@@ -62,14 +62,13 @@ public:
     int dvalue;
     D(int v = 0xdeadbeef) : dvalue(v) {}
 
-    void test(gc_ptr<CDHolder> holder) {
-        int v = dvalue;
+    int test(gc_ptr<CDHolder> holder) {
         holder->cd.setNULL();
         gc();
         gc_new<CD>();
         gc_new<CD>();
         gc_new<CD>();
-        assert(v == dvalue);
+        return dvalue;
     }
 };
 
@@ -87,8 +86,7 @@ TEST(gc_inside_method_test, test_multiple_inheritance)
 {
     gc_ptr<CDHolder> holder = gc_new<CDHolder>();
     int v1 = holder->cd->get_value();
-    holder->cd->test(holder);
-    int v2 = holder->cd->get_value();
+    int v2 = holder->cd->test(holder);
     EXPECT_EQ(v1, v2);
 }
 

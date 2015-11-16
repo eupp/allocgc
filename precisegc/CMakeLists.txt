@@ -4,7 +4,7 @@ set(precisegc_LIB_SRCS
         src/gc_malloc.cpp
         src/go.cpp
         src/index_tree.cpp
-        src/gcmalloc_util.cpp
+		src/heap.cpp
 		src/mark.cpp
         src/stack.cpp
         src/taginfo.cpp
@@ -18,7 +18,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.h
         include/libprecisegc/go.h
         include/libprecisegc/gc_new.h
-        include/libprecisegc/gcmalloc_util.h
+		include/libprecisegc/heap.h
         include/libprecisegc/index_tree.h
         include/libprecisegc/stack.h
         include/libprecisegc/taginfo.h

@@ -17,9 +17,9 @@ namespace _GC_ {
     int set_meta_after_gcmalloc(void *, void *);
     bool is_heap_pointer(void *);
     base_meta *get_meta_inf(void *);
-    void init_segregated_storage(void);
+    int init_segregated_storage(void);
 
-    void *gcmalloc(size_t, void *, size_t);
+    void* gcmalloc(size_t, void *, size_t);
     void remove_object(void *ptr);
 
     int mark_object(void *ptr, bool mark_pin);

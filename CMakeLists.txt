@@ -4,7 +4,8 @@ include(CheckFunctionExists)
 include (CheckLibraryExists)
 cmake_minimum_required(VERSION 3.0.2)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O2")
 
 CHECK_LIBRARY_EXISTS(m main "" HAVE_LIBM)
 

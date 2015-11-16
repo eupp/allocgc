@@ -1,4 +1,4 @@
-#include "gcmalloc_util.h"
+#include "heap.h"
 
 #include "go.h"
 #include "index_tree.h"
@@ -11,6 +11,7 @@
 using namespace _GC_;
 
 static pthread_mutex_t malloc_mutexes[SegregatedStorageSize];
+static const int init_res = init_segregated_storage();
 
 void lock_all_mutexes (void) {
 	for (int i = 0; i < SegregatedStorageSize; i++) {
@@ -25,7 +26,7 @@ void unlock_all_mutexes (void) {
 
 bool _GC_::is_heap_pointer(void *ptr) { return IT_get_page_descr(ptr) != NULL; }
 
-void _GC_::init_segregated_storage (void) {
+int _GC_::init_segregated_storage (void) {
     myfile.open("log.out");
 
     size_t sle_size = 4; // i.e. min size == 32 (i.e. round_up_to_power_of_two(16(i.e. 16 === sizeof(Object)) + ?))
@@ -34,6 +35,7 @@ void _GC_::init_segregated_storage (void) {
         segregated_storage[i].first = segregated_storage[i].last = NULL;
 	    malloc_mutexes[i] = PTHREAD_MUTEX_INITIALIZER;
     }
+	return 0;
 }
 
 SegregatedListElement * allocate_new_SegregatedListElement (void) {

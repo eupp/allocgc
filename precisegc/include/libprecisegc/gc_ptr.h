@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include "stack.h"
-#include "gcmalloc_util.h"
+#include "heap.h"
 #include "deref_roots.h"
 #include "threading.h"
 

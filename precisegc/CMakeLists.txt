@@ -1,17 +1,5 @@
 
-set(precisegc_LIB_SRCS
-        src/deref_roots.cpp
-        src/gc_malloc.cpp
-        src/go.cpp
-        src/index_tree.cpp
-		src/heap.cpp
-		src/mark.cpp
-        src/stack.cpp
-        src/taginfo.cpp
-        src/threading.cpp
-        src/tlvars.cpp)
-
-set(precisegc_LIB_HDRS
+set(precisegc_LIB_PUB_HDRS
         include/libprecisegc/debug_print.h
         include/libprecisegc/fake_roots.h
         include/libprecisegc/gc_malloc.h
@@ -25,15 +13,37 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/tlvars.h
         include/libprecisegc/threading.h
         include/libprecisegc/meta_information.h
-        include/libprecisegc/deref_roots.h)
+        include/libprecisegc/deref_roots.h
+        )
+
+set(precisegc_LIB_PRIV_HDRS
+        include/details/meta.h
+        include/details/mutex.h
+        include/details/os.h
+        )
+
+set(precisegc_LIB_SRCS
+        src/deref_roots.cpp
+        src/gc_malloc.cpp
+        src/go.cpp
+        src/index_tree.cpp
+        src/heap.cpp
+        src/mark.cpp
+        src/stack.cpp
+        src/taginfo.cpp
+        src/threading.cpp
+        src/tlvars.cpp
+        )
+
 
 include_directories(include/libprecisegc)
+include_directories(include/details)
 
-add_library(libprecisegc SHARED ${precisegc_LIB_SRCS})
+add_library(libprecisegc SHARED ${precisegc_LIB_PUB_HDRS} ${precisegc_LIB_PRIV_HDRS} ${precisegc_LIB_SRCS})
 
 find_package(Threads REQUIRED)
 target_link_libraries(libprecisegc "${CMAKE_THREAD_LIBS_INIT}")
 
 set_target_properties(libprecisegc PROPERTIES VERSION 1.0.0 SOVERSION 1)
 install(TARGETS libprecisegc LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${precisegc_LIB_SRCS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libprecisegc)
+install(FILES ${precisegc_LIB_PUB_HDRS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libprecisegc)

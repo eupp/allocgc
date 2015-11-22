@@ -6,6 +6,11 @@
 
 namespace precisegc { namespace details {
 
+segregated_list_element::segregated_list_element(segregated_list_element *next, segregated_list_element *prev)
+{
+    m_header = {next, prev, NULL_PAGE_ID};
+}
+
 void* segregated_list_element::allocate(size_t size)
 {
     assert(is_memory_available(size));

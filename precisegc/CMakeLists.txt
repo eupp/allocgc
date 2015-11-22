@@ -1,5 +1,5 @@
 
-set(precisegc_LIB_PUB_HDRS
+set(precisegc_LIB_HDRS
         include/libprecisegc/debug_print.h
         include/libprecisegc/fake_roots.h
         include/libprecisegc/gc_malloc.h
@@ -18,7 +18,7 @@ set(precisegc_LIB_PUB_HDRS
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/mutex.h
         include/libprecisegc/details/os.h
-        include/libprecisegc/details/segregated_storage.h include/libprecisegc/details/constants.h include/libprecisegc/details/os_mem_ptr.h)
+        include/libprecisegc/details/segregated_storage.h include/libprecisegc/details/constants.h include/libprecisegc/details/os_mem_ptr.h include/libprecisegc/details/util.h include/libprecisegc/details/bit_array.h)
 
 
 set(precisegc_LIB_SRCS
@@ -45,4 +45,4 @@ target_link_libraries(libprecisegc "${CMAKE_THREAD_LIBS_INIT}")
 
 set_target_properties(libprecisegc PROPERTIES VERSION 1.0.0 SOVERSION 1)
 install(TARGETS libprecisegc LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${precisegc_LIB_PUB_HDRS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libprecisegc)
+install(FILES ${precisegc_LIB_HDRS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libprecisegc)

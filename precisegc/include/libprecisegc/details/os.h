@@ -6,7 +6,7 @@
 
 namespace precisegc { namespace details {
 
-void* memory_allocate(size_t size)
+inline void* memory_allocate(size_t size)
 {
     void* mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (mem == MAP_FAILED) {
@@ -15,7 +15,7 @@ void* memory_allocate(size_t size)
     return mem;
 }
 
-void memory_deallocate(void* ptr, size_t size)
+inline void memory_deallocate(void* ptr, size_t size)
 {
     assert(ptr);
     munmap(ptr, size);

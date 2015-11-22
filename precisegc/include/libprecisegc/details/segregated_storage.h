@@ -15,8 +15,8 @@ class segregated_list_element;
 
 struct segregated_list_element_header
 {
-    segregated_list_element* m_prev;
     segregated_list_element* m_next;
+    segregated_list_element* m_prev;
     size_t m_last_used_page;
 };
 

@@ -6,7 +6,7 @@ set(precisegc_LIB_PUB_HDRS
         include/libprecisegc/gc_ptr.h
         include/libprecisegc/go.h
         include/libprecisegc/gc_new.h
-		include/libprecisegc/heap.h
+        include/libprecisegc/heap.h
         include/libprecisegc/index_tree.h
         include/libprecisegc/stack.h
         include/libprecisegc/taginfo.h
@@ -14,13 +14,12 @@ set(precisegc_LIB_PUB_HDRS
         include/libprecisegc/threading.h
         include/libprecisegc/meta_information.h
         include/libprecisegc/deref_roots.h
-        )
 
-set(precisegc_LIB_PRIV_HDRS
-        include/details/meta.h
-        include/details/mutex.h
-        include/details/os.h
-        )
+        include/libprecisegc/details/class_meta.h
+        include/libprecisegc/details/mutex.h
+        include/libprecisegc/details/os.h
+        include/libprecisegc/details/segregated_storage.h include/libprecisegc/details/constants.h include/libprecisegc/details/os_mem_ptr.h)
+
 
 set(precisegc_LIB_SRCS
         src/deref_roots.cpp
@@ -33,11 +32,11 @@ set(precisegc_LIB_SRCS
         src/taginfo.cpp
         src/threading.cpp
         src/tlvars.cpp
-        )
+        src/page_descriptor.cpp src/segregated_storage.cpp)
 
 
 include_directories(include/libprecisegc)
-include_directories(include/details)
+include_directories(include/libprecisegc/details)
 
 add_library(libprecisegc SHARED ${precisegc_LIB_PUB_HDRS} ${precisegc_LIB_PRIV_HDRS} ${precisegc_LIB_SRCS})
 

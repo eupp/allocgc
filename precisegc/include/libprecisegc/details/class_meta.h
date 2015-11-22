@@ -11,9 +11,9 @@
 namespace precisegc { namespace details {
 
 template <typename T>
-class meta_provider;
+class class_meta_provider;
 
-class meta
+class class_meta
 {
 public:
     const std::vector<size_t>& get_offsets() const noexcept
@@ -22,9 +22,9 @@ public:
     }
 
     template <typename T>
-    friend class meta_provider;
+    friend class class_meta_provider;
 private:
-    meta(const std::vector<size_t>& offsets)
+    class_meta(const std::vector<size_t>& offsets)
         : m_offsets(offsets)
     {}
 
@@ -32,11 +32,11 @@ private:
 };
 
 template <typename T>
-class meta_provider
+class class_meta_provider
 {
 public:
 
-    bool is_created()
+    bool is_created() const
     {
         mutex_lock<recursive_mutex> lock(&meta_mutex);
         return meta_inf != nullptr;
@@ -48,26 +48,33 @@ public:
         if (is_created()) {
             return;
         }
-        meta_inf.reset(new meta(offsets));
+        meta_inf.reset(new class_meta(offsets));
     }
 
-    const meta& get_meta()
+    const class_meta & get_meta() const
     {
-        // we don't need syncronization here since meta is immutable object
+        // we don't need syncronization here since class_meta is immutable object
         assert(this->meta_inf);
         return *meta_inf;
     }
 
+    const class_meta* get_meta_ptr() const
+    {
+        // we don't need syncronization here since class_meta is immutable object
+        assert(this->meta_inf);
+        return meta_inf.get();
+    }
+
 private:
     static recursive_mutex meta_mutex;
-    static std::unique_ptr<meta> meta_inf;
+    static std::unique_ptr<class_meta> meta_inf;
 };
 
 template <typename T>
-recursive_mutex meta_provider<T>::meta_mutex = recursive_mutex();
+recursive_mutex class_meta_provider<T>::meta_mutex = recursive_mutex();
 
 template <typename T>
-std::unique_ptr<meta> meta_provider<T>::meta_inf = nullptr;
+std::unique_ptr<class_meta> class_meta_provider<T>::meta_inf = nullptr;
 
 } }
 

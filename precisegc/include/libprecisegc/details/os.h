@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_OS_H
 #define DIPLOMA_OS_H
 
+#include <cassert>
 #include <sys/mman.h>
 
 namespace precisegc { namespace details {
@@ -12,6 +13,12 @@ void* memory_allocate(size_t size)
         mem = nullptr;
     }
     return mem;
+}
+
+void memory_deallocate(void* ptr, size_t size)
+{
+    assert(ptr);
+    munmap(ptr, size);
 }
 
 } }

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <vector>
-#include "details/meta.h"
+#include "libprecisegc/details/class_meta.h"
 
 using namespace std;
 using namespace precisegc::details;
@@ -10,15 +10,15 @@ struct type_1 {};
 struct type_2 {};
 struct type_3 {};
 
-TEST(meta_test, test_is_initialized)
+TEST(class_meta_test, test_is_initialized)
 {
-    meta_provider<type_1> provider;
+    class_meta_provider<type_1> provider;
     EXPECT_FALSE(provider.is_created());
 }
 
-TEST(meta_test, test_create_meta)
+TEST(class_meta_test, test_create_meta)
 {
-    meta_provider<type_2> provider;
+    class_meta_provider<type_2> provider;
     vector<size_t> offsets({1, 2, 3});
     provider.create_meta(offsets);
     EXPECT_TRUE(provider.is_created());
@@ -29,13 +29,13 @@ static pthread_barrier_t g_barrier;
 
 void* thread_routine(void* arg)
 {
-    meta_provider<type_3> provider;
+    class_meta_provider<type_3> provider;
     vector<size_t>* offsets = reinterpret_cast<vector<size_t>*>(arg);
     pthread_barrier_wait(&g_barrier);
     provider.create_meta(*offsets);
 }
 
-TEST(meta_test, test_threading)
+TEST(class_meta_test, test_threading)
 {
     vector<size_t> offsets;
     for (int i = 0; i < 1000; ++i) {
@@ -59,7 +59,7 @@ TEST(meta_test, test_threading)
 
     pthread_barrier_destroy(&g_barrier);
 
-    meta_provider<type_3> provider;
+    class_meta_provider<type_3> provider;
     EXPECT_TRUE(provider.is_created());
     EXPECT_EQ(offsets, provider.get_meta().get_offsets());
 }

@@ -19,20 +19,20 @@ page_descriptor::~page_descriptor()
     clear_page();
 }
 
-void page_descriptor::initialize_page(size_t page_size, size_t obj_size)
+void page_descriptor::initialize_page(size_t obj_size)
 {
     clear_page();
-    m_page_size = page_size;
-    m_page = memory_allocate(page_size);
+    auto alloc_res = allocate_page(obj_size);
+    m_page = alloc_res.first;
+    m_page_size = alloc_res.second;
     m_free = m_page;
-    assert(m_page);
-    m_mask = calculate_mask(page_size, obj_size, m_page);
+    m_mask = calculate_mask(m_page_size, obj_size, m_page);
 }
 
 void page_descriptor::clear_page()
 {
     if (m_page) {
-        memory_deallocate(m_page, m_page_size);
+        memory_align_deallocate(m_page);
         m_page = nullptr;
         m_free = nullptr;
         m_page_size = 0;
@@ -60,6 +60,21 @@ void* page_descriptor::get_object_start(void *ptr) const noexcept
     size_t ptr_ = (size_t) ptr;
     assert(((size_t) m_page <= ptr_) && (ptr_ < (size_t) m_page + m_page_size));
     return (void*) (ptr_ & m_mask);
+}
+
+std::pair<void*, size_t> page_descriptor::allocate_page(size_t obj_size)
+{
+    void* page = nullptr;
+    size_t obj_count_bits = OBJECTS_PER_PAGE_BITS;
+    size_t page_size = obj_size << obj_count_bits;
+    while (!page) {
+        assert(obj_count_bits <= MAX_PAGE_SIZE_BITS);
+        page = memory_align_allocate(page_size, page_size);
+        page_size <<= 1;
+        obj_count_bits += 1;
+    }
+    assert(page);
+    return std::make_pair(page, page_size >> 1);
 }
 
 size_t page_descriptor::calculate_mask(size_t page_size, size_t obj_size, void* page_ptr)

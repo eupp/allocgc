@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <sys/mman.h>
+#include <malloc.h>
 
 namespace precisegc { namespace details {
 
@@ -13,6 +14,16 @@ inline void* memory_allocate(size_t size)
         mem = nullptr;
     }
     return mem;
+}
+
+inline void* memory_align_allocate(size_t align, size_t size)
+{
+    return memalign(align, size);
+}
+
+inline void memory_align_deallocate(void* ptr)
+{
+    free(ptr);
 }
 
 inline void memory_deallocate(void* ptr, size_t size)

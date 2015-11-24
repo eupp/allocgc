@@ -50,6 +50,11 @@ void* page_descriptor::allocate(size_t obj_size)
     return res;
 }
 
+size_t page_descriptor::page_size() const noexcept
+{
+    return m_page_size;
+}
+
 bool page_descriptor::is_memory_available(size_t size) const noexcept
 {
     return (size <= m_page_size) && ((size_t) m_free <= (size_t) m_page + m_page_size - size);

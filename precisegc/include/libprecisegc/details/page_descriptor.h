@@ -26,7 +26,9 @@ public:
     ~page_descriptor();
 
     void initialize_page(size_t obj_size);
+    void clear_page();
 
+    size_t page_size() const noexcept;
     void* allocate(size_t obj_size);
 
     bool is_memory_available(size_t size) const noexcept;
@@ -34,8 +36,6 @@ public:
     void* get_object_start(void* ptr) const noexcept;
 
 private:
-    void clear_page();
-
     static std::pair<void*, size_t> allocate_page(size_t obj_size);
     static size_t calculate_mask(size_t page_size, size_t obj_size, void* page_ptr);
 

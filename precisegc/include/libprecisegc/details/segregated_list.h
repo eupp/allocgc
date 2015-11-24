@@ -2,6 +2,7 @@
 #define DIPLOMA_SEGREGATED_STORAGE_H
 
 #include <cstddef>
+#include <utility>
 
 #include "constants.h"
 #include "page_descriptor.h"
@@ -10,6 +11,8 @@ namespace precisegc { namespace details {
 
 const size_t SEGREGATED_STORAGE_BITS_SIZE = SYSTEM_POINTER_BITS_COUNT - RESERVED_BITS_COUNT - 1;
 const size_t SEGREGATED_STORAGE_ELEMENT_SIZE = 4096;
+
+typedef std::pair<void*, page_descriptor*> allocate_result;
 
 class segregated_list_element;
 
@@ -32,9 +35,12 @@ class segregated_list_element
 {
 public:
 
-    segregated_list_element(segregated_list_element* next, segregated_list_element* prev);
+    static void* operator new(size_t size);
+    static void operator delete(void* ptr);
 
-    void* allocate(size_t size);
+    segregated_list_element(segregated_list_element* next = nullptr, segregated_list_element* prev = nullptr);
+
+    allocate_result allocate(size_t size);
     bool is_memory_available(size_t size);
 
     segregated_list_element* get_next() const noexcept;
@@ -59,12 +65,9 @@ public:
     segregated_list(size_t alloc_size);
     ~segregated_list();
 
-    void* allocate();
+    allocate_result allocate();
 
 private:
-    static segregated_list_element* create_element(segregated_list_element* next = nullptr,
-                                                   segregated_list_element* prev = nullptr);
-
     size_t m_alloc_size;
     segregated_list_element* m_first;
     segregated_list_element* m_last;

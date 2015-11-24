@@ -1,4 +1,4 @@
-#include "segregated_storage.h"
+#include "segregated_list.h"
 
 #include <new>
 
@@ -6,17 +6,36 @@
 
 namespace precisegc { namespace details {
 
+void* segregated_list_element::operator new(size_t )
+{
+    return memory_allocate(SEGREGATED_STORAGE_ELEMENT_SIZE);
+}
+
+void segregated_list_element::operator delete(void* ptr)
+{
+    memory_deallocate(ptr, SEGREGATED_STORAGE_ELEMENT_SIZE);
+}
+
 segregated_list_element::segregated_list_element(segregated_list_element *next, segregated_list_element *prev)
 {
     m_header = {next, prev, NULL_PAGE_ID};
 }
 
-void* segregated_list_element::allocate(size_t size)
+allocate_result segregated_list_element::allocate(size_t size)
 {
     assert(is_memory_available(size));
-    if (last_used_page() == NULL_PAGE_ID || !m_pages[last_used_page()].is_memory_available(size)) {
-
+    size_t page_id = last_used_page();
+    if (page_id == NULL_PAGE_ID) {
+        page_id = 0;
+        m_pages[0].initialize_page(size);
+        set_last_used_page(0);
+    } else if (!m_pages[page_id].is_memory_available(size)) {
+        page_id++;
+        m_pages[page_id].initialize_page(size);
+        set_last_used_page(page_id);
     }
+    void* mem = m_pages[page_id].allocate(size);
+    return std::make_pair(mem, &m_pages[page_id]);
 }
 
 size_t segregated_list_element::last_used_page() const noexcept
@@ -63,24 +82,28 @@ segregated_list::segregated_list(size_t alloc_size)
     , m_last(nullptr)
 {}
 
-void* segregated_list::allocate()
+segregated_list::~segregated_list()
+{
+    segregated_list_element* sle = m_first;
+    while (sle) {
+        segregated_list_element* next = sle->get_next();
+        delete sle;
+        sle = next;
+    }
+}
+
+allocate_result segregated_list::allocate()
 {
     if (!m_first) {
-        m_first = create_element();
+        m_first = new segregated_list_element();
         m_last = m_first;
     }
     if (!m_first->is_memory_available(m_alloc_size)) {
-        segregated_list_element* new_sle = create_element(m_first);
+        segregated_list_element* new_sle = new segregated_list_element(m_first);
         m_first->set_prev(new_sle);
         m_first = new_sle;
     }
     return m_first->allocate(m_alloc_size);
-}
-
-segregated_list_element* segregated_list::create_element(segregated_list_element* next, segregated_list_element* prev)
-{
-    void* mem = memory_allocate(SEGREGATED_STORAGE_ELEMENT_SIZE);
-    return new (mem) segregated_list_element(next, prev);
 }
 
 }}

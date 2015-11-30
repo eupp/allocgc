@@ -3,6 +3,7 @@
 
 #include <climits>
 #include <bitset>
+#include <iterator>
 #include <utility>
 
 #include "constants.h"
@@ -22,18 +23,56 @@ class page_descriptor
 {
 public:
 
+    class iterator;
+
     page_descriptor();
     ~page_descriptor();
 
     void initialize_page(size_t obj_size);
     void clear_page();
 
+    size_t obj_size() const noexcept;
     size_t page_size() const noexcept;
     void* allocate();
 
     bool is_memory_available() const noexcept;
 
     void* get_object_start(void* ptr) const noexcept;
+
+    iterator begin() const noexcept;
+    iterator end() const noexcept;
+
+    // iterator for iterating through objects in page;
+    // we choose forward_iterator concept just because there is no need in more powerful concept;
+    // although, iterator for objects in page_descriptor should be random_access;
+    class iterator: public std::iterator<std::forward_iterator_tag, void* const>
+    {
+    public:
+        iterator(const iterator&) noexcept = default;
+        iterator(iterator&&) noexcept = default;
+
+        iterator& operator=(const iterator&) noexcept = default;
+        iterator& operator=(iterator&&) noexcept = default;
+
+        void* const operator*() const noexcept;
+
+        iterator operator++() noexcept;
+        iterator operator++(int) noexcept;
+
+        iterator operator--() noexcept;
+        iterator operator--(int) noexcept;
+
+        bool is_marked() const noexcept;
+        bool is_pinned() const noexcept;
+
+        friend class page_descriptor;
+        friend bool operator==(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
+    private:
+        iterator(const page_descriptor* pd, void* ptr) noexcept;
+
+        const page_descriptor* m_pd;
+        void* m_ptr;
+    };
 
 private:
     static std::pair<void*, size_t> allocate_page(size_t obj_size);
@@ -50,6 +89,8 @@ private:
     page_bitset m_pin_bits; //pin bits for objects in
 };
 
+bool operator==(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
+bool operator!=(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
 
 } }
 

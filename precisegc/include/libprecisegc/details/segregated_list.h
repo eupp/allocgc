@@ -6,6 +6,7 @@
 
 #include "constants.h"
 #include "page_descriptor.h"
+#include "forwarding_list.h"
 
 namespace precisegc { namespace details {
 
@@ -68,8 +69,12 @@ public:
     ~segregated_list();
 
     allocate_result allocate();
+    forwarding_list compact();
 
 private:
+    void* get_next_unmarked(segregated_list_element* elem, page_descriptor* begin, page_descriptor* end);
+    void* get_next_marked(segregated_list_element* elem, page_descriptor* begin, page_descriptor* end);
+
     size_t m_alloc_size;
     segregated_list_element* m_first;
     segregated_list_element* m_last;

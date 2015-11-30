@@ -95,16 +95,25 @@ segregated_list::~segregated_list()
 
 allocate_result segregated_list::allocate()
 {
-    if (!m_first) {
+    if (!m_last) {
         m_first = new segregated_list_element(m_alloc_size);
         m_last = m_first;
     }
-    if (!m_first->is_memory_available()) {
-        segregated_list_element* new_sle = new segregated_list_element(m_alloc_size, m_first);
-        m_first->set_prev(new_sle);
-        m_first = new_sle;
+    if (!m_last->is_memory_available()) {
+        segregated_list_element* new_sle = new segregated_list_element(m_alloc_size, nullptr, m_last);
+        m_last->set_next(new_sle);
+        m_last = new_sle;
     }
-    return m_first->allocate();
+    return m_last->allocate();
+}
+
+forwarding_list segregated_list::compact()
+{
+    forwarding_list fwd_list;
+    if (!m_first) {
+        return fwd_list;
+    }
+
 }
 
 }}

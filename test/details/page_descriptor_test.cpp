@@ -4,7 +4,7 @@
 
 using namespace precisegc::details;
 
-static const size_t OBJ_SIZE = 8;
+static const size_t OBJ_SIZE = sizeof(size_t);
 static const size_t PAGE_SIZE = OBJ_SIZE << OBJECTS_PER_PAGE_BITS;
 
 TEST(page_descriptor_test, test_constructor)
@@ -18,6 +18,7 @@ TEST(page_descriptor_test, test_initialize_page)
     page_descriptor pd;
     pd.initialize_page(OBJ_SIZE);
     EXPECT_TRUE(pd.is_memory_available());
+    EXPECT_EQ(OBJ_SIZE, pd.obj_size());
 }
 
 TEST(page_descriptor_test, test_page_size)
@@ -53,3 +54,36 @@ TEST(page_descriptor_test, test_get_object_start)
     }
 }
 
+TEST(page_descriptor_test, test_uninitialized_iterators)
+{
+    page_descriptor pd;
+    ASSERT_EQ(pd.begin(), pd.end());
+}
+
+TEST(page_descriptor_test, test_initialized_iterators)
+{
+    page_descriptor pd;
+    pd.initialize_page(OBJ_SIZE);
+    int cnt = pd.page_size() / OBJ_SIZE;
+    for (auto it = pd.begin(); it != pd.end(); ++it) {
+        --cnt;
+        size_t* ptr = (size_t*) *it;
+        ASSERT_NE(nullptr, ptr);
+        *ptr = 42;
+    }
+    ASSERT_EQ(0, cnt);
+}
+
+TEST(page_descriptor_test, test_initialized_iterators_reverse)
+{
+    page_descriptor pd;
+    pd.initialize_page(OBJ_SIZE);
+    int cnt = pd.page_size() / OBJ_SIZE;
+    for (auto it = pd.end(); it != pd.begin(); --it) {
+        --cnt;
+        size_t* ptr = (size_t*) *it;
+        ASSERT_NE(nullptr, ptr);
+        *ptr = 42;
+    }
+    ASSERT_EQ(0, cnt);
+}

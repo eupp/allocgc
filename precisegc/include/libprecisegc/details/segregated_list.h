@@ -29,7 +29,7 @@ const size_t PAGES_PER_SEGREGATED_STORAGE_ELEMENT =
 const size_t LAST_PAGE_ID = PAGES_PER_SEGREGATED_STORAGE_ELEMENT - 1;
 // NULL_PAGE_ID - id of page in segregated_list_element that should't be used to allocate memory,
 //                is is used in initialization of list element (as last_used_page) but before any allocation
-const size_t NULL_PAGE_ID = PAGES_PER_SEGREGATED_STORAGE_ELEMENT;
+//const size_t NULL_PAGE_ID = PAGES_PER_SEGREGATED_STORAGE_ELEMENT;
 
 class segregated_list_element
 {
@@ -38,10 +38,12 @@ public:
     static void* operator new(size_t size);
     static void operator delete(void* ptr);
 
-    segregated_list_element(segregated_list_element* next = nullptr, segregated_list_element* prev = nullptr);
+    segregated_list_element(size_t obj_size,
+                            segregated_list_element* next = nullptr,
+                            segregated_list_element* prev = nullptr);
 
-    allocate_result allocate(size_t size);
-    bool is_memory_available(size_t size);
+    allocate_result allocate();
+    bool is_memory_available();
 
     segregated_list_element* get_next() const noexcept;
     void set_next(segregated_list_element* next) noexcept;

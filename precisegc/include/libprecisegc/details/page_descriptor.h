@@ -29,9 +29,9 @@ public:
     void clear_page();
 
     size_t page_size() const noexcept;
-    void* allocate(size_t obj_size);
+    void* allocate();
 
-    bool is_memory_available(size_t size) const noexcept;
+    bool is_memory_available() const noexcept;
 
     void* get_object_start(void* ptr) const noexcept;
 
@@ -42,6 +42,7 @@ private:
     typedef std::bitset<OBJECTS_PER_PAGE> page_bitset;
 
     size_t m_page_size;
+    size_t m_obj_size;
     void* m_page; // pointer on the page itself
     void* m_free; // pointer on the next after the last allocated Object. If Page is full --- NULL
     size_t m_mask; // a mask for pointers that points on this page (is used to find object begin)

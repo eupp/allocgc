@@ -16,25 +16,26 @@ void segregated_list_element::operator delete(void* ptr)
     memory_deallocate(ptr, SEGREGATED_STORAGE_ELEMENT_SIZE);
 }
 
-segregated_list_element::segregated_list_element(segregated_list_element *next, segregated_list_element *prev)
+segregated_list_element::segregated_list_element(size_t obj_size,
+                                                 segregated_list_element *next,
+                                                 segregated_list_element *prev)
 {
-    m_header = {next, prev, NULL_PAGE_ID};
+    for (size_t i = 0; i < PAGES_PER_SEGREGATED_STORAGE_ELEMENT; ++i) {
+        m_pages[i].initialize_page(obj_size);
+    }
+    m_header = {next, prev, 0};
+
 }
 
-allocate_result segregated_list_element::allocate(size_t size)
+allocate_result segregated_list_element::allocate()
 {
-    assert(is_memory_available(size));
+    assert(is_memory_available());
     size_t page_id = last_used_page();
-    if (page_id == NULL_PAGE_ID) {
-        page_id = 0;
-        m_pages[0].initialize_page(size);
-        set_last_used_page(0);
-    } else if (!m_pages[page_id].is_memory_available(size)) {
+    if (!m_pages[page_id].is_memory_available()) {
         page_id++;
-        m_pages[page_id].initialize_page(size);
         set_last_used_page(page_id);
     }
-    void* mem = m_pages[page_id].allocate(size);
+    void* mem = m_pages[page_id].allocate();
     return std::make_pair(mem, &m_pages[page_id]);
 }
 
@@ -48,10 +49,10 @@ void segregated_list_element::set_last_used_page(size_t id) noexcept
     m_header.m_last_used_page = id;
 }
 
-bool segregated_list_element::is_memory_available(size_t size)
+bool segregated_list_element::is_memory_available()
 {
     if (last_used_page() == LAST_PAGE_ID) {
-        return m_pages[LAST_PAGE_ID].is_memory_available(size);
+        return m_pages[LAST_PAGE_ID].is_memory_available();
     }
     return true;
 }
@@ -95,15 +96,15 @@ segregated_list::~segregated_list()
 allocate_result segregated_list::allocate()
 {
     if (!m_first) {
-        m_first = new segregated_list_element();
+        m_first = new segregated_list_element(m_alloc_size);
         m_last = m_first;
     }
-    if (!m_first->is_memory_available(m_alloc_size)) {
-        segregated_list_element* new_sle = new segregated_list_element(m_first);
+    if (!m_first->is_memory_available()) {
+        segregated_list_element* new_sle = new segregated_list_element(m_alloc_size, m_first);
         m_first->set_prev(new_sle);
         m_first = new_sle;
     }
-    return m_first->allocate(m_alloc_size);
+    return m_first->allocate();
 }
 
 }}

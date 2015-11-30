@@ -11,6 +11,7 @@ page_descriptor::page_descriptor()
     : m_page(nullptr)
     , m_free(nullptr)
     , m_page_size(0)
+    , m_obj_size(0)
     , m_mask(0)
 { }
 
@@ -25,6 +26,7 @@ void page_descriptor::initialize_page(size_t obj_size)
     auto alloc_res = allocate_page(obj_size);
     m_page = alloc_res.first;
     m_page_size = alloc_res.second;
+    m_obj_size = obj_size;
     m_free = m_page;
     m_mask = calculate_mask(m_page_size, obj_size, m_page);
 }
@@ -36,17 +38,18 @@ void page_descriptor::clear_page()
         m_page = nullptr;
         m_free = nullptr;
         m_page_size = 0;
+        m_obj_size = 0;
         m_mask = 0;
         m_mark_bits.reset();
         m_pin_bits.reset();
     }
 }
 
-void* page_descriptor::allocate(size_t obj_size)
+void* page_descriptor::allocate()
 {
-    assert(is_memory_available(obj_size));
+    assert(is_memory_available());
     void* res = m_free;
-    m_free = (void*) ((size_t) m_free + obj_size);
+    m_free = (void*) ((size_t) m_free + m_obj_size);
     return res;
 }
 
@@ -55,9 +58,9 @@ size_t page_descriptor::page_size() const noexcept
     return m_page_size;
 }
 
-bool page_descriptor::is_memory_available(size_t size) const noexcept
+bool page_descriptor::is_memory_available() const noexcept
 {
-    return (size <= m_page_size) && ((size_t) m_free <= (size_t) m_page + m_page_size - size);
+    return m_page && ((size_t) m_free <= (size_t) m_page + m_page_size - m_obj_size);
 }
 
 void* page_descriptor::get_object_start(void *ptr) const noexcept

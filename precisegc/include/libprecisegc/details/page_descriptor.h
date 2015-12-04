@@ -36,6 +36,7 @@ public:
     void* allocate();
 
     bool is_memory_available() const noexcept;
+    bool is_initialized() const noexcept;
 
     void* get_object_start(void* ptr) const noexcept;
 
@@ -48,6 +49,7 @@ public:
     class iterator: public std::iterator<std::forward_iterator_tag, void* const>
     {
     public:
+        iterator();
         iterator(const iterator&) noexcept = default;
         iterator(iterator&&) noexcept = default;
 

@@ -39,6 +39,12 @@ allocate_result segregated_list_element::allocate()
     return std::make_pair(mem, &m_pages[page_id]);
 }
 
+const page_descriptor& segregated_list_element::get_page_descriptor(size_t ind) const
+{
+    assert(ind < PAGES_PER_SEGREGATED_STORAGE_ELEMENT);
+    return m_pages[ind];
+}
+
 size_t segregated_list_element::last_used_page() const noexcept
 {
     return m_header.m_last_used_page;
@@ -49,7 +55,7 @@ void segregated_list_element::set_last_used_page(size_t id) noexcept
     m_header.m_last_used_page = id;
 }
 
-bool segregated_list_element::is_memory_available()
+bool segregated_list_element::is_memory_available() const noexcept
 {
     if (last_used_page() == LAST_PAGE_ID) {
         return m_pages[LAST_PAGE_ID].is_memory_available();
@@ -107,6 +113,23 @@ allocate_result segregated_list::allocate()
     return m_last->allocate();
 }
 
+segregated_list::iterator segregated_list::begin() const noexcept
+{
+    if (!m_first) {
+        return iterator(nullptr, 0, page_descriptor::iterator());
+    }
+    return iterator(m_first, 0, m_first->get_page_descriptor(0).begin());
+}
+
+segregated_list::iterator segregated_list::end() const noexcept
+{
+    if (!m_first) {
+        return iterator(nullptr, 0, page_descriptor::iterator());
+    }
+    size_t page_id = m_last->last_used_page();
+    return iterator(m_last, page_id, m_last->get_page_descriptor(page_id).end());
+}
+
 forwarding_list segregated_list::compact()
 {
     forwarding_list fwd_list;
@@ -114,6 +137,91 @@ forwarding_list segregated_list::compact()
         return fwd_list;
     }
 
+}
+
+segregated_list::iterator::iterator(const segregated_list_element* sle,
+                                    size_t pd_ind,
+                                    const page_descriptor::iterator& pd_itr) noexcept
+    : m_sle(sle)
+    , m_pd_ind(pd_ind)
+    , m_pd_itr(pd_itr)
+{}
+
+void* const segregated_list::iterator::operator*() const noexcept
+{
+    return *m_pd_itr;
+}
+
+segregated_list::iterator segregated_list::iterator::operator++() noexcept
+{
+    assert(m_sle);
+    ++m_pd_itr;
+    if (m_pd_itr == m_sle->get_page_descriptor(m_pd_ind).end()) {
+        // if it's last page and there is no next then we reach the end of all memory
+        if (m_pd_ind == m_sle->last_used_page() && !m_sle->get_next()) {
+            return *this;
+        }
+        if (m_pd_ind == LAST_PAGE_ID) {
+            assert(m_sle->get_next());
+            m_sle = m_sle->get_next();
+            m_pd_ind = 0;
+        } else {
+            ++m_pd_ind;
+        }
+        m_pd_itr = m_sle->get_page_descriptor(m_pd_ind).begin();
+    }
+    return *this;
+}
+
+segregated_list::iterator segregated_list::iterator::operator++(int) noexcept
+{
+    iterator it = *this;
+    ++(*this);
+    return it;
+}
+
+segregated_list::iterator segregated_list::iterator::operator--() noexcept
+{
+    if (m_pd_itr == m_sle->get_page_descriptor(m_pd_ind).begin()) {
+        if (m_pd_ind == 0) {
+            assert(m_sle->get_prev());
+            m_sle = m_sle->get_prev();
+            m_pd_ind = LAST_PAGE_ID;
+        } else {
+            --m_pd_ind;
+        }
+        m_pd_itr = m_sle->get_page_descriptor(m_pd_ind).end();
+    }
+    --m_pd_itr;
+    return *this;
+}
+
+segregated_list::iterator segregated_list::iterator::operator--(int) noexcept
+{
+    iterator it = *this;
+    --(*this);
+    return it;
+}
+
+bool operator==(const segregated_list::iterator& it1, const segregated_list::iterator& it2)
+{
+    return it1.m_pd_itr == it2.m_pd_itr;
+}
+
+bool operator!=(const segregated_list::iterator& it1, const segregated_list::iterator& it2)
+{
+    return !(it1 == it2);
+}
+
+bool segregated_list::iterator::is_marked() const noexcept
+{
+    return m_pd_itr.is_marked();
+}
+
+
+bool segregated_list::iterator::is_pinned() const noexcept
+{
+    return m_pd_itr.is_pinned();
 }
 
 }}

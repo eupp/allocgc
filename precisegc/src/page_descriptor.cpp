@@ -68,6 +68,11 @@ bool page_descriptor::is_memory_available() const noexcept
     return m_page && ((size_t) m_free <= (size_t) m_page + m_page_size - m_obj_size);
 }
 
+bool page_descriptor::is_initialized() const noexcept
+{
+    return m_page != nullptr;
+}
+
 void* page_descriptor::get_object_start(void *ptr) const noexcept
 {
     size_t ptr_ = (size_t) ptr;
@@ -97,7 +102,7 @@ page_descriptor::iterator page_descriptor::begin() const noexcept
 
 page_descriptor::iterator page_descriptor::end() const noexcept
 {
-    return iterator(this, (void*) ((size_t) m_page + m_page_size));
+    return iterator(this, m_free);
 }
 
 size_t page_descriptor::calculate_mask(size_t page_size, size_t obj_size, void* page_ptr)
@@ -109,6 +114,12 @@ size_t page_descriptor::calculate_mask(size_t page_size, size_t obj_size, void* 
     return ((size_t)page_ptr | ((1 << bit_diff) - 1) << obj_size_bits);
 }
 
+page_descriptor::iterator::iterator()
+    : m_pd(nullptr)
+    , m_ptr(nullptr)
+{}
+
+
 page_descriptor::iterator::iterator(const page_descriptor *pd, void *ptr) noexcept
     : m_pd(pd)
     , m_ptr(ptr)
@@ -116,11 +127,14 @@ page_descriptor::iterator::iterator(const page_descriptor *pd, void *ptr) noexce
 
 void* const page_descriptor::iterator::operator*() const noexcept
 {
+    assert(m_ptr);
+    assert(*this != m_pd->end());
     return m_ptr;
 }
 
 page_descriptor::iterator page_descriptor::iterator::operator++() noexcept
 {
+    assert(m_pd->is_initialized());
     assert((size_t) m_ptr < (size_t) m_pd->m_page + m_pd->m_page_size);
     m_ptr = (void*) ((size_t) m_ptr + m_pd->m_obj_size);
     return *this;
@@ -135,6 +149,7 @@ page_descriptor::iterator page_descriptor::iterator::operator++(int) noexcept
 
 page_descriptor::iterator page_descriptor::iterator::operator--() noexcept
 {
+    assert(m_pd->is_initialized());
     assert(m_ptr > m_pd->m_page);
     m_ptr = (void*) ((size_t) m_ptr - m_pd->m_obj_size);
     return *this;
@@ -159,6 +174,7 @@ bool operator!=(const page_descriptor::iterator& it1, const page_descriptor::ite
 
 bool page_descriptor::iterator::is_marked() const noexcept
 {
+    assert(m_ptr);
     assert(*this != m_pd->end());
     size_t offset = (size_t) m_ptr - (size_t) m_pd->m_page;
     return m_pd->m_mark_bits[offset];
@@ -166,6 +182,7 @@ bool page_descriptor::iterator::is_marked() const noexcept
 
 bool page_descriptor::iterator::is_pinned() const noexcept
 {
+    assert(m_ptr);
     assert(*this != m_pd->end());
     size_t offset = (size_t) m_ptr - (size_t) m_pd->m_page;
     return m_pd->m_pin_bits[offset];

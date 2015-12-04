@@ -64,26 +64,48 @@ TEST(page_descriptor_test, test_initialized_iterators)
 {
     page_descriptor pd;
     pd.initialize_page(OBJ_SIZE);
-    int cnt = pd.page_size() / OBJ_SIZE;
+    int total_cnt = pd.page_size() / OBJ_SIZE;
+
+    pd.allocate();
+    int cnt = 0;
     for (auto it = pd.begin(); it != pd.end(); ++it) {
-        --cnt;
+        cnt++;
         size_t* ptr = (size_t*) *it;
         ASSERT_NE(nullptr, ptr);
         *ptr = 42;
     }
-    ASSERT_EQ(0, cnt);
+    ASSERT_EQ(1, cnt);
+
+    for (int i = 0; i < total_cnt - 1; ++i) {
+        pd.allocate();
+    }
+    cnt = 0;
+    for (auto it = pd.begin(); it != pd.end(); ++it) {
+        ++cnt;
+        size_t* ptr = (size_t*) *it;
+        ASSERT_NE(nullptr, ptr);
+        *ptr = 42;
+    }
+    ASSERT_EQ(total_cnt, cnt);
 }
 
 TEST(page_descriptor_test, test_initialized_iterators_reverse)
 {
     page_descriptor pd;
     pd.initialize_page(OBJ_SIZE);
-    int cnt = pd.page_size() / OBJ_SIZE;
-    for (auto it = pd.end(); it != pd.begin(); --it) {
-        --cnt;
-        size_t* ptr = (size_t*) *it;
-        ASSERT_NE(nullptr, ptr);
-        *ptr = 42;
+    int total_cnt = pd.page_size() / OBJ_SIZE;
+    for (int i = 0; i < total_cnt; ++i) {
+        pd.allocate();
     }
-    ASSERT_EQ(0, cnt);
+
+    int cnt = 0;
+    for (auto it = pd.end(); it != pd.begin(); --it) {
+        ++cnt;
+        if (it != pd.end()) {
+            size_t* ptr = (size_t*) *it;
+            ASSERT_NE(nullptr, ptr);
+            *ptr = 42;
+        }
+    }
+    ASSERT_EQ(total_cnt, cnt);
 }

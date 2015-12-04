@@ -35,13 +35,19 @@ public:
     size_t page_size() const noexcept;
     void* allocate();
 
+    // clear all memory in range [it, end)
+    void clear(const iterator& it);
+
+    void clear_mark_bits() noexcept;
+    void clear_pin_bits() noexcept;
+
     bool is_memory_available() const noexcept;
     bool is_initialized() const noexcept;
 
     void* get_object_start(void* ptr) const noexcept;
 
-    iterator begin() const noexcept;
-    iterator end() const noexcept;
+    iterator begin() noexcept;
+    iterator end() noexcept;
 
     // iterator for iterating through objects in page;
     // we choose forward_iterator concept just because there is no need in more powerful concept;
@@ -67,12 +73,15 @@ public:
         bool is_marked() const noexcept;
         bool is_pinned() const noexcept;
 
+        void set_marked(bool marked) noexcept;
+        void set_pinned(bool pinned) noexcept;
+
         friend class page_descriptor;
         friend bool operator==(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
     private:
-        iterator(const page_descriptor* pd, void* ptr) noexcept;
+        iterator(page_descriptor* pd, void* ptr) noexcept;
 
-        const page_descriptor* m_pd;
+        page_descriptor* m_pd;
         void* m_ptr;
     };
 

@@ -39,7 +39,31 @@ allocate_result segregated_list_element::allocate()
     return std::make_pair(mem, &m_pages[page_id]);
 }
 
-const page_descriptor& segregated_list_element::get_page_descriptor(size_t ind) const
+void segregated_list_element::clear(const page_descriptor::iterator &it, size_t page_id)
+{
+    m_pages[page_id].clear(it);
+    set_last_used_page(page_id);
+    for (size_t i = page_id + 1; i < PAGES_PER_SEGREGATED_STORAGE_ELEMENT; ++i) {
+        page_descriptor& pd = m_pages[i];
+        pd.clear(pd.begin());
+    }
+}
+
+void segregated_list_element::clear_mark_bits() noexcept
+{
+    for (size_t i = 0; i < LAST_PAGE_ID; ++i) {
+        m_pages[i].clear_mark_bits();
+    }
+}
+
+void segregated_list_element::clear_pin_bits() noexcept
+{
+    for (size_t i = 0; i < LAST_PAGE_ID; ++i) {
+        m_pages[i].clear_pin_bits();
+    }
+}
+
+page_descriptor& segregated_list_element::get_page_descriptor(size_t ind)
 {
     assert(ind < PAGES_PER_SEGREGATED_STORAGE_ELEMENT);
     return m_pages[ind];
@@ -91,12 +115,7 @@ segregated_list::segregated_list(size_t alloc_size)
 
 segregated_list::~segregated_list()
 {
-    segregated_list_element* sle = m_first;
-    while (sle) {
-        segregated_list_element* next = sle->get_next();
-        delete sle;
-        sle = next;
-    }
+    clear(begin());
 }
 
 allocate_result segregated_list::allocate()
@@ -113,7 +132,7 @@ allocate_result segregated_list::allocate()
     return m_last->allocate();
 }
 
-segregated_list::iterator segregated_list::begin() const noexcept
+segregated_list::iterator segregated_list::begin() noexcept
 {
     if (!m_first) {
         return iterator(nullptr, 0, page_descriptor::iterator());
@@ -121,7 +140,7 @@ segregated_list::iterator segregated_list::begin() const noexcept
     return iterator(m_first, 0, m_first->get_page_descriptor(0).begin());
 }
 
-segregated_list::iterator segregated_list::end() const noexcept
+segregated_list::iterator segregated_list::end() noexcept
 {
     if (!m_first) {
         return iterator(nullptr, 0, page_descriptor::iterator());
@@ -130,18 +149,98 @@ segregated_list::iterator segregated_list::end() const noexcept
     return iterator(m_last, page_id, m_last->get_page_descriptor(page_id).end());
 }
 
-forwarding_list segregated_list::compact()
+void segregated_list::compact(forwarding_list& forwarding)
 {
-    forwarding_list fwd_list;
     if (!m_first) {
-        return fwd_list;
+        return;
     }
-
+    iterator from = end();
+    --from;
+    iterator to = begin();
+    iterator last_pined = begin();
+    while (from != to) {
+        while (!from.is_marked() && from != to) {
+            --from;
+        }
+        while (to.is_marked() && from != to) {
+            ++to;
+        }
+        if (from.is_pinned()) {
+            if (last_pined == begin()) {
+                last_pined = from;
+            }
+            --from;
+            continue;
+        }
+        if (from != to) {
+            forwarding.emplace_back(*from, *to);
+        }
+        --from;
+        if (from == to) {
+            break;
+        } else {
+            to++;
+        }
+    }
+    iterator clear_it = last_pined;
+    if (clear_it.is_marked()) {
+        ++clear_it;
+    }
+    clear(clear_it);
+    clear_mark_bits();
 }
 
-segregated_list::iterator::iterator(const segregated_list_element* sle,
+void segregated_list::clear(const iterator &it)
+{
+    if (!m_first) {
+        return;
+    }
+
+    // delete all elements after current
+    segregated_list_element* sle = it.m_sle->get_next();
+    while (sle) {
+        segregated_list_element* next = sle->get_next();
+        delete sle;
+        sle = next;
+    }
+
+    if (it != begin()) {
+        it.m_sle->set_next(nullptr);
+        it.m_sle->clear(it.m_pd_itr, it.m_pd_ind);
+        m_last = it.m_sle;
+    } else {
+        delete m_first;
+        m_first = m_last = nullptr;
+    }
+}
+
+void segregated_list::clear_mark_bits() noexcept
+{
+    if (!m_first) {
+        return;
+    }
+    segregated_list_element* sle = m_first;
+    while (sle) {
+        sle->clear_mark_bits();
+        sle = sle->get_next();
+    }
+}
+
+void segregated_list::clear_pin_bits() noexcept
+{
+    if (!m_first) {
+        return;
+    }
+    segregated_list_element* sle = m_first;
+    while (sle) {
+        sle->clear_pin_bits();
+        sle = sle->get_next();
+    }
+}
+
+segregated_list::iterator::iterator(segregated_list_element* sle,
                                     size_t pd_ind,
-                                    const page_descriptor::iterator& pd_itr) noexcept
+                                    page_descriptor::iterator pd_itr) noexcept
     : m_sle(sle)
     , m_pd_ind(pd_ind)
     , m_pd_itr(pd_itr)
@@ -222,6 +321,16 @@ bool segregated_list::iterator::is_marked() const noexcept
 bool segregated_list::iterator::is_pinned() const noexcept
 {
     return m_pd_itr.is_pinned();
+}
+
+void segregated_list::iterator::set_marked(bool marked) noexcept
+{
+    m_pd_itr.set_marked(marked);
+}
+
+void segregated_list::iterator::set_pinned(bool pinned) noexcept
+{
+    m_pd_itr.set_pinned(pinned);
 }
 
 }}

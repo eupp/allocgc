@@ -46,7 +46,13 @@ public:
     allocate_result allocate();
     bool is_memory_available() const noexcept;
 
-    const page_descriptor& get_page_descriptor(size_t ind) const;
+    // clear all memory in range [ pages[page_id]->it, end)
+    void clear(const page_descriptor::iterator& it, size_t page_id);
+
+    void clear_mark_bits() noexcept;
+    void clear_pin_bits() noexcept;
+
+    page_descriptor& get_page_descriptor(size_t ind);
 
     segregated_list_element* get_next() const noexcept;
     void set_next(segregated_list_element* next) noexcept;
@@ -72,10 +78,13 @@ public:
     ~segregated_list();
 
     allocate_result allocate();
-    forwarding_list compact();
+    void compact(forwarding_list& forwarding);
 
-    iterator begin() const noexcept;
-    iterator end() const noexcept;
+    // clear all memory in range [it, end)
+    void clear(const iterator& it);
+
+    iterator begin() noexcept;
+    iterator end() noexcept;
 
     // iterator for iterating through objects in segregated_list;
     // we choose forward_iterator concept just because there is no need in more powerful concept;
@@ -100,19 +109,22 @@ public:
         bool is_marked() const noexcept;
         bool is_pinned() const noexcept;
 
+        void set_marked(bool marked) noexcept;
+        void set_pinned(bool pinned) noexcept;
+
         friend class segregated_list;
         friend bool operator==(const segregated_list::iterator& it1, const segregated_list::iterator& it2);
     private:
-        iterator(const segregated_list_element* sle, size_t pd_ind, const page_descriptor::iterator& pd_itr) noexcept;
+        iterator(segregated_list_element* sle, size_t pd_ind, page_descriptor::iterator pd_itr) noexcept;
 
-        const segregated_list_element* m_sle;
+        segregated_list_element* m_sle;
         size_t m_pd_ind;
         page_descriptor::iterator m_pd_itr;
     };
 
 private:
-    void* get_next_unmarked(segregated_list_element* elem, page_descriptor* begin, page_descriptor* end);
-    void* get_next_marked(segregated_list_element* elem, page_descriptor* begin, page_descriptor* end);
+    void clear_mark_bits() noexcept;
+    void clear_pin_bits() noexcept;
 
     size_t m_alloc_size;
     segregated_list_element* m_first;

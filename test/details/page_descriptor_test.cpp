@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <iterator>
+
 #include "libprecisegc/details/page_descriptor.h"
 
 using namespace precisegc::details;
@@ -109,3 +111,28 @@ TEST(page_descriptor_test, test_initialized_iterators_reverse)
     }
     ASSERT_EQ(total_cnt, cnt);
 }
+
+TEST(page_descriptor_test, test_clear)
+{
+    page_descriptor pd;
+    pd.initialize_page(OBJ_SIZE);
+    int total_cnt = pd.page_size() / OBJ_SIZE;
+    for (int i = 0; i < total_cnt; ++i) {
+        pd.allocate();
+    }
+
+    auto it = pd.begin();
+    auto end = pd.end();
+    std::advance(it, total_cnt);
+    pd.clear(it);
+    ASSERT_EQ(pd.end(), end);
+
+    it = pd.begin();
+    std::advance(it, total_cnt - 1);
+    pd.clear(it);
+    ASSERT_EQ(it, pd.end());
+
+    pd.clear(pd.begin());
+    ASSERT_EQ(pd.end(), pd.begin());
+}
+

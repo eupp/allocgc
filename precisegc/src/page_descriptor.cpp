@@ -4,6 +4,7 @@
 
 #include "os.h"
 #include "util.h"
+#include "index_tree.h"
 
 namespace precisegc { namespace details {
 
@@ -29,12 +30,14 @@ void page_descriptor::initialize_page(size_t obj_size)
     m_obj_size = obj_size;
     m_free = m_page;
     m_mask = calculate_mask(m_page_size, obj_size, m_page);
+    index_page();
 }
 
 void page_descriptor::clear_page()
 {
     if (m_page) {
-        memory_align_deallocate(m_page);
+        remove_index();
+        deallocate_page(m_page);
         m_page = nullptr;
         m_free = nullptr;
         m_page_size = 0;
@@ -99,6 +102,23 @@ void* page_descriptor::get_object_start(void *ptr) const noexcept
     return (void*) (ptr_ & m_mask);
 }
 
+void page_descriptor::index_page()
+{
+    size_t page_end = (size_t) m_page + m_page_size;
+    for (size_t it = (size_t) m_page; it < page_end; it += MEMORY_CELL_SIZE) {
+        assert(((size_t)it & ((size_t)1 << MEMORY_CELL_SIZE_BITS) - 1) == 0);
+        _GC_::IT_index_new_cell((void*) it, this);
+    }
+}
+
+void page_descriptor::remove_index()
+{
+    size_t page_end = (size_t) m_page + m_page_size;
+    for (size_t it = (size_t) m_page; it < page_end; it += MEMORY_CELL_SIZE) {
+        _GC_::IT_remove_index((void*) it);
+    }
+}
+
 std::pair<void*, size_t> page_descriptor::allocate_page(size_t obj_size)
 {
     void* page = nullptr;
@@ -112,6 +132,11 @@ std::pair<void*, size_t> page_descriptor::allocate_page(size_t obj_size)
     }
     assert(page);
     return std::make_pair(page, page_size >> 1);
+}
+
+void page_descriptor::deallocate_page(void* page)
+{
+    memory_align_deallocate(page);
 }
 
 page_descriptor::iterator page_descriptor::begin() noexcept

@@ -18,7 +18,12 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/mutex.h
         include/libprecisegc/details/os.h
-        include/libprecisegc/details/segregated_list.h include/libprecisegc/details/constants.h include/libprecisegc/details/os_mem_ptr.h include/libprecisegc/details/util.h include/libprecisegc/details/bit_array.h)
+        include/libprecisegc/details/page_descriptor.h
+        include/libprecisegc/details/segregated_list.h
+        include/libprecisegc/details/constants.h
+        include/libprecisegc/details/os_mem_ptr.h
+        include/libprecisegc/details/util.h
+        include/libprecisegc/details/forwarding_list.h)
 
 
 set(precisegc_LIB_SRCS
@@ -32,7 +37,8 @@ set(precisegc_LIB_SRCS
         src/taginfo.cpp
         src/threading.cpp
         src/tlvars.cpp
-        src/page_descriptor.cpp src/segregated_list.cpp)
+        src/page_descriptor.cpp
+        src/segregated_list.cpp)
 
 
 include_directories(include/libprecisegc)

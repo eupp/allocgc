@@ -1,5 +1,7 @@
 #include "index_tree.h"
 
+using namespace precisegc::details;
+
 namespace _GC_ {
 	static pthread_mutex_t index_tree_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -78,7 +80,7 @@ namespace _GC_ {
 	size_t *tree_level_one = (size_t *) mmap(NULL, (((size_t) 1) << ITFirstLevelBits) * sizeof(size_t),
                                              PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
 
-    void IT_index_new_cell(void *cell, PageDescriptor *page_decr) {
+    void IT_index_new_cell(void *cell, page_descriptor *page_decr) {
 	    pthread_mutex_lock(&index_tree_mutex);
 		size_t bits_curr = SystemBitSize - ITFirstLevelBits;
 		size_t i_l = (size_t) cell >> bits_curr;
@@ -118,7 +120,7 @@ namespace _GC_ {
 	    size_t i_l = (size_t) ptr >> bits_curr;
 	    size_t *level = IT_iterate(ptr, &bits_curr, &i_l, tree_level_one);
 		assert(level == NULL || level[i_l] == 0
-		       || (size_t)ptr - (size_t)((PageDescriptor *)level[i_l])->page < ((PageDescriptor *)level[i_l])->page_size);
+		       || (size_t)ptr - (size_t)((page_descriptor *)level[i_l])->page < ((page_descriptor *)level[i_l])->page_size);
 		void * res = level != NULL ? (void *) level[i_l] : NULL;
 	    pthread_mutex_unlock(&index_tree_mutex);
 		return res;

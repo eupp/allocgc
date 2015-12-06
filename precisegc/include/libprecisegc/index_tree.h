@@ -8,6 +8,8 @@
 #define _GC_IT_LEVEL_COUNT ((size_t) 3)
 #endif
 
+#include "details/page_descriptor.h"
+
 namespace _GC_ {
 	enum {
 		ITLevelCount      = _GC_IT_LEVEL_COUNT,
@@ -19,7 +21,7 @@ namespace _GC_ {
 	};
     extern size_t *tree_level_one;
 
-    void IT_index_new_cell(void *cell, PageDescriptor *page_decr);
+    void IT_index_new_cell(void *cell, precisegc::details::page_descriptor *page_decr);
     size_t *IT_iterate(void *ptr, size_t *bits_curr, size_t *i_l, size_t *level);
     void *IT_get_page_descr(void *ptr);
     void IT_remove_index(void *cell);

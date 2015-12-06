@@ -298,7 +298,7 @@ void mark_and_sweep() {
 	dprintf("after: "); //printDlMallocInfo(); fflush(stdout);
 }
 
-extern size_t fixed_count;
+//extern size_t fixed_count;
 void fix_roots() {
 	thread_handler *handler = first_thread;
 	while (handler) {
@@ -310,7 +310,7 @@ void fix_roots() {
 			void* new_place = nullptr;
 			if (new_place) {
 				*(void * *)root->addr = set_stack_flag(new_place);
-				fixed_count++;
+//				fixed_count++;
 			}
 			printf("\t: to %p\n", get_next_obj(root->addr));
 		}

@@ -8,7 +8,7 @@
 using namespace std;
 using namespace precisegc::details;
 
-static const size_t OBJ_SIZE = 8;
+static const size_t OBJ_SIZE = MEMORY_CELL_SIZE / OBJECTS_PER_PAGE;
 
 TEST(test_segregated_list_element, test_allocate)
 {
@@ -201,20 +201,22 @@ TEST(test_segregated_list, test_compact)
 
 TEST(segregated_list_test, test_forwarding)
 {
-    size_t alloc_size = sizeof(void*) + sizeof(Object);
-    segregated_list sl(alloc_size);
-    void* ptr = sl.allocate().first;
+//    size_t alloc_size = sizeof(void*) + sizeof(Object);
+    segregated_list sl(OBJ_SIZE);
+    auto alloc_res = sl.allocate();
+    void* ptr = alloc_res.first;
+    page_descriptor* pd = alloc_res.second;
 
     size_t meta[3];
-    meta[0] = sizeof(void*);
+    meta[0] = OBJ_SIZE;
     meta[1] = 1;
     meta[2] = 0;
 
     void*& from = * (void**) ptr;
-    Object* obj = (Object*) ((size_t) ptr + sizeof(void*));
+    Object* obj = (Object*) ((size_t) ptr + pd->obj_size() - sizeof(Object));
     obj->meta = (void*) meta;
     obj->count = 1;
-    obj->begin = from;
+    obj->begin = ptr;
 
     forwarding_list forwarding;
     forwarding.emplace_back(from, nullptr);

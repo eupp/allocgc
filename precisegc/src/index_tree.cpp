@@ -104,7 +104,7 @@ namespace _GC_ {
 	    if (i_l == 509) {
 		    i_l = 509;
 	    }
-		assert(level[i_l] == 0);
+//		assert(level[i_l] == 0);
 		assert((size_t) cell - (size_t) page_decr->page() < page_decr->page_size());
 		level[i_l] = (size_t) page_decr;
 	    pthread_mutex_unlock(&index_tree_mutex);

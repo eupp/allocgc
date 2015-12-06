@@ -11,6 +11,7 @@
 
 #include "stack.h"
 #include "gcmalloc.h"
+#include "gc_pin.h"
 #include "deref_roots.h"
 #include "threading.h"
 
@@ -244,13 +245,11 @@ public:
 //	T& operator* () const					{	return * get_ptr();									}
     T& operator* ()     					{	return * get_ptr();									}
 //    T* operator->() const {
-    T* operator->()  {
+    gc_pin<T> operator->()  {
 		T *p = get_ptr();
-//		if (p) {
-//			size_t sz = sizeof(T) * ((base_meta *)get_meta_inf(p))->count;
-//			register_dereferenced_root(p, sz);
-//		}
-		return p;
+		if (p) {
+			return gc_pin<T>(p);
+		}
 	}
     operator T * ()  					{	return get_ptr();									}
 //    operator T * () const 					{	return get_ptr();									}

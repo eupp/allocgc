@@ -219,7 +219,7 @@ TEST(segregated_list_test, test_forwarding)
     obj->begin = ptr;
 
     forwarding_list forwarding;
-    forwarding.emplace_back(from, nullptr);
+    forwarding.emplace_back(from, nullptr, OBJ_SIZE);
 
     sl.fix_pointers(forwarding);
 

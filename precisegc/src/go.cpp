@@ -4,6 +4,7 @@
 			and mark and sweep function
 *****************************************************************************************/
 
+#include <details/heap.h>
 #include "taginfo.h"
 #include "gc_new.h"
 #include "fake_roots.h"
@@ -262,7 +263,7 @@ void mark_and_sweep() {
 			pthread_cond_wait(&safepoint_reached, &gc_mutex);
 		}
 		// iterate root stack and call traversing function go
-		mark_stack(handler, true);
+//		mark_stack(handler, true);
 		StackMap *stack_ptr = handler->stack;
 		bool stack_overflow = false;
 		for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {/* walk through all roots*/
@@ -295,19 +296,30 @@ void mark_and_sweep() {
 //	two_fingers_compact();
 //	two_fingers_compact_full();
 //	sweep_dereferenced_roots();
+
+    typedef precisegc::details::heap heap_type;
+    heap_type& heap = heap_type::instance();
+    precisegc::details::forwarding_list forwarding = heap.compact();
+    heap.fix_pointers(forwarding);
+    fix_roots(forwarding);
+
 	dprintf("after: "); //printDlMallocInfo(); fflush(stdout);
 }
 
 //extern size_t fixed_count;
-void fix_roots() {
+void fix_roots(const precisegc::details::forwarding_list& forwarding) {
 	thread_handler *handler = first_thread;
 	while (handler) {
 		StackMap *stack_ptr = handler->stack;
 		for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
 			printf("fix_root: from %p\n", get_next_obj(root->addr));
 //			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
-//			void * new_place = get_new_destination(get_next_obj(root->addr));
-			void* new_place = nullptr;
+            void* new_place = nullptr;
+            for (auto& frwd: forwarding) {
+                if (get_next_obj(root->addr) == frwd.from()) {
+                    new_place = frwd.to();
+                }
+            }
 			if (new_place) {
 				*(void * *)root->addr = set_stack_flag(new_place);
 //				fixed_count++;

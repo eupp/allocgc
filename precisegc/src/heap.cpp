@@ -33,6 +33,14 @@ forwarding_list heap::compact()
     return frwd;
 }
 
+void heap::fix_pointers(const forwarding_list &forwarding)
+{
+    mutex_lock<mutex> lock(&m_mutex);
+    for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
+        m_storage[i].fix_pointers(forwarding);
+    }
+}
+
 size_t heap::align_size(size_t size)
 {
     assert(size > 0);

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "malloc.h"
+#include "details/forwarding_list.h"
 
 /**
 * @function mark_and_sweep
@@ -59,7 +60,7 @@ void mark_and_sweep ();
 
 		void* move_ptr(void* ptr, void* value);
 
-		void fix_roots();
+		void fix_roots(const precisegc::details::forwarding_list& forwarding);
 #ifdef __cplusplus
 	}
 #endif

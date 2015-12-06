@@ -84,8 +84,8 @@ gc_ptr<T> gc_new (Types ... types, size_t count = 1) {
 		}
 		// calculate meta
 		clMeta = create_meta<T>(new_obj_flags);
-		int set_meta = set_meta_after_gcmalloc(res, clMeta);
-		assert(set_meta == 0);
+		set_meta_after_gcmalloc(res, clMeta);
+//		assert(set_meta == 0);
 
 		/* restore old global variable values */
 		new_obj_flags->offsets.swap(temp);

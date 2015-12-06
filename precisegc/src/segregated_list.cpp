@@ -177,9 +177,9 @@ void segregated_list::compact(forwarding_list& forwarding)
             continue;
         }
         if (from != to) {
-            forwarding.emplace_back(*from, *to);
+            forwarding.emplace_back(*from, *to, m_alloc_size);
+            --from;
         }
-        --from;
         if (from == to) {
             break;
         } else {

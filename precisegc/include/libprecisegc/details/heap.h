@@ -23,6 +23,7 @@ public:
 
     void* allocate(size_t size);
     forwarding_list compact();
+    void fix_pointers(const forwarding_list& forwarding);
 
 private:
     static const size_t MIN_ALLOC_SIZE_BITS = 4;

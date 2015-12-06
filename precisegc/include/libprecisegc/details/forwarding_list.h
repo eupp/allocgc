@@ -2,6 +2,7 @@
 #define DIPLOMA_FORWARDING_LIST_H
 
 #include <vector>
+#include <cstring>
 
 namespace precisegc { namespace details {
 
@@ -9,10 +10,14 @@ class forward_ptr_entry
 {
 public:
 
-    forward_ptr_entry(void* from, void* to)
+    forward_ptr_entry(void* from, void* to, size_t size)
         : m_from(from)
         , m_to(to)
-    {}
+    {
+        if (from && to) {
+            memcpy(to, from, size);
+        }
+    }
 
     void* from() const noexcept
     {

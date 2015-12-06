@@ -5,7 +5,7 @@ include_directories(${GTEST_INCLUDE_DIRS})
 find_package(Threads REQUIRED)
 
 set(precisegc_TESTS
-#        gc_inside_method_test.cpp
+        gc_inside_method_test.cpp
         details/class_meta_test.cpp
         details/page_descriptor_test.cpp details/segregated_list_test.cpp)
 

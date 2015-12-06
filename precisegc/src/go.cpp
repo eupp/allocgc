@@ -293,7 +293,7 @@ void mark_and_sweep() {
 	dprintf("call sweep\n");
 //	sweep();
 //	two_fingers_compact();
-	two_fingers_compact_full();
+//	two_fingers_compact_full();
 //	sweep_dereferenced_roots();
 	dprintf("after: "); //printDlMallocInfo(); fflush(stdout);
 }
@@ -306,7 +306,8 @@ void fix_roots() {
 		for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
 			printf("fix_root: from %p\n", get_next_obj(root->addr));
 //			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
-			void * new_place = get_new_destination(get_next_obj(root->addr));
+//			void * new_place = get_new_destination(get_next_obj(root->addr));
+			void* new_place = nullptr;
 			if (new_place) {
 				*(void * *)root->addr = set_stack_flag(new_place);
 				fixed_count++;

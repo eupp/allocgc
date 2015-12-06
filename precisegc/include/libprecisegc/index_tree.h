@@ -1,5 +1,6 @@
 #pragma once
-#include "gc_malloc.h"
+
+#include "details/constants.h"
 ////////////////
 // INDEX TREE //
 ////////////////
@@ -13,7 +14,7 @@
 namespace _GC_ {
 	enum {
 		ITLevelCount      = _GC_IT_LEVEL_COUNT,
-		ITBitsInUse       = (SystemBitSize - CellBits),
+		ITBitsInUse       = (precisegc::details::SYSTEM_POINTER_BITS_COUNT - precisegc::details::MEMORY_CELL_SIZE_BITS),
 		ITFirstLevelBits  = ITBitsInUse -  (size_t)(ITBitsInUse / ITLevelCount) * (ITLevelCount - 1),
 		ITOtherLevelsBits = ((size_t)(ITBitsInUse / ITLevelCount)),
 		ITOtherLevelsSize = ((size_t)1 << ITOtherLevelsBits) * sizeof(size_t),

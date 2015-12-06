@@ -3,6 +3,7 @@
 #include <new>
 
 #include "os.h"
+#include "object.h"
 
 namespace precisegc { namespace details {
 
@@ -24,7 +25,6 @@ segregated_list_element::segregated_list_element(size_t obj_size,
         m_pages[i].initialize_page(obj_size);
     }
     m_header = {next, prev, 0};
-
 }
 
 allocate_result segregated_list_element::allocate()
@@ -106,6 +106,10 @@ void segregated_list_element::set_prev(segregated_list_element *prev) noexcept
 {
     m_header.m_prev = prev;
 }
+
+segregated_list::segregated_list()
+    : segregated_list(0)
+{}
 
 segregated_list::segregated_list(size_t alloc_size)
     : m_alloc_size(alloc_size)
@@ -190,6 +194,34 @@ void segregated_list::compact(forwarding_list& forwarding)
     clear_mark_bits();
 }
 
+void segregated_list::fix_pointers(const forwarding_list &forwarding)
+{
+    for (auto it = begin(); it != end(); ++it) {
+        size_t ptr = (size_t) *it;
+        Object* obj = (Object*) (ptr + m_alloc_size - sizeof(Object));
+        if (obj->meta != nullptr) {
+            size_t* meta = (size_t*) obj->meta;
+            size_t obj_size = meta[0];
+            size_t offsets_count = meta[1];
+            for (size_t i = 0; i < obj->count; ++i, ptr += obj_size) {
+                for (size_t j = 0; j < offsets_count; ++j) {
+                    fix_ptr((void*) ptr + meta[2 + j], forwarding);
+                }
+            }
+        }
+    }
+}
+
+void segregated_list::fix_ptr(void *ptr, const forwarding_list &forwarding)
+{
+    void*& from = * ((void**) ptr);
+    for (auto& frwd: forwarding) {
+        if (from == frwd.from()) {
+            from = frwd.to();
+        }
+    }
+}
+
 void segregated_list::clear(const iterator &it)
 {
     if (!m_first) {
@@ -236,6 +268,17 @@ void segregated_list::clear_pin_bits() noexcept
         sle->clear_pin_bits();
         sle = sle->get_next();
     }
+}
+
+void segregated_list::set_alloc_size(size_t size) noexcept
+{
+    assert(m_alloc_size == 0);
+    m_alloc_size = size;
+}
+
+size_t segregated_list::alloc_size() const noexcept
+{
+    return m_alloc_size;
 }
 
 segregated_list::iterator::iterator(segregated_list_element* sle,

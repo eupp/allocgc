@@ -1,6 +1,13 @@
 #include "index_tree.h"
 
+#include <cassert>
+#include <cstring>
+#include <sys/mman.h>
+
 using namespace precisegc::details;
+
+const size_t SystemBitSize = precisegc::details::SYSTEM_POINTER_BITS_COUNT;
+const size_t CellBits = precisegc::details::MEMORY_CELL_SIZE_BITS;
 
 namespace _GC_ {
 	static pthread_mutex_t index_tree_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -98,7 +105,7 @@ namespace _GC_ {
 		    i_l = 509;
 	    }
 		assert(level[i_l] == 0);
-		assert((size_t) cell - (size_t) page_decr->page < page_decr->page_size);
+		assert((size_t) cell - (size_t) page_decr->page() < page_decr->page_size());
 		level[i_l] = (size_t) page_decr;
 	    pthread_mutex_unlock(&index_tree_mutex);
     }
@@ -120,7 +127,7 @@ namespace _GC_ {
 	    size_t i_l = (size_t) ptr >> bits_curr;
 	    size_t *level = IT_iterate(ptr, &bits_curr, &i_l, tree_level_one);
 		assert(level == NULL || level[i_l] == 0
-		       || (size_t)ptr - (size_t)((page_descriptor *)level[i_l])->page < ((page_descriptor *)level[i_l])->page_size);
+		       || (size_t)ptr - (size_t)((page_descriptor *)level[i_l])->page() < ((page_descriptor *)level[i_l])->page_size());
 		void * res = level != NULL ? (void *) level[i_l] : NULL;
 	    pthread_mutex_unlock(&index_tree_mutex);
 		return res;
@@ -135,7 +142,7 @@ namespace _GC_ {
 	    size_t * level = tree_level_one, * prev_level = NULL;
 		for (int i = 0; i < (int) ITLevelCount - 1; i++) {
 			if ((void *) level[i_l] == NULL) {
-				myfile << "IT_remove_index : doesn't contain cell " << cell << endl;
+//				myfile << "IT_remove_index : doesn't contain cell " << cell << endl;
 				pthread_mutex_unlock(&index_tree_mutex);
 				return;
 			}

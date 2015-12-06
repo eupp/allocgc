@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_HEAP_H
-#define DIPLOMA_HEAP_H
+#ifndef DIPLOMA_PAGE_DESCRIPTOR_H
+#define DIPLOMA_PAGE_DESCRIPTOR_H
 
 #include <climits>
 #include <bitset>
@@ -30,10 +30,19 @@ public:
 
     size_t obj_size() const noexcept;
     size_t page_size() const noexcept;
+    // TO DO: get rid of it
+    void* page() const noexcept;
+
     void* allocate();
 
     // clear all memory in range [it, end)
     void clear(const iterator& it);
+
+    bool get_object_mark(void* ptr) const noexcept;
+    void set_object_mark(void* ptr, bool mark) noexcept;
+
+    bool get_object_pin(void* ptr) const noexcept;
+    void set_object_pin(void* ptr, bool pin) noexcept;
 
     void clear_mark_bits() noexcept;
     void clear_pin_bits() noexcept;
@@ -106,4 +115,4 @@ bool operator!=(const page_descriptor::iterator& it1, const page_descriptor::ite
 
 } }
 
-#endif //DIPLOMA_HEAP_H
+#endif // DIPLOMA_PAGE_DESCRIPTOR_H

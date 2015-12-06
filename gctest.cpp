@@ -1,4 +1,4 @@
-#include "heap.h"
+#include "gcmalloc.h"
 #include <stdio.h>
 
 struct A {

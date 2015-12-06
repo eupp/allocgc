@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace precisegc {namespace details {
+namespace precisegc { namespace details {
 
 const size_t SYSTEM_POINTER_BITS_COUNT = 64;
 const size_t RESERVED_BITS_COUNT = 3;

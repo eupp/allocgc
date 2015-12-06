@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "libprecisegc/details/segregated_list.h"
+#include "libprecisegc/object.h"
 
 using namespace std;
 using namespace precisegc::details;
@@ -196,4 +197,29 @@ TEST(test_segregated_list, test_compact)
     EXPECT_EQ(1, fl.size());
     EXPECT_EQ(exp_from, from);
     EXPECT_EQ(exp_to, to);
+}
+
+TEST(segregated_list_test, test_forwarding)
+{
+    size_t alloc_size = sizeof(void*) + sizeof(Object);
+    segregated_list sl(alloc_size);
+    void* ptr = sl.allocate().first;
+
+    size_t meta[3];
+    meta[0] = sizeof(void*);
+    meta[1] = 1;
+    meta[2] = 0;
+
+    void*& from = * (void**) ptr;
+    Object* obj = (Object*) ((size_t) ptr + sizeof(void*));
+    obj->meta = (void*) meta;
+    obj->count = 1;
+    obj->begin = from;
+
+    forwarding_list forwarding;
+    forwarding.emplace_back(from, nullptr);
+
+    sl.fix_pointers(forwarding);
+
+    ASSERT_EQ(nullptr, from);
 }

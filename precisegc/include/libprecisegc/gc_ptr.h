@@ -10,7 +10,7 @@
 #include <stdint.h>
 
 #include "stack.h"
-#include "heap.h"
+#include "gcmalloc.h"
 #include "deref_roots.h"
 #include "threading.h"
 
@@ -246,10 +246,10 @@ public:
 //    T* operator->() const {
     T* operator->()  {
 		T *p = get_ptr();
-		if (p) {
-			size_t sz = sizeof(T) * ((base_meta *)get_meta_inf(p))->count;
-			register_dereferenced_root(p, sz);
-		}
+//		if (p) {
+//			size_t sz = sizeof(T) * ((base_meta *)get_meta_inf(p))->count;
+//			register_dereferenced_root(p, sz);
+//		}
 		return p;
 	}
     operator T * ()  					{	return get_ptr();									}

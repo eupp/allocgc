@@ -75,6 +75,42 @@ void page_descriptor::clear_pin_bits() noexcept
     m_pin_bits.reset();
 }
 
+bool page_descriptor::get_object_mark(void* ptr) const noexcept
+{
+    assert(m_page);
+    assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
+    size_t obj_start = (size_t) get_object_start(ptr);
+    size_t ind = obj_start - (size_t) m_page;
+    return m_mark_bits[ind];
+}
+
+void page_descriptor::set_object_mark(void* ptr, bool mark) noexcept
+{
+    assert(m_page);
+    assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
+    size_t obj_start = (size_t) get_object_start(ptr);
+    size_t ind = obj_start - (size_t) m_page;
+    m_mark_bits[ind] = mark;
+}
+
+bool page_descriptor::get_object_pin(void* ptr) const noexcept
+{
+    assert(m_page);
+    assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
+    size_t obj_start = (size_t) get_object_start(ptr);
+    size_t ind = obj_start - (size_t) m_page;
+    return m_pin_bits[ind];
+}
+
+void page_descriptor::set_object_pin(void* ptr, bool pin) noexcept
+{
+    assert(m_page);
+    assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
+    size_t obj_start = (size_t) get_object_start(ptr);
+    size_t ind = obj_start - (size_t) m_page;
+    m_pin_bits[ind] = pin;
+}
+
 size_t page_descriptor::obj_size() const noexcept
 {
     return m_obj_size;
@@ -83,6 +119,11 @@ size_t page_descriptor::obj_size() const noexcept
 size_t page_descriptor::page_size() const noexcept
 {
     return m_page_size;
+}
+
+void* page_descriptor::page() const noexcept
+{
+    return m_page;
 }
 
 bool page_descriptor::is_memory_available() const noexcept

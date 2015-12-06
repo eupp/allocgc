@@ -80,7 +80,7 @@ bool page_descriptor::get_object_mark(void* ptr) const noexcept
     assert(m_page);
     assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
     size_t obj_start = (size_t) get_object_start(ptr);
-    size_t ind = obj_start - (size_t) m_page;
+    size_t ind = (obj_start - (size_t) m_page) / m_obj_size;
     return m_mark_bits[ind];
 }
 
@@ -89,7 +89,7 @@ void page_descriptor::set_object_mark(void* ptr, bool mark) noexcept
     assert(m_page);
     assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
     size_t obj_start = (size_t) get_object_start(ptr);
-    size_t ind = obj_start - (size_t) m_page;
+    size_t ind = (obj_start - (size_t) m_page) / m_obj_size;
     m_mark_bits[ind] = mark;
 }
 
@@ -98,7 +98,7 @@ bool page_descriptor::get_object_pin(void* ptr) const noexcept
     assert(m_page);
     assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
     size_t obj_start = (size_t) get_object_start(ptr);
-    size_t ind = obj_start - (size_t) m_page;
+    size_t ind = (obj_start - (size_t) m_page) / m_obj_size;
     return m_pin_bits[ind];
 }
 
@@ -107,7 +107,7 @@ void page_descriptor::set_object_pin(void* ptr, bool pin) noexcept
     assert(m_page);
     assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
     size_t obj_start = (size_t) get_object_start(ptr);
-    size_t ind = obj_start - (size_t) m_page;
+    size_t ind = (obj_start - (size_t) m_page) / m_obj_size;
     m_pin_bits[ind] = pin;
 }
 

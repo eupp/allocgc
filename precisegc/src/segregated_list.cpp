@@ -162,6 +162,7 @@ void segregated_list::compact(forwarding_list& forwarding)
     --from;
     iterator to = begin();
     iterator last_pined = begin();
+    iterator last_marked = end();
     while (from != to) {
         while (!from.is_marked() && from != to) {
             --from;
@@ -169,11 +170,16 @@ void segregated_list::compact(forwarding_list& forwarding)
         while (to.is_marked() && from != to) {
             ++to;
         }
+        if (last_marked == end()) {
+            last_marked = from;
+        }
         if (from.is_pinned()) {
             if (last_pined == begin()) {
                 last_pined = from;
             }
-            --from;
+            if (from != to) {
+                --from;
+            }
             continue;
         }
         if (from != to) {
@@ -186,7 +192,11 @@ void segregated_list::compact(forwarding_list& forwarding)
             to++;
         }
     }
+
     iterator clear_it = last_pined;
+    if (last_pined == begin()) {
+        clear_it = last_marked;
+    }
     if (clear_it.is_marked()) {
         ++clear_it;
     }

@@ -7,6 +7,8 @@
 #include <utility>
 
 #include "constants.h"
+#include "iterator_base.h"
+#include "iterator_access.h"
 
 namespace precisegc { namespace details {
 
@@ -58,7 +60,7 @@ public:
     // iterator for iterating through objects in page;
     // we choose forward_iterator concept just because there is no need in more powerful concept;
     // although, iterator for objects in page_descriptor should be random_access;
-    class iterator: public std::iterator<std::forward_iterator_tag, void* const>
+    class iterator: public iterator_base<iterator, std::bidirectional_iterator_tag, void* const>
     {
     public:
         iterator();
@@ -70,12 +72,6 @@ public:
 
         void* const operator*() const noexcept;
 
-        iterator operator++() noexcept;
-        iterator operator++(int) noexcept;
-
-        iterator operator--() noexcept;
-        iterator operator--(int) noexcept;
-
         bool is_marked() const noexcept;
         bool is_pinned() const noexcept;
 
@@ -83,9 +79,14 @@ public:
         void set_pinned(bool pinned) noexcept;
 
         friend class page_descriptor;
-        friend bool operator==(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
+        friend class iterator_access<iterator>;
     private:
         iterator(page_descriptor* pd, void* ptr) noexcept;
+        size_t get_offset() const noexcept;
+
+        bool equal(const iterator& other) const noexcept;
+        void increment() noexcept;
+        void decrement() noexcept;
 
         page_descriptor* m_pd;
         void* m_ptr;

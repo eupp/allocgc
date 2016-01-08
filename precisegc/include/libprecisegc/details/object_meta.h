@@ -1,15 +1,15 @@
-#ifndef DIPLOMA_MANAGED_OBJECT_H
-#define DIPLOMA_MANAGED_OBJECT_H
+#ifndef DIPLOMA_OBJECT_META_H
+#define DIPLOMA_OBJECT_META_H
 
 #include "class_meta.h"
 
 namespace precisegc { namespace details {
 
-class object_header
+class object_meta
 {
 public:
 
-    object_header(const class_meta* meta, size_t count, void* obj_ptr)
+    object_meta(const class_meta* meta, size_t count, void* obj_ptr)
         : m_meta(meta)
         , m_count(count)
         , m_obj_ptr(obj_ptr)
@@ -38,4 +38,4 @@ private:
 
 } }
 
-#endif //DIPLOMA_MANAGED_OBJECT_H
+#endif //DIPLOMA_OBJECT_META_H

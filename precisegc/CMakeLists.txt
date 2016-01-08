@@ -24,7 +24,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/constants.h
         include/libprecisegc/details/os_mem_ptr.h
         include/libprecisegc/details/util.h
-        include/libprecisegc/details/forwarding_list.h include/libprecisegc/gc_pin.h)
+        include/libprecisegc/details/forwarding_list.h include/libprecisegc/gc_pin.h include/libprecisegc/details/iterator_base.h include/libprecisegc/details/iterator_access.h)
 
 
 set(precisegc_LIB_SRCS

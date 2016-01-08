@@ -217,76 +217,50 @@ void* const page_descriptor::iterator::operator*() const noexcept
     return m_ptr;
 }
 
-page_descriptor::iterator page_descriptor::iterator::operator++() noexcept
+void page_descriptor::iterator::increment() noexcept
 {
     assert(m_pd->is_initialized());
     assert((size_t) m_ptr < (size_t) m_pd->m_page + m_pd->m_page_size);
     m_ptr = (void*) ((size_t) m_ptr + m_pd->m_obj_size);
-    return *this;
 }
 
-page_descriptor::iterator page_descriptor::iterator::operator++(int) noexcept
-{
-    iterator it = *this;
-    ++(*this);
-    return it;
-}
-
-page_descriptor::iterator page_descriptor::iterator::operator--() noexcept
+void page_descriptor::iterator::decrement() noexcept
 {
     assert(m_pd->is_initialized());
     assert(m_ptr > m_pd->m_page);
     m_ptr = (void*) ((size_t) m_ptr - m_pd->m_obj_size);
-    return *this;
 }
 
-page_descriptor::iterator page_descriptor::iterator::operator--(int) noexcept
+bool page_descriptor::iterator::equal(const iterator &other) const noexcept
 {
-    iterator it = *this;
-    --(*this);
-    return it;
+    return m_ptr == other.m_ptr;
 }
 
-bool operator==(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2)
+size_t page_descriptor::iterator::get_offset() const noexcept
 {
-    return it1.m_ptr == it2.m_ptr;
-}
-
-bool operator!=(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2)
-{
-    return !(it1 == it2);
+    assert(m_ptr);
+    assert(*this != m_pd->end());
+    return ((size_t) m_ptr - (size_t) m_pd->m_page) / m_pd->m_obj_size;
 }
 
 bool page_descriptor::iterator::is_marked() const noexcept
 {
-    assert(m_ptr);
-    assert(*this != m_pd->end());
-    size_t offset = ((size_t) m_ptr - (size_t) m_pd->m_page) / m_pd->m_obj_size;
-    return m_pd->m_mark_bits[offset];
+    return m_pd->m_mark_bits[get_offset()];
 }
 
 bool page_descriptor::iterator::is_pinned() const noexcept
 {
-    assert(m_ptr);
-    assert(*this != m_pd->end());
-    size_t offset = ((size_t) m_ptr - (size_t) m_pd->m_page) / m_pd->m_obj_size;
-    return m_pd->m_pin_bits[offset];
+    return m_pd->m_pin_bits[get_offset()];
 }
 
 void page_descriptor::iterator::set_marked(bool marked) noexcept
 {
-    assert(m_ptr);
-    assert(*this != m_pd->end());
-    size_t offset = ((size_t) m_ptr - (size_t) m_pd->m_page) / m_pd->m_obj_size;
-    m_pd->m_mark_bits[offset] = marked;
+    m_pd->m_mark_bits[get_offset()] = marked;
 }
 
 void page_descriptor::iterator::set_pinned(bool pinned) noexcept
 {
-    assert(m_ptr);
-    assert(*this != m_pd->end());
-    size_t offset = ((size_t) m_ptr - (size_t) m_pd->m_page) / m_pd->m_obj_size;
-    m_pd->m_pin_bits[offset] = pinned;
+    m_pd->m_pin_bits[get_offset()] = pinned;
 }
 
 }}

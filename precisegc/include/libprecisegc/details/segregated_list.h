@@ -84,9 +84,6 @@ public:
     void compact(forwarding_list& forwarding);
     void fix_pointers(const forwarding_list& forwarding);
 
-    // clear all memory in range [it, end)
-    void clear(const iterator& it);
-
     iterator begin() noexcept;
     iterator end() noexcept;
 
@@ -107,6 +104,9 @@ public:
         iterator& operator=(iterator&&) noexcept = default;
 
         void* const operator*() const noexcept;
+
+        // WARNING! this method invalidates iterator
+        void deallocate() noexcept;
 
         bool is_marked() const noexcept;
         bool is_pinned() const noexcept;

@@ -6,6 +6,7 @@
 #include <iterator>
 #include <utility>
 
+#include "pool_chunk.h"
 #include "constants.h"
 #include "iterator_base.h"
 #include "iterator_access.h"
@@ -15,7 +16,7 @@ namespace precisegc { namespace details {
 const size_t OBJECTS_PER_PAGE_BITS = 5;
 const size_t OBJECTS_PER_PAGE = (1 << OBJECTS_PER_PAGE_BITS);
 
-const size_t MAX_PAGE_SIZE_BITS = 15;
+const size_t MAX_PAGE_SIZE_BITS = 7;
 const size_t MAX_PAGE_SIZE = 1 << MAX_PAGE_SIZE_BITS;
 
 class page_descriptor
@@ -35,10 +36,8 @@ public:
     // TO DO: get rid of it
     void* page() const noexcept;
 
-    void* allocate();
-
-    // clear all memory in range [it, end)
-    void clear(const iterator& it);
+    void* allocate() noexcept;
+    void deallocate(void* ptr) noexcept;
 
     bool get_object_mark(void* ptr) const noexcept;
     void set_object_mark(void* ptr, bool mark) noexcept;
@@ -72,6 +71,10 @@ public:
 
         void* const operator*() const noexcept;
 
+        // WARNING! this methods invalidate iterator
+        void set_allocated() noexcept;
+        void set_deallocated() noexcept;
+
         bool is_marked() const noexcept;
         bool is_pinned() const noexcept;
 
@@ -96,6 +99,8 @@ private:
     void index_page();
     void remove_index();
 
+    size_t calculate_offset(void* ptr) const noexcept;
+
     static std::pair<void*, size_t> allocate_page(size_t obj_size);
     static void deallocate_page(void* page);
     static size_t calculate_mask(size_t page_size, size_t obj_size, void* page_ptr);
@@ -105,10 +110,11 @@ private:
     size_t m_page_size;
     size_t m_obj_size;
     void* m_page; // pointer on the page itself
-    void* m_free; // pointer on the next after the last allocated Object. If Page is full --- NULL
     size_t m_mask; // a mask for pointers that points on this page (is used to find object begin)
-    page_bitset m_mark_bits; //mark bits for objects in
-    page_bitset m_pin_bits; //pin bits for objects in
+    page_bitset m_mark_bits; // mark bits for objects in
+    page_bitset m_pin_bits; // pin bits for objects in
+    page_bitset m_alloc_bits;
+    pool_chunk m_pool; // pool structure on page memory
 };
 
 } }

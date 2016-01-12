@@ -39,16 +39,6 @@ allocate_result segregated_list_element::allocate()
     return std::make_pair(mem, &m_pages[page_id]);
 }
 
-void segregated_list_element::clear(const page_descriptor::iterator &it, size_t page_id)
-{
-    m_pages[page_id].clear(it);
-    set_last_used_page(page_id);
-    for (size_t i = page_id + 1; i < PAGES_PER_SEGREGATED_STORAGE_ELEMENT; ++i) {
-        page_descriptor& pd = m_pages[i];
-        pd.clear(pd.begin());
-    }
-}
-
 void segregated_list_element::clear_mark_bits() noexcept
 {
     for (size_t i = 0; i < LAST_PAGE_ID; ++i) {
@@ -161,8 +151,6 @@ void segregated_list::compact(forwarding_list& forwarding)
     iterator from = end();
     --from;
     iterator to = begin();
-    iterator last_pined = begin();
-    iterator last_marked = end();
     while (from != to) {
         while (!from.is_marked() && from != to) {
             --from;
@@ -170,13 +158,7 @@ void segregated_list::compact(forwarding_list& forwarding)
         while (to.is_marked() && from != to) {
             ++to;
         }
-        if (last_marked == end()) {
-            last_marked = from;
-        }
         if (from.is_pinned()) {
-            if (last_pined == begin()) {
-                last_pined = from;
-            }
             if (from != to) {
                 --from;
             }
@@ -184,7 +166,9 @@ void segregated_list::compact(forwarding_list& forwarding)
         }
         if (from != to) {
             forwarding.emplace_back(*from, *to, m_alloc_size);
+            iterator tmp = from;
             --from;
+            tmp.deallocate();
         }
         if (from == to) {
             break;
@@ -193,14 +177,6 @@ void segregated_list::compact(forwarding_list& forwarding)
         }
     }
 
-    iterator clear_it = last_pined;
-    if (last_pined == begin()) {
-        clear_it = last_marked;
-    }
-    if (clear_it.is_marked()) {
-        ++clear_it;
-    }
-    clear(clear_it);
     clear_mark_bits();
 }
 
@@ -229,30 +205,6 @@ void segregated_list::fix_ptr(void *ptr, const forwarding_list &forwarding)
         if (from == frwd.from()) {
             from = frwd.to();
         }
-    }
-}
-
-void segregated_list::clear(const iterator &it)
-{
-    if (!m_first) {
-        return;
-    }
-
-    // delete all elements after current
-    segregated_list_element* sle = it.m_sle->get_next();
-    while (sle) {
-        segregated_list_element* next = sle->get_next();
-        delete sle;
-        sle = next;
-    }
-
-    if (it != begin()) {
-        it.m_sle->set_next(nullptr);
-        it.m_sle->clear(it.m_pd_itr, it.m_pd_ind);
-        m_last = it.m_sle;
-    } else {
-        delete m_first;
-        m_first = m_last = nullptr;
     }
 }
 
@@ -342,6 +294,11 @@ void segregated_list::iterator::decrement() noexcept
 bool segregated_list::iterator::equal(const iterator &other) const noexcept
 {
     return m_pd_itr == other.m_pd_itr;
+}
+
+void segregated_list::iterator::deallocate() noexcept
+{
+    m_pd_itr.set_deallocated();
 }
 
 bool segregated_list::iterator::is_marked() const noexcept

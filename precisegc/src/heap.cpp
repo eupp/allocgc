@@ -33,6 +33,12 @@ forwarding_list heap::compact()
     return frwd;
 }
 
+void heap::compact(const segregated_list::iterator &first, const segregated_list::iterator &last,
+                   forwarding_list &forwarding)
+{
+
+}
+
 void heap::fix_pointers(const forwarding_list &forwarding)
 {
     mutex_lock<mutex> lock(&m_mutex);

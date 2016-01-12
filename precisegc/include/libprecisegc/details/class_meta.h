@@ -51,7 +51,7 @@ public:
         meta_inf.reset(new class_meta(offsets));
     }
 
-    const class_meta & get_meta() const
+    const class_meta& get_meta() const
     {
         // we don't need syncronization here since class_meta is immutable object
         assert(this->meta_inf);

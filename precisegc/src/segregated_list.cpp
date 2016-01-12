@@ -304,14 +304,14 @@ void* const segregated_list::iterator::operator*() const noexcept
     return *m_pd_itr;
 }
 
-segregated_list::iterator segregated_list::iterator::operator++() noexcept
+void segregated_list::iterator::increment() noexcept
 {
     assert(m_sle);
     ++m_pd_itr;
     if (m_pd_itr == m_sle->get_page_descriptor(m_pd_ind).end()) {
         // if it's last page and there is no next then we reach the end of all memory
         if (m_pd_ind == m_sle->last_used_page() && !m_sle->get_next()) {
-            return *this;
+            return;
         }
         if (m_pd_ind == LAST_PAGE_ID) {
             assert(m_sle->get_next());
@@ -322,17 +322,9 @@ segregated_list::iterator segregated_list::iterator::operator++() noexcept
         }
         m_pd_itr = m_sle->get_page_descriptor(m_pd_ind).begin();
     }
-    return *this;
 }
 
-segregated_list::iterator segregated_list::iterator::operator++(int) noexcept
-{
-    iterator it = *this;
-    ++(*this);
-    return it;
-}
-
-segregated_list::iterator segregated_list::iterator::operator--() noexcept
+void segregated_list::iterator::decrement() noexcept
 {
     if (m_pd_itr == m_sle->get_page_descriptor(m_pd_ind).begin()) {
         if (m_pd_ind == 0) {
@@ -345,31 +337,17 @@ segregated_list::iterator segregated_list::iterator::operator--() noexcept
         m_pd_itr = m_sle->get_page_descriptor(m_pd_ind).end();
     }
     --m_pd_itr;
-    return *this;
 }
 
-segregated_list::iterator segregated_list::iterator::operator--(int) noexcept
+bool segregated_list::iterator::equal(const iterator &other) const noexcept
 {
-    iterator it = *this;
-    --(*this);
-    return it;
-}
-
-bool operator==(const segregated_list::iterator& it1, const segregated_list::iterator& it2)
-{
-    return it1.m_pd_itr == it2.m_pd_itr;
-}
-
-bool operator!=(const segregated_list::iterator& it1, const segregated_list::iterator& it2)
-{
-    return !(it1 == it2);
+    return m_pd_itr == other.m_pd_itr;
 }
 
 bool segregated_list::iterator::is_marked() const noexcept
 {
     return m_pd_itr.is_marked();
 }
-
 
 bool segregated_list::iterator::is_pinned() const noexcept
 {

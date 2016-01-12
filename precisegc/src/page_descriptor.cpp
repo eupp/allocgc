@@ -164,6 +164,7 @@ std::pair<void*, size_t> page_descriptor::allocate_page(size_t obj_size)
 {
     void* page = nullptr;
     size_t obj_count_bits = OBJECTS_PER_PAGE_BITS;
+    // 32 * obj_size
     size_t page_size = obj_size << obj_count_bits;
     while (!page) {
         assert(obj_count_bits <= MAX_PAGE_SIZE_BITS);

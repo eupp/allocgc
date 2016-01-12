@@ -7,6 +7,8 @@
 #include "constants.h"
 #include "page_descriptor.h"
 #include "forwarding_list.h"
+#include "iterator_base.h"
+#include "iterator_access.h"
 
 namespace precisegc { namespace details {
 
@@ -93,9 +95,9 @@ public:
     size_t alloc_size() const noexcept;
 
     // iterator for iterating through objects in segregated_list;
-    // we choose forward_iterator concept just because there is no need in more powerful concept;
+    // we choose bidirectional_iterator_tag concept just because there is no need in more powerful concept;
     // although, iterator for objects in segregated_list should be random_access;
-    class iterator: public std::iterator<std::forward_iterator_tag, void* const>
+    class iterator: public iterator_base<iterator, std::bidirectional_iterator_tag, void* const>
     {
     public:
         iterator(const iterator&) noexcept = default;
@@ -106,12 +108,6 @@ public:
 
         void* const operator*() const noexcept;
 
-        iterator operator++() noexcept;
-        iterator operator++(int) noexcept;
-
-        iterator operator--() noexcept;
-        iterator operator--(int) noexcept;
-
         bool is_marked() const noexcept;
         bool is_pinned() const noexcept;
 
@@ -119,9 +115,13 @@ public:
         void set_pinned(bool pinned) noexcept;
 
         friend class segregated_list;
-        friend bool operator==(const segregated_list::iterator& it1, const segregated_list::iterator& it2);
+        friend class iterator_access<iterator>;
     private:
         iterator(segregated_list_element* sle, size_t pd_ind, page_descriptor::iterator pd_itr) noexcept;
+
+        bool equal(const iterator& other) const noexcept;
+        void increment() noexcept;
+        void decrement() noexcept;
 
         segregated_list_element* m_sle;
         size_t m_pd_ind;

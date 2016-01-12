@@ -38,6 +38,9 @@ private:
     heap& operator=(const heap&) = delete;
     heap& operator=(const heap&&) = delete;
 
+    void compact(const segregated_list::iterator& first, const segregated_list::iterator& last, forwarding_list& forwarding);
+    //void fix_pointers(const forwarding_list& forwarding);
+
     segregated_list m_storage[SEGREGATED_STORAGE_SIZE];
     mutex m_mutex;
 };

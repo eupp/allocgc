@@ -111,9 +111,6 @@ private:
     page_bitset m_pin_bits; //pin bits for objects in
 };
 
-bool operator==(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
-bool operator!=(const page_descriptor::iterator& it1, const page_descriptor::iterator& it2);
-
 } }
 
 #endif // DIPLOMA_PAGE_DESCRIPTOR_H

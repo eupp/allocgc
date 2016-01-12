@@ -24,7 +24,11 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/constants.h
         include/libprecisegc/details/os_mem_ptr.h
         include/libprecisegc/details/util.h
-        include/libprecisegc/details/forwarding_list.h include/libprecisegc/gc_pin.h include/libprecisegc/details/iterator_base.h include/libprecisegc/details/iterator_access.h)
+        include/libprecisegc/details/forwarding_list.h
+        include/libprecisegc/gc_pin.h
+        include/libprecisegc/details/iterator_base.h
+        include/libprecisegc/details/iterator_access.h
+        include/libprecisegc/details/pool_chunk.h)
 
 
 set(precisegc_LIB_SRCS
@@ -39,7 +43,7 @@ set(precisegc_LIB_SRCS
         src/tlvars.cpp
         src/page_descriptor.cpp
         src/segregated_list.cpp
-        src/heap.cpp)
+        src/heap.cpp src/pool_chunk.cpp)
 
 
 include_directories(include/libprecisegc)

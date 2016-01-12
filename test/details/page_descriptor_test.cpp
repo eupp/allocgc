@@ -1,7 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <iterator>
-
 #include "libprecisegc/details/page_descriptor.h"
 
 using namespace precisegc::details;

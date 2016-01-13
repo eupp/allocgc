@@ -110,27 +110,22 @@ TEST(page_descriptor_test, test_initialized_iterators_reverse)
     ASSERT_EQ(total_cnt, cnt);
 }
 
-TEST(page_descriptor_test, test_clear)
+TEST(page_descriptor_test, test_iterator_set_deallocated)
 {
     page_descriptor pd;
     pd.initialize_page(OBJ_SIZE);
     int total_cnt = pd.page_size() / OBJ_SIZE;
-    for (int i = 0; i < total_cnt; ++i) {
-        pd.allocate();
-    }
+
+    pd.allocate();
+    ASSERT_NE(pd.begin(), pd.end());
 
     auto it = pd.begin();
-    auto end = pd.end();
-    std::advance(it, total_cnt);
-    pd.clear(it);
-    ASSERT_EQ(pd.end(), end);
+    void* ptr = *it;
+    it.set_deallocated();
+    ASSERT_EQ(pd.begin(), pd.end());
 
+    pd.allocate();
     it = pd.begin();
-    std::advance(it, total_cnt - 1);
-    pd.clear(it);
-    ASSERT_EQ(it, pd.end());
-
-    pd.clear(pd.begin());
-    ASSERT_EQ(pd.end(), pd.begin());
+    ASSERT_EQ(ptr, *it);
 }
 

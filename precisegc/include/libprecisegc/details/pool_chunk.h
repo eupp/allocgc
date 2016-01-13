@@ -3,9 +3,7 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <climits>
 #include <limits>
-#include <bitset>
 
 namespace precisegc { namespace details {
 
@@ -13,8 +11,7 @@ class pool_chunk
 {
 public:
 
-    static const size_t CHUNK_MAXSIZE = CHAR_BIT * sizeof(unsigned long long);
-    static_assert(CHUNK_MAXSIZE <= std::numeric_limits<std::uint8_t>::max());
+    static const size_t CHUNK_MAXSIZE = std::numeric_limits<std::uint8_t>::max();
 
     pool_chunk(void* chunk, size_t obj_size, std::uint8_t cnt) noexcept;
 
@@ -32,12 +29,11 @@ public:
     void reset(void* chunk, size_t obj_size, std::uint8_t cnt) noexcept;
 
 private:
-    typedef std::bitset<CHUNK_MAXSIZE> chunk_bitset;
-
     void init(void* chunk, size_t obj_size, std::uint8_t cnt) noexcept;
 
     std::uint8_t* m_chunk;
-    chunk_bitset m_free;
+    std::uint8_t m_next;
+    std::uint8_t m_available;
 };
 
 }}

@@ -14,7 +14,9 @@ page_descriptor::page_descriptor()
     , m_page_size(0)
     , m_obj_size(0)
     , m_mask(0)
-{ }
+{
+    m_alloc_bits.set();
+}
 
 page_descriptor::~page_descriptor()
 {
@@ -29,6 +31,7 @@ void page_descriptor::initialize_page(size_t obj_size)
     m_page_size = alloc_res.second;
     m_obj_size = obj_size;
     m_pool.reset(m_page, m_obj_size, m_page_size / m_obj_size);
+    m_alloc_bits.reset();
     m_mask = calculate_mask(m_page_size, obj_size, m_page);
     index_page();
 }
@@ -45,20 +48,16 @@ void page_descriptor::clear_page()
         m_mask = 0;
         m_mark_bits.reset();
         m_pin_bits.reset();
-        m_alloc_bits.reset();
+        m_alloc_bits.set();
     }
 }
 
 void* page_descriptor::allocate() noexcept
 {
     assert(is_memory_available());
-    while (true) {
-        void* ptr = m_pool.allocate(m_obj_size);
-        if (!m_alloc_bits[calculate_offset(ptr)]) {
-            m_alloc_bits[calculate_offset(ptr)] = true;
-            return ptr;
-        }
-    }
+    void* ptr = m_pool.allocate(m_obj_size);
+    m_alloc_bits[calculate_offset(ptr)] = true;
+    return ptr;
 }
 
 void page_descriptor::deallocate(void* ptr) noexcept
@@ -193,7 +192,7 @@ size_t page_descriptor::calculate_mask(size_t page_size, size_t obj_size, void* 
 size_t page_descriptor::calculate_offset(void* ptr) const noexcept
 {
     assert(m_page);
-    assert(m_page <= ptr && ptr < (void*) ((size_t) m_page + m_page_size));
+    assert(m_page <= ptr && ptr <= (void*) ((size_t) m_page + m_page_size));
     return ((size_t) ptr - (size_t) m_page) / m_obj_size;
 }
 
@@ -221,7 +220,7 @@ void page_descriptor::iterator::increment() noexcept
     assert((size_t) m_ptr < (size_t) m_pd->m_page + m_pd->m_page_size);
     do {
         m_ptr = (void*) ((size_t) m_ptr + m_pd->m_obj_size);
-    } while (!m_pd->m_alloc_bits[get_offset()]);
+    } while (((size_t) m_ptr < (size_t) m_pd->m_page + m_pd->m_page_size) && !m_pd->m_alloc_bits[get_offset()]);
 }
 
 void page_descriptor::iterator::decrement() noexcept
@@ -230,7 +229,7 @@ void page_descriptor::iterator::decrement() noexcept
     assert(m_ptr > m_pd->m_page);
     do {
         m_ptr = (void*) ((size_t) m_ptr - m_pd->m_obj_size);
-    } while (!m_pd->m_alloc_bits[get_offset()]);
+    } while (((size_t) m_ptr > (size_t) m_pd->m_page) && !m_pd->m_alloc_bits[get_offset()]);
 }
 
 bool page_descriptor::iterator::equal(const iterator &other) const noexcept

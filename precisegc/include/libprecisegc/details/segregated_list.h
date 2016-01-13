@@ -48,9 +48,6 @@ public:
     allocate_result allocate();
     bool is_memory_available() const noexcept;
 
-    // clear all memory in range [ pages[page_id]->it, end)
-    void clear(const page_descriptor::iterator& it, size_t page_id);
-
     void clear_mark_bits() noexcept;
     void clear_pin_bits() noexcept;
 
@@ -116,6 +113,11 @@ public:
 
         friend class segregated_list;
         friend class iterator_access<iterator>;
+
+        std::string tmp() const {
+            return m_pd_itr.tmp();
+        }
+
     private:
         iterator(segregated_list_element* sle, size_t pd_ind, page_descriptor::iterator pd_itr) noexcept;
 

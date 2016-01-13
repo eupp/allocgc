@@ -9,7 +9,7 @@ namespace precisegc { namespace details {
 /* returns log_2 if argument is a power of 2 */
 inline size_t log_2(size_t n)
 {
-    assert((n & (n - 1)) != 0 || n == 0);
+    assert((n & (n - 1)) == 0 && n != 0);
     size_t l = sizeof(size_t) * CHAR_BIT, r = 0;
     while (true) {
         int m = ((l - r) >> 1) + r;

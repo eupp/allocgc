@@ -1,0 +1,54 @@
+#ifndef DIPLOMA_CONDITION_VARIABLE_H
+#define DIPLOMA_CONDITION_VARIABLE_H
+
+#include <pthread.h>
+
+#include "mutex.h"
+
+namespace precisegc { namespace details {
+
+class condition_variable
+{
+public:
+
+    condition_variable() noexcept
+    {
+        pthread_cond_init(&m_cond, nullptr);
+    }
+
+    ~condition_variable()
+    {
+        pthread_cond_destroy(&m_cond);
+    }
+
+    condition_variable(const condition_variable&) = delete;
+    condition_variable& operator=(const condition_variable&) = delete;
+
+    condition_variable(condition_variable&&) noexcept = default;
+    condition_variable& operator=(condition_variable&&) noexcept = default;
+
+    template <typename Pred>
+    void wait(mutex& m, Pred pred) noexcept
+    {
+        while (!pred()) {
+            pthread_cond_wait(&m_cond, &m.m_mutex);
+        }
+    }
+
+    void notify_one() noexcept
+    {
+        pthread_cond_signal(&m_cond);
+    }
+
+    void notify_all() noexcept
+    {
+        pthread_cond_broadcast(&m_cond);
+    }
+
+private:
+    pthread_cond_t m_cond;
+};
+
+}}
+
+#endif //DIPLOMA_CONDITION_VARIABLE_H

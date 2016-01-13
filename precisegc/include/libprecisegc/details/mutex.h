@@ -5,11 +5,13 @@
 
 namespace precisegc { namespace details {
 
+class condition_variable;
+
 class mutex
 {
 public:
 
-    mutex()
+    mutex() noexcept
     {
         pthread_mutex_init(&m_mutex, nullptr);
     }
@@ -19,16 +21,23 @@ public:
         pthread_mutex_destroy(&m_mutex);
     }
 
-    void lock()
+    mutex(const mutex&) = delete;
+    mutex& operator=(const mutex&) = delete;
+
+    mutex(mutex&&) noexcept = default;
+    mutex& operator=(const mutex&&) noexcept = default;
+
+    void lock() noexcept
     {
         pthread_mutex_lock(&m_mutex);
     }
 
-    void unlock()
+    void unlock() noexcept
     {
         pthread_mutex_unlock(&m_mutex);
     }
 
+    friend class condition_variable;
 private:
     pthread_mutex_t m_mutex;
 };
@@ -37,7 +46,7 @@ class recursive_mutex
 {
 public:
 
-    recursive_mutex()
+    recursive_mutex() noexcept
     {
         pthread_mutexattr_t attr;
         pthread_mutexattr_init(&attr);
@@ -51,12 +60,18 @@ public:
         pthread_mutex_destroy(&m_mutex);
     }
 
-    void lock()
+    recursive_mutex(const recursive_mutex& other) = delete;
+    recursive_mutex& operator=(const recursive_mutex& other) = delete;
+
+    recursive_mutex(mutex&&) noexcept = default;
+    recursive_mutex& operator=(const mutex&&) noexcept = default;
+
+    void lock() noexcept
     {
         pthread_mutex_lock(&m_mutex);
     }
 
-    void unlock()
+    void unlock() noexcept
     {
         pthread_mutex_unlock(&m_mutex);
     }

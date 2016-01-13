@@ -113,11 +113,6 @@ public:
 
         friend class segregated_list;
         friend class iterator_access<iterator>;
-
-        std::string tmp() const {
-            return m_pd_itr.tmp();
-        }
-
     private:
         iterator(segregated_list_element* sle, size_t pd_ind, page_descriptor::iterator pd_itr) noexcept;
 

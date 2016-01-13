@@ -184,9 +184,7 @@ TEST(test_segregated_list, test_compact)
     it3.set_marked(true);
 
     forwarding_list fl;
-    std::cout << it2.tmp() << std::endl;
     sl.compact(fl);
-    std::cout << it2.tmp() << std::endl;
     auto end = it2;
     ++end;
     EXPECT_EQ(end, sl.end());

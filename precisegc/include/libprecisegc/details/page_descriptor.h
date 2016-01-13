@@ -82,11 +82,6 @@ public:
 
         friend class page_descriptor;
         friend class iterator_access<iterator>;
-
-        std::string tmp() const {
-            return m_pd->m_alloc_bits.to_string();
-        }
-
     private:
         iterator(page_descriptor* pd, void* ptr) noexcept;
         size_t get_offset() const noexcept;

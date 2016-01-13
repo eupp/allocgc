@@ -187,14 +187,14 @@ void segregated_list::compact(forwarding_list& forwarding)
             --from;
             tmp.deallocate();
         }
-        while (to.is_marked() && from != to) {
-            ++to;
-        }
         if (from.is_pinned()) {
             if (from != to) {
                 --from;
             }
             continue;
+        }
+        while (to.is_marked() && from != to) {
+            ++to;
         }
         if (from != to) {
             forwarding.emplace_back(*from, *to, m_alloc_size);
@@ -209,6 +209,11 @@ void segregated_list::compact(forwarding_list& forwarding)
         }
     }
 
+    if (!from.is_marked()) {
+        iterator tmp = from;
+        --from;
+        tmp.deallocate();
+    }
     clear_mark_bits();
 }
 

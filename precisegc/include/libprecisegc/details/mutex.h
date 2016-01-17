@@ -25,7 +25,7 @@ public:
     mutex& operator=(const mutex&) = delete;
 
     mutex(mutex&&) noexcept = default;
-    mutex& operator=(const mutex&&) noexcept = default;
+    mutex& operator=(mutex&&) noexcept = default;
 
     void lock() noexcept
     {
@@ -63,8 +63,8 @@ public:
     recursive_mutex(const recursive_mutex& other) = delete;
     recursive_mutex& operator=(const recursive_mutex& other) = delete;
 
-    recursive_mutex(mutex&&) noexcept = default;
-    recursive_mutex& operator=(const mutex&&) noexcept = default;
+    recursive_mutex(recursive_mutex&&) noexcept = default;
+    recursive_mutex& operator=(recursive_mutex&&) noexcept = default;
 
     void lock() noexcept
     {
@@ -85,19 +85,19 @@ class mutex_lock
 {
 public:
 
-    mutex_lock(Mutex* m)
+    mutex_lock(Mutex& m)
         : m_mutex(m)
     {
-        m_mutex->lock();
+        m_mutex.lock();
     }
 
     ~mutex_lock()
     {
-        m_mutex->unlock();
+        m_mutex.unlock();
     }
 
 private:
-    Mutex* m_mutex;
+    Mutex& m_mutex;
 };
 
 } }

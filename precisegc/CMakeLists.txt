@@ -28,7 +28,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_pin.h
         include/libprecisegc/details/iterator_base.h
         include/libprecisegc/details/iterator_access.h
-        include/libprecisegc/details/pool_chunk.h include/libprecisegc/details/condition_variable.h)
+        include/libprecisegc/details/pool_chunk.h
+        include/libprecisegc/details/condition_variable.h
+        include/libprecisegc/details/gc_pause.h
+        include/libprecisegc/details/barrier.h)
 
 
 set(precisegc_LIB_SRCS

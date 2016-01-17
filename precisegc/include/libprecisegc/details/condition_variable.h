@@ -2,6 +2,7 @@
 #define DIPLOMA_CONDITION_VARIABLE_H
 
 #include <pthread.h>
+#include <sys/time.h>
 
 #include "mutex.h"
 
@@ -10,6 +11,8 @@ namespace precisegc { namespace details {
 class condition_variable
 {
 public:
+
+    enum class wait_status { timeout, no_timeout };
 
     condition_variable() noexcept
     {
@@ -33,6 +36,17 @@ public:
         while (!pred()) {
             pthread_cond_wait(&m_cond, &m.m_mutex);
         }
+    }
+
+    template <typename Pred>
+    wait_status wait_for(mutex& m, const timespec* ts, Pred pred) noexcept
+    {
+        while (!pred()) {
+            if (pthread_cond_timedwait(&m_cond, &m.m_mutex, ts) == ETIMEDOUT) {
+                return wait_status::timeout;
+            }
+        }
+        return wait_status::no_timeout;
     }
 
     void notify_one() noexcept

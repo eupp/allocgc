@@ -34,7 +34,7 @@ Object * _GC_::get_object_header (void * ptr) {
 static precisegc::details::mutex get_meta_inf_mutex;
 
 _GC_::base_meta * _GC_::get_meta_inf (void * ptr) {  /*!< get the block with meta_inf*/
-    precisegc::details::mutex_lock<precisegc::details::mutex> lock(&get_meta_inf_mutex);
+    precisegc::details::mutex_lock<precisegc::details::mutex> lock(get_meta_inf_mutex);
     _GC_::base_meta * res = (_GC_::base_meta *) get_object_header(ptr);
     return res;
 }

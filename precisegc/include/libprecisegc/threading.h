@@ -51,11 +51,15 @@ extern thread_handler* first_thread;
 extern thread_handler* gc_thread;
 extern volatile bool more_than_one;
 
-void suspend_threads (void);
+void suspend_threads ();
+
 int thread_create(pthread_t *thread, const pthread_attr_t *attr,
         void* (*routine) (void*), void* arg);
+
 void thread_join(pthread_t thread, void** thread_return);
+
 void thread_exit(void** retval);
+
 void thread_cancel(pthread_t thread);
 
 thread_handler* get_thread_handler();

@@ -38,13 +38,13 @@ public:
 
     bool is_created() const
     {
-        mutex_lock<recursive_mutex> lock(&meta_mutex);
+        mutex_lock<recursive_mutex> lock(meta_mutex);
         return meta_inf != nullptr;
     }
 
     void create_meta(const std::vector<size_t>& offsets)
     {
-        mutex_lock<recursive_mutex> lock(&meta_mutex);
+        mutex_lock<recursive_mutex> lock(meta_mutex);
         if (is_created()) {
             return;
         }

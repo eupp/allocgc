@@ -16,7 +16,7 @@ heap::heap()
 
 void* heap::allocate(size_t size)
 {
-    mutex_lock<mutex> lock(&m_mutex);
+    mutex_lock<mutex> lock(m_mutex);
     size_t aligned_size = align_size(size);
     size_t sl_ind = log_2(aligned_size) - MIN_ALLOC_SIZE_BITS;
     assert(aligned_size == m_storage[sl_ind].alloc_size());
@@ -25,7 +25,7 @@ void* heap::allocate(size_t size)
 
 forwarding_list heap::compact()
 {
-    mutex_lock<mutex> lock(&m_mutex);
+    mutex_lock<mutex> lock(m_mutex);
     forwarding_list frwd;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
         m_storage[i].compact(frwd);
@@ -41,7 +41,7 @@ void heap::compact(const segregated_list::iterator &first, const segregated_list
 
 void heap::fix_pointers(const forwarding_list &forwarding)
 {
-    mutex_lock<mutex> lock(&m_mutex);
+    mutex_lock<mutex> lock(m_mutex);
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
         m_storage[i].fix_pointers(forwarding);
     }

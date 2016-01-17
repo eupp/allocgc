@@ -13,7 +13,7 @@
 #include "gcmalloc.h"
 #include "gc_pin.h"
 #include "deref_roots.h"
-#include "threading.h"
+#include "thread.h"
 
 #define set_stack_flag(x)		(void *)	((uintptr_t)x | (uintptr_t)1)
 #define set_composite_flag(x)	(void *)	((uintptr_t)x | (uintptr_t)2)
@@ -120,9 +120,9 @@ private:
 	*/
 	gc_ptr (T* p) {
 		assert(p != NULL);
-		pthread_mutex_lock(&gc_mutex);
-		thread_handler *pHandler = get_thread_handler();
-		pthread_mutex_unlock(&gc_mutex);
+		pthread_mutex_lock(&precisegc::gc_mutex);
+		precisegc::thread_handler *pHandler = precisegc::get_thread_handler();
+		pthread_mutex_unlock(&precisegc::gc_mutex);
 		tlvars * new_obj_flags = pHandler->tlflags;
 		StackMap * stack_ptr = pHandler->stack;
 		dprintf("gc_ptr(T* p) { %p\n", this);
@@ -156,9 +156,9 @@ public:
 	* @detailed sets ptr pointer on NULL
 	*/
 	gc_ptr () {
-		pthread_mutex_lock(&gc_mutex);
-		thread_handler *pHandler = get_thread_handler();
-		pthread_mutex_unlock(&gc_mutex);
+		pthread_mutex_lock(&precisegc::gc_mutex);
+		precisegc::thread_handler *pHandler = precisegc::get_thread_handler();
+		pthread_mutex_unlock(&precisegc::gc_mutex);
 		tlvars * new_obj_flags = pHandler->tlflags;
 		StackMap * stack_ptr = pHandler->stack;
 		dprintf("gc_ptr() { %p\n", this);
@@ -184,11 +184,11 @@ public:
 	* @param p is a gc_ptr to be copied
 	*/
 	gc_ptr (const gc_ptr <T> &p) {
-		pthread_mutex_lock(&gc_mutex);
-		thread_handler *pHandler = get_thread_handler();
+		pthread_mutex_lock(&precisegc::gc_mutex);
+		precisegc::thread_handler *pHandler = precisegc::get_thread_handler();
 		tlvars * new_obj_flags = pHandler->tlflags;
 		StackMap * stack_ptr = pHandler->stack;
-		pthread_mutex_unlock(&gc_mutex);
+		pthread_mutex_unlock(&precisegc::gc_mutex);
 		dprintf("gc_ptr (const ...)\n");
 		ptr = clear_stack_flag(p.ptr); //< also set composite flag if necessary
 		if (is_composite_pointer(p.ptr)) {
@@ -227,9 +227,9 @@ public:
 		dprintf("~gc_ptr: %p; ", this);
 		if (is_stack_pointer(ptr)) {
 			dprintf("~gc_ptr -> delete stack root: %p\n", this);
-			pthread_mutex_lock(&gc_mutex);
-			StackMap * stack_ptr = get_thread_handler()->stack;
-			pthread_mutex_unlock(&gc_mutex);
+			pthread_mutex_lock(&precisegc::gc_mutex);
+			StackMap * stack_ptr = precisegc::get_thread_handler()->stack;
+			pthread_mutex_unlock(&precisegc::gc_mutex);
 			stack_ptr->delete_stack_root(this);
 		}
 		if (is_composite_pointer(ptr)) {

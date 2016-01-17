@@ -3,7 +3,7 @@
 #include "pthread.h"
 #include "time.h"
 
-#include "libprecisegc/threading.h"
+#include "libprecisegc/thread.h"
 #include "libprecisegc/details/gc_pause.h"
 #include "libprecisegc/details/condition_variable.h"
 #include "libprecisegc/details/mutex.h"
@@ -27,7 +27,7 @@ void pause_handler()
     thread_paused_cond.notify_all();
 }
 
-void* thread_routine(void*)
+static void* thread_routine(void*)
 {
     thread_paused_mutex.lock();
     thread_paused_cond.wait(thread_paused_mutex, [](){ return threads_paused_num == 2; });

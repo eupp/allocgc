@@ -10,7 +10,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/stack.h
         include/libprecisegc/taginfo.h
         include/libprecisegc/tlvars.h
-        include/libprecisegc/threading.h
+        include/libprecisegc/thread.h
         include/libprecisegc/meta_information.h
         include/libprecisegc/deref_roots.h
         include/libprecisegc/object.h
@@ -31,7 +31,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/pool_chunk.h
         include/libprecisegc/details/condition_variable.h
         include/libprecisegc/details/gc_pause.h
-        include/libprecisegc/details/barrier.h)
+        include/libprecisegc/details/barrier.h include/libprecisegc/details/thread_list.h)
 
 
 set(precisegc_LIB_SRCS
@@ -42,11 +42,11 @@ set(precisegc_LIB_SRCS
         src/mark.cpp
         src/stack.cpp
         src/taginfo.cpp
-        src/threading.cpp
+        src/thread.cpp
         src/tlvars.cpp
         src/page_descriptor.cpp
         src/segregated_list.cpp
-        src/heap.cpp src/pool_chunk.cpp)
+        src/heap.cpp src/pool_chunk.cpp src/gc_pause.cpp)
 
 
 include_directories(include/libprecisegc)

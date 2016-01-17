@@ -27,7 +27,7 @@ TEST(class_meta_test, test_create_meta)
 
 static pthread_barrier_t g_barrier;
 
-void* thread_routine(void* arg)
+static void* thread_routine(void* arg)
 {
     class_meta_provider<type_3> provider;
     vector<size_t>* offsets = reinterpret_cast<vector<size_t>*>(arg);

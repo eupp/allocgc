@@ -15,7 +15,7 @@ class heap
 {
 public:
 
-    inline static heap& instance()
+    static heap& instance()
     {
         static heap h;
         return h;

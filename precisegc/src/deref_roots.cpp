@@ -1,6 +1,6 @@
 #include "deref_roots.h"
 #include "go.h"
-#include "threading.h"
+#include "thread.h"
 #include <assert.h>
 #include <sys/mman.h>
 

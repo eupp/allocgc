@@ -4,18 +4,6 @@
 #include "deref_roots.h"
 #include "tlvars.h"
 
-struct thread_handler {
-        pthread_t thread;
-        void* arg;
-        void* (*routine) (void*); // for init
-        size_t flags;
-        StackMap * stack;
-        void* stack_top;
-        void* stack_bottom;
-        thread_handler* next;
-        tlvars *tlflags;
-};
-
 #define thread_in_safepoint(h) (h->flags & 2)
 #define enter_safepoint(h) {h->flags |= 2;}
 #define exit_safepoint(h) {h->flags &= ~2;}
@@ -44,6 +32,19 @@ struct thread_handler {
         without_gc_after()\
 }
 
+namespace precisegc {
+
+struct thread_handler
+{
+    pthread_t thread;
+    void* arg;
+
+    void* (* routine)(void*); // for init
+    size_t flags;
+    StackMap* stack;
+    tlvars* tlflags;
+};
+
 extern pthread_mutex_t gc_mutex;
 extern pthread_cond_t gc_is_finished;
 extern pthread_cond_t safepoint_reached;
@@ -51,10 +52,10 @@ extern thread_handler* first_thread;
 extern thread_handler* gc_thread;
 extern volatile bool more_than_one;
 
-void suspend_threads ();
+void suspend_threads();
 
-int thread_create(pthread_t *thread, const pthread_attr_t *attr,
-        void* (*routine) (void*), void* arg);
+int thread_create(pthread_t* thread, const pthread_attr_t* attr,
+                  void* (* routine)(void*), void* arg);
 
 void thread_join(pthread_t thread, void** thread_return);
 
@@ -63,3 +64,5 @@ void thread_exit(void** retval);
 void thread_cancel(pthread_t thread);
 
 thread_handler* get_thread_handler();
+
+}

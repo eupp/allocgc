@@ -9,6 +9,8 @@
 #include "gc_new.h"
 #include "fake_roots.h"
 #include "thread.h"
+#include "thread_list.h"
+
 #ifdef DEBUGE_MODE
 	size_t live_object_count = 0;
 #endif
@@ -159,7 +161,7 @@ int go (void * pointer, bool pin_root) {
 	return stack_overflow;
 }
 
-void clean_deref_roots();
+//void clean_deref_roots();
 
 /**
 * @function gc
@@ -178,14 +180,13 @@ int gc (bool full) {
 			return 1;
 		}
 		enter_safepoint(handler);
-		handler->stack_top = __builtin_frame_address(0);
 		if (!precisegc::gc_thread) {
 			precisegc::gc_thread = handler;
 			printf("thread %d is garbage collector\n", (int)handler->thread);
 			if (full) {
 				mark_and_sweep();
 			} else {
-				clean_deref_roots();
+//				clean_deref_roots();
 			}
 			precisegc::gc_thread = nullptr;
 			exit_safepoint(handler);
@@ -203,40 +204,40 @@ int gc (bool full) {
 
 extern void* __libc_stack_end;
 
-void mark_stack(precisegc::thread_handler* thread, bool full_gc) {
-// TODO
-	void * stack_bottom = thread->stack_bottom;
-	if (!stack_bottom) {
-		stack_bottom = __libc_stack_end;
-	}
-	void** curr = (void**) thread->stack_top;
-	assert(curr <= stack_bottom);
-	while (curr <= stack_bottom) {
-// TODO remove first if
-if (curr == NULL) { return; }
+//void mark_stack(precisegc::thread_handler* thread, bool full_gc) {
+//// TODO
+//	void * stack_bottom = thread->stack_bottom;
+//	if (!stack_bottom) {
+//		stack_bottom = __libc_stack_end;
+//	}
+//	void** curr = (void**) thread->stack_top;
+//	assert(curr <= stack_bottom);
+//	while (curr <= stack_bottom) {
+//// TODO remove first if
+//if (curr == NULL) { return; }
+//
+//		if (is_heap_pointer(*curr)) {
+//			dprintf("possible heap pointer: %p\n", *curr);
+//			mark_dereferenced_root(*curr, full_gc);
+//		}
+//		curr++;
+//	}
+//}
 
-		if (is_heap_pointer(*curr)) {
-			dprintf("possible heap pointer: %p\n", *curr);
-			mark_dereferenced_root(*curr, full_gc);
-		}
-		curr++;
-	}
-}
-
-void clean_deref_roots() {
-// TODO
-	dprintf("Cleanup deref roots\n");
-	precisegc::thread_handler* handler = precisegc::first_thread;
-	while (handler) {
-		while (!thread_in_safepoint(handler)) {
-			dprintf("Waiting thread %d to reach safepoint\n", handler->thread);
-			pthread_cond_wait(&precisegc::safepoint_reached, &precisegc::gc_mutex);
-		}
-		mark_stack(handler, false);
-		handler = handler->next;
-	}
-	sweep_dereferenced_roots();
-}
+//void clean_deref_roots() {
+//// TODO
+//	dprintf("Cleanup deref roots\n");
+//	precisegc::thread_handler* handler = precisegc::first_thread;
+//	while (handler) {
+//		while (!thread_in_safepoint(handler)) {
+//			dprintf("Waiting thread %d to reach safepoint\n", handler->thread);
+//			pthread_cond_wait(&precisegc::safepoint_reached, &precisegc::gc_mutex);
+//		}
+//		mark_stack(handler, false);
+//		handler = handler->next;
+//	}
+//	sweep_dereferenced_roots();
+//}
 
 /**
 * @function mark_and_sweep
@@ -256,15 +257,16 @@ void mark_and_sweep() {
 //safepoint();
 
 //	suspend_threads();
-	precisegc::thread_handler* handler = precisegc::first_thread;
-	while (handler) {
-		while (!thread_in_safepoint(handler)) {
-			printf("Waiting thread %d to reach safepoint\n", (int)handler->thread);
+    precisegc::details::thread_list& tl = precisegc::details::thread_list::instance();
+	for (auto& handler: tl) {
+        precisegc::thread_handler* p_handler = &handler;
+		while (!thread_in_safepoint(p_handler)) {
+			printf("Waiting thread %d to reach safepoint\n", (int)p_handler->thread);
 			pthread_cond_wait(&precisegc::safepoint_reached, &precisegc::gc_mutex);
 		}
 		// iterate root stack and call traversing function go
 //		mark_stack(handler, true);
-		StackMap *stack_ptr = handler->stack;
+		StackMap *stack_ptr = p_handler->stack;
 		bool stack_overflow = false;
 		for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {/* walk through all roots*/
 			stack_overflow |= go(get_next_obj(root->addr)); /* mark all available objects with mbit = 1*/
@@ -287,7 +289,6 @@ void mark_and_sweep() {
 #ifdef DEBUGE_MODE
 	printf("over_count = %i\n", over_count);
 #endif
-		handler = handler->next;
 	}
 //	mark_fake_roots();
 	// call sweep function (look at msmalloc)
@@ -308,9 +309,10 @@ void mark_and_sweep() {
 
 //extern size_t fixed_count;
 void fix_roots(const precisegc::details::forwarding_list& forwarding) {
-	precisegc::thread_handler *handler = precisegc::first_thread;
-	while (handler) {
-		StackMap *stack_ptr = handler->stack;
+	precisegc::details::thread_list& tl = precisegc::details::thread_list::instance();
+	for (auto& handler: tl) {
+        precisegc::thread_handler* p_handler = &handler;
+		StackMap *stack_ptr = p_handler->stack;
 		for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
 			printf("fix_root: from %p\n", get_next_obj(root->addr));
 //			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
@@ -326,6 +328,5 @@ void fix_roots(const precisegc::details::forwarding_list& forwarding) {
 			}
 			printf("\t: to %p\n", get_next_obj(root->addr));
 		}
-		handler = handler->next;
 	}
 }

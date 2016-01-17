@@ -8,6 +8,7 @@
 #include "libprecisegc/details/condition_variable.h"
 #include "libprecisegc/details/mutex.h"
 
+using namespace precisegc;
 using namespace precisegc::details;
 
 size_t threads_paused_num = 0;

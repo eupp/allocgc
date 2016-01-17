@@ -46,7 +46,7 @@ set(precisegc_LIB_SRCS
         src/tlvars.cpp
         src/page_descriptor.cpp
         src/segregated_list.cpp
-        src/heap.cpp src/pool_chunk.cpp src/gc_pause.cpp)
+        src/heap.cpp src/pool_chunk.cpp src/gc_pause.cpp src/thread_list.cpp src/thread_list.h)
 
 
 include_directories(include/libprecisegc)

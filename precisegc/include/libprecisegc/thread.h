@@ -11,7 +11,6 @@
 #define without_gc_before() {\
      pthread_mutex_lock(&gc_mutex);\
      thread_handler * ___current_thread_handler = get_thread_handler();\
-     ___current_thread_handler->stack_top = __builtin_frame_address(0);\
      enter_safepoint(___current_thread_handler);\
      if (gc_thread) {\
         dprintf("Thread %d reached safepoint\n", ___current_thread_handler->thread);\
@@ -37,9 +36,8 @@ namespace precisegc {
 struct thread_handler
 {
     pthread_t thread;
-    void* arg;
-
     void* (* routine)(void*); // for init
+    void* arg;
     size_t flags;
     StackMap* stack;
     tlvars* tlflags;
@@ -48,11 +46,8 @@ struct thread_handler
 extern pthread_mutex_t gc_mutex;
 extern pthread_cond_t gc_is_finished;
 extern pthread_cond_t safepoint_reached;
-extern thread_handler* first_thread;
 extern thread_handler* gc_thread;
 extern volatile bool more_than_one;
-
-void suspend_threads();
 
 int thread_create(pthread_t* thread, const pthread_attr_t* attr,
                   void* (* routine)(void*), void* arg);

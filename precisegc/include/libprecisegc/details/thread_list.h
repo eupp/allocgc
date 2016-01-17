@@ -3,6 +3,7 @@
 
 #include <list>
 #include <iterator>
+#include <pthread.h>
 
 #include "thread.h"
 #include "mutex.h"
@@ -34,14 +35,24 @@ public:
         {
             return instance();
         }
+
+        thread_list* operator->()
+        {
+            return &instance();
+        }
     private:
         mutex_lock<mutex> m_lock;
     };
 
     class iterator;
 
-    void insert(const thread_handler& th);
+    bool empty() const;
+    size_t size() const;
+
+    iterator insert(const thread_handler& th);
     iterator remove(iterator it);
+
+    iterator find(pthread_t th);
 
     template <typename... Args>
     void emplace(Args... args)
@@ -49,16 +60,24 @@ public:
         m_list.emplace_back(std::forward<Args>(args)...);
     }
 
+    iterator begin();
+    iterator end();
+
     class iterator: public iterator_base<iterator, std::bidirectional_iterator_tag, thread_handler>
     {
     public:
-        iterator();
         iterator(const iterator&) noexcept = default;
         iterator(iterator&&) noexcept = default;
-
         iterator& operator=(const iterator&) noexcept = default;
+
         iterator& operator=(iterator&&) noexcept = default;
+        thread_handler& operator*();
+
+        friend class thread_list;
+        friend class iterator_access<iterator>;
     private:
+        iterator(th_list_t::iterator it);
+
         bool equal(const iterator& other) const noexcept;
         void increment() noexcept;
         void decrement() noexcept;

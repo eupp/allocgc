@@ -80,6 +80,7 @@ public:
         void set_marked(bool marked) noexcept;
         void set_pinned(bool pinned) noexcept;
 
+        friend class page_descriptor;
         friend class iterator_access<iterator>;
     private:
         iterator(page_descriptor* pd, void* ptr) noexcept;

@@ -53,6 +53,11 @@ thread_handler& thread_list::iterator::operator*()
     return *m_iterator;
 }
 
+std::list<thread_handler>::iterator thread_list::iterator::operator->()
+{
+    return m_iterator;
+}
+
 bool thread_list::iterator::equal(const thread_list::iterator& other) const noexcept
 {
     return m_iterator == other.m_iterator;

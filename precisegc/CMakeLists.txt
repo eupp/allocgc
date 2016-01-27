@@ -31,7 +31,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/pool_chunk.h
         include/libprecisegc/details/condition_variable.h
         include/libprecisegc/details/gc_pause.h
-        include/libprecisegc/details/barrier.h include/libprecisegc/details/thread_list.h)
+        include/libprecisegc/details/barrier.h include/libprecisegc/details/thread_list.h include/libprecisegc/details/signal_safe_sync.h include/libprecisegc/details/noncopyable.h)
 
 
 set(precisegc_LIB_SRCS
@@ -46,7 +46,9 @@ set(precisegc_LIB_SRCS
         src/tlvars.cpp
         src/page_descriptor.cpp
         src/segregated_list.cpp
-        src/heap.cpp src/pool_chunk.cpp src/gc_pause.cpp src/thread_list.cpp src/thread_list.h)
+        src/heap.cpp src/pool_chunk.cpp
+        src/gc_pause.cpp
+        src/thread_list.cpp)
 
 
 include_directories(include/libprecisegc)

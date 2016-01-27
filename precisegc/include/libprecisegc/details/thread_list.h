@@ -69,9 +69,10 @@ public:
         iterator(const iterator&) noexcept = default;
         iterator(iterator&&) noexcept = default;
         iterator& operator=(const iterator&) noexcept = default;
-
         iterator& operator=(iterator&&) noexcept = default;
+
         thread_handler& operator*();
+        th_list_t::iterator operator->();
 
         friend class thread_list;
         friend class iterator_access<iterator>;

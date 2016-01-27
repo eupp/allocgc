@@ -33,7 +33,6 @@ void* start_routine(void* hand)
 {
     thread_handler* handler = (thread_handler*) hand;
     handler->stack = StackMap::getInstance();
-    handler->thread = pthread_self();
     handler->flags = 0;
     handler->tlflags = & new_obj_flags_tl_instance;
 
@@ -71,11 +70,13 @@ int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routin
         create_first_thread();
     }
     thread_handler handler;
-    // fill routine & arg, rest will be filled in start_routine
+    // fill thread, routine & arg, rest will be filled in start_routine
     handler.routine = routine;
     handler.arg = arg;
     auto it = tl_instance->insert(handler);
-    return pthread_create(thread, attr, start_routine, &(*it));
+    int res = pthread_create(thread, attr, start_routine, &(*it));
+    it->thread = *thread;
+    return res;
 }
 
 void thread_join(pthread_t thread, void** thread_return)

@@ -20,6 +20,11 @@ public:
         assert(res == 0);
     }
 
+    ~signal_safe_event()
+    {
+        close(m_pipefd[0]);
+        close(m_pipefd[1]);
+    }
 
     void wait()
     {
@@ -57,6 +62,12 @@ public:
     {
         int res = pipe(m_pipefd);
         assert(res == 0);
+    }
+
+    ~signal_safe_barrier()
+    {
+        close(m_pipefd[0]);
+        close(m_pipefd[1]);
     }
 
     void wait(size_t cnt)

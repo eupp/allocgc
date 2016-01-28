@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "util.h"
+#include "object.h"
 
 namespace precisegc { namespace details {
 
@@ -14,14 +15,20 @@ heap::heap()
     }
 }
 
-heap::allocate_result heap::allocate(size_t size)
+void* heap::allocate(size_t obj_size, size_t count, void* cls_meta)
 {
     mutex_lock<mutex> lock(m_mutex);
+    size_t size = obj_size * count + sizeof(Object);
     size_t aligned_size = align_size(size);
     size_t sl_ind = log_2(aligned_size) - MIN_ALLOC_SIZE_BITS;
     assert(aligned_size == m_storage[sl_ind].alloc_size());
-    auto res = m_storage[sl_ind].allocate();
-    return std::make_pair(res.first, res.second->obj_size());
+    auto alloc_res = m_storage[sl_ind].allocate();
+    void* ptr = alloc_res.first;
+    Object* obj = (Object *) (ptr + aligned_size - sizeof(Object));
+    obj->meta  = cls_meta;
+    obj->count = count;
+    obj->begin = ptr;
+    return ptr;
 }
 
 forwarding_list heap::compact()
@@ -37,7 +44,7 @@ forwarding_list heap::compact()
 void heap::compact(const segregated_list::iterator &first, const segregated_list::iterator &last,
                    forwarding_list &forwarding)
 {
-
+    
 }
 
 void heap::fix_pointers(const forwarding_list &forwarding)

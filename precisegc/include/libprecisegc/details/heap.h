@@ -25,7 +25,7 @@ public:
         return h;
     }
 
-    allocate_result allocate(size_t size);
+    void* allocate(size_t obj_size, size_t count, void* cls_meta);
     forwarding_list compact();
     void fix_pointers(const forwarding_list& forwarding);
 
@@ -42,7 +42,9 @@ private:
     heap& operator=(const heap&) = delete;
     heap& operator=(const heap&&) = delete;
 
-    void compact(const segregated_list::iterator& first, const segregated_list::iterator& last, forwarding_list& forwarding);
+    void compact(const segregated_list::iterator& first,
+                 const segregated_list::iterator& last,
+                 forwarding_list& forwarding);
     //void fix_pointers(const forwarding_list& forwarding);
 
     segregated_list m_storage[SEGREGATED_STORAGE_SIZE];

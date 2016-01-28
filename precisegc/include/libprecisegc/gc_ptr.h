@@ -245,7 +245,7 @@ public:
 //	T& operator* () const					{	return * get_ptr();									}
     T& operator* ()     					{	return * get_ptr();									}
 //    T* operator->() const {
-    gc_pin<T> operator->()  {
+    gc_pin<T> operator->() {
 		T *p = get_ptr();
 		if (p) {
 			return gc_pin<T>(p);
@@ -344,8 +344,7 @@ public:
 
 	/** look at gc_new.h */
 	template <class R, typename ... Types>
-	friend
-	gc_ptr<R> gc_new (Types ... , size_t);
+	friend gc_ptr<R> gc_new (Types ... , size_t);
 
 	/** look at go.h */
 	inline

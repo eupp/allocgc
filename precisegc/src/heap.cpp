@@ -14,13 +14,14 @@ heap::heap()
     }
 }
 
-void* heap::allocate(size_t size)
+heap::allocate_result heap::allocate(size_t size)
 {
     mutex_lock<mutex> lock(m_mutex);
     size_t aligned_size = align_size(size);
     size_t sl_ind = log_2(aligned_size) - MIN_ALLOC_SIZE_BITS;
     assert(aligned_size == m_storage[sl_ind].alloc_size());
-    return m_storage[sl_ind].allocate().first;
+    auto res = m_storage[sl_ind].allocate();
+    return std::make_pair(res.first, res.second->obj_size());
 }
 
 forwarding_list heap::compact()

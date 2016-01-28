@@ -10,6 +10,7 @@
 #include "fake_roots.h"
 #include "thread.h"
 #include "thread_list.h"
+#include "gc_pause.h"
 
 #ifdef DEBUGE_MODE
 	size_t live_object_count = 0;
@@ -171,34 +172,25 @@ int go (void * pointer, bool pin_root) {
 int gc (bool full) {
 // TODO
 //mark_and_sweep();
-	long long start = nanotime();
+	using namespace precisegc;
+    using namespace precisegc::details;
+
+    long long start = nanotime();
 	dprintf("gc: mark_and_sweep\n");
-	pthread_mutex_lock(&precisegc::gc_mutex);
-	precisegc::thread_handler* handler = precisegc::get_thread_handler();
-		if (handler->tlflags->nesting_level != 0) {
-			pthread_mutex_unlock(&precisegc::gc_mutex);
-			return 1;
-		}
-		enter_safepoint(handler);
-		if (!precisegc::gc_thread) {
-			precisegc::gc_thread = handler;
-			printf("thread %d is garbage collector\n", (int)handler->thread);
-			if (full) {
-				mark_and_sweep();
-			} else {
-//				clean_deref_roots();
-			}
-			precisegc::gc_thread = nullptr;
-			exit_safepoint(handler);
-			pthread_cond_broadcast(&precisegc::gc_is_finished);
-		} else {
-			printf("Thread %d reached safepoint\n", (int)handler->thread);
-			pthread_cond_signal(&precisegc::safepoint_reached);
-			pthread_cond_wait(&precisegc::gc_is_finished, &precisegc::gc_mutex);
-			exit_safepoint(handler);
-		}
-	pthread_mutex_unlock(&precisegc::gc_mutex);
-	printf("gc full = %d time = %lldms\n", full, (nanotime() - start) / 1000000);
+	pthread_mutex_lock(&gc_mutex);
+
+	thread_handler* handler = get_thread_handler();
+	if (handler->tlflags->nesting_level != 0) {
+		pthread_mutex_unlock(&gc_mutex);
+		return 1;
+	}
+
+    gc_pause();
+    mark_and_sweep();
+    gc_resume();
+    pthread_mutex_unlock(&gc_mutex);
+
+    printf("gc full = %d time = %lldms\n", full, (nanotime() - start) / 1000000);
 	return 0;
 }
 
@@ -260,10 +252,10 @@ void mark_and_sweep() {
     precisegc::details::thread_list& tl = precisegc::details::thread_list::instance();
 	for (auto& handler: tl) {
         precisegc::thread_handler* p_handler = &handler;
-		while (!thread_in_safepoint(p_handler)) {
-			printf("Waiting thread %d to reach safepoint\n", (int)p_handler->thread);
-			pthread_cond_wait(&precisegc::safepoint_reached, &precisegc::gc_mutex);
-		}
+//		while (!thread_in_safepoint(p_handler)) {
+//			printf("Waiting thread %d to reach safepoint\n", (int)p_handler->thread);
+//			pthread_cond_wait(&precisegc::safepoint_reached, &precisegc::gc_mutex);
+//		}
 		// iterate root stack and call traversing function go
 //		mark_stack(handler, true);
 		StackMap *stack_ptr = p_handler->stack;

@@ -38,7 +38,7 @@ static void gc_signal_handler(int signum)
 
 void gc_pause()
 {
-    pthread_mutex_lock(&gc_mutex);
+//    pthread_mutex_lock(&gc_mutex);
 
     if (!gc_signal_set) {
         sigset_t sigset;
@@ -68,7 +68,7 @@ void gc_resume()
 {
     gc_finished_event.notify(threads_cnt);
     threads_resumed_barrier.wait(threads_cnt);
-    pthread_mutex_unlock(&gc_mutex);
+//    pthread_mutex_unlock(&gc_mutex);
 }
 
 void set_gc_pause_handler(const std::function<void(void)>& pause_handler)

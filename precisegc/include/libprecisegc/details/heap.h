@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_HEAP_H
 #define DIPLOMA_HEAP_H
 
+#include <utility>
+
 #include "segregated_list.h"
 #include "mutex.h"
 #include "constants.h"
@@ -15,13 +17,15 @@ class heap
 {
 public:
 
+    typedef std::pair<void*, size_t> allocate_result;
+
     static heap& instance()
     {
         static heap h;
         return h;
     }
 
-    void* allocate(size_t size);
+    allocate_result allocate(size_t size);
     forwarding_list compact();
     void fix_pointers(const forwarding_list& forwarding);
 

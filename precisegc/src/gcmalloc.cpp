@@ -14,9 +14,13 @@ bool _GC_::is_heap_pointer(void *ptr) {
 void * _GC_::gcmalloc(size_t s, void * meta, size_t count = 1) {
     typedef precisegc::details::heap heap_type;
     heap_type& heap = heap_type::instance();
-    void* ptr = heap.allocate(s * count + sizeof(Object));
-    Object* obj = (Object *) (ptr + s * count);
+    auto res = heap.allocate(s * count + sizeof(Object));
+    void* ptr = res.first;
+    size_t size = res.second;
+    Object* obj = (Object *) (ptr + size - sizeof(Object));
     obj->meta = meta;
+    obj->count = count;
+    obj->begin = ptr;
     return ptr;
 }
 

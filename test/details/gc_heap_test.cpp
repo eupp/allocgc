@@ -2,6 +2,7 @@
 
 #include "libprecisegc/object.h"
 #include "libprecisegc/details/gc_heap.h"
+#include "libprecisegc/gcmalloc.h"
 
 using namespace precisegc::details;
 
@@ -19,8 +20,3 @@ TEST(gc_heap_test, test_allocate)
     ASSERT_EQ(1, obj->count);
     ASSERT_EQ(nullptr, obj->meta);
 }
-
-//TEST(gc_heap_test, test_compact)
-//{
-//
-//}

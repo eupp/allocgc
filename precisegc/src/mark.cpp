@@ -10,6 +10,31 @@ using namespace _GC_;
 namespace _GC_
 {
 
+void set_object_pin(void* ptr, bool pinned)
+{
+    precisegc::details::page_descriptor* pd = (precisegc::details::page_descriptor*)IT_get_page_descr(ptr);
+    pd->set_object_pin(ptr, pinned);
+}
+
+void set_object_mark(void* ptr, bool marked)
+{
+    precisegc::details::page_descriptor* pd = (precisegc::details::page_descriptor*)IT_get_page_descr(ptr);
+    pd->set_object_mark(ptr, marked);
+}
+
+bool get_object_pin(void* ptr)
+{
+    precisegc::details::page_descriptor* pd = (precisegc::details::page_descriptor*)IT_get_page_descr(ptr);
+    return pd->get_object_pin(ptr);
+}
+
+bool get_object_mark(void* ptr)
+{
+    precisegc::details::page_descriptor* pd = (precisegc::details::page_descriptor*)IT_get_page_descr(ptr);
+    return pd->get_object_mark(ptr);
+}
+
+
 /*
 mark_pin --- false => pin bit; true => mark_bit
 return values:

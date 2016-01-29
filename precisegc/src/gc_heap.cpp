@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include "gc_compact.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
@@ -35,61 +36,17 @@ forwarding_list gc_heap::compact()
     mutex_lock<mutex> lock(m_mutex);
     forwarding_list frwd;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        m_storage[i].compact(frwd);
+        two_finger_compact(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
+        m_storage[i].clear_mark_bits();
     }
     return frwd;
 }
 
-void gc_heap::compact(const segregated_list::iterator &first, const segregated_list::iterator &last,
-                      size_t obj_size, forwarding_list &forwarding)
-{
-    if (first == last) {
-        return;
-    }
-
-    auto deallocate_it = [](segregated_list::iterator it) {
-        auto tmp = it;
-        --it;
-        tmp.deallocate();
-        return it;
-    };
-
-    auto from = last;
-    auto to = first;
-    --from;
-    while (from != to) {
-        while (!from.is_marked() && from != to) {
-            if (from.is_pinned()) {
-                --from;
-            } else {
-                from = deallocate_it(from);
-            }
-        }
-        if (from.is_pinned() && from != to) {
-            --from;
-            continue;
-        }
-        while (to.is_marked() && from != to) {
-            ++to;
-        }
-        if (from != to) {
-            forwarding.emplace_back(*from, *to, obj_size);
-            from = deallocate_it(from);
-            if (from != to) {
-                to++;
-            }
-        }
-    }
-    if (!from.is_marked()) {
-        deallocate_it(from);
-    }
-}
-
-void gc_heap::fix_pointers(const forwarding_list &forwarding)
+void gc_heap::fix_pointers(const forwarding_list &frwd)
 {
     mutex_lock<mutex> lock(m_mutex);
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        m_storage[i].fix_pointers(forwarding);
+        ::precisegc::details::fix_pointers(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
     }
 }
 

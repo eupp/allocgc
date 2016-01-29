@@ -20,6 +20,12 @@ namespace _GC_ {
     Object * get_object_header(void * ptr);
     base_meta * get_meta_inf (void * ptr);
 
+    bool get_object_mark(void* ptr);
+    bool get_object_pin(void* ptr);
+
+    void set_object_mark(void* ptr, bool marked);
+    void set_object_pin(void* ptr, bool pinned);
+
     int mark_object(void *ptr, bool mark_pin);
     int get_object_mark(void *ptr, bool mark_pin);
 

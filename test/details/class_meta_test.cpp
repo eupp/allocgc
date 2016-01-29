@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <vector>
+
 #include "libprecisegc/details/class_meta.h"
 
 using namespace std;

@@ -78,8 +78,6 @@ public:
     ~segregated_list();
 
     allocate_result allocate();
-    void compact(forwarding_list& forwarding);
-    void fix_pointers(const forwarding_list& forwarding);
 
     iterator begin() noexcept;
     iterator end() noexcept;
@@ -87,6 +85,9 @@ public:
     // design flaw: it may be called one time before initialization (i.e. after default constructor)
     void set_alloc_size(size_t size) noexcept;
     size_t alloc_size() const noexcept;
+
+    void clear_mark_bits() noexcept;
+    void clear_pin_bits() noexcept;
 
     // iterator for iterating through objects in segregated_list;
     // we choose bidirectional_iterator_tag concept just because there is no need in more powerful concept;
@@ -127,10 +128,6 @@ public:
     };
 
 private:
-    void fix_ptr(void* ptr, const forwarding_list& forwarding);
-    void clear_mark_bits() noexcept;
-    void clear_pin_bits() noexcept;
-
     size_t m_alloc_size;
     segregated_list_element* m_first;
     segregated_list_element* m_last;

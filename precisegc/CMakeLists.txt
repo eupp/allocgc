@@ -34,7 +34,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/barrier.h
         include/libprecisegc/details/thread_list.h
         include/libprecisegc/details/signal_safe_sync.h
-        include/libprecisegc/details/noncopyable.h)
+        include/libprecisegc/details/noncopyable.h
+        include/libprecisegc/details/gc_compact.h)
 
 
 set(precisegc_LIB_SRCS

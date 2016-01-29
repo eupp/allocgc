@@ -36,4 +36,3 @@ _GC_::base_meta * _GC_::get_meta_inf (void * ptr) {  /*!< get the block with met
     _GC_::base_meta * res = (_GC_::base_meta *) get_object_header(ptr);
     return res;
 }
-

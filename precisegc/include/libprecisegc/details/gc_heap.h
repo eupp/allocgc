@@ -25,8 +25,7 @@ public:
 
     Object* allocate(size_t obj_size, size_t count, void* cls_meta);
     forwarding_list compact();
-    void fix_pointers(const forwarding_list& forwarding);
-
+    void fix_pointers(const forwarding_list& frwd);
 private:
     static const size_t MIN_ALLOC_SIZE_BITS = 4;
     static const size_t SEGREGATED_STORAGE_SIZE = (SYSTEM_POINTER_BITS_COUNT - RESERVED_BITS_COUNT - 1);
@@ -37,10 +36,6 @@ private:
     gc_heap(const gc_heap&&) = delete;
     gc_heap& operator=(const gc_heap&&) = delete;
 
-    void compact(const segregated_list::iterator& first,
-                 const segregated_list::iterator& last,
-                 size_t obj_size,
-                 forwarding_list& forwarding);
     //void fix_pointers(const forwarding_list& forwarding);
 
     segregated_list m_storage[SEGREGATED_STORAGE_SIZE];

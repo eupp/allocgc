@@ -20,7 +20,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/os.h
         include/libprecisegc/details/page_descriptor.h
         include/libprecisegc/details/segregated_list.h
-        include/libprecisegc/details/heap.h
+        include/libprecisegc/details/gc_heap.h
         include/libprecisegc/details/constants.h
         include/libprecisegc/details/os_mem_ptr.h
         include/libprecisegc/details/util.h
@@ -31,7 +31,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/pool_chunk.h
         include/libprecisegc/details/condition_variable.h
         include/libprecisegc/details/gc_pause.h
-        include/libprecisegc/details/barrier.h include/libprecisegc/details/thread_list.h include/libprecisegc/details/signal_safe_sync.h include/libprecisegc/details/noncopyable.h include/libprecisegc/details/iterator_util.h)
+        include/libprecisegc/details/barrier.h
+        include/libprecisegc/details/thread_list.h
+        include/libprecisegc/details/signal_safe_sync.h
+        include/libprecisegc/details/noncopyable.h)
 
 
 set(precisegc_LIB_SRCS
@@ -46,7 +49,7 @@ set(precisegc_LIB_SRCS
         src/tlvars.cpp
         src/page_descriptor.cpp
         src/segregated_list.cpp
-        src/heap.cpp src/pool_chunk.cpp
+        src/gc_heap.cpp src/pool_chunk.cpp
         src/gc_pause.cpp
         src/thread_list.cpp)
 

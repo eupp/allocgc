@@ -10,7 +10,7 @@ set(precisegc_TESTS
         details/page_descriptor_test.cpp
         details/segregated_list_test.cpp
         details/pool_chunk_test.cpp
-        details/gc_pause_test.cpp details/signal_safe_sync_test.cpp include/time_util.h gc_test.cpp)
+        details/gc_pause_test.cpp details/signal_safe_sync_test.cpp include/time_util.h gc_test.cpp details/gc_heap_test.cpp)
 
 include_directories(include/)
 include_directories(${PROJECT_SOURCE_DIR}/precisegc/include/)

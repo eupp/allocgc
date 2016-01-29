@@ -3,29 +3,27 @@
 
 #include <utility>
 
+#include "../object.h"
 #include "segregated_list.h"
 #include "mutex.h"
 #include "constants.h"
-
-class test1 {};
+#include "noncopyable.h"
 
 namespace precisegc { namespace details {
 
-class test {};
-
-class heap
+class gc_heap : public noncopyable
 {
 public:
 
     typedef std::pair<void*, size_t> allocate_result;
 
-    static heap& instance()
+    static gc_heap& instance()
     {
-        static heap h;
+        static gc_heap h;
         return h;
     }
 
-    void* allocate(size_t obj_size, size_t count, void* cls_meta);
+    Object* allocate(size_t obj_size, size_t count, void* cls_meta);
     forwarding_list compact();
     void fix_pointers(const forwarding_list& forwarding);
 
@@ -35,15 +33,13 @@ private:
 
     static size_t align_size(size_t size);
 
-    heap();
-    heap(const heap&) = delete;
-    heap(const heap&&) = delete;
-
-    heap& operator=(const heap&) = delete;
-    heap& operator=(const heap&&) = delete;
+    gc_heap();
+    gc_heap(const gc_heap&&) = delete;
+    gc_heap& operator=(const gc_heap&&) = delete;
 
     void compact(const segregated_list::iterator& first,
                  const segregated_list::iterator& last,
+                 size_t obj_size,
                  forwarding_list& forwarding);
     //void fix_pointers(const forwarding_list& forwarding);
 

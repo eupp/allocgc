@@ -1,13 +1,12 @@
-#include "details/heap.h"
+#include "gc_heap.h"
 
 #include <cassert>
 
 #include "util.h"
-#include "object.h"
 
 namespace precisegc { namespace details {
 
-heap::heap()
+gc_heap::gc_heap()
 {
     size_t alloc_size = MIN_ALLOC_SIZE_BITS;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i, ++alloc_size) {
@@ -15,7 +14,7 @@ heap::heap()
     }
 }
 
-void* heap::allocate(size_t obj_size, size_t count, void* cls_meta)
+Object* gc_heap::allocate(size_t obj_size, size_t count, void* cls_meta)
 {
     mutex_lock<mutex> lock(m_mutex);
     size_t size = obj_size * count + sizeof(Object);
@@ -28,10 +27,10 @@ void* heap::allocate(size_t obj_size, size_t count, void* cls_meta)
     obj->meta  = cls_meta;
     obj->count = count;
     obj->begin = ptr;
-    return ptr;
+    return obj;
 }
 
-forwarding_list heap::compact()
+forwarding_list gc_heap::compact()
 {
     mutex_lock<mutex> lock(m_mutex);
     forwarding_list frwd;
@@ -41,13 +40,52 @@ forwarding_list heap::compact()
     return frwd;
 }
 
-void heap::compact(const segregated_list::iterator &first, const segregated_list::iterator &last,
-                   forwarding_list &forwarding)
+void gc_heap::compact(const segregated_list::iterator &first, const segregated_list::iterator &last,
+                      size_t obj_size, forwarding_list &forwarding)
 {
-    
+    if (first == last) {
+        return;
+    }
+
+    auto deallocate_it = [](segregated_list::iterator it) {
+        auto tmp = it;
+        --it;
+        tmp.deallocate();
+        return it;
+    };
+
+    auto from = last;
+    auto to = first;
+    --from;
+    while (from != to) {
+        while (!from.is_marked() && from != to) {
+            if (from.is_pinned()) {
+                --from;
+            } else {
+                from = deallocate_it(from);
+            }
+        }
+        if (from.is_pinned() && from != to) {
+            --from;
+            continue;
+        }
+        while (to.is_marked() && from != to) {
+            ++to;
+        }
+        if (from != to) {
+            forwarding.emplace_back(*from, *to, obj_size);
+            from = deallocate_it(from);
+            if (from != to) {
+                to++;
+            }
+        }
+    }
+    if (!from.is_marked()) {
+        deallocate_it(from);
+    }
 }
 
-void heap::fix_pointers(const forwarding_list &forwarding)
+void gc_heap::fix_pointers(const forwarding_list &forwarding)
 {
     mutex_lock<mutex> lock(m_mutex);
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
@@ -55,7 +93,7 @@ void heap::fix_pointers(const forwarding_list &forwarding)
     }
 }
 
-size_t heap::align_size(size_t size)
+size_t gc_heap::align_size(size_t size)
 {
     assert(size > 0);
     size_t i = size & (size -1);

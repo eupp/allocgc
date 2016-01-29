@@ -3,7 +3,7 @@
 #include "gcmalloc.h"
 
 #include "details/page_descriptor.h"
-#include "details/heap.h"
+#include "gc_heap.h"
 #include "index_tree.h"
 
 bool _GC_::is_heap_pointer(void *ptr) {
@@ -12,16 +12,10 @@ bool _GC_::is_heap_pointer(void *ptr) {
 
 // TODO we need some gc strategy
 void * _GC_::gcmalloc(size_t s, void * meta, size_t count = 1) {
-    typedef precisegc::details::heap heap_type;
+    typedef precisegc::details::gc_heap heap_type;
     heap_type& heap = heap_type::instance();
-    auto res = heap.allocate(s * count + sizeof(Object));
-    void* ptr = res.first;
-    size_t size = res.second;
-    Object* obj = (Object *) (ptr + size - sizeof(Object));
-    obj->meta = meta;
-    obj->count = count;
-    obj->begin = ptr;
-    return ptr;
+    Object* obj = heap.allocate(s, count, meta);
+    return obj->begin;
 }
 
 void _GC_::set_meta_after_gcmalloc (void * ptr, void * clMeta) {

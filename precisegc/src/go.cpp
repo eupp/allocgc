@@ -4,7 +4,7 @@
 			and mark and sweep function
 *****************************************************************************************/
 
-#include <details/heap.h>
+#include "gc_heap.h"
 #include "taginfo.h"
 #include "gc_new.h"
 #include "fake_roots.h"
@@ -290,7 +290,7 @@ void mark_and_sweep() {
 //	two_fingers_compact_full();
 //	sweep_dereferenced_roots();
 
-    typedef precisegc::details::heap heap_type;
+    typedef precisegc::details::gc_heap heap_type;
     heap_type& heap = heap_type::instance();
     precisegc::details::forwarding_list forwarding = heap.compact();
     heap.fix_pointers(forwarding);

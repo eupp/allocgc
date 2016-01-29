@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_OBJECT_H
 #define DIPLOMA_OBJECT_H
 
+#include <cstddef>
+
 // header of each object in the heap (stored at the end of the object space)
 /// its size might be aligned on power of two
 struct Object {

@@ -117,6 +117,7 @@ public:
         iterator(segregated_list_element* sle, size_t pd_ind, page_descriptor::iterator pd_itr) noexcept;
 
         bool equal(const iterator& other) const noexcept;
+        bool less_than(const iterator& other) const noexcept;
         void increment() noexcept;
         void decrement() noexcept;
 
@@ -134,9 +135,6 @@ private:
     segregated_list_element* m_first;
     segregated_list_element* m_last;
 };
-
-bool operator==(const segregated_list::iterator& it1, const segregated_list::iterator& it2);
-bool operator!=(const segregated_list::iterator& it1, const segregated_list::iterator& it2);
 
 }}
 

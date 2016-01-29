@@ -31,9 +31,16 @@ Object* gc_heap::allocate(size_t obj_size, size_t count, void* cls_meta)
     return obj;
 }
 
-forwarding_list gc_heap::compact()
+void gc_heap::compact()
 {
     mutex_lock<mutex> lock(m_mutex);
+    forwarding_list frwd = compact_memory();
+    fix_pointers(frwd);
+    fix_roots(frwd);
+}
+
+forwarding_list gc_heap::compact_memory()
+{
     forwarding_list frwd;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
         two_finger_compact(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
@@ -44,7 +51,6 @@ forwarding_list gc_heap::compact()
 
 void gc_heap::fix_pointers(const forwarding_list &frwd)
 {
-    mutex_lock<mutex> lock(m_mutex);
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
         ::precisegc::details::fix_pointers(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
     }
@@ -66,5 +72,4 @@ size_t gc_heap::align_size(size_t size)
     size = size << 1;
     return size > MEMORY_CELL_SIZE ? size : MEMORY_CELL_SIZE;
 }
-
 }}

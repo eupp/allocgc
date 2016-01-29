@@ -292,33 +292,13 @@ void mark_and_sweep() {
 
     typedef precisegc::details::gc_heap heap_type;
     heap_type& heap = heap_type::instance();
-    precisegc::details::forwarding_list forwarding = heap.compact();
-    heap.fix_pointers(forwarding);
-    fix_roots(forwarding);
+    heap.compact();
 
 	dprintf("after: "); //printDlMallocInfo(); fflush(stdout);
 }
 
 //extern size_t fixed_count;
-void fix_roots(const precisegc::details::forwarding_list& forwarding) {
-	precisegc::details::thread_list& tl = precisegc::details::thread_list::instance();
-	for (auto& handler: tl) {
-        precisegc::thread_handler* p_handler = &handler;
-		StackMap *stack_ptr = p_handler->stack;
-		for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
-			printf("fix_root: from %p\n", get_next_obj(root->addr));
-//			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
-            void* new_place = nullptr;
-            for (auto& frwd: forwarding) {
-                if (get_next_obj(root->addr) == frwd.from()) {
-                    new_place = frwd.to();
-                }
-            }
-			if (new_place) {
-				*(void * *)root->addr = set_stack_flag(new_place);
-//				fixed_count++;
-			}
-			printf("\t: to %p\n", get_next_obj(root->addr));
-		}
-	}
+void fix_roots(const precisegc::details::forwarding_list& forwarding)
+{
+
 }

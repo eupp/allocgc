@@ -5,7 +5,7 @@
 #include <iterator>
 #include <pthread.h>
 
-#include "thread.h"
+#include "../thread.h"
 #include "mutex.h"
 #include "iterator_base.h"
 #include "iterator_access.h"

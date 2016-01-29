@@ -2,6 +2,9 @@
 #define DIPLOMA_GC_COMPACT_H
 
 #include "forwarding_list.h"
+#include "thread_list.h"
+#include "../go.h"
+#include "../gc_ptr.h"
 #include "../object.h"
 
 namespace precisegc { namespace details {
@@ -76,6 +79,31 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
                     fix_ptr((void*) ptr + meta[2 + j], frwd);
                 }
             }
+        }
+    }
+}
+
+
+inline void fix_roots(const forwarding_list& frwds)
+{
+    thread_list& tl = thread_list::instance();
+    for (auto& handler: tl) {
+        thread_handler* p_handler = &handler;
+        StackMap *stack_ptr = p_handler->stack;
+        for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
+            printf("fix_root: from %p\n", get_next_obj(root->addr));
+//			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
+            void* new_place = nullptr;
+            for (auto& frwd: frwds) {
+                if (get_next_obj(root->addr) == frwd.from()) {
+                    new_place = frwd.to();
+                }
+            }
+            if (new_place) {
+                *(void * *)root->addr = set_stack_flag(new_place);
+//				fixed_count++;
+            }
+            printf("\t: to %p\n", get_next_obj(root->addr));
         }
     }
 }

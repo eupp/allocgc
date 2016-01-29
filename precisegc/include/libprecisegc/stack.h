@@ -30,7 +30,7 @@ public:
 	/// delete last-added element
 	void delete_stack_root (void * address);
 
-	StackElement* begin		();
+	StackElement* begin();
 
 private:
 	StackElement *top;

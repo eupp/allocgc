@@ -60,7 +60,7 @@ void mark_and_sweep ();
 
 		void* move_ptr(void* ptr, void* value);
 
-		void fix_roots(const precisegc::details::forwarding_list& forwarding);
+
 #ifdef __cplusplus
 	}
 #endif

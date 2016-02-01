@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <details/object_meta.h>
 
 #include "object.h"
 
@@ -17,7 +18,7 @@ namespace _GC_ {
     void* gcmalloc(size_t, void *, size_t);
 
     void set_meta_after_gcmalloc(void* ptr, void* clMeta);
-    Object * get_object_header(void * ptr);
+    precisegc::details::object_meta * get_object_header(void *ptr);
     base_meta * get_meta_inf (void * ptr);
 
     bool get_object_mark(void* ptr);

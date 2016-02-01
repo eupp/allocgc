@@ -9,6 +9,12 @@ class object_meta
 {
 public:
 
+    // computes pointer to object_meta by pointer to object and its size
+    static object_meta* get_ptr(void* ptr, size_t obj_size)
+    {
+        return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
+    }
+
     object_meta(const class_meta* cls_meta, size_t count, void* obj_ptr)
         : m_cls_meta(cls_meta)
         , m_count(count)
@@ -18,6 +24,11 @@ public:
     const class_meta* get_class_meta() const noexcept
     {
         return m_cls_meta;
+    }
+
+    void set_class_meta(const class_meta* cls_meta) noexcept
+    {
+        m_cls_meta = cls_meta;
     }
 
     size_t get_count() const noexcept

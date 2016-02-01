@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "../object.h"
+#include "object_meta.h"
 #include "segregated_list.h"
 #include "mutex.h"
 #include "constants.h"
@@ -23,7 +24,7 @@ public:
         return h;
     }
 
-    Object* allocate(size_t obj_size, size_t count, void* cls_meta);
+    object_meta* allocate(size_t obj_size, size_t count, void* cls_meta);
 
     void compact();
 private:

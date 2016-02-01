@@ -3,6 +3,7 @@
 
 #include "forwarding_list.h"
 #include "thread_list.h"
+#include "object_meta.h"
 #include "../go.h"
 #include "../gc_ptr.h"
 #include "../object.h"
@@ -68,9 +69,10 @@ template <typename Iterator>
 void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, const forwarding_list& frwd)
 {
     for (auto it = first; it != last; ++it) {
-        size_t ptr = (size_t) *it;
-        Object* obj = (Object*) (ptr + obj_size - sizeof(Object));
-        if (obj->meta != nullptr) {
+        void* ptr = *it;
+        object_meta* obj_meta = object_meta::get_ptr(ptr, obj_size);
+        const class_meta* cls_meta = obj_meta->get_class_meta();
+        if (cls_meta != nullptr) {
             size_t* meta = (size_t*) obj->meta;
             size_t obj_size = meta[0];
             size_t offsets_count = meta[1];

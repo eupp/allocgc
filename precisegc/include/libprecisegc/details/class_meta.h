@@ -21,6 +21,11 @@ public:
         return m_offsets;
     }
 
+    size_t get_type_size() const noexcept
+    {
+
+    }
+
     template <typename T>
     friend class class_meta_provider;
 private:
@@ -29,6 +34,7 @@ private:
     {}
 
     std::vector<size_t> m_offsets;
+    size_t m_type_size;
 };
 
 template <typename T>

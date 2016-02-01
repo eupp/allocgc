@@ -12,21 +12,22 @@ bool _GC_::is_heap_pointer(void *ptr) {
 
 // TODO we need some gc strategy
 void * _GC_::gcmalloc(size_t s, void * meta, size_t count = 1) {
-    typedef precisegc::details::gc_heap heap_type;
-    heap_type& heap = heap_type::instance();
-    Object* obj = heap.allocate(s, count, meta);
-    return obj->begin;
+    using namespace precisegc::details;
+    gc_heap& heap = gc_heap::instance();
+    object_meta* obj = heap.allocate(s, count, meta);
+    return obj->get_object_ptr();
 }
 
 void _GC_::set_meta_after_gcmalloc (void * ptr, void * clMeta) {
-    get_object_header(ptr)->meta = clMeta;
+    using namespace precisegc::details;
+    get_object_header(ptr)->set_class_meta((const class_meta*) clMeta);
 }
 
-Object * _GC_::get_object_header (void * ptr) {
-    precisegc::details::page_descriptor* pd = (precisegc::details::page_descriptor*) IT_get_page_descr(ptr);
+precisegc::details::object_meta* _GC_::get_object_header(void *ptr) {
+    using namespace precisegc::details;
+    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
     size_t obj_start = (size_t) pd->get_object_start(ptr);
-    Object * res = (Object *)(obj_start + pd->obj_size() - sizeof(Object));
-    return res;
+    return (object_meta*)(obj_start + pd->obj_size() - sizeof(object_meta));
 }
 
 static precisegc::details::mutex get_meta_inf_mutex;

@@ -1,9 +1,8 @@
 #pragma once
 
 #include <cstdlib>
-#include <details/object_meta.h>
 
-#include "object.h"
+#include "details/object_meta.h"
 
 namespace _GC_ {
 
@@ -15,9 +14,9 @@ namespace _GC_ {
 
     bool is_heap_pointer(void *);
 
-    void* gcmalloc(size_t, void *, size_t);
+    void* gcmalloc(size_t, const precisegc::details::class_meta* , size_t);
 
-    void set_meta_after_gcmalloc(void* ptr, void* clMeta);
+    void set_meta_after_gcmalloc(void *ptr, const precisegc::details::class_meta *cls_meta);
     precisegc::details::object_meta * get_object_header(void *ptr);
     base_meta * get_meta_inf (void * ptr);
 

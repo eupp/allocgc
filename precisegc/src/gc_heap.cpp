@@ -15,7 +15,7 @@ gc_heap::gc_heap()
     }
 }
 
-object_meta* gc_heap::allocate(size_t obj_size, size_t count, void* cls_meta)
+object_meta* gc_heap::allocate(size_t obj_size, size_t count, const class_meta* cls_meta)
 {
     mutex_lock<mutex> lock(m_mutex);
     size_t size = obj_size * count + sizeof(object_meta);
@@ -24,7 +24,7 @@ object_meta* gc_heap::allocate(size_t obj_size, size_t count, void* cls_meta)
     assert(aligned_size == m_storage[sl_ind].alloc_size());
     auto alloc_res = m_storage[sl_ind].allocate();
     void* ptr = alloc_res.first;
-    return new (ptr + aligned_size - sizeof(object_meta)) object_meta((const class_meta*) cls_meta, count, ptr);
+    return new (object_meta::get_meta(ptr, aligned_size)) object_meta((const class_meta*) cls_meta, count, ptr);
 }
 
 void gc_heap::compact()

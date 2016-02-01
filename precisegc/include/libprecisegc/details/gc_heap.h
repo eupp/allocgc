@@ -24,7 +24,7 @@ public:
         return h;
     }
 
-    object_meta* allocate(size_t obj_size, size_t count, void* cls_meta);
+    object_meta* allocate(size_t obj_size, size_t count, const class_meta* cls_meta);
 
     void compact();
 private:

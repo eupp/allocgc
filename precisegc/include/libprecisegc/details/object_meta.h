@@ -10,7 +10,7 @@ class object_meta
 public:
 
     // computes pointer to object_meta by pointer to object and its size
-    static object_meta* get_ptr(void* ptr, size_t obj_size)
+    static object_meta* get_meta(void *ptr, size_t obj_size)
     {
         return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
     }
@@ -36,9 +36,19 @@ public:
         return m_count;
     }
 
+    void set_count(size_t count) noexcept
+    {
+        m_count = count;
+    }
+
     void* get_object_ptr() const noexcept
     {
         return m_obj_ptr;
+    }
+
+    void set_object_ptr(void* ptr) noexcept
+    {
+        m_obj_ptr = ptr;
     }
 
 private:

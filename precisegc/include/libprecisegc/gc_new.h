@@ -5,17 +5,18 @@
 *****************************************************************************************/
 
 #pragma once
+
 #include <cstdio>
 #include <pthread.h>
-#include "go.h"
-#include "meta_information.h"
 #include <vector>
 #include <assert.h>
+
 #include "gc_ptr.h"
 #include "debug_print.h"
 #include "thread.h"
 #include "tlvars.h"
 #include "malloc.h"
+#include "details/class_meta.h"
 
 /**
 * @function gc_new
@@ -30,6 +31,7 @@
 template <class T, typename ... Types>
 gc_ptr<T> gc_new (Types ... types, size_t count = 1) {
 	assert(count >= 0);
+	typedef precisegc::details::class_meta_provider<T> class_meta_provider;
 	pthread_mutex_lock(&precisegc::gc_mutex);
 	tlvars * new_obj_flags = precisegc::get_thread_handler()->tlflags;
 	pthread_mutex_unlock(&precisegc::gc_mutex);
@@ -38,21 +40,21 @@ gc_ptr<T> gc_new (Types ... types, size_t count = 1) {
 	}
 	dprintf("in gc_new: \n");
 	// get pointer to class meta or NULL if it is no meta for this class
-	size_t * clMeta = get_meta<T>();
-	dprintf("\tclMeta=%p\n", clMeta);
+//	size_t * clMeta = get_meta<T>();
+//	dprintf("\tclMeta=%p\n", clMeta);
 
 	/* set global active flags */
 	bool old_new_active = new_obj_flags->new_active;
 	new_obj_flags->new_active = true;  /* set flag that object creates(allocates) in heap */
 	bool old_no_active = new_obj_flags->no_active;
-	new_obj_flags->no_active = clMeta != nullptr;
+	new_obj_flags->no_active = class_meta_provider::is_created();
 	/* result */
 	void * res = NULL;
 	new_obj_flags->nesting_level++;
 
-	if (clMeta != NULL) {
+	if (class_meta_provider::is_created()) {
 		dprintf("\tclMeta != NULL\n");
-		res = gcmalloc(sizeof(T), clMeta, count);
+		res = gcmalloc(sizeof(T), class_meta_provider::get_meta_ptr(), count);
 		if (count == 1) {
 			dprintf("\t\tcount == 1\n");
 			new (res) T(types ... );  /* create object in allocated space, call gc_ptr constructor, get new struct offsets */
@@ -83,8 +85,8 @@ gc_ptr<T> gc_new (Types ... types, size_t count = 1) {
 			new ((char *)res + sizeof(T)) T[count - 1];
 		}
 		// calculate meta
-		clMeta = create_meta<T>(new_obj_flags);
-		set_meta_after_gcmalloc(res, clMeta);
+        class_meta_provider::create_meta(new_obj_flags->offsets);
+		set_meta_after_gcmalloc(res, class_meta_provider::get_meta_ptr());
 //		assert(set_meta == 0);
 
 		/* restore old global variable values */

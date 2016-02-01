@@ -44,6 +44,11 @@ TEST(gc_compact_test, test_two_finger_compact)
     ASSERT_EQ(exp_to, to);
 }
 
+struct test_type
+{
+    size_t val;
+};
+
 TEST(gc_compact_test, test_fix_pointers)
 {
     segregated_list sl(OBJ_SIZE);
@@ -51,16 +56,15 @@ TEST(gc_compact_test, test_fix_pointers)
     void* ptr = alloc_res.first;
     page_descriptor* pd = alloc_res.second;
 
-    size_t meta[3];
-    meta[0] = OBJ_SIZE;
-    meta[1] = 1;
-    meta[2] = 0;
+    auto offsets = std::vector<size_t>({0});
+    typedef class_meta_provider<test_type> provider;
+    provider::create_meta(offsets);
 
     void*& from = * (void**) ptr;
-    Object* obj = (Object*) ((size_t) ptr + pd->obj_size() - sizeof(Object));
-    obj->meta = (void*) meta;
-    obj->count = 1;
-    obj->begin = ptr;
+    object_meta* obj_meta = object_meta::get_meta(ptr, pd->obj_size());
+    obj_meta->set_class_meta(provider::get_meta_ptr());
+    obj_meta->set_count(1);
+    obj_meta->set_object_ptr(ptr);
 
     forwarding_list forwarding;
     forwarding.emplace_back(from, nullptr, OBJ_SIZE);

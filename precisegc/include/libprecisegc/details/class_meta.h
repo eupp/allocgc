@@ -23,14 +23,15 @@ public:
 
     size_t get_type_size() const noexcept
     {
-
+        return m_type_size;
     }
 
     template <typename T>
     friend class class_meta_provider;
 private:
-    class_meta(const std::vector<size_t>& offsets)
+    class_meta(size_t type_size, const std::vector<size_t>& offsets)
         : m_offsets(offsets)
+        , m_type_size(type_size)
     {}
 
     std::vector<size_t> m_offsets;
@@ -42,32 +43,32 @@ class class_meta_provider
 {
 public:
 
-    bool is_created() const
+    static bool is_created()
     {
         mutex_lock<recursive_mutex> lock(meta_mutex);
         return meta_inf != nullptr;
     }
 
-    void create_meta(const std::vector<size_t>& offsets)
+    static void create_meta(const std::vector<size_t>& offsets)
     {
         mutex_lock<recursive_mutex> lock(meta_mutex);
         if (is_created()) {
             return;
         }
-        meta_inf.reset(new class_meta(offsets));
+        meta_inf.reset(new class_meta(sizeof(T), offsets));
     }
 
-    const class_meta& get_meta() const
+    static const class_meta& get_meta()
     {
         // we don't need syncronization here since class_meta is immutable object
-        assert(this->meta_inf);
+        assert(meta_inf);
         return *meta_inf;
     }
 
-    const class_meta* get_meta_ptr() const
+    static const class_meta* get_meta_ptr()
     {
         // we don't need syncronization here since class_meta is immutable object
-        assert(this->meta_inf);
+        assert(meta_inf);
         return meta_inf.get();
     }
 

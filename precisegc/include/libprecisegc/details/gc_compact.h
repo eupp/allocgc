@@ -70,15 +70,14 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
 {
     for (auto it = first; it != last; ++it) {
         void* ptr = *it;
-        object_meta* obj_meta = object_meta::get_ptr(ptr, obj_size);
+        object_meta* obj_meta = object_meta::get_meta(ptr, obj_size);
         const class_meta* cls_meta = obj_meta->get_class_meta();
         if (cls_meta != nullptr) {
-            size_t* meta = (size_t*) obj->meta;
-            size_t obj_size = meta[0];
-            size_t offsets_count = meta[1];
-            for (size_t i = 0; i < obj->count; ++i, ptr += obj_size) {
-                for (size_t j = 0; j < offsets_count; ++j) {
-                    fix_ptr((void*) ptr + meta[2 + j], frwd);
+            size_t obj_size = cls_meta->get_type_size();
+            auto& offsets = cls_meta->get_offsets();
+            for (size_t i = 0; i < obj_meta->get_count(); ++i, ptr += obj_size) {
+                for (size_t j = 0; j < offsets.size(); ++j) {
+                    fix_ptr((void*) ptr + offsets[j], frwd);
                 }
             }
         }

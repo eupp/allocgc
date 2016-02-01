@@ -105,6 +105,8 @@ void * pop () {
 */
 int cccc= 0;
 int go (void * pointer, bool pin_root) {
+    using namespace precisegc::details;
+
 	dprintf("go %p\n", pointer);
 
 	if (!pointer || !is_heap_pointer(pointer)) {
@@ -139,15 +141,17 @@ int go (void * pointer, bool pin_root) {
 		if (is_stack_pointer(v)) {
 			continue;
 		}
+		object_meta* obj_meta = get_object_header(v);
+        const class_meta* cls_meta = obj_meta->get_class_meta();
 		base_meta *bm = get_meta_inf(v);
-		size_t size = bm->shell[0]; // sizeof array element
-		size_t count = bm->shell[1]; // offsets count in meta information
-		if (count == 0) {
+		size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
+		auto& offsets = cls_meta->get_offsets();
+		if (offsets.empty()) {
 			continue;
 		}
-		for (int i = 0; i < bm->count; i++) {
-			for (int j = 0; j < count; j++) {
-				void *p = get_next_obj((char *) v + bm->shell[2 + j]);
+		for (int i = 0; i < obj_meta->get_count(); i++) {
+			for (int j = 0; j < offsets.size(); j++) {
+				void *p = get_next_obj((char *) v + offsets[j]);
 				if (p && (get_object_mark(p, true) == 0)) {
 					if (push(p)) {
 						// TODO: Check stack overflow case
@@ -156,7 +160,7 @@ int go (void * pointer, bool pin_root) {
 					}
 				}
 			}
-			v += size;
+			v += obj_size;
 		}
 	}
 	return stack_overflow;

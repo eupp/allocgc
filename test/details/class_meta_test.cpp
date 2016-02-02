@@ -26,13 +26,13 @@ TEST(class_meta_test, test_create_meta)
     EXPECT_EQ(offsets, provider::get_meta().get_offsets());
 }
 
-static pthread_barrier_t g_barrier;
+static pthread_barrier_t g_barrier_1;
 
 static void* thread_routine(void* arg)
 {
     typedef class_meta_provider<type_3> provider;
     vector<size_t>* offsets = reinterpret_cast<vector<size_t>*>(arg);
-    pthread_barrier_wait(&g_barrier);
+    pthread_barrier_wait(&g_barrier_1);
     provider::create_meta(*offsets);
 }
 
@@ -44,7 +44,7 @@ TEST(class_meta_test, test_threading)
         offsets.push_back(i);
     }
     const int THREAD_COUNT = 100;
-    int b_init = pthread_barrier_init(&g_barrier, nullptr, THREAD_COUNT);
+    int b_init = pthread_barrier_init(&g_barrier_1, nullptr, THREAD_COUNT);
     ASSERT_EQ(0, b_init);
 
     pthread_t threads[THREAD_COUNT];
@@ -59,7 +59,7 @@ TEST(class_meta_test, test_threading)
         ASSERT_EQ(0, res);
     }
 
-    pthread_barrier_destroy(&g_barrier);
+    pthread_barrier_destroy(&g_barrier_1);
 
     EXPECT_TRUE(provider::is_created());
     EXPECT_EQ(sizeof(type_3), provider::get_meta().get_type_size());

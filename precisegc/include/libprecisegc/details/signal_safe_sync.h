@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include "noncopyable.h"
 
@@ -83,6 +84,34 @@ public:
                 bytes_read += res;
             }
         }
+    }
+
+    size_t wait_for(size_t cnt, timeval* tv)
+    {
+        static const size_t BUF_SIZE = 64;
+        static char buf[BUF_SIZE] = {0};
+
+        fd_set rfds;
+        FD_ZERO(&rfds);
+        FD_SET(m_pipefd[0], &rfds);
+
+        size_t bytes_read = 0;
+        size_t bytes_to_read = std::min(cnt, BUF_SIZE);
+        int res = select(m_pipefd[0] + 1, &rfds, nullptr, nullptr, tv);
+        while (res == 1) {
+            ssize_t read_res = read(m_pipefd[0], buf, bytes_to_read);
+            if (read_res != -1) {
+                bytes_read += read_res;
+
+                timeval null_tv;
+                null_tv.tv_sec = 0;
+                null_tv.tv_usec = 0;
+                res = select(m_pipefd[0] + 1, &rfds, nullptr, nullptr, &null_tv);
+            } else {
+                break;
+            }
+        }
+        return bytes_read;
     }
 
     void notify()

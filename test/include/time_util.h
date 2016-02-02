@@ -3,11 +3,17 @@
 
 #include <sys/time.h>
 
-inline timespec now()
+inline timeval tv_now()
 {
-    timespec ts;
     timeval tv;
     gettimeofday(&tv, nullptr);
+    return tv;
+}
+
+inline timespec ts_now()
+{
+    timespec ts;
+    timeval tv = tv_now();
     ts.tv_sec = tv.tv_sec;
     ts.tv_nsec = 0;
     return ts;

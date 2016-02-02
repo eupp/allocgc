@@ -3,11 +3,13 @@
 
 #include <pthread.h>
 
+#include "noncopyable.h"
+
 namespace precisegc { namespace details {
 
 class condition_variable;
 
-class mutex
+class mutex: public noncopyable
 {
 public:
 
@@ -20,9 +22,6 @@ public:
     {
         pthread_mutex_destroy(&m_mutex);
     }
-
-    mutex(const mutex&) = delete;
-    mutex& operator=(const mutex&) = delete;
 
     mutex(mutex&&) noexcept = default;
     mutex& operator=(mutex&&) noexcept = default;
@@ -42,7 +41,7 @@ private:
     pthread_mutex_t m_mutex;
 };
 
-class recursive_mutex
+class recursive_mutex: public noncopyable
 {
 public:
 
@@ -59,9 +58,6 @@ public:
     {
         pthread_mutex_destroy(&m_mutex);
     }
-
-    recursive_mutex(const recursive_mutex& other) = delete;
-    recursive_mutex& operator=(const recursive_mutex& other) = delete;
 
     recursive_mutex(recursive_mutex&&) noexcept = default;
     recursive_mutex& operator=(recursive_mutex&&) noexcept = default;
@@ -81,7 +77,7 @@ private:
 };
 
 template <typename Mutex>
-class mutex_lock
+class mutex_lock: public noncopyable
 {
 public:
 

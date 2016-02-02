@@ -1,5 +1,7 @@
 #include "signal_safe_sync.h"
 
+#include "gc_pause.h"
+
 namespace precisegc { namespace details {
 
 signal_safe_event::signal_safe_event()
@@ -101,6 +103,26 @@ void signal_safe_barrier::notify()
     char byte = 0;
     while (cnt != 1) {
         cnt = write(m_pipefd[1], &byte, 1);
+    }
+}
+
+thread_local std::atomic<size_t> signal_safe_mutex::depth(0);
+
+void signal_safe_mutex::lock() noexcept
+{
+    if (depth == 0) {
+        disable_gc_pause();
+    }
+    ++depth;
+    m_mutex.lock();
+}
+
+void signal_safe_mutex::unlock() noexcept
+{
+    m_mutex.unlock();
+    --depth;
+    if (depth == 0) {
+        enable_gc_pause();
     }
 }
 

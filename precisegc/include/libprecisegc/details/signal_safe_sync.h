@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_SIGNAL_SAFE_SYNC_H
 #define DIPLOMA_SIGNAL_SAFE_SYNC_H
 
+#include <atomic>
 #include <cassert>
 #include <algorithm>
 #include <iostream>
@@ -8,6 +9,7 @@
 #include <sys/time.h>
 
 #include "noncopyable.h"
+#include "mutex.h"
 
 namespace precisegc { namespace details {
 
@@ -35,6 +37,17 @@ public:
     void notify();
 private:
     int m_pipefd[2];
+};
+
+class signal_safe_mutex: public noncopyable
+{
+public:
+    void lock() noexcept;
+    void unlock() noexcept;
+private:
+    static thread_local std::atomic<size_t> depth;
+
+    mutex m_mutex;
 };
 
 }}

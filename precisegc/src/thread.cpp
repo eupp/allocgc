@@ -19,7 +19,7 @@ volatile bool more_than_one = false;
 
 static void remove_thread(pthread_t thread)
 {
-    without_gc_before();
+//    without_gc_before();
     mutex_lock<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     auto it = threads.find(thread);
@@ -29,7 +29,7 @@ static void remove_thread(pthread_t thread)
             more_than_one = false;
         }
     }
-    without_gc_after()
+//    without_gc_after()
 }
 
 void* start_routine(void* hand)
@@ -87,7 +87,7 @@ void thread_join(pthread_t thread, void** thread_return)
 {
     pthread_mutex_lock(&gc_mutex);
     thread_handler* curr = get_thread_handler();
-    enter_safepoint(curr);
+//    enter_safepoint(curr);
     if (gc_thread) {
         dprintf("Thread %d reached safepoint in join\n", curr->pthread);
         pthread_cond_signal(&safepoint_reached);
@@ -97,7 +97,7 @@ void thread_join(pthread_t thread, void** thread_return)
     pthread_join(thread, thread_return);
 
     pthread_mutex_lock(&gc_mutex);
-    exit_safepoint(curr);
+//    exit_safepoint(curr);
     pthread_mutex_unlock(&gc_mutex);
 }
 

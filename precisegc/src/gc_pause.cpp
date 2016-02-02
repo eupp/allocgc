@@ -60,6 +60,14 @@ void enable_gc_pause()
     sigset_t sigset = get_gc_sigset();
     pthread_sigmask(SIG_UNBLOCK, &sigset, nullptr);
     gc_pause_disabled = false;
+
+    timespec ts;
+    ts.tv_sec = 0;
+    ts.tv_nsec = 0;
+    int res = sigtimedwait(&sigset, nullptr, &ts);
+    if (res == gc_signal) {
+        gc_signal_handler(gc_signal);
+    }
 }
 
 void disable_gc_pause()
@@ -88,6 +96,7 @@ void gc_pause()
         gc_signal_set = true;
     }
 
+    mutex_lock<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     threads_cnt = threads.size() - 1;
     pthread_t self = pthread_self();

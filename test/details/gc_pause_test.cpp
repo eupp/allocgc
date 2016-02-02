@@ -20,23 +20,6 @@ signal_safe_barrier threads_resumed_barrier;
 
 signal_safe_event threads_resumed_event;
 
-class pause_handler_setter
-{
-public:
-    pause_handler_setter(const pause_handler_t& pause_handler)
-        : m_pause_handler(get_gc_pause_handler())
-    {
-        set_gc_pause_handler(pause_handler);
-    }
-
-    ~pause_handler_setter()
-    {
-        set_gc_pause_handler(m_pause_handler);
-    }
-private:
-    pause_handler_t m_pause_handler;
-};
-
 static void* thread_routine_1(void*)
 {
     threads_resumed_event.wait();

@@ -1,13 +1,17 @@
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <pthread.h>
 #include <time.h>
 
 #include "libprecisegc/details/signal_safe_sync.h"
 #include "libprecisegc/details/condition_variable.h"
+#include "libprecisegc/details/gc_pause.h"
+#include "libprecisegc/thread.h"
 
 #include "time_util.h"
 
+using namespace precisegc;
 using namespace precisegc::details;
 
 static const int TIMEOUT = 5;
@@ -42,7 +46,7 @@ TEST(test_signal_safe_sync, test_event)
     const int THREADS_CNT = 2;
     pthread_t threads[THREADS_CNT];
     for (auto& thread: threads) {
-        int res = pthread_create(&thread, nullptr, thread_routine_1, nullptr);
+        int res = thread_create(&thread, nullptr, thread_routine_1, nullptr);
         ASSERT_EQ(0, res);
     }
 
@@ -97,7 +101,7 @@ static void* thread_routine_2(void*)
 TEST(test_signal_safe_sync, test_barrier)
 {
     pthread_t thread;
-    ASSERT_EQ(0, pthread_create(&thread, nullptr, thread_routine_2, nullptr));
+    ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_2, nullptr));
 
     {
         mutex_lock<mutex> lock(thread_started_mutex);
@@ -148,8 +152,59 @@ static void* thread_routine_3(void*)
 TEST(test_signal_safe_sync, test_barrier_wait_for_2)
 {
     pthread_t thread;
-    ASSERT_EQ(0, pthread_create(&thread, nullptr, thread_routine_3, nullptr));
+    ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_3, nullptr));
 
     timeval timeout = get_timeout();
     ASSERT_EQ(1, g_barrier_2.wait_for(2, &timeout));
+}
+
+static std::atomic<bool> mutex_test_finished(false);
+static size_t g_counter(0);
+
+static signal_safe_mutex g_signal_safe_mutex;
+
+static void* thread_routine_4(void*)
+{
+    while (!mutex_test_finished);
+}
+
+static void* thread_routine_5(void*)
+{
+    gc_pause();
+    gc_resume();
+}
+
+static void pause_handler()
+{
+    mutex_lock<signal_safe_mutex> lock(g_signal_safe_mutex);
+    ++g_counter;
+}
+
+TEST(test_signal_safe_sync, test_mutex)
+{
+    const int THREADS_CNT = 20;
+
+    pthread_t threads[THREADS_CNT];
+    for (auto& thread: threads) {
+        ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_4, nullptr));
+    }
+
+    pause_handler_setter handler_setter(pause_handler);
+
+    {
+        mutex_lock<signal_safe_mutex> lock(g_signal_safe_mutex);
+
+        pthread_t gc_thread;
+        ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_5, nullptr));
+
+        sleep(1);
+        ASSERT_EQ(0, g_counter);
+    }
+
+    mutex_test_finished = true;
+    for (auto& thread: threads) {
+        void* ret = nullptr;
+        thread_join(thread, &ret);
+    }
+    ASSERT_EQ(THREADS_CNT + 1, g_counter);
 }

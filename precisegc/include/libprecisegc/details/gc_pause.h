@@ -43,6 +43,23 @@ typedef std::function<void(void)> pause_handler_t;
 void set_gc_pause_handler(const pause_handler_t& pause_handler);
 pause_handler_t get_gc_pause_handler();
 
+class pause_handler_setter
+{
+public:
+    pause_handler_setter(const pause_handler_t& pause_handler)
+            : m_pause_handler(get_gc_pause_handler())
+    {
+        set_gc_pause_handler(pause_handler);
+    }
+
+    ~pause_handler_setter()
+    {
+        set_gc_pause_handler(m_pause_handler);
+    }
+private:
+    pause_handler_t m_pause_handler;
+};
+
 }}
 
 #endif //DIPLOMA_GC_PAUSE_H

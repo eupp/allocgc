@@ -35,7 +35,7 @@ namespace precisegc {
 
 struct thread_handler
 {
-    pthread_t thread;
+    pthread_t pthread;
     void* (* routine)(void*); // for init
     void* arg;
     size_t flags;

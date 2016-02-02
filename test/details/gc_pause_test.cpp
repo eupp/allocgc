@@ -20,21 +20,24 @@ signal_safe_barrier threads_resumed_barrier;
 
 signal_safe_event threads_resumed_event;
 
-//size_t threads_paused_num = 0;
-//mutex thread_paused_mutex;
-//condition_variable thread_paused_cond;
-//
-//size_t threads_resumed_num = 0;
-//mutex thread_resumed_mutex;
-//condition_variable thread_resumed_cond;
-
-void pause_handler()
+class pause_handler_setter
 {
-    threads_paused_num++;
-    threads_paused_barrier.notify();
-}
+public:
+    pause_handler_setter(const pause_handler_t& pause_handler)
+        : m_pause_handler(get_gc_pause_handler())
+    {
+        set_gc_pause_handler(pause_handler);
+    }
 
-static void* thread_routine(void*)
+    ~pause_handler_setter()
+    {
+        set_gc_pause_handler(m_pause_handler);
+    }
+private:
+    pause_handler_t m_pause_handler;
+};
+
+static void* thread_routine_1(void*)
 {
     threads_resumed_event.wait();
     threads_resumed_num++;
@@ -48,10 +51,13 @@ TEST(gc_pause_test, test_gc_pause)
 
     pthread_t threads[THREADS_CNT];
     for (auto& thread: threads) {
-        ASSERT_TRUE(thread_create(&thread, nullptr, thread_routine, nullptr) == 0);
+        ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_1, nullptr));
     }
 
-    set_gc_pause_handler(pause_handler);
+    pause_handler_setter handler_setter([&threads_paused_num, &threads_paused_barrier]() {
+        threads_paused_num++;
+        threads_paused_barrier.notify();
+    });
     gc_pause();
 
     threads_paused_barrier.wait(THREADS_CNT);
@@ -63,5 +69,54 @@ TEST(gc_pause_test, test_gc_pause)
 
     threads_resumed_barrier.wait(THREADS_CNT);
     ASSERT_EQ(THREADS_CNT, threads_resumed_num);
+}
+
+TEST(gc_pause_test, test_gc_pause_disabled_1)
+{
+    gc_pause_lock lock;
+    ASSERT_THROW(gc_pause(), gc_pause_disabled_exception);
+}
+
+std::atomic<size_t> g_counter(0);
+std::atomic<bool> gc_pause_enabled(false);
+
+static void* thread_routine_2(void*)
+{
+    while (!gc_pause_enabled);
+}
+
+static void* thread_routine_3(void*)
+{
+    gc_pause();
+    gc_resume();
+}
+
+TEST(gc_pause_test, test_gc_pause_disabled_2)
+{
+    const int THREADS_CNT = 10;
+
+    pthread_t threads[THREADS_CNT];
+    for (auto& thread: threads) {
+        ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_2, nullptr));
+    }
+
+    pause_handler_setter handler_setter([&g_counter]() { ++g_counter; });
+
+    disable_gc_pause();
+
+    pthread_t gc_thread;
+    ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_3, nullptr));
+
+    sleep(1);
+    // Assert that all other threads, except us, increase counter.
+    // If disable_gc_pause is broken then likely this thread have been interrupted by pause handler before this assertion,
+    // and counter had been incremented to THREADS_CNT + 1.
+    ASSERT_EQ(THREADS_CNT, g_counter);
+
+    enable_gc_pause();
+    gc_pause_enabled = true;
+    sleep(1);
+
+    ASSERT_EQ(THREADS_CNT + 1, g_counter);
 }
 

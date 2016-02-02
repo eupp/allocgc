@@ -16,6 +16,8 @@ static const int gc_signal = SIGUSR1;
 
 static bool gc_signal_set = false;
 
+static thread_local bool gc_pause_disabled = false;
+
 static signal_safe_barrier threads_paused_barrier;
 static signal_safe_barrier threads_resumed_barrier;
 static signal_safe_event gc_finished_event;
@@ -24,6 +26,14 @@ static size_t threads_cnt = 0;
 
 static std::function<void(void)> gc_pause_handler;
 static mutex gc_pause_handler_mutex;
+
+static sigset_t get_gc_sigset()
+{
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, gc_signal);
+    return sigset;
+}
 
 static void gc_signal_handler(int signum)
 {
@@ -36,14 +46,39 @@ static void gc_signal_handler(int signum)
     threads_resumed_barrier.notify();
 }
 
+gc_pause_disabled_exception::gc_pause_disabled_exception()
+    : m_msg("gc_pause() is called by thread " + std::to_string(pthread_self()) + " which disable it")
+{}
+
+const char* gc_pause_disabled_exception::what() const noexcept
+{
+    return m_msg.c_str();
+}
+
+void enable_gc_pause()
+{
+    sigset_t sigset = get_gc_sigset();
+    pthread_sigmask(SIG_UNBLOCK, &sigset, nullptr);
+    gc_pause_disabled = false;
+}
+
+void disable_gc_pause()
+{
+    sigset_t sigset = get_gc_sigset();
+    pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
+    gc_pause_disabled = true;
+}
+
 void gc_pause()
 {
 //    pthread_mutex_lock(&gc_mutex);
 
+    if (gc_pause_disabled) {
+        throw gc_pause_disabled_exception();
+    }
+
     if (!gc_signal_set) {
-        sigset_t sigset;
-        sigemptyset(&sigset);
-        sigaddset(&sigset, gc_signal);
+        sigset_t sigset = get_gc_sigset();
         struct sigaction sa;
         memset(&sa, 0, sizeof(struct sigaction));
         sa.sa_handler = gc_signal_handler;
@@ -53,14 +88,16 @@ void gc_pause()
         gc_signal_set = true;
     }
 
-    thread_list::locked_instance tl_instance;
-    for (auto it = tl_instance->begin(); it != tl_instance->end(); ++it) {
-        if (!pthread_equal(it->thread, pthread_self())) {
-            pthread_kill(it->thread, gc_signal);
+    thread_list& threads = thread_list::instance();
+    threads_cnt = threads.size() - 1;
+    pthread_t self = pthread_self();
+
+    for (auto& thread: threads) {
+        if (!pthread_equal(thread.pthread, self)) {
+            pthread_kill(thread.pthread, gc_signal);
         }
     }
 
-    threads_cnt = tl_instance->size() - 1;
     threads_paused_barrier.wait(threads_cnt);
 }
 
@@ -71,13 +108,13 @@ void gc_resume()
 //    pthread_mutex_unlock(&gc_mutex);
 }
 
-void set_gc_pause_handler(const std::function<void(void)>& pause_handler)
+void set_gc_pause_handler(const pause_handler_t& pause_handler)
 {
     mutex_lock<mutex> lock(gc_pause_handler_mutex);
     gc_pause_handler = pause_handler;
 }
 
-std::function<void(void)> get_gc_pause_handler()
+pause_handler_t get_gc_pause_handler()
 {
     mutex_lock<mutex> lock(gc_pause_handler_mutex);
     return gc_pause_handler;

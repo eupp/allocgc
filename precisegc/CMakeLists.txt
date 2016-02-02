@@ -52,7 +52,7 @@ set(precisegc_LIB_SRCS
         src/segregated_list.cpp
         src/gc_heap.cpp src/pool_chunk.cpp
         src/gc_pause.cpp
-        src/thread_list.cpp)
+        src/thread_list.cpp src/signal_safe_sync.cpp)
 
 
 include_directories(include/libprecisegc)

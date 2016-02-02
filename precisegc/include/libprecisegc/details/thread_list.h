@@ -17,42 +17,23 @@ class thread_list
     typedef std::list<thread_handler> th_list_t;
 public:
 
+    static mutex instance_mutex;
+
     static thread_list& instance()
     {
         static thread_list list;
         return list;
     }
 
-    class locked_instance
-    {
-        static mutex tl_mutex;
-    public:
-        locked_instance()
-                : m_lock(tl_mutex)
-        {}
-
-        thread_list& get()
-        {
-            return instance();
-        }
-
-        thread_list* operator->()
-        {
-            return &instance();
-        }
-    private:
-        mutex_lock<mutex> m_lock;
-    };
-
     class iterator;
 
     bool empty() const;
     size_t size() const;
 
+    iterator find(pthread_t th);
+
     iterator insert(const thread_handler& th);
     iterator remove(iterator it);
-
-    iterator find(pthread_t th);
 
     template <typename... Args>
     void emplace(Args... args)

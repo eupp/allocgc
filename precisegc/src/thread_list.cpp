@@ -4,7 +4,7 @@
 
 namespace precisegc { namespace details {
 
-mutex thread_list::locked_instance::tl_mutex = mutex();
+mutex thread_list::instance_mutex = mutex();
 
 bool thread_list::empty() const
 {
@@ -30,7 +30,7 @@ thread_list::iterator thread_list::find(pthread_t th)
 {
     return std::find_if(m_list.begin(), m_list.end(),
                         [&th](const thread_handler& other) {
-                            return pthread_equal(other.thread, th);
+                            return pthread_equal(other.pthread, th);
                         });
 }
 

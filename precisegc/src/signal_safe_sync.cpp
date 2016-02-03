@@ -106,24 +106,16 @@ void signal_safe_barrier::notify()
     }
 }
 
-thread_local std::atomic<size_t> signal_safe_mutex::depth(0);
-
 void signal_safe_mutex::lock() noexcept
 {
-    if (depth == 0) {
-        disable_gc_pause();
-    }
-    ++depth;
+    m_gc_pause_lock.lock();
     m_mutex.lock();
 }
 
 void signal_safe_mutex::unlock() noexcept
 {
     m_mutex.unlock();
-    --depth;
-    if (depth == 0) {
-        enable_gc_pause();
-    }
+    m_gc_pause_lock.unlock();
 }
 
 }}

@@ -56,8 +56,10 @@ TEST(gc_pause_test, test_gc_pause)
 
 TEST(gc_pause_test, test_gc_pause_disabled_1)
 {
-    gc_pause_lock lock;
+    gc_pause_lock pause_lock;
+    mutex_lock<gc_pause_lock> lock(pause_lock);
     ASSERT_THROW(gc_pause(), gc_pause_disabled_exception);
+
 }
 
 std::atomic<size_t> g_counter(0);
@@ -74,7 +76,7 @@ static void* thread_routine_3(void*)
     gc_resume();
 }
 
-TEST(gc_pause_test, test_gc_pause_disabled_2)
+TEST(gc_pause_test, test_gc_pause_lock_2)
 {
     const int THREADS_CNT = 10;
 
@@ -85,18 +87,20 @@ TEST(gc_pause_test, test_gc_pause_disabled_2)
 
     pause_handler_setter handler_setter([&g_counter]() { ++g_counter; });
 
-    disable_gc_pause();
+    {
+        gc_pause_lock pause_lock;
+        mutex_lock<gc_pause_lock> lock(pause_lock);
 
-    pthread_t gc_thread;
-    ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_3, nullptr));
+        pthread_t gc_thread;
+        ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_3, nullptr));
 
-    sleep(1);
-    // Assert that all other threads, except us, increase counter.
-    // If disable_gc_pause is broken then likely this thread have been interrupted by pause handler before this assertion,
-    // and counter had been incremented to THREADS_CNT + 1.
-    ASSERT_EQ(THREADS_CNT, g_counter);
+        sleep(1);
+        // Assert that all other threads, except us, increase counter.
+        // If disable_gc_pause is broken then likely this thread have been interrupted by pause handler before this assertion,
+        // and counter had been incremented to THREADS_CNT + 1.
+        ASSERT_EQ(THREADS_CNT, g_counter);
+    }
 
-    enable_gc_pause();
     gc_pause_enabled = true;
     sleep(1);
 

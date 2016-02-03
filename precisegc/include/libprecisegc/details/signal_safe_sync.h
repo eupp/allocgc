@@ -10,6 +10,7 @@
 
 #include "noncopyable.h"
 #include "mutex.h"
+#include "gc_pause.h"
 
 namespace precisegc { namespace details {
 
@@ -45,8 +46,7 @@ public:
     void lock() noexcept;
     void unlock() noexcept;
 private:
-    static thread_local std::atomic<size_t> depth;
-
+    gc_pause_lock m_gc_pause_lock;
     mutex m_mutex;
 };
 

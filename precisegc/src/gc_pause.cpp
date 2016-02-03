@@ -55,26 +55,31 @@ const char* gc_pause_disabled_exception::what() const noexcept
     return m_msg.c_str();
 }
 
-void enable_gc_pause()
+gc_pause_lock::gc_pause_lock()
+{
+    sigemptyset(&m_old_sigset);
+}
+
+void gc_pause_lock::lock() noexcept
 {
     sigset_t sigset = get_gc_sigset();
-    pthread_sigmask(SIG_UNBLOCK, &sigset, nullptr);
+    pthread_sigmask(SIG_BLOCK, &sigset, &m_old_sigset);
+    gc_pause_disabled = true;
+}
+
+void gc_pause_lock::unlock() noexcept
+{
+    pthread_sigmask(SIG_SETMASK, &m_old_sigset, nullptr);
     gc_pause_disabled = false;
 
     timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = 0;
+    sigset_t sigset = get_gc_sigset();
     int res = sigtimedwait(&sigset, nullptr, &ts);
     if (res == gc_signal) {
         gc_signal_handler(gc_signal);
     }
-}
-
-void disable_gc_pause()
-{
-    sigset_t sigset = get_gc_sigset();
-    pthread_sigmask(SIG_BLOCK, &sigset, nullptr);
-    gc_pause_disabled = true;
 }
 
 void gc_pause()

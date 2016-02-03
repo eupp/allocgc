@@ -4,10 +4,12 @@
 #include <functional>
 #include <string>
 #include <exception>
+#include <signal.h>
+#include "thread_list.h"
 
 namespace precisegc { namespace details {
 
-// this exception is thrown when thread previously called disable_gc_pause is calling gc_pause
+// this exception is thrown when thread previously called gc_pause_lock.lock() is calling gc_pause()
 class gc_pause_disabled_exception: public std::exception
 {
 public:
@@ -17,22 +19,15 @@ private:
     std::string m_msg;
 };
 
-// enable/disable interruption of current thread by gc_pause
-void enable_gc_pause();
-void disable_gc_pause();
-
 class gc_pause_lock
 {
 public:
-    gc_pause_lock()
-    {
-        disable_gc_pause();
-    }
+    gc_pause_lock();
 
-    ~gc_pause_lock()
-    {
-        enable_gc_pause();
-    }
+    void lock() noexcept;
+    void unlock() noexcept;
+private:
+    sigset_t m_old_sigset;
 };
 
 void gc_pause();

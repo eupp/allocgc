@@ -17,7 +17,7 @@ gc_heap::gc_heap()
 
 object_meta* gc_heap::allocate(size_t obj_size, size_t count, const class_meta* cls_meta)
 {
-    mutex_lock<mutex> lock(m_mutex);
+    lock_guard<mutex> lock(m_mutex);
     size_t size = obj_size * count + sizeof(object_meta);
     size_t aligned_size = align_size(size);
     size_t sl_ind = log_2(aligned_size) - MIN_ALLOC_SIZE_BITS;
@@ -29,7 +29,7 @@ object_meta* gc_heap::allocate(size_t obj_size, size_t count, const class_meta* 
 
 void gc_heap::compact()
 {
-    mutex_lock<mutex> lock(m_mutex);
+    lock_guard<mutex> lock(m_mutex);
     forwarding_list frwd = compact_memory();
     fix_pointers(frwd);
     fix_roots(frwd);

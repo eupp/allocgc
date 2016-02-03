@@ -57,7 +57,7 @@ TEST(gc_pause_test, test_gc_pause)
 TEST(gc_pause_test, test_gc_pause_disabled_1)
 {
     gc_pause_lock pause_lock;
-    mutex_lock<gc_pause_lock> lock(pause_lock);
+    lock_guard<gc_pause_lock> lock(pause_lock);
     ASSERT_THROW(gc_pause(), gc_pause_disabled_exception);
 
 }
@@ -89,7 +89,7 @@ TEST(gc_pause_test, test_gc_pause_lock_2)
 
     {
         gc_pause_lock pause_lock;
-        mutex_lock<gc_pause_lock> lock(pause_lock);
+        lock_guard<gc_pause_lock> lock(pause_lock);
 
         pthread_t gc_thread;
         ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_3, nullptr));

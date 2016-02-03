@@ -20,7 +20,7 @@ volatile bool more_than_one = false;
 static void remove_thread(pthread_t thread)
 {
 //    without_gc_before();
-    mutex_lock<mutex> lock(thread_list::instance_mutex);
+    lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     auto it = threads.find(thread);
     if (it != threads.end()) {
@@ -68,7 +68,7 @@ static void create_first_thread()
 
 int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routine)(void*), void* arg)
 {
-    mutex_lock<mutex> lock(thread_list::instance_mutex);
+    lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     if (threads.empty()) {
         create_first_thread();
@@ -115,7 +115,7 @@ void thread_cancel(pthread_t thread)
 
 thread_handler* get_thread_handler()
 {
-    mutex_lock<mutex> lock(thread_list::instance_mutex);
+    lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     if (threads.empty()) {
         create_first_thread();

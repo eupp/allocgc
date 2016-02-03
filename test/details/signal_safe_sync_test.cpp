@@ -29,13 +29,13 @@ static int threads_resumed_num = 0;
 static void* thread_routine_1(void*)
 {
     {
-        mutex_lock<mutex> lock(threads_paused_mutex);
+        lock_guard<mutex> lock(threads_paused_mutex);
         threads_paused_num++;
     }
     threads_paused_cond.notify_all();
     g_event.wait();
     {
-        mutex_lock<mutex> lock(threads_resumed_mutex);
+        lock_guard<mutex> lock(threads_resumed_mutex);
         threads_resumed_num++;
     }
     threads_resumed_cond.notify_all();
@@ -51,7 +51,7 @@ TEST(test_signal_safe_sync, test_event)
     }
 
     {
-        mutex_lock<mutex> lock(threads_paused_mutex);
+        lock_guard<mutex> lock(threads_paused_mutex);
         timespec ts1 = ts_now();
         ts1.tv_sec += TIMEOUT;
         ASSERT_EQ(condition_variable::wait_status::no_timeout,
@@ -63,7 +63,7 @@ TEST(test_signal_safe_sync, test_event)
     g_event.notify(THREADS_CNT);
 
     {
-        mutex_lock<mutex> lock(threads_resumed_mutex);
+        lock_guard<mutex> lock(threads_resumed_mutex);
         timespec ts2 = ts_now();
         ts2.tv_sec += TIMEOUT;
         ASSERT_EQ(condition_variable::wait_status::no_timeout,
@@ -86,13 +86,13 @@ static bool thread_woken = false;
 static void* thread_routine_2(void*)
 {
     {
-        mutex_lock<mutex> lock(thread_started_mutex);
+        lock_guard<mutex> lock(thread_started_mutex);
         thread_started = true;
         thread_started_cond.notify_all();
     }
     g_barrier_1.wait(1);
     {
-        mutex_lock<mutex> lock(thread_woken_mutex);
+        lock_guard<mutex> lock(thread_woken_mutex);
         thread_woken = true;
         thread_woken_cond.notify_all();
     }
@@ -104,7 +104,7 @@ TEST(test_signal_safe_sync, test_barrier)
     ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_2, nullptr));
 
     {
-        mutex_lock<mutex> lock(thread_started_mutex);
+        lock_guard<mutex> lock(thread_started_mutex);
         timespec ts = ts_now();
         ts.tv_sec += TIMEOUT;
         ASSERT_EQ(condition_variable::wait_status::no_timeout,
@@ -116,7 +116,7 @@ TEST(test_signal_safe_sync, test_barrier)
     g_barrier_1.notify();
 
     {
-        mutex_lock<mutex> lock(thread_woken_mutex);
+        lock_guard<mutex> lock(thread_woken_mutex);
         timespec ts = ts_now();
         ts.tv_sec += TIMEOUT;
         ASSERT_EQ(condition_variable::wait_status::no_timeout,
@@ -176,7 +176,7 @@ static void* thread_routine_5(void*)
 
 static void pause_handler()
 {
-    mutex_lock<signal_safe_mutex> lock(g_signal_safe_mutex);
+    lock_guard<signal_safe_mutex> lock(g_signal_safe_mutex);
     ++g_counter;
 }
 
@@ -192,7 +192,7 @@ TEST(test_signal_safe_sync, test_mutex)
     pause_handler_setter handler_setter(pause_handler);
 
     {
-        mutex_lock<signal_safe_mutex> lock(g_signal_safe_mutex);
+        lock_guard<signal_safe_mutex> lock(g_signal_safe_mutex);
 
         pthread_t gc_thread;
         ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_5, nullptr));

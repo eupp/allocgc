@@ -77,17 +77,17 @@ private:
 };
 
 template <typename Mutex>
-class mutex_lock: public noncopyable
+class lock_guard: public noncopyable
 {
 public:
 
-    mutex_lock(Mutex& m)
+    lock_guard(Mutex& m)
         : m_mutex(m)
     {
         m_mutex.lock();
     }
 
-    ~mutex_lock()
+    ~lock_guard()
     {
         m_mutex.unlock();
     }

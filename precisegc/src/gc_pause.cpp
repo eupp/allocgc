@@ -25,7 +25,7 @@ static signal_safe_event gc_finished_event;
 static size_t threads_cnt = 0;
 
 static std::function<void(void)> gc_pause_handler;
-static mutex gc_pause_handler_mutex;
+static signal_safe_mutex gc_pause_handler_mutex;
 
 static sigset_t get_gc_sigset()
 {
@@ -101,7 +101,7 @@ void gc_pause()
         gc_signal_set = true;
     }
 
-    mutex_lock<mutex> lock(thread_list::instance_mutex);
+    lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     threads_cnt = threads.size() - 1;
     pthread_t self = pthread_self();
@@ -124,15 +124,14 @@ void gc_resume()
 
 void set_gc_pause_handler(const pause_handler_t& pause_handler)
 {
-    mutex_lock<mutex> lock(gc_pause_handler_mutex);
+    lock_guard<signal_safe_mutex> lock(gc_pause_handler_mutex);
     gc_pause_handler = pause_handler;
 }
 
 pause_handler_t get_gc_pause_handler()
 {
-    mutex_lock<mutex> lock(gc_pause_handler_mutex);
+    lock_guard<signal_safe_mutex> lock(gc_pause_handler_mutex);
     return gc_pause_handler;
 }
 
 }}
-

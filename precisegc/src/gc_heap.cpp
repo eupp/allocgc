@@ -29,7 +29,9 @@ object_meta* gc_heap::allocate(size_t obj_size, size_t count, const class_meta* 
 
 void gc_heap::compact()
 {
-    lock_guard<mutex> lock(m_mutex);
+    // don't lock here, because compact is guarantee to be called during gc phase,
+    // while other threads are suspended.
+//    lock_guard<mutex> lock(m_mutex);
     forwarding_list frwd = compact_memory();
     fix_pointers(frwd);
     fix_roots(frwd);
@@ -68,4 +70,5 @@ size_t gc_heap::align_size(size_t size)
     size = size << 1;
     return size > MEMORY_CELL_SIZE ? size : MEMORY_CELL_SIZE;
 }
+
 }}

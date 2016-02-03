@@ -14,6 +14,7 @@
 #include "gc_pin.h"
 #include "deref_roots.h"
 #include "thread.h"
+#include "details/signal_safe_sync.h"
 
 #define set_stack_flag(x)		(void *)	((uintptr_t)x | (uintptr_t)1)
 #define set_composite_flag(x)	(void *)	((uintptr_t)x | (uintptr_t)2)
@@ -184,6 +185,9 @@ public:
 	* @param p is a gc_ptr to be copied
 	*/
 	gc_ptr (const gc_ptr <T> &p) {
+        precisegc::details::gc_pause_lock pause_lock;
+        precisegc::details::lock_guard<precisegc::details::gc_pause_lock> pause_guard(pause_lock);
+
 		pthread_mutex_lock(&precisegc::gc_mutex);
 		precisegc::thread_handler *pHandler = precisegc::get_thread_handler();
 		tlvars * new_obj_flags = pHandler->tlflags;

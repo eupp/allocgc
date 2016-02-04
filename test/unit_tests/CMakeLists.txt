@@ -18,7 +18,7 @@ set(precisegc_TESTS
         details/gc_compact_test.cpp)
 
 include_directories(include)
-include_directories(../../precisegc/include)
+include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 
 add_executable(precisegc_test ${precisegc_TESTS})
 target_link_libraries(precisegc_test ${GTEST_BOTH_LIBRARIES})

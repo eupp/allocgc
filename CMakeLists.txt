@@ -27,6 +27,7 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 
 add_subdirectory(precisegc)
 add_subdirectory(test/unit_tests)
+add_subdirectory(test/boehm_test)
 
 #test
 #file(GLOB children "test/*")

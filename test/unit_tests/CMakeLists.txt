@@ -17,8 +17,8 @@ set(precisegc_TESTS
         details/gc_heap_test.cpp
         details/gc_compact_test.cpp)
 
-include_directories(include/)
-include_directories(${PROJECT_SOURCE_DIR}/precisegc/include/)
+include_directories(include)
+include_directories(../../precisegc/include)
 
 add_executable(precisegc_test ${precisegc_TESTS})
 target_link_libraries(precisegc_test ${GTEST_BOTH_LIBRARIES})

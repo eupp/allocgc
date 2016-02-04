@@ -26,7 +26,7 @@ CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 
 add_subdirectory(precisegc)
-add_subdirectory(test)
+add_subdirectory(test/unit_tests)
 
 #test
 #file(GLOB children "test/*")

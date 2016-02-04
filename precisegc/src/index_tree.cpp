@@ -44,7 +44,10 @@ namespace _GC_ {
 				free_list_size += ITMemoryPoolUnits - 1;
 			} else {
 			    assert(free_list_size != 0);
-			    res = free_list; free_list = free_list->next; free_list->prev = NULL;
+			    res = free_list; free_list = free_list->next;
+				if (free_list) {
+                    free_list->prev = NULL;
+                }
 			    free_list_size--;
 			    res->next = list_begin;
 		    }

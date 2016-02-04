@@ -13,8 +13,8 @@
 
 namespace precisegc { namespace details {
 
-const size_t OBJECTS_PER_PAGE_BITS = 5;
-const size_t OBJECTS_PER_PAGE = (1 << OBJECTS_PER_PAGE_BITS);
+const size_t MAX_OBJECTS_PER_PAGE_BITS = 7;
+const size_t OBJECTS_PER_PAGE = (1 << MAX_OBJECTS_PER_PAGE_BITS);
 
 const size_t MAX_PAGE_SIZE_BITS = 7;
 const size_t MAX_PAGE_SIZE = 1 << MAX_PAGE_SIZE_BITS;
@@ -55,6 +55,8 @@ public:
 
     iterator begin() noexcept;
     iterator end() noexcept;
+
+
 
     // iterator for iterating through objects in page;
     // we choose bidirectional_iterator_tag concept just because there is no need in more powerful concept;

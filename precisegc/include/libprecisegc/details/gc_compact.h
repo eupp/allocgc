@@ -51,7 +51,7 @@ void two_finger_compact(const Iterator& first, const Iterator& last, size_t obj_
         }
     }
     if (!from.is_marked()) {
-        deallocate_it(from);
+        from.deallocate();
     }
 }
 

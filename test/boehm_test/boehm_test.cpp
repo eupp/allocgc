@@ -79,7 +79,7 @@ static const int kStretchTreeDepth    = 18; //18;       // about 16Mb
 static const int kLongLivedTreeDepth  = 16; //16;       // about 4Mb
 static const int kArraySize  = 500000;      //500000;   // about 4Mb
 static const int kMinTreeDepth = 4;         //4
-static const int kMaxTreeDepth = 16;        //16;
+static const int kMaxTreeDepth = 10;        //16;
 
 #ifdef PRECISE_GC
     template <typename T, typename... Args>

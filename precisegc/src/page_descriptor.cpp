@@ -152,9 +152,11 @@ void page_descriptor::remove_index()
 std::pair<void*, size_t> page_descriptor::allocate_page(size_t obj_size)
 {
     void* page = nullptr;
-    size_t obj_count_bits = OBJECTS_PER_PAGE_BITS;
-    // 32 * obj_size
-    size_t page_size = obj_size << obj_count_bits;
+    size_t obj_count_bits = MAX_OBJECTS_PER_PAGE_BITS;
+    // 128 * obj_size
+    size_t size = obj_size << obj_count_bits;
+    size_t mem_cell_cnt = (size + MEMORY_CELL_SIZE - 1) / MEMORY_CELL_SIZE;
+    size_t page_size = mem_cell_cnt * MEMORY_CELL_SIZE;
     page = memory_align_allocate(page_size, page_size);
     assert(page);
     return std::make_pair(page, page_size);

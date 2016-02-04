@@ -230,11 +230,11 @@ void segregated_list::iterator::increment() noexcept
     while (m_pd_itr == page_end) {
         if (m_pd_ind == LAST_PAGE_ID) {
             segregated_list_element* next_sle = m_sle->get_next();
-            if (!next_sle) {
-                return;
-            } else {
+            if (next_sle) {
                 m_pd_ind = 0;
                 m_sle = next_sle;
+            } else {
+                return;
             }
         } else {
             ++m_pd_ind;
@@ -250,12 +250,9 @@ void segregated_list::iterator::decrement() noexcept
     while (m_pd_itr == m_sle->get_page_descriptor(m_pd_ind).begin()) {
         if (m_pd_ind == 0) {
             segregated_list_element* prev_sle = m_sle->get_prev();
-            if (prev_sle) {
-                m_sle = prev_sle;
-                m_pd_ind = LAST_PAGE_ID;
-            } else {
-                return;
-            }
+            assert(prev_sle);
+            m_sle = prev_sle;
+            m_pd_ind = LAST_PAGE_ID;
         } else {
             --m_pd_ind;
         }

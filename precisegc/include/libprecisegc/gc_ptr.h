@@ -121,6 +121,8 @@ private:
 	*/
 	gc_ptr (T* p) {
 		assert(p != NULL);
+        precisegc::details::gc_pause_lock pause_lock;
+        precisegc::details::lock_guard<precisegc::details::gc_pause_lock> pause_guard(pause_lock);
 		pthread_mutex_lock(&precisegc::gc_mutex);
 		precisegc::thread_handler *pHandler = precisegc::get_thread_handler();
 		pthread_mutex_unlock(&precisegc::gc_mutex);
@@ -157,6 +159,8 @@ public:
 	* @detailed sets ptr pointer on NULL
 	*/
 	gc_ptr () {
+		precisegc::details::gc_pause_lock pause_lock;
+		precisegc::details::lock_guard<precisegc::details::gc_pause_lock> pause_guard(pause_lock);
 		pthread_mutex_lock(&precisegc::gc_mutex);
 		precisegc::thread_handler *pHandler = precisegc::get_thread_handler();
 		pthread_mutex_unlock(&precisegc::gc_mutex);
@@ -228,6 +232,8 @@ public:
 		clear composite pointer if neccesary.
 	*/
 	~gc_ptr () {
+        precisegc::details::gc_pause_lock pause_lock;
+        precisegc::details::lock_guard<precisegc::details::gc_pause_lock> pause_guard(pause_lock);
 		dprintf("~gc_ptr: %p; ", this);
 		if (is_stack_pointer(ptr)) {
 			dprintf("~gc_ptr -> delete stack root: %p\n", this);

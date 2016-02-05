@@ -15,7 +15,8 @@ set(precisegc_TESTS
         details/gc_pause_test.cpp
         details/signal_safe_sync_test.cpp
         details/gc_heap_test.cpp
-        details/gc_compact_test.cpp gc_new_test.cpp gc_new_test.h)
+        details/gc_compact_test.cpp
+        gc_new_test.cpp)
 
 include_directories(include)
 include_directories(../../precisegc/include)

@@ -8,7 +8,7 @@
 #include "segregated_list.h"
 #include "mutex.h"
 #include "constants.h"
-#include "noncopyable.h"
+#include "util.h"
 
 namespace precisegc { namespace details {
 

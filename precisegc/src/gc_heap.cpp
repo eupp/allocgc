@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "gc_compact.h"
-#include "util.h"
+#include "math_util.h"
 
 namespace precisegc { namespace details {
 

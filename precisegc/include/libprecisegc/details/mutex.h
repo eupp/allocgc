@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-#include "noncopyable.h"
+#include "util.h"
 
 namespace precisegc { namespace details {
 

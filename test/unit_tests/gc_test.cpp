@@ -11,7 +11,7 @@
 #include "libprecisegc/gc_new.h"
 #include "libprecisegc/go.h"
 #include "libprecisegc/details/barrier.h"
-#include "libprecisegc/details/util.h"
+#include "libprecisegc/details/math_util.h"
 
 using namespace precisegc;
 

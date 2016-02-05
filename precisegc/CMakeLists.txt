@@ -23,7 +23,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_heap.h
         include/libprecisegc/details/constants.h
         include/libprecisegc/details/os_mem_ptr.h
-        include/libprecisegc/details/util.h
+        include/libprecisegc/details/math_util.h
         include/libprecisegc/details/forwarding_list.h
         include/libprecisegc/gc_pin.h
         include/libprecisegc/details/iterator_base.h
@@ -34,7 +34,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/barrier.h
         include/libprecisegc/details/thread_list.h
         include/libprecisegc/details/signal_safe_sync.h
-        include/libprecisegc/details/noncopyable.h
+        include/libprecisegc/details/util.h
         include/libprecisegc/details/gc_compact.h)
 
 

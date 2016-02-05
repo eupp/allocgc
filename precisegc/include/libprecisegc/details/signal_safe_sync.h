@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-#include "noncopyable.h"
+#include "util.h"
 #include "mutex.h"
 #include "gc_pause.h"
 

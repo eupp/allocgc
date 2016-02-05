@@ -17,6 +17,8 @@ using namespace precisegc;
 
 static const int THREADS_COUNT = 4; // must be power of 2
 
+namespace {
+
 struct node
 {
     gc_ptr<node> m_left;
@@ -38,8 +40,10 @@ gc_ptr<node> create_tree()
     }
     while (q.size() > 1) {
         auto parent = create_gc_node();
-        parent->m_left  = q.front(); q.pop();
-        parent->m_right = q.front(); q.pop();
+        parent->m_left = q.front();
+        q.pop();
+        parent->m_right = q.front();
+        q.pop();
         q.push(parent);
     }
     return q.front();
@@ -47,7 +51,7 @@ gc_ptr<node> create_tree()
 
 void print_tree(gc_ptr<node>& root, const std::string& offset)
 {
-    std::cout << offset << &root << " (" << root.get() << ")" << std::endl;
+    std::cout << offset << & root << " (" << root.get() << ")" << std::endl;
     auto new_offset = offset + "    ";
     if (root->m_left) {
         print_tree(root->m_left, new_offset);
@@ -70,7 +74,7 @@ static void* thread_routine(void* arg)
 {
     using namespace precisegc::details;
 
-    gc_ptr<node>& root = *((gc_ptr<node>*) arg);
+    gc_ptr<node>& root = * ((gc_ptr<node>*) arg);
     int num = thread_num++;
     // assign to each thread a leaf in the tree
     gc_ptr<node> ptr = root;
@@ -82,6 +86,8 @@ static void* thread_routine(void* arg)
         gc_ptr<node>& new_ptr = rand() % 2 ? ptr->m_left : ptr->m_right;
         new_ptr = create_gc_node();
     }
+}
+
 }
 
 // This test doesn't check anything.

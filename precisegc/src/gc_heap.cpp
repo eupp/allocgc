@@ -60,7 +60,7 @@ size_t gc_heap::align_size(size_t size)
     size_t i = size & (size -1);
     // if size === power of two then return it
     if (i == 0) {
-        return size > MEMORY_CELL_SIZE ? size : MEMORY_CELL_SIZE;
+        return size;
     }
     // otherwise --- round it up
     while (i != 0) {
@@ -68,7 +68,7 @@ size_t gc_heap::align_size(size_t size)
         i = size & (size -1);
     }
     size = size << 1;
-    return size > MEMORY_CELL_SIZE ? size : MEMORY_CELL_SIZE;
+    return size;
 }
 
 }}

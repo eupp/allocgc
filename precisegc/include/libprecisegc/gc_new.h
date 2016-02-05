@@ -33,6 +33,9 @@ template <class T, typename ... Types>
 gc_ptr<T> gc_new (Types ... types, size_t count = 1) {
     using namespace precisegc::details;
 
+	gc_pause_lock pause_lock;
+	lock_guard<gc_pause_lock> pause_guard(pause_lock);
+
 	assert(count >= 0);
 	typedef precisegc::details::class_meta_provider<T> class_meta_provider;
 	pthread_mutex_lock(&precisegc::gc_mutex);
@@ -45,9 +48,6 @@ gc_ptr<T> gc_new (Types ... types, size_t count = 1) {
 	// get pointer to class meta or NULL if it is no meta for this class
 //	size_t * clMeta = get_meta<T>();
 //	dprintf("\tclMeta=%p\n", clMeta);
-
-    gc_pause_lock pause_lock;
-    lock_guard<gc_pause_lock> pause_guard(pause_lock);
 
 	/* set global active flags */
 	bool old_new_active = new_obj_flags->new_active;

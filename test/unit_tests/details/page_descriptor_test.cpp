@@ -5,7 +5,7 @@
 using namespace precisegc::details;
 
 static const size_t OBJ_SIZE = MEMORY_CELL_SIZE / OBJECTS_PER_PAGE;
-static const size_t PAGE_SIZE = OBJ_SIZE << OBJECTS_PER_PAGE_BITS;
+static const size_t PAGE_SIZE = OBJ_SIZE << MAX_OBJECTS_PER_PAGE_BITS;
 
 TEST(page_descriptor_test, test_constructor)
 {

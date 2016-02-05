@@ -61,7 +61,7 @@ TEST(gc_compact_test, test_fix_pointers)
     provider::create_meta(offsets);
 
     void*& from = * (void**) ptr;
-    object_meta* obj_meta = object_meta::get_meta(ptr, pd->obj_size());
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr, pd->obj_size());
     obj_meta->set_class_meta(provider::get_meta_ptr());
     obj_meta->set_count(1);
     obj_meta->set_object_ptr(ptr);

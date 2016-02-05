@@ -10,7 +10,7 @@ class object_meta
 public:
 
     // computes pointer to object_meta by pointer to object and its size
-    static object_meta* get_meta(void *ptr, size_t obj_size)
+    static object_meta* get_meta_ptr(void* ptr, size_t obj_size)
     {
         return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
     }

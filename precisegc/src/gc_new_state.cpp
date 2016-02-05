@@ -63,7 +63,7 @@ gc_new_state::stack_entry::~stack_entry()
     }
 }
 
-void gc_new_state::stack_entry::set_new_state(void* new_ptr)
+void gc_new_state::stack_entry::push_new_state(void* new_ptr)
 {
     assert(!m_new_state_set);
     gc_new_state& state = gc_new_state::instance();
@@ -71,6 +71,11 @@ void gc_new_state::stack_entry::set_new_state(void* new_ptr)
     state.set_current_pointer(new_ptr);
     m_old_offsets.swap(state.get_offsets());
     m_new_state_set = true;
+}
+
+std::vector<size_t>& gc_new_state::stack_entry::get_offsets()
+{
+    return gc_new_state::instance().get_offsets();
 }
 
 }}

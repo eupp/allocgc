@@ -18,7 +18,8 @@ public:
         stack_entry();
         ~stack_entry();
 
-        void set_new_state(void* new_ptr);
+        void push_new_state(void* new_ptr);
+        std::vector<size_t>& get_offsets();
     private:
         std::vector<size_t> m_old_offsets;
         void* m_old_current_ptr;

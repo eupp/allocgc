@@ -70,7 +70,7 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
 {
     for (auto it = first; it != last; ++it) {
         void* ptr = *it;
-        object_meta* obj_meta = object_meta::get_meta(ptr, obj_size);
+        object_meta* obj_meta = object_meta::get_meta_ptr(ptr, obj_size);
         const class_meta* cls_meta = obj_meta->get_class_meta();
         if (cls_meta != nullptr) {
             size_t obj_size = cls_meta->get_type_size();

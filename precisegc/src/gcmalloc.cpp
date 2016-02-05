@@ -12,10 +12,11 @@ bool _GC_::is_heap_pointer(void *ptr) {
 
 // TODO we need some gc strategy
 void * _GC_::gcmalloc(size_t s, const precisegc::details::class_meta* cls_meta, size_t count = 1) {
-    using namespace precisegc::details;
-    gc_heap& heap = gc_heap::instance();
-    object_meta* obj = heap.allocate(s, count, cls_meta);
-    return obj->get_object_ptr();
+//    using namespace precisegc::details;
+//    gc_heap& heap = gc_heap::instance();
+//    object_meta* obj = heap.allocate(s);
+//    return obj->get_object_ptr();
+    return nullptr;
 }
 
 void _GC_::set_meta_after_gcmalloc(void *ptr, const precisegc::details::class_meta* cls_meta) {
@@ -27,7 +28,7 @@ precisegc::details::object_meta* _GC_::get_object_header(void *ptr) {
     using namespace precisegc::details;
     page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
     void* obj_start = pd->get_object_start(ptr);
-    return object_meta::get_meta(obj_start, pd->obj_size());
+    return object_meta::get_meta_ptr(obj_start, pd->obj_size());
 }
 
 static precisegc::details::mutex get_meta_inf_mutex;

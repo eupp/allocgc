@@ -15,16 +15,14 @@ gc_heap::gc_heap()
     }
 }
 
-object_meta* gc_heap::allocate(size_t obj_size, size_t count, const class_meta* cls_meta)
+allocate_result gc_heap::allocate(size_t size)
 {
     lock_guard<mutex> lock(m_mutex);
-    size_t size = obj_size * count + sizeof(object_meta);
     size_t aligned_size = align_size(size);
     size_t sl_ind = log_2(aligned_size) - MIN_ALLOC_SIZE_BITS;
     assert(aligned_size == m_storage[sl_ind].alloc_size());
     auto alloc_res = m_storage[sl_ind].allocate();
-    void* ptr = alloc_res.first;
-    return new (object_meta::get_meta(ptr, aligned_size)) object_meta((const class_meta*) cls_meta, count, ptr);
+    return std::make_pair(alloc_res.first, aligned_size);
 }
 
 void gc_heap::compact()

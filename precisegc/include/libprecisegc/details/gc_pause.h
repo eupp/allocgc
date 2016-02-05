@@ -5,6 +5,7 @@
 #include <string>
 #include <exception>
 #include <signal.h>
+
 #include "thread_list.h"
 
 namespace precisegc { namespace details {

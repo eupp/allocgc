@@ -46,7 +46,8 @@ public:
     {
         if (depth < MAX_DEPTH) {
             ++depth;
-            m_ptr = gc_new<node1>();
+            m_ptr_1 = gc_new<node1>();
+            m_ptr_2 = gc_new<node1>();
         }
     }
 
@@ -54,7 +55,8 @@ private:
     static const int MAX_DEPTH = 8;
     static int depth;
 
-    gc_ptr<node1> m_ptr;
+    gc_ptr<node1> m_ptr_1;
+    gc_ptr<node1> m_ptr_2;
 };
 
 int node1::depth = 0;
@@ -69,6 +71,7 @@ TEST(gc_new_test, test_nested)
 
     ASSERT_NE(nullptr, cls_meta);
     ASSERT_EQ(sizeof(node1), cls_meta->get_type_size());
-    ASSERT_EQ(1, cls_meta->get_offsets().size());
+    ASSERT_EQ(2, cls_meta->get_offsets().size());
     ASSERT_EQ(0, cls_meta->get_offsets()[0]);
+    ASSERT_EQ(sizeof(gc_ptr<node1>), cls_meta->get_offsets()[1]);
 }

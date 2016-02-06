@@ -28,6 +28,7 @@ public:
     private:
         std::vector<size_t> m_old_offsets;
         void* m_old_ptr;
+        bool m_old_is_meta_requested;
     };
 
     static gc_new_stack& instance();
@@ -36,6 +37,7 @@ public:
     void* get_top_pointer() const noexcept;
 
     bool is_active() const noexcept;
+    bool is_meta_requsted() const noexcept;
 private:
     static thread_local std::unique_ptr<gc_new_stack> state_ptr;
 
@@ -44,6 +46,7 @@ private:
     std::vector<size_t> m_top_offsets;
     void* m_top_ptr;
     size_t m_nesting_level;
+    bool m_is_meta_requested;
 };
 
 }}

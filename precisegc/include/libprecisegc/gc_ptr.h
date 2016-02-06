@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "stack.h"
 #include "gcmalloc.h"
@@ -38,35 +38,6 @@ struct Composite_pointer {
 	void * base;	//! pointer to the comprehensive object begin
 	size_t ref_count;	//! reference counter
 };
-
-/**
-* @class meta
-* @brief template class; realizes specific meta for eatch object;
-* @detailed it creates in gc_new and it it stored directly with (right before) the
-	allocated object.
-*/
-//template <class T>
-//class meta : public base_meta {
-//public:
-//	/// virtual del_ptr function from base_meta realization
-//	void del_ptr (void) {
-//		void* ptr = to_get_meta_inf(this);
-//		dprintf("in del_ptr\n");
-//		if (count == 1) {
-//			((T*) ptr)->~T();
-//		} else {
-//			for (size_t i = 0; i < count; i++)
-//				((T*) ptr)[i].~T();
-//		}
-//	}
-//
-//	/// virtual get_begin function from base_meta realization
-//	void* get_begin (void) {
-//		dprintf("in get_begin\n");
-//		return reinterpret_cast <void*> (this);
-//	}
-//};
-
 
 /**
 * @class template smart pointer class gc_ptr

@@ -15,7 +15,7 @@ gc_heap::gc_heap()
     }
 }
 
-allocate_result gc_heap::allocate(size_t size)
+gc_heap::allocate_result gc_heap::allocate(size_t size)
 {
     lock_guard<mutex> lock(m_mutex);
     size_t aligned_size = align_size(size);

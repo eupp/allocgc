@@ -35,7 +35,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/thread_list.h
         include/libprecisegc/details/signal_safe_sync.h
         include/libprecisegc/details/util.h
-        include/libprecisegc/details/gc_compact.h include/libprecisegc/details/gc_new_stack.h include/libprecisegc/details/gc_new_impl.h include/libprecisegc/details/gc_consistency.h)
+        include/libprecisegc/details/gc_compact.h include/libprecisegc/details/gc_new_stack.h include/libprecisegc/details/gc_new_impl.h include/libprecisegc/details/gc_consistency.h include/libprecisegc/details/gc_ptr_base.h)
 
 
 set(precisegc_LIB_SRCS
@@ -52,7 +52,7 @@ set(precisegc_LIB_SRCS
         src/segregated_list.cpp
         src/gc_heap.cpp src/pool_chunk.cpp
         src/gc_pause.cpp
-        src/thread_list.cpp src/signal_safe_sync.cpp src/gc_new_stack.cpp)
+        src/thread_list.cpp src/signal_safe_sync.cpp src/gc_new_stack.cpp src/gc_ptr_base.cpp)
 
 
 include_directories(include/libprecisegc)

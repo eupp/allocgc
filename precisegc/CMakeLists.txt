@@ -35,7 +35,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/thread_list.h
         include/libprecisegc/details/signal_safe_sync.h
         include/libprecisegc/details/util.h
-        include/libprecisegc/details/gc_compact.h include/libprecisegc/details/gc_new_stack.h include/libprecisegc/details/gc_new_impl.h)
+        include/libprecisegc/details/gc_compact.h include/libprecisegc/details/gc_new_stack.h include/libprecisegc/details/gc_new_impl.h include/libprecisegc/details/gc_consistency.h)
 
 
 set(precisegc_LIB_SRCS

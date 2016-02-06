@@ -7,7 +7,7 @@
 #include "gc_heap.h"
 #include "class_meta.h"
 #include "object_meta.h"
-#include "gc_new_state.h"
+#include "gc_new_stack.h"
 #include "../gc_ptr.h"
 
 namespace precisegc { namespace details {
@@ -33,7 +33,7 @@ struct gc_new_if<T[N]>
 template <typename T, typename... Args>
 void* gc_new_impl(size_t n, Args&&... args)
 {
-    gc_new_state::stack_entry stack_entry;
+    gc_new_stack::activation_entry activation_entry;
 
     size_t size = n * sizeof(T) + sizeof(object_meta);
     auto alloc_res = gc_heap::instance().allocate(size);
@@ -45,12 +45,12 @@ void* gc_new_impl(size_t n, Args&&... args)
     void* end = ptr + n * sizeof(T);
 
     // if class meta is not yet created - push pointer to current object and empty offsets
-    // on gc_new_state stack and call T constructor in order to fill offsets,
+    // on gc_new_stack stack and call T constructor in order to fill offsets,
     // then create class_meta with gotten offsets
     if (!class_meta_provider<T>::is_created()) {
-        stack_entry.push_new_state(ptr);
+        gc_new_stack::stack_entry stack_entry(ptr);
         new (ptr) T(std::forward<Args>(args)...);
-        class_meta_provider<T>::create_meta(stack_entry.get_offsets());
+        class_meta_provider<T>::create_meta(gc_new_stack::instance().get_top_offsets());
         begin += sizeof(T);
     }
 

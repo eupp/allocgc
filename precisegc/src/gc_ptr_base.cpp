@@ -20,17 +20,17 @@ gc_ptr_base::gc_ptr_base(void* ptr) noexcept
 {
     gc_new_stack& stack = gc_new_stack::instance();
     if (stack.is_active()) {
-        m_ptr = set_root_flag(ptr, true);
-        StackMap* root_set = get_thread_handler()->stack;
-        root_set->register_stack_root(this);
-    } else {
         m_ptr = set_root_flag(ptr, false);
         if (stack.is_meta_requsted()) {
-            assert((void*) this > stack.get_top_pointer());
+            assert((void*) this >= stack.get_top_pointer());
             uintptr_t this_uintptr = reinterpret_cast<uintptr_t>(this);
             uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(stack.get_top_pointer());
             stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
         }
+    } else {
+        m_ptr = set_root_flag(ptr, true);
+        StackMap* root_set = get_thread_handler()->stack;
+        root_set->register_stack_root(this);
     }
 }
 

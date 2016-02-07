@@ -1,14 +1,10 @@
-/*************************************************************************************//**
-		* File: gc_ptr.h
-		* Description: This file describe smart pointer class gc_ptr
-		* Detailed: gc_ptr --- is a template library pointer primitive
-			use gc_ptr insted of regular C++ pointers for managed objects.
-*****************************************************************************************/
-
-#pragma once
+#ifndef DIPLOMA_GC_PTR_H
+#define DIPLOMA_GC_PTR_H
 
 #include <cstdint>
+#include <utility>
 
+#include "details/gc_ptr_base.h"
 #include "stack.h"
 #include "gcmalloc.h"
 #include "gc_pin.h"
@@ -26,6 +22,125 @@
 #define get_both_flags(x)       (uintptr_t) ((uintptr_t)x & (uintptr_t)3)
 #define restore_flags(x, fl)    (void*)     ((uintptr_t)x | (uintptr_t)fl)
 
+namespace precisegc {
+
+template <typename T>
+class gc_ptr: private details::gc_ptr_base
+{
+public:
+    gc_ptr() {}
+
+    gc_ptr(nullptr_t)
+        : gc_ptr_base(nullptr)
+    {}
+
+    gc_ptr(const gc_ptr& other)
+        : gc_ptr_base(other)
+    {}
+
+    gc_ptr(gc_ptr&& other)
+        : gc_ptr_base(std::move(other))
+    {}
+
+    gc_ptr& operator=(nullptr_t)
+    {
+        details::gc_ptr_base::operator=(nullptr);
+        return *this;
+    }
+
+    gc_ptr& operator=(const gc_ptr& other)
+    {
+        details::gc_ptr_base::operator=(other);
+        return *this;
+    }
+
+    gc_ptr& operator=(gc_ptr&& other)
+    {
+        details::gc_ptr_base::operator=(std::move(other));
+        return *this;
+    }
+
+    void swap(gc_ptr& other)
+    {
+        details::gc_ptr_base::swap(other);
+    }
+
+    explicit operator bool() const
+    {
+        return details::gc_ptr_base::operator bool;
+    }
+
+    void reset()
+    {
+        details::gc_ptr_base::operator=(nullptr);
+    }
+private:
+    gc_ptr(T* ptr)
+        : gc_ptr_base((void*) ptr)
+    {}
+};
+
+template <typename T>
+class gc_ptr<T[]>: private details::gc_ptr_base
+{
+public:
+    gc_ptr() {}
+
+    gc_ptr(nullptr_t)
+            : gc_ptr_base(nullptr)
+    {}
+
+    gc_ptr(const gc_ptr& other)
+            : gc_ptr_base(other)
+    {}
+
+    gc_ptr(gc_ptr&& other)
+            : gc_ptr_base(std::move(other))
+    {}
+
+    gc_ptr& operator=(nullptr_t)
+    {
+        details::gc_ptr_base::operator=(nullptr);
+        return *this;
+    }
+
+    gc_ptr& operator=(const gc_ptr& other)
+    {
+        details::gc_ptr_base::operator=(other);
+        return *this;
+    }
+
+    gc_ptr& operator=(gc_ptr&& other)
+    {
+        details::gc_ptr_base::operator=(std::move(other));
+        return *this;
+    }
+
+    void swap(gc_ptr& other)
+    {
+        details::gc_ptr_base::swap(other);
+    }
+
+    explicit operator bool() const
+    {
+        return details::gc_ptr_base::operator bool;
+    }
+
+    void reset()
+    {
+        details::gc_ptr_base::operator=(nullptr);
+    }
+private:
+    gc_ptr(T* ptr)
+            : gc_ptr_base((void*) ptr)
+    {}
+};
+
+template <typename T, size_t N>
+class gc_ptr<T[N]>;
+
+}
+
 using namespace _GC_;
 
 /**
@@ -38,6 +153,8 @@ struct Composite_pointer {
 	void * base;	//! pointer to the comprehensive object begin
 	size_t ref_count;	//! reference counter
 };
+
+
 
 /**
 * @class template smart pointer class gc_ptr
@@ -346,3 +463,5 @@ public:
 		}
 	}
 };
+
+#endif //DIPLOMA_GC_PTR_BASE_H

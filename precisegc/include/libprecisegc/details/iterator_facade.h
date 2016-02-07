@@ -11,7 +11,7 @@ namespace precisegc { namespace details {
 
 template <typename Derived, typename Category, typename Value,
         typename Distance = ptrdiff_t, typename Pointer = Value*, typename Reference = Value&>
-class iterator_base: public std::iterator<Category, Value, Distance, Pointer, Reference>
+class iterator_facade: public std::iterator<Category, Value, Distance, Pointer, Reference>
 {
     Derived* cast_this() noexcept
     {

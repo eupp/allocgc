@@ -8,7 +8,7 @@
 
 #include "pool_chunk.h"
 #include "constants.h"
-#include "iterator_base.h"
+#include "iterator_facade.h"
 #include "iterator_access.h"
 
 namespace precisegc { namespace details {
@@ -61,7 +61,7 @@ public:
     // iterator for iterating through objects in page;
     // we choose bidirectional_iterator_tag concept just because there is no need in more powerful concept;
     // although, iterator for objects in page_descriptor should be random_access;
-    class iterator: public iterator_base<iterator, std::bidirectional_iterator_tag, void* const>
+    class iterator: public iterator_facade<iterator, std::bidirectional_iterator_tag, void* const>
     {
     public:
         iterator();

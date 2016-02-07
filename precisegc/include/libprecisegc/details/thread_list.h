@@ -7,7 +7,7 @@
 
 #include "../thread.h"
 #include "mutex.h"
-#include "iterator_base.h"
+#include "iterator_facade.h"
 #include "iterator_access.h"
 
 namespace precisegc { namespace details {
@@ -44,7 +44,7 @@ public:
     iterator begin();
     iterator end();
 
-    class iterator: public iterator_base<iterator, std::bidirectional_iterator_tag, thread_handler>
+    class iterator: public iterator_facade<iterator, std::bidirectional_iterator_tag, thread_handler>
     {
     public:
         iterator(const iterator&) noexcept = default;

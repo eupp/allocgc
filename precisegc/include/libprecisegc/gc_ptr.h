@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <utility>
 
-#include "details/gc_ptr_base.h"
+#include "details/gc_untyped_ptr.h"
 #include "stack.h"
 #include "gcmalloc.h"
 #include "gc_pin.h"
@@ -25,114 +25,114 @@
 namespace precisegc {
 
 template <typename T>
-class gc_ptr: private details::gc_ptr_base
+class gc_ptr: private details::gc_untyped_ptr
 {
 public:
     gc_ptr() {}
 
     gc_ptr(nullptr_t)
-        : gc_ptr_base(nullptr)
+        : gc_untyped_ptr(nullptr)
     {}
 
     gc_ptr(const gc_ptr& other)
-        : gc_ptr_base(other)
+        : gc_untyped_ptr(other)
     {}
 
     gc_ptr(gc_ptr&& other)
-        : gc_ptr_base(std::move(other))
+        : gc_untyped_ptr(std::move(other))
     {}
 
     gc_ptr& operator=(nullptr_t)
     {
-        details::gc_ptr_base::operator=(nullptr);
+        details::gc_untyped_ptr::operator=(nullptr);
         return *this;
     }
 
     gc_ptr& operator=(const gc_ptr& other)
     {
-        details::gc_ptr_base::operator=(other);
+        details::gc_untyped_ptr::operator=(other);
         return *this;
     }
 
     gc_ptr& operator=(gc_ptr&& other)
     {
-        details::gc_ptr_base::operator=(std::move(other));
+        details::gc_untyped_ptr::operator=(std::move(other));
         return *this;
     }
 
     void swap(gc_ptr& other)
     {
-        details::gc_ptr_base::swap(other);
+        details::gc_untyped_ptr::swap(other);
     }
 
     explicit operator bool() const
     {
-        return details::gc_ptr_base::operator bool;
+        return details::gc_untyped_ptr::operator bool;
     }
 
     void reset()
     {
-        details::gc_ptr_base::operator=(nullptr);
+        details::gc_untyped_ptr::operator=(nullptr);
     }
 private:
     gc_ptr(T* ptr)
-        : gc_ptr_base((void*) ptr)
+        : gc_untyped_ptr((void*) ptr)
     {}
 };
 
 template <typename T>
-class gc_ptr<T[]>: private details::gc_ptr_base
+class gc_ptr<T[]>: private details::gc_untyped_ptr
 {
 public:
     gc_ptr() {}
 
     gc_ptr(nullptr_t)
-            : gc_ptr_base(nullptr)
+            : gc_untyped_ptr(nullptr)
     {}
 
     gc_ptr(const gc_ptr& other)
-            : gc_ptr_base(other)
+            : gc_untyped_ptr(other)
     {}
 
     gc_ptr(gc_ptr&& other)
-            : gc_ptr_base(std::move(other))
+            : gc_untyped_ptr(std::move(other))
     {}
 
     gc_ptr& operator=(nullptr_t)
     {
-        details::gc_ptr_base::operator=(nullptr);
+        details::gc_untyped_ptr::operator=(nullptr);
         return *this;
     }
 
     gc_ptr& operator=(const gc_ptr& other)
     {
-        details::gc_ptr_base::operator=(other);
+        details::gc_untyped_ptr::operator=(other);
         return *this;
     }
 
     gc_ptr& operator=(gc_ptr&& other)
     {
-        details::gc_ptr_base::operator=(std::move(other));
+        details::gc_untyped_ptr::operator=(std::move(other));
         return *this;
     }
 
     void swap(gc_ptr& other)
     {
-        details::gc_ptr_base::swap(other);
+        details::gc_untyped_ptr::swap(other);
     }
 
     explicit operator bool() const
     {
-        return details::gc_ptr_base::operator bool;
+        return details::gc_untyped_ptr::operator bool;
     }
 
     void reset()
     {
-        details::gc_ptr_base::operator=(nullptr);
+        details::gc_untyped_ptr::operator=(nullptr);
     }
 private:
     gc_ptr(T* ptr)
-            : gc_ptr_base((void*) ptr)
+            : gc_untyped_ptr((void*) ptr)
     {}
 };
 

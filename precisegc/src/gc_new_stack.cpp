@@ -43,6 +43,7 @@ bool gc_new_stack::is_meta_requsted() const noexcept
 gc_new_stack::stack_entry::stack_entry(void* new_ptr)
 {
     gc_new_stack& stack = gc_new_stack::instance();
+    assert(stack.is_active());
     m_old_ptr = stack.m_top_ptr;
     stack.m_top_ptr = new_ptr;
     m_old_is_meta_requested = stack.m_is_meta_requested;

@@ -124,7 +124,7 @@ namespace _GC_ {
     }
 
 	/* return a page ptr points to descriptor */
-    void *IT_get_page_descr(void *ptr) {
+    void *IT_get_page_descr(void* ptr) {
 		pthread_mutex_lock(&index_tree_mutex);
 	    size_t bits_curr = SystemBitSize - ITFirstLevelBits;
 	    size_t i_l = (size_t) ptr >> bits_curr;

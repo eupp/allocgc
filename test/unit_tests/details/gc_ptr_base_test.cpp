@@ -68,3 +68,29 @@ TEST(gc_ptr_base_test, test_assignment)
     ptr5 = nullptr;
     EXPECT_EQ(nullptr, ptr5.get());
 }
+
+TEST(gc_ptr_base_test, test_bool_conversion)
+{
+    gc_ptr_base ptr1;
+    EXPECT_FALSE(ptr1);
+
+    int val;
+    void* ptr = (void*) &val;
+
+    gc_ptr_base ptr2(ptr);
+    EXPECT_TRUE((bool) ptr2);
+}
+
+TEST(gc_ptr_base_test, test_swap)
+{
+    int val;
+    void* ptr = (void*) &val;
+
+    gc_ptr_base ptr1;
+    gc_ptr_base ptr2(ptr);
+
+    swap(ptr1, ptr2);
+
+    EXPECT_EQ(ptr, ptr1.get());
+    EXPECT_EQ(nullptr, ptr2.get());
+}

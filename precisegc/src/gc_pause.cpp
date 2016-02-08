@@ -16,7 +16,7 @@ static const int gc_signal = SIGUSR1;
 
 static bool gc_signal_set = false;
 
-static thread_local bool gc_pause_disabled = false;
+//static thread_local bool gc_pause_disabled = false;
 
 static signal_safe_barrier threads_paused_barrier;
 static signal_safe_barrier threads_resumed_barrier;
@@ -64,13 +64,11 @@ void gc_pause_lock::lock() noexcept
 {
     sigset_t sigset = get_gc_sigset();
     pthread_sigmask(SIG_BLOCK, &sigset, &m_old_sigset);
-    gc_pause_disabled = true;
 }
 
 void gc_pause_lock::unlock() noexcept
 {
     pthread_sigmask(SIG_SETMASK, &m_old_sigset, nullptr);
-    gc_pause_disabled = false;
 
     timespec ts;
     ts.tv_sec = 0;
@@ -85,10 +83,8 @@ void gc_pause_lock::unlock() noexcept
 void gc_pause()
 {
 //    pthread_mutex_lock(&gc_mutex);
-
-    if (gc_pause_disabled) {
-        throw gc_pause_disabled_exception();
-    }
+    gc_pause_lock pause_lock;
+    lock_guard<gc_pause_lock> gc_pause_guard(pause_lock);
 
     if (!gc_signal_set) {
         sigset_t sigset = get_gc_sigset();

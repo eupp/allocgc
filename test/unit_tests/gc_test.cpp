@@ -34,9 +34,7 @@ gc_ptr<node> create_tree()
 {
     std::queue<gc_ptr<node>> q;
     for (int i = 0; i < THREADS_COUNT; ++i) {
-        auto gn = create_gc_node();
-        auto tmp = gn.get();
-        q.push(gn);
+        q.push(create_gc_node());
     }
     while (q.size() > 1) {
         auto parent = create_gc_node();
@@ -51,7 +49,8 @@ gc_ptr<node> create_tree()
 
 void print_tree(gc_ptr<node>& root, const std::string& offset)
 {
-    std::cout << offset << & root << " (" << root.get() << ")" << std::endl;
+    gc_pin<node> pin(root);
+    std::cout << offset << & root << " (" << pin.get() << ")" << std::endl;
     auto new_offset = offset + "    ";
     if (root->m_left) {
         print_tree(root->m_left, new_offset);
@@ -103,7 +102,7 @@ TEST(gc_test, test_gc)
     }
     threads_ready.wait();
 
-    root.setNULL();
+    root.reset();
     gc(true);
     gc_finished = true;
 

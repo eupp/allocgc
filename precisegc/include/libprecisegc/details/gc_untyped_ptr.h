@@ -29,9 +29,9 @@ public:
 
     bool is_root() const noexcept;
 
-    friend class gc_untyped_pin;
-protected:
     void* get() const noexcept;
+
+    friend class gc_untyped_pin;
 private:
     static const uintptr_t ROOT_FLAG_BIT;
 

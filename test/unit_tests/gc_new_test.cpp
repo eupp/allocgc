@@ -6,21 +6,25 @@
 
 using namespace precisegc;
 using namespace precisegc::details;
+using namespace _GC_;
 
 TEST(gc_new_test, test_gc_new_int)
 {
-    gc_ptr<int> ptr = gc_new<int>(1);
-    ASSERT_NE(nullptr, ptr.get());
-    *ptr = 42;
+    gc_ptr<int> ptr = gc_new<int>();
+    gc_pin<int> pin(ptr);
+    ASSERT_NE(nullptr, pin.get());
+    *pin = 42;
 }
 
 TEST(gc_new_test, test_gc_new_int_array)
 {
     const int ARRAY_SIZE = 10;
-    gc_ptr<int> ptr = gc_new<int>(ARRAY_SIZE);
-    ASSERT_NE(nullptr, ptr.get());
+    gc_ptr<int[]> ptr = gc_new<int[]>(ARRAY_SIZE);
+    gc_pin<int[]> pin(ptr);
+    int* raw_ptr = pin.get();
+    ASSERT_NE(nullptr, pin.get());
     for (int i = 0; i < ARRAY_SIZE; ++i) {
-        ptr[i] = 42;
+        raw_ptr[i] = 42;
     }
 }
 
@@ -35,11 +39,12 @@ class node0
 
 TEST(gc_new_test, test_meta)
 {
-    gc_ptr<node0> ptr = gc_new<node0>(1);
-    object_meta* obj_meta = get_object_header((void*) ptr.get());
+    gc_ptr<node0> ptr = gc_new<node0>();
+    gc_pin<node0> pin(ptr);
+    object_meta* obj_meta = get_object_header((void*) pin.get());
     const class_meta* cls_meta = obj_meta->get_class_meta();
 
-    ASSERT_EQ((void*) ptr.get(), obj_meta->get_object_ptr());
+    ASSERT_EQ((void*) pin.get(), obj_meta->get_object_ptr());
     ASSERT_EQ(1, obj_meta->get_count());
 
     ASSERT_NE(nullptr, cls_meta);
@@ -77,7 +82,8 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    object_meta* obj_meta = get_object_header((void*) ptr.get());
+    gc_pin<node1> pin(ptr);
+    object_meta* obj_meta = get_object_header((void*) pin.get());
     const class_meta* cls_meta = obj_meta->get_class_meta();
 
     ASSERT_NE(nullptr, cls_meta);
@@ -95,7 +101,7 @@ class complex_object
 {
 public:
     complex_object()
-        : m_ptr_2(gc_new<simple_object>(1))
+        : m_ptr_2(gc_new<simple_object>())
     {}
 private:
     gc_ptr<simple_object> m_ptr_1;
@@ -107,7 +113,7 @@ private:
 
 TEST(gc_new_test, test_nested_2)
 {
-    gc_ptr<complex_object> ptr = gc_new<complex_object>(1);
+    gc_ptr<complex_object> ptr = gc_new<complex_object>();
 
     typedef class_meta_provider<simple_object> simple_meta_provider;
     typedef class_meta_provider<complex_object> complex_meta_provider;

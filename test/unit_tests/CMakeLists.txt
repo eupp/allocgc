@@ -17,7 +17,7 @@ set(precisegc_TESTS
         details/gc_heap_test.cpp
         details/gc_compact_test.cpp
         gc_new_test.cpp
-        details/gc_ptr_base_test.cpp)
+        details/gc_untyped_ptr_test.cpp)
 
 include_directories(include)
 include_directories(../../precisegc/include)

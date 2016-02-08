@@ -13,17 +13,12 @@ const uintptr_t gc_untyped_ptr::ROOT_FLAG_BIT = 1;
 
 
 gc_untyped_ptr::gc_untyped_ptr() noexcept
-{
-    gc_new_stack& stack = gc_new_stack::instance();
-    if (!stack.is_active()) {
-        m_ptr = set_root_flag(nullptr, true);
-        register_root();
-    }
-}
-
-gc_untyped_ptr::gc_untyped_ptr(nullptr_t) noexcept
-    : gc_untyped_ptr()
+    : gc_untyped_ptr(nullptr)
 {}
+
+//gc_untyped_ptr::gc_untyped_ptr(nullptr_t) noexcept
+//    : gc_untyped_ptr()
+//{}
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
 {

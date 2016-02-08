@@ -13,7 +13,7 @@ class gc_untyped_ptr
 {
 public:
     gc_untyped_ptr() noexcept;
-    gc_untyped_ptr(nullptr_t) noexcept;
+//    gc_untyped_ptr(nullptr_t) noexcept;
     gc_untyped_ptr(void* ptr) noexcept;
     gc_untyped_ptr(const gc_untyped_ptr& other) noexcept;
     gc_untyped_ptr(gc_untyped_ptr&& other) noexcept;

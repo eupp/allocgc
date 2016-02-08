@@ -23,12 +23,15 @@ private:
 class gc_pause_lock
 {
 public:
-    gc_pause_lock();
-
     void lock() noexcept;
     void unlock() noexcept;
-private:
-    sigset_t m_old_sigset;
+};
+
+class signal_lock
+{
+public:
+    void lock() noexcept;
+    void unlock() noexcept;
 };
 
 void gc_pause();

@@ -3,6 +3,8 @@
 #include <cassert>
 #include <cstring>
 #include <memory>
+#include <atomic>
+#include <type_traits>
 #include <pthread.h>
 #include <signal.h>
 
@@ -55,30 +57,107 @@ const char* gc_pause_disabled_exception::what() const noexcept
     return m_msg.c_str();
 }
 
-gc_pause_lock::gc_pause_lock()
+class sigset_all_t {};
+class sigset_gc_t {};
+
+//template <typename Sigset>
+class signal_lock_impl
 {
-    sigemptyset(&m_old_sigset);
-}
+//    template <typename S>
+//    struct is_sigset_all_t: public std::is_same<S, sigset_all_t> {};
+//
+//    template <typename S>
+//    struct is_sigset_gc_t: public std::is_same<S, sigset_gc_t> {};
+
+//    static_assert(is_sigset_all_t<Sigset>::value || is_sigset_gc_t<Sigset>::value,
+//                  "Unknown signal set");
+public:
+    static void lock() noexcept
+    {
+        if (depth == 0) {
+            std::atomic_signal_fence(std::memory_order_seq_cst);
+            depth = 1;
+            std::atomic_signal_fence(std::memory_order_seq_cst);
+            sigset_t sigset = get_sigset();
+            pthread_sigmask(SIG_BLOCK, &sigset, &old_sigset);
+        } else {
+            depth++;
+        }
+    }
+
+    static void unlock() noexcept
+    {
+        if (depth == 1) {
+            pthread_sigmask(SIG_SETMASK, &old_sigset, nullptr);
+            std::atomic_signal_fence(std::memory_order_seq_cst);
+            depth = 0;
+        } else {
+            depth--;
+        }
+    }
+private:
+    static thread_local volatile sig_atomic_t depth;
+    static thread_local sigset_t old_sigset;
+
+    static sigset_t get_sigset() noexcept
+    {
+        return get_gc_sigset();
+    }
+
+//    template <typename S = Sigset>
+//    static auto get_sigset()
+//        -> typename std::enable_if<std::is_same<S, sigset_all_t>::value, sigset_t>::type
+//    {
+//        sigset_t sigset;
+//        sigfillset(&sigset);
+//        return sigset;
+//    }
+
+//    template <typename S = Sigset>
+//    static auto get_sigset()
+//        -> typename std::enable_if<std::is_same<S, sigset_gc_t>::value, sigset_t>::type
+//    {
+//        return get_gc_sigset();
+//    }
+
+//    template <typename S = Sigset>
+//    static auto poll()
+//    -> typename std::enable_if<is_sigset_gc_t<S>::value, void>::type
+//    {
+//        sigset_t pending;
+//        int is_pending = 0;
+//        do {
+//            sigpending(&pending);
+//            is_pending = sigismember(&pending, gc_signal);
+//            if (is_pending == 1) {
+//                gc_signal_handler(gc_signal);
+//            }
+//        } while (is_pending == 1);
+//    }
+};
+
+thread_local volatile sig_atomic_t signal_lock_impl::depth = 0;
+thread_local sigset_t signal_lock_impl::old_sigset = sigset_t();
 
 void gc_pause_lock::lock() noexcept
 {
-    sigset_t sigset = get_gc_sigset();
-    pthread_sigmask(SIG_BLOCK, &sigset, &m_old_sigset);
+    signal_lock_impl::lock();
 }
 
 void gc_pause_lock::unlock() noexcept
 {
-    pthread_sigmask(SIG_SETMASK, &m_old_sigset, nullptr);
-
-    timespec ts;
-    ts.tv_sec = 0;
-    ts.tv_nsec = 0;
-    sigset_t sigset = get_gc_sigset();
-    int res = sigtimedwait(&sigset, nullptr, &ts);
-    if (res == gc_signal) {
-        gc_signal_handler(gc_signal);
-    }
+    signal_lock_impl::unlock();
 }
+
+//void signal_lock::lock() noexcept
+//{
+//    signal_lock_impl<sigset_all_t>::lock();
+//}
+//
+//void signal_lock::unlock() noexcept
+//{
+//    signal_lock_impl<sigset_all_t>::unlock();
+//}
 
 void gc_pause()
 {

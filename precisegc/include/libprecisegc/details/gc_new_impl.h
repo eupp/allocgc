@@ -10,7 +10,12 @@
 #include "gc_new_stack.h"
 #include "../gc_ptr.h"
 
-namespace precisegc { namespace details {
+namespace precisegc {
+
+template <typename T>
+class gc_ptr;
+
+namespace details {
 
 template<typename T>
 struct gc_new_if

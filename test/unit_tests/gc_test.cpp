@@ -27,7 +27,7 @@ struct node
 
 gc_ptr<node> create_gc_node()
 {
-    return gc_new<node>(1);
+    return gc_new<node>();
 }
 
 gc_ptr<node> create_tree()

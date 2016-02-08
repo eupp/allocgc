@@ -4,14 +4,23 @@
 #include <cstdint>
 #include <utility>
 
+#include "gc_new.h"
 #include "details/gc_untyped_ptr.h"
 #include "details/gc_untyped_pin.h"
+#include "details/gc_ptr_access.h"
 
 #define set_stack_flag(x)		(void *)	((uintptr_t)x | (uintptr_t)1)
 #define is_stack_pointer(x)		(bool)		((uintptr_t)x & (uintptr_t)1)
 #define clear_stack_flag(x)		(void *)	((uintptr_t)x & ~(uintptr_t)1)
 
 namespace precisegc {
+
+namespace details {
+
+template <typename T>
+class gc_ptr_access;
+
+}
 
 template <typename T>
 class gc_ptr;
@@ -37,6 +46,9 @@ public:
 
     T* get() const;
 };
+
+template <typename T, size_t N>
+class gc_pin<T[N]>;
 
 template <typename T>
 class gc_ptr: private details::gc_untyped_ptr
@@ -100,6 +112,7 @@ public:
     }
 
     friend class gc_pin<T>;
+    friend class details::gc_ptr_access<T>;
 private:
     gc_ptr(T* ptr)
         : gc_untyped_ptr((void*) ptr)
@@ -158,6 +171,7 @@ public:
     }
 
     friend class gc_pin<T[]>;
+    friend class details::gc_ptr_access<T[]>;
 private:
     gc_ptr(T* ptr)
             : gc_untyped_ptr((void*) ptr)

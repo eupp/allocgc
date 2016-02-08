@@ -3,12 +3,12 @@
 #include <memory>
 #include <utility>
 
-#include "gc_untyped_ptr.h"
+#include "libprecisegc/details/gc_untyped_ptr.h"
 #include "libprecisegc/details/gc_new_stack.h"
 
 using namespace precisegc::details;
 
-TEST(gc_ptr_base_test, test_construct)
+TEST(gc_untyped_ptr_test, test_construct)
 {
     gc_untyped_ptr ptr1;
     EXPECT_EQ(nullptr, ptr1.get());
@@ -28,7 +28,7 @@ TEST(gc_ptr_base_test, test_construct)
     EXPECT_EQ(ptr, ptr5.get());
 }
 
-TEST(gc_ptr_base_test, test_is_root)
+TEST(gc_untyped_ptr_test, test_is_root)
 {
     gc_untyped_ptr ptr1;
     EXPECT_TRUE(ptr1.is_root());
@@ -41,7 +41,7 @@ TEST(gc_ptr_base_test, test_is_root)
     EXPECT_FALSE(ptr2.is_root());
 }
 
-TEST(gc_ptr_base_test, test_assignment)
+TEST(gc_untyped_ptr_test, test_assignment)
 {
     int val;
     void* ptr = (void*) &val;
@@ -69,7 +69,7 @@ TEST(gc_ptr_base_test, test_assignment)
     EXPECT_EQ(nullptr, ptr5.get());
 }
 
-TEST(gc_ptr_base_test, test_bool_conversion)
+TEST(gc_untyped_ptr_test, test_bool_conversion)
 {
     gc_untyped_ptr ptr1;
     EXPECT_FALSE(ptr1);
@@ -81,7 +81,7 @@ TEST(gc_ptr_base_test, test_bool_conversion)
     EXPECT_TRUE((bool) ptr2);
 }
 
-TEST(gc_ptr_base_test, test_swap)
+TEST(gc_untyped_ptr_test, test_swap)
 {
     int val;
     void* ptr = (void*) &val;

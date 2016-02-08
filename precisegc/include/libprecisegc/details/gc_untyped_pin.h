@@ -14,7 +14,7 @@ public:
     gc_untyped_pin(const gc_untyped_ptr& ptr);
     ~gc_untyped_pin();
 
-    void* get() noexcept;
+    void* get() const noexcept;
 private:
     void* m_raw_ptr;
     page_descriptor* m_pd;

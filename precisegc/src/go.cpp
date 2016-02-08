@@ -6,6 +6,7 @@
 
 #include "gc_heap.h"
 #include "taginfo.h"
+#include "gcmalloc.h"
 #include "gc_new.h"
 #include "fake_roots.h"
 #include "thread.h"
@@ -16,31 +17,16 @@
 	size_t live_object_count = 0;
 #endif
 
+using namespace _GC_;
+
 /**
 * @function get_ptr
 * @return pointer that is cleared from glags was setted in gc_ptr
 * @param ptr --- some pointer (really is a pointer to th managed object)
 */
 void * get_ptr (void * ptr) {
-	if (is_composite_pointer(ptr)) {
-		dprintf(" %p comp %p \n ", ptr, ((Composite_pointer *)(clear_both_flags(ptr)))->base);
-//		if (!get_object_mark(clear_both_flags(ptr), true)) {
-//			mark_object(clear_both_flags(ptr), true);
-//		}
-		return ((Composite_pointer *)(clear_both_flags(ptr)))->base;
-	} else {
 		dprintf(" %p !comp %p\n ", ptr, clear_stack_flag(ptr));
 		return clear_stack_flag(ptr);
-	}
-}
-
-void * move_ptr(void* ptr, void* value) {
-	if (is_composite_pointer(ptr)) {
-		((Composite_pointer*)clear_both_flags(ptr))->base = value;
-		return ptr;
-	} else {
-		return restore_flags(value, get_both_flags(ptr));
-	}
 }
 
 /**
@@ -56,7 +42,7 @@ void * get_next_obj(void * v) {  /* get the next object*/
 		return NULL;
 
 	dprintf(" res %p\n ", res); fflush(stdout);
-	return clear_both_flags(res) == NULL ? NULL : get_ptr(res);
+	return clear_stack_flag(res) == NULL ? NULL : get_ptr(res);
 }
 
 /**
@@ -198,8 +184,6 @@ int gc (bool full) {
 	return 0;
 }
 
-extern void* __libc_stack_end;
-
 //void mark_stack(precisegc::thread_handler* thread, bool full_gc) {
 //// TODO
 //	void * stack_bottom = thread->stack_bottom;
@@ -299,10 +283,4 @@ void mark_and_sweep() {
     heap.compact();
 
 	dprintf("after: "); //printDlMallocInfo(); fflush(stdout);
-}
-
-//extern size_t fixed_count;
-void fix_roots(const precisegc::details::forwarding_list& forwarding)
-{
-
 }

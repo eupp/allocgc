@@ -21,7 +21,7 @@ gc_untyped_pin::~gc_untyped_pin()
     m_pd->set_object_mark(m_raw_ptr, false);
 }
 
-void* gc_untyped_pin::get() noexcept
+void* gc_untyped_pin::get() const noexcept
 {
     return m_raw_ptr;
 }

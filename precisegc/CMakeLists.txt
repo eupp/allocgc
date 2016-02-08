@@ -25,7 +25,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/os_mem_ptr.h
         include/libprecisegc/details/math_util.h
         include/libprecisegc/details/forwarding_list.h
-        include/libprecisegc/gc_pin.h
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
         include/libprecisegc/details/pool_chunk.h

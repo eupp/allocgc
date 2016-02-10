@@ -59,7 +59,7 @@ set(precisegc_LIB_SRCS
         src/signal_safe_sync.cpp
         src/gc_new_stack.cpp
         src/gc_untyped_ptr.cpp
-        src/gc_untyped_pin.cpp)
+        src/gc_untyped_pin.cpp src/logging.cpp)
 
 
 include_directories(include/libprecisegc)

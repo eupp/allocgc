@@ -12,7 +12,7 @@
 
 namespace precisegc { namespace details {
 
-class gc_heap : public noncopyable
+class gc_heap : public noncopyable, public nonmovable
 {
 public:
 

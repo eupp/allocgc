@@ -23,8 +23,8 @@ public:
         pthread_mutex_destroy(&m_mutex);
     }
 
-    mutex(mutex&&) noexcept = default;
-    mutex& operator=(mutex&&) noexcept = default;
+    mutex(mutex&&) = default;
+    mutex& operator=(mutex&&) = default;
 
     void lock() noexcept
     {
@@ -64,8 +64,8 @@ public:
         pthread_mutex_destroy(&m_mutex);
     }
 
-    recursive_mutex(recursive_mutex&&) noexcept = default;
-    recursive_mutex& operator=(recursive_mutex&&) noexcept = default;
+    recursive_mutex(recursive_mutex&&) = default;
+    recursive_mutex& operator=(recursive_mutex&&) = default;
 
     void lock() noexcept
     {
@@ -82,7 +82,7 @@ private:
 };
 
 template <typename Mutex>
-class lock_guard: public noncopyable
+class lock_guard: public noncopyable, public nonmovable
 {
 public:
 

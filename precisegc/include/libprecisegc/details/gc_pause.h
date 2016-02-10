@@ -24,9 +24,13 @@ private:
     std::string m_msg;
 };
 
-class gc_pause_lock: public signal_lock_base<gc_pause_lock>
+class gc_pause_lock: public signal_lock_base<gc_pause_lock>, public noncopyable
 {
 public:
+    gc_pause_lock() = default;
+    gc_pause_lock(gc_pause_lock&&) = default;
+    gc_pause_lock& operator=(gc_pause_lock&&) = default;
+
     void lock() noexcept;
     void unlock() noexcept;
 

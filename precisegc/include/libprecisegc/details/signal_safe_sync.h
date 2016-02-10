@@ -20,6 +20,9 @@ public:
     signal_safe_event();
     ~signal_safe_event();
 
+    signal_safe_event(signal_safe_event&&) = default;
+    signal_safe_event& operator=(signal_safe_event&&) = default;
+
     void wait();
     void notify(size_t cnt);
 private:
@@ -32,6 +35,9 @@ public:
     signal_safe_barrier();
     ~signal_safe_barrier();
 
+    signal_safe_barrier(signal_safe_barrier&&) = default;
+    signal_safe_barrier& operator=(signal_safe_barrier&&) = default;
+
     void wait(size_t cnt);
     size_t wait_for(size_t cnt, timeval* tv);
 
@@ -43,6 +49,10 @@ private:
 class gc_signal_safe_mutex: public noncopyable
 {
 public:
+    gc_signal_safe_mutex() = default;
+    gc_signal_safe_mutex(gc_signal_safe_mutex&&) = default;
+    gc_signal_safe_mutex& operator=(gc_signal_safe_mutex&&) = default;
+
     void lock() noexcept;
     bool try_lock() noexcept;
     void unlock() noexcept;

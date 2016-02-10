@@ -78,21 +78,8 @@ sigset_t gc_pause_lock::get_sigset() noexcept
     return get_gc_sigset();
 }
 
-void gc_pause()
+void gc_pause_init()
 {
-//    pthread_mutex_lock(&gc_mutex);
-//    gc_pause_lock pause_lock;
-//    lock_guard<gc_pause_lock> gc_pause_guard(pause_lock);
-
-    if (gc_pause_disabled) {
-        throw gc_pause_disabled_exception();
-    }
-
-    while (!gc_mutex.try_lock()) {
-        // very bad code, we need better wait strategy
-        sleep(1);
-    }
-
     if (!gc_signal_set) {
         sigset_t sigset = get_gc_sigset();
         struct sigaction sa;
@@ -103,13 +90,25 @@ void gc_pause()
         assert(sa_ret == 0);
         gc_signal_set = true;
     }
+}
+
+void gc_pause()
+{
+    assert(gc_signal_set);
+
+    if (gc_pause_disabled) {
+        throw gc_pause_disabled_exception();
+    }
+
+    while (!gc_mutex.try_lock()) {
+        // very bad code, we need better wait strategy
+        sleep(1);
+    }
 
     lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     threads_cnt = threads.size() - 1;
     pthread_t self = pthread_self();
-
-//    std::cout << "Threads cnt: " << threads_cnt << std::endl;
 
     for (auto& thread: threads) {
         if (!pthread_equal(thread.pthread, self)) {
@@ -138,4 +137,5 @@ pause_handler_t get_gc_pause_handler()
     lock_guard<gc_signal_safe_mutex> lock(gc_pause_handler_mutex);
     return gc_pause_handler;
 }
+
 }}

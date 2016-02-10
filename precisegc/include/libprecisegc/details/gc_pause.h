@@ -11,6 +11,8 @@
 
 namespace precisegc { namespace details {
 
+void gc_pause_init();
+
 void gc_pause();
 void gc_resume();
 

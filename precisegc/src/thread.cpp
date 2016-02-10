@@ -34,25 +34,11 @@ void* start_routine(void* hand)
     return ret;
 }
 
-static void create_first_thread()
-{
-    thread_handler first_thread;
-    first_thread.pthread = pthread_self();
-    first_thread.stack = StackMap::getInstance();
-    first_thread.flags = 0;
-    first_thread.tlflags = &new_obj_flags_tl_instance;
-    first_thread.routine = nullptr;
-    first_thread.arg = nullptr;
-    details::thread_list::instance().insert(first_thread);
-}
-
 int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routine)(void*), void* arg)
 {
     lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
-    if (threads.empty()) {
-        create_first_thread();
-    }
+    assert(!threads.empty());
     thread_handler handler;
     // fill thread, routine & arg, rest will be filled in start_routine
     handler.routine = routine;
@@ -86,9 +72,7 @@ thread_handler* get_thread_handler()
 {
     lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
-    if (threads.empty()) {
-        create_first_thread();
-    }
+    assert(!threads.empty());
     pthread_t thread = pthread_self();
     return &(*threads.find(thread));
 }

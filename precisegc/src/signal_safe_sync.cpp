@@ -106,16 +106,27 @@ void signal_safe_barrier::notify()
     }
 }
 
-void signal_safe_mutex::lock() noexcept
+void gc_signal_safe_mutex::lock() noexcept
 {
     m_gc_pause_lock.lock();
     m_mutex.lock();
 }
 
-void signal_safe_mutex::unlock() noexcept
+void gc_signal_safe_mutex::unlock() noexcept
 {
     m_mutex.unlock();
     m_gc_pause_lock.unlock();
+}
+
+bool gc_signal_safe_mutex::try_lock() noexcept
+{
+    m_gc_pause_lock.lock();
+    if (m_mutex.try_lock()) {
+        return true;
+    } else {
+        m_gc_pause_lock.unlock();
+        return false;
+    }
 }
 
 }}

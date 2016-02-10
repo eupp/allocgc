@@ -23,14 +23,16 @@ public:
         }
     }
 
-    static void unlock() noexcept
+    static bool unlock() noexcept
     {
         if (depth == 1) {
             pthread_sigmask(SIG_SETMASK, &old_sigset, nullptr);
             std::atomic_signal_fence(std::memory_order_seq_cst);
             depth = 0;
+            return true;
         } else {
             depth--;
+            return false;
         }
     }
 private:
@@ -49,7 +51,28 @@ thread_local volatile sig_atomic_t signal_lock_base<T>::depth = 0;
 template <typename T>
 thread_local sigset_t signal_lock_base<T>::old_sigset = sigset_t();
 
+class signal_lock: public signal_lock_base<signal_lock>
+{
+public:
+    void lock() noexcept
+    {
+        signal_lock_base::lock();
+    }
 
+    void unlock() noexcept
+    {
+        signal_lock_base::unlock();
+    }
+
+    friend class signal_lock_base<signal_lock>;
+private:
+    static sigset_t get_sigset() noexcept
+    {
+        sigset_t sigset;
+        sigfillset(&sigset);
+        return sigset;
+    }
+};
 
 }}
 

@@ -11,6 +11,9 @@
 
 namespace precisegc { namespace details {
 
+void gc_pause();
+void gc_resume();
+
 // this exception is thrown when thread previously called gc_pause_lock.lock() is calling gc_pause()
 class gc_pause_disabled_exception: public std::exception
 {
@@ -29,18 +32,8 @@ public:
 
     friend class signal_lock_base<gc_pause_lock>;
 private:
-    static sigset_t get_sigset();
+    static sigset_t get_sigset() noexcept;
 };
-
-class signal_lock
-{
-public:
-    void lock() noexcept;
-    void unlock() noexcept;
-};
-
-void gc_pause();
-void gc_resume();
 
 typedef std::function<void(void)> pause_handler_t;
 

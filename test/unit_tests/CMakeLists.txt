@@ -29,6 +29,10 @@ target_link_libraries(precisegc_test libprecisegc)
 
 add_test(all_tests precisegc_test)
 
-add_custom_target(precisegc_test_mem
+add_custom_target(precisegc_test_memcheck
         COMMAND valgrind --leak-check=full --leak-resolution=med ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/precisegc_test
+        DEPENDS precisegc_test)
+
+add_custom_target(precisegc_test_helgrind
+        COMMAND valgrind --tool=helgrind ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/precisegc_test
         DEPENDS precisegc_test)

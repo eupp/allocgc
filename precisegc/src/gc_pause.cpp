@@ -6,11 +6,11 @@
 #include <atomic>
 #include <type_traits>
 #include <pthread.h>
+#include <unistd.h>
 #include <signal.h>
 
 #include "thread.h"
 #include "thread_list.h"
-#include "signal_lock.h"
 #include "signal_safe_sync.h"
 
 namespace precisegc { namespace details {
@@ -19,7 +19,9 @@ static const int gc_signal = SIGUSR1;
 
 static bool gc_signal_set = false;
 
-//static thread_local bool gc_pause_disabled = false;
+static thread_local bool gc_pause_disabled = false;
+
+static gc_signal_safe_mutex gc_mutex;
 
 static signal_safe_barrier threads_paused_barrier;
 static signal_safe_barrier threads_resumed_barrier;
@@ -28,7 +30,7 @@ static signal_safe_event gc_finished_event;
 static size_t threads_cnt = 0;
 
 static std::function<void(void)> gc_pause_handler;
-static signal_safe_mutex gc_pause_handler_mutex;
+static gc_signal_safe_mutex gc_pause_handler_mutex;
 
 static sigset_t get_gc_sigset()
 {
@@ -61,35 +63,35 @@ const char* gc_pause_disabled_exception::what() const noexcept
 void gc_pause_lock::lock() noexcept
 {
     signal_lock_base::lock();
+    gc_pause_disabled = true;
 }
 
 void gc_pause_lock::unlock() noexcept
 {
-    signal_lock_base::unlock();
+    if (signal_lock_base::unlock()) {
+        gc_pause_disabled = false;
+    }
 }
 
-sigset_t gc_pause_lock::get_sigset()
+sigset_t gc_pause_lock::get_sigset() noexcept
 {
     return get_gc_sigset();
 }
-
-//void signal_lock::lock() noexcept
-//{
-//    signal_lock<sigset_all_t>::lock();
-//}
-//
-//void signal_lock::unlock() noexcept
-//{
-//    signal_lock<sigset_all_t>::unlock();
-//}
-
-#include <iostream>
 
 void gc_pause()
 {
 //    pthread_mutex_lock(&gc_mutex);
 //    gc_pause_lock pause_lock;
 //    lock_guard<gc_pause_lock> gc_pause_guard(pause_lock);
+
+    if (gc_pause_disabled) {
+        throw gc_pause_disabled_exception();
+    }
+
+    while (!gc_mutex.try_lock()) {
+        // very bad code, we need better wait strategy
+        sleep(1);
+    }
 
     if (!gc_signal_set) {
         sigset_t sigset = get_gc_sigset();
@@ -107,7 +109,7 @@ void gc_pause()
     threads_cnt = threads.size() - 1;
     pthread_t self = pthread_self();
 
-    std::cout << "Threads cnt: " << threads_cnt << std::endl;
+//    std::cout << "Threads cnt: " << threads_cnt << std::endl;
 
     for (auto& thread: threads) {
         if (!pthread_equal(thread.pthread, self)) {
@@ -122,18 +124,18 @@ void gc_resume()
 {
     gc_finished_event.notify(threads_cnt);
     threads_resumed_barrier.wait(threads_cnt);
-//    pthread_mutex_unlock(&gc_mutex);
+    gc_mutex.unlock();
 }
 
 void set_gc_pause_handler(const pause_handler_t& pause_handler)
 {
-    lock_guard<signal_safe_mutex> lock(gc_pause_handler_mutex);
+    lock_guard<gc_signal_safe_mutex> lock(gc_pause_handler_mutex);
     gc_pause_handler = pause_handler;
 }
 
 pause_handler_t get_gc_pause_handler()
 {
-    lock_guard<signal_safe_mutex> lock(gc_pause_handler_mutex);
+    lock_guard<gc_signal_safe_mutex> lock(gc_pause_handler_mutex);
     return gc_pause_handler;
 }
 }}

@@ -40,10 +40,11 @@ private:
     int m_pipefd[2];
 };
 
-class signal_safe_mutex: public noncopyable
+class gc_signal_safe_mutex: public noncopyable
 {
 public:
     void lock() noexcept;
+    bool try_lock() noexcept;
     void unlock() noexcept;
 private:
     gc_pause_lock m_gc_pause_lock;

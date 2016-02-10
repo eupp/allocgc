@@ -161,7 +161,7 @@ TEST(test_signal_safe_sync, test_barrier_wait_for_2)
 static std::atomic<bool> mutex_test_finished(false);
 static size_t g_counter(0);
 
-static signal_safe_mutex g_signal_safe_mutex;
+static gc_signal_safe_mutex g_signal_safe_mutex;
 
 static void* thread_routine_4(void*)
 {
@@ -176,7 +176,7 @@ static void* thread_routine_5(void*)
 
 static void pause_handler()
 {
-    lock_guard<signal_safe_mutex> lock(g_signal_safe_mutex);
+    lock_guard<gc_signal_safe_mutex> lock(g_signal_safe_mutex);
     ++g_counter;
 }
 
@@ -192,7 +192,7 @@ TEST(test_signal_safe_sync, test_mutex)
     pause_handler_setter handler_setter(pause_handler);
 
     {
-        lock_guard<signal_safe_mutex> lock(g_signal_safe_mutex);
+        lock_guard<gc_signal_safe_mutex> lock(g_signal_safe_mutex);
 
         pthread_t gc_thread;
         ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_5, nullptr));

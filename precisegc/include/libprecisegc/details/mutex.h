@@ -36,6 +36,11 @@ public:
         pthread_mutex_unlock(&m_mutex);
     }
 
+    bool try_lock() noexcept
+    {
+        return pthread_mutex_trylock(&m_mutex) == 0;
+    }
+
     friend class condition_variable;
 private:
     pthread_mutex_t m_mutex;

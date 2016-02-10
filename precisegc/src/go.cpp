@@ -167,18 +167,14 @@ int gc (bool full) {
 
     long long start = nanotime();
 	dprintf("gc: mark_and_sweep\n");
-	pthread_mutex_lock(&gc_mutex);
 
-	thread_handler* handler = get_thread_handler();
-	if (handler->tlflags->nesting_level != 0) {
-		pthread_mutex_unlock(&gc_mutex);
-		return 1;
-	}
+	if (gc_new_stack::instance().is_active()) {
+        return 1;
+    }
 
     gc_pause();
     mark_and_sweep();
     gc_resume();
-    pthread_mutex_unlock(&gc_mutex);
 
     printf("gc full = %d time = %lldms\n", full, (nanotime() - start) / 1000000);
 	return 0;

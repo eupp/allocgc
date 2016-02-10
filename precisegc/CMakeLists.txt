@@ -39,7 +39,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_new_impl.h
         include/libprecisegc/details/gc_consistency.h
         include/libprecisegc/details/gc_untyped_ptr.h
-        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h)
+        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h)
 
 set(precisegc_LIB_SRCS
         src/deref_roots.cpp

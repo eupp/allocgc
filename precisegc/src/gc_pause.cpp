@@ -10,6 +10,7 @@
 
 #include "thread.h"
 #include "thread_list.h"
+#include "signal_lock.h"
 #include "signal_safe_sync.h"
 
 namespace precisegc { namespace details {
@@ -57,113 +58,38 @@ const char* gc_pause_disabled_exception::what() const noexcept
     return m_msg.c_str();
 }
 
-class sigset_all_t {};
-class sigset_gc_t {};
-
-//template <typename Sigset>
-class signal_lock_impl
-{
-//    template <typename S>
-//    struct is_sigset_all_t: public std::is_same<S, sigset_all_t> {};
-//
-//    template <typename S>
-//    struct is_sigset_gc_t: public std::is_same<S, sigset_gc_t> {};
-
-//    static_assert(is_sigset_all_t<Sigset>::value || is_sigset_gc_t<Sigset>::value,
-//                  "Unknown signal set");
-public:
-    static void lock() noexcept
-    {
-        if (depth == 0) {
-            std::atomic_signal_fence(std::memory_order_seq_cst);
-            depth = 1;
-            std::atomic_signal_fence(std::memory_order_seq_cst);
-            sigset_t sigset = get_sigset();
-            pthread_sigmask(SIG_BLOCK, &sigset, &old_sigset);
-        } else {
-            depth++;
-        }
-    }
-
-    static void unlock() noexcept
-    {
-        if (depth == 1) {
-            pthread_sigmask(SIG_SETMASK, &old_sigset, nullptr);
-            std::atomic_signal_fence(std::memory_order_seq_cst);
-            depth = 0;
-        } else {
-            depth--;
-        }
-    }
-private:
-    static thread_local volatile sig_atomic_t depth;
-    static thread_local sigset_t old_sigset;
-
-    static sigset_t get_sigset() noexcept
-    {
-        return get_gc_sigset();
-    }
-
-//    template <typename S = Sigset>
-//    static auto get_sigset()
-//        -> typename std::enable_if<std::is_same<S, sigset_all_t>::value, sigset_t>::type
-//    {
-//        sigset_t sigset;
-//        sigfillset(&sigset);
-//        return sigset;
-//    }
-
-//    template <typename S = Sigset>
-//    static auto get_sigset()
-//        -> typename std::enable_if<std::is_same<S, sigset_gc_t>::value, sigset_t>::type
-//    {
-//        return get_gc_sigset();
-//    }
-
-//    template <typename S = Sigset>
-//    static auto poll()
-//    -> typename std::enable_if<is_sigset_gc_t<S>::value, void>::type
-//    {
-//        sigset_t pending;
-//        int is_pending = 0;
-//        do {
-//            sigpending(&pending);
-//            is_pending = sigismember(&pending, gc_signal);
-//            if (is_pending == 1) {
-//                gc_signal_handler(gc_signal);
-//            }
-//        } while (is_pending == 1);
-//    }
-};
-
-thread_local volatile sig_atomic_t signal_lock_impl::depth = 0;
-thread_local sigset_t signal_lock_impl::old_sigset = sigset_t();
-
 void gc_pause_lock::lock() noexcept
 {
-    signal_lock_impl::lock();
+    signal_lock_base::lock();
 }
 
 void gc_pause_lock::unlock() noexcept
 {
-    signal_lock_impl::unlock();
+    signal_lock_base::unlock();
+}
+
+sigset_t gc_pause_lock::get_sigset()
+{
+    return get_gc_sigset();
 }
 
 //void signal_lock::lock() noexcept
 //{
-//    signal_lock_impl<sigset_all_t>::lock();
+//    signal_lock<sigset_all_t>::lock();
 //}
 //
 //void signal_lock::unlock() noexcept
 //{
-//    signal_lock_impl<sigset_all_t>::unlock();
+//    signal_lock<sigset_all_t>::unlock();
 //}
+
+#include <iostream>
 
 void gc_pause()
 {
 //    pthread_mutex_lock(&gc_mutex);
-    gc_pause_lock pause_lock;
-    lock_guard<gc_pause_lock> gc_pause_guard(pause_lock);
+//    gc_pause_lock pause_lock;
+//    lock_guard<gc_pause_lock> gc_pause_guard(pause_lock);
 
     if (!gc_signal_set) {
         sigset_t sigset = get_gc_sigset();
@@ -180,6 +106,8 @@ void gc_pause()
     thread_list& threads = thread_list::instance();
     threads_cnt = threads.size() - 1;
     pthread_t self = pthread_self();
+
+    std::cout << "Threads cnt: " << threads_cnt << std::endl;
 
     for (auto& thread: threads) {
         if (!pthread_equal(thread.pthread, self)) {
@@ -208,5 +136,4 @@ pause_handler_t get_gc_pause_handler()
     lock_guard<signal_safe_mutex> lock(gc_pause_handler_mutex);
     return gc_pause_handler;
 }
-
 }}

@@ -7,6 +7,7 @@
 #include <signal.h>
 
 #include "thread_list.h"
+#include "signal_lock.h"
 
 namespace precisegc { namespace details {
 
@@ -20,11 +21,15 @@ private:
     std::string m_msg;
 };
 
-class gc_pause_lock
+class gc_pause_lock: public signal_lock_base<gc_pause_lock>
 {
 public:
     void lock() noexcept;
     void unlock() noexcept;
+
+    friend class signal_lock_base<gc_pause_lock>;
+private:
+    static sigset_t get_sigset();
 };
 
 class signal_lock

@@ -7,39 +7,39 @@ namespace precisegc { namespace details {
 const char* logging::prefix = "precisegc-";
 std::unique_ptr<logging::logger> logging::logger_ = nullptr;
 std::unique_ptr<gc_signal_safe_mutex> logging::mutex_ = nullptr;
+logging::loglevel logging::loglevel_ = logging::loglevel::OFF;
 
-void logging::init(std::ostream& stream)
+void logging::init(std::ostream& stream, loglevel lv)
 {
     logger_.reset(new logger(stream));
     mutex_.reset(new gc_signal_safe_mutex());
+    loglevel_ = lv;
 }
 
-logging::locking_wrapper logging::debug()
+logging::log_line logging::debug()
 {
-    return log("DEBUG");
+    return log(loglevel::DEBUG);
 }
 
-logging::locking_wrapper logging::info()
+logging::log_line logging::info()
 {
-    return log("INFO");
+    return log(loglevel::INFO);
 }
 
-logging::locking_wrapper logging::warning()
+logging::log_line logging::warning()
 {
-    return log("WARNING");
+    return log(loglevel::WARNING);
 }
 
-logging::locking_wrapper logging::error()
+logging::log_line logging::error()
 {
-    return log("ERROR");
+    return log(loglevel::ERROR);
 }
 
-logging::locking_wrapper logging::log(const char* loglevel)
+logging::log_line logging::log(loglevel lv)
 {
     assert(logger_);
-    locking_wrapper wrapper;
-    wrapper << prefix << loglevel << ": ";
-    return wrapper;
+    return log_line(lv);
 }
 
 logging::logger::logger(std::ostream& stream)
@@ -48,24 +48,43 @@ logging::logger::logger(std::ostream& stream)
     m_stream.rdbuf()->pubsetbuf(0, 0);
 }
 
-logging::locking_wrapper::locking_wrapper()
-    : m_active(true)
-{
-    mutex_->lock();
-}
-
-logging::locking_wrapper::~locking_wrapper()
+logging::log_line::log_line(loglevel lv)
+    : m_active(lv >= loglevel_)
 {
     if (m_active) {
-        operator<<(std::endl<char, std::char_traits<char>>);
+        mutex_->lock();
+        const char* lv_str = nullptr;
+        switch (lv)
+        {
+            case loglevel::DEBUG:
+                lv_str = "DEBUG";
+                break;
+            case loglevel::INFO:
+                lv_str = "INFO";
+                break;
+            case loglevel::WARNING:
+                lv_str = "WARNING";
+                break;
+            case loglevel::ERROR:
+                lv_str = "ERROR";
+                break;
+        }
+        (*this) << prefix << lv_str << ": ";
+    }
+}
+
+logging::log_line::~log_line()
+{
+    if (m_active) {
+        (*this) << std::endl<char, std::char_traits<char>>;
         mutex_->unlock();
     }
 }
 
-logging::locking_wrapper::locking_wrapper(logging::locking_wrapper&& wrapper)
+logging::log_line::log_line(logging::log_line&& other)
     : m_active(true)
 {
-    wrapper.m_active = false;
+    other.m_active = false;
 }
 
 }}

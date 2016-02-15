@@ -11,20 +11,28 @@ namespace precisegc { namespace details {
 
 class logging
 {
-    class locking_wrapper;
+    class log_line;
 public:
 
-    static void init(std::ostream& stream);
-    static locking_wrapper debug();
-    static locking_wrapper info();
-    static locking_wrapper warning();
-    static locking_wrapper error();
+    enum class loglevel {
+        DEBUG,
+        INFO,
+        WARNING,
+        ERROR,
+        OFF
+    };
+
+    static void init(std::ostream& stream, loglevel lv);
+    static log_line debug();
+    static log_line info();
+    static log_line warning();
+    static log_line error();
 
 private:
     class logger: public noncopyable, public nonmovable
     {
     public:
-        logger(std::ostream& stream);
+        explicit logger(std::ostream& stream);
 
         template <typename T>
         logger& operator<<(const T& x)
@@ -36,32 +44,35 @@ private:
         std::ostream m_stream;
     };
 
-    class locking_wrapper: public noncopyable
+    class log_line: public noncopyable
     {
     public:
-        locking_wrapper();
-        ~locking_wrapper();
+        explicit log_line(loglevel lv);
+        ~log_line();
 
-        locking_wrapper(locking_wrapper&&);
-        locking_wrapper& operator=(locking_wrapper&&) = delete;
+        log_line(log_line&&);
+        log_line& operator=(log_line&&) = delete;
 
         template <typename T>
-        locking_wrapper& operator<<(const T& x)
+        log_line& operator<<(const T& x)
         {
-            (*logger_) << x;
+            if (m_active) {
+                (*logger_) << x;
+            }
             return *this;
         }
     private:
         bool m_active;
     };
 
-    static locking_wrapper log(const char* loglevel);
+    static log_line log(loglevel lv);
 
     static const char* prefix;
     // to do: switch to optional<logger>
     static std::unique_ptr<logger> logger_;
     // to do: switch to optional<gc_signal_safe_mutex>
     static std::unique_ptr<gc_signal_safe_mutex> mutex_;
+    static loglevel loglevel_;
 };
 
 }}

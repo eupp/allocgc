@@ -37,7 +37,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_compact.h
         include/libprecisegc/details/gc_new_stack.h
         include/libprecisegc/details/gc_new_impl.h
-        include/libprecisegc/details/gc_consistency.h
+        include/libprecisegc/details/gc_unsafe_scope.h
         include/libprecisegc/details/gc_untyped_ptr.h
         include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h include/libprecisegc/details/logging.h include/libprecisegc/gc_init.h)
 

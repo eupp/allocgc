@@ -1,13 +1,13 @@
 #include "gc_untyped_pin.h"
 
-#include "gc_consistency.h"
+#include "gc_unsafe_scope.h"
 #include "index_tree.h"
 
 namespace precisegc { namespace details {
 
 gc_untyped_pin::gc_untyped_pin(const gc_untyped_ptr& ptr)
 {
-    gc_consistency_lock consistency_lock;
+    gc_unsafe_scope consistency_lock;
     m_raw_ptr = ptr.get();
     m_pd = (page_descriptor*) _GC_::IT_get_page_descr(m_raw_ptr);
     if (m_pd) {
@@ -19,7 +19,7 @@ gc_untyped_pin::gc_untyped_pin(const gc_untyped_ptr& ptr)
 gc_untyped_pin::~gc_untyped_pin()
 {
     if (m_pd) {
-        gc_consistency_lock consistency_lock;
+        gc_unsafe_scope consistency_lock;
         m_pd->set_object_pin(m_raw_ptr, false);
         m_pd->set_object_mark(m_raw_ptr, false);
     }

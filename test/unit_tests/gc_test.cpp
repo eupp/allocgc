@@ -90,7 +90,7 @@ static void* thread_routine(void* arg)
 }
 
 // This test doesn't check anything.
-// Consider it is passed if nothing will crash.
+// Consider it is passed if nothing will crash or hang.
 TEST(gc_test, test_gc)
 {
     gc_ptr<node> root = create_tree();

@@ -6,10 +6,10 @@
 
 namespace precisegc { namespace details {
 
-class gc_consistency_lock
+class gc_unsafe_scope
 {
 public:
-    gc_consistency_lock()
+    gc_unsafe_scope()
         : m_lock_guard(m_pause_lock)
     {}
 private:

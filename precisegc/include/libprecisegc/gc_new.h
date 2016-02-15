@@ -24,7 +24,7 @@ auto gc_new(Args&&... args)
     -> typename details::gc_new_if<T>::single_object
 {
     using namespace precisegc::details;
-    gc_unsafe_scope consistency_lock;
+    gc_unsafe_scope unsafe_scope;
     void* ptr = gc_new_impl<T>(1, std::forward<Args>(args)...);
     T* typed_ptr = reinterpret_cast<T*>(ptr);
     return gc_ptr_access<T>::create(typed_ptr);
@@ -36,7 +36,7 @@ auto gc_new(size_t n)
 {
     typedef typename std::remove_extent<T>::type U;
     using namespace precisegc::details;
-    gc_unsafe_scope consistency_lock;
+    gc_unsafe_scope unsafe_scope;
     void* ptr = gc_new_impl<U>(n);
     U* typed_ptr = reinterpret_cast<U*>(ptr);
     return gc_ptr_access<T>::create(typed_ptr);

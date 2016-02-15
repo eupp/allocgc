@@ -4,6 +4,8 @@
 #include <cstring>
 #include <sys/mman.h>
 
+#include "logging.h"
+
 using namespace precisegc::details;
 
 const size_t SystemBitSize = precisegc::details::SYSTEM_POINTER_BITS_COUNT;
@@ -126,6 +128,9 @@ namespace _GC_ {
 	/* return a page ptr points to descriptor */
     void *IT_get_page_descr(void* ptr) {
 		pthread_mutex_lock(&index_tree_mutex);
+
+//        logging::debug() << "Thread " << pthread_self() << " locks index tree mutex ";
+
 	    size_t bits_curr = SystemBitSize - ITFirstLevelBits;
 	    size_t i_l = (size_t) ptr >> bits_curr;
 	    size_t *level = IT_iterate(ptr, &bits_curr, &i_l, tree_level_one);
@@ -133,6 +138,9 @@ namespace _GC_ {
 		       || (size_t)ptr - (size_t)((page_descriptor *)level[i_l])->page() < ((page_descriptor *)level[i_l])->page_size());
 		void * res = level != NULL ? (void *) level[i_l] : NULL;
 	    pthread_mutex_unlock(&index_tree_mutex);
+
+//        logging::debug() << "Thread " << pthread_self() << " release index tree mutex ";
+
 		return res;
     }
 

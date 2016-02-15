@@ -3,8 +3,10 @@
 #include <cstdint>
 #include <cassert>
 #include <utility>
+#include <details/logging.h>
 
 #include "gc_new_stack.h"
+#include "gc_unsafe_scope.h"
 #include "../thread.h"
 
 namespace precisegc { namespace details {
@@ -40,19 +42,20 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other) noexcept
     : gc_untyped_ptr()
 {
-    gc_untyped_pin pin(other);
+    gc_unsafe_scope unsafe_scope;
     set(other.m_ptr);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other) noexcept
     : gc_untyped_ptr()
 {
-    gc_untyped_pin pin(other);
+    gc_unsafe_scope unsafe_scope;
     set(other.m_ptr);
 }
 
 gc_untyped_ptr::~gc_untyped_ptr() noexcept
 {
+    gc_unsafe_scope unsafe_scope;
     if (is_root()) {
         delete_root();
     }
@@ -66,22 +69,21 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t) noexcept
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other) noexcept
 {
-    gc_untyped_pin pin(other);
+    gc_unsafe_scope unsafe_scope;
     set(other.m_ptr);
     return *this;
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other) noexcept
 {
-    gc_untyped_pin pin(other);
+    gc_unsafe_scope unsafe_scope;
     set(other.m_ptr);
     return *this;
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other) noexcept
 {
-    gc_untyped_pin pin1(*this);
-    gc_untyped_pin pin2(other);
+    gc_unsafe_scope unsafe_scope;
     void* tmp = m_ptr;
     m_ptr = set_root_flag(other.m_ptr, is_root());
     other.m_ptr = set_root_flag(tmp, other.is_root());

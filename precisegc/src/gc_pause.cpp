@@ -111,16 +111,20 @@ void gc_pause()
 
     logging::info() << "Thread " << pthread_self() << " is requesting stop-the-world";
 
-    lock_guard<mutex> lock(thread_list::instance_mutex);
-    thread_list& threads = thread_list::instance();
-    threads_cnt = threads.size() - 1;
-    pthread_t self = pthread_self();
+    {
+        lock_guard<mutex> lock(thread_list::instance_mutex);
+        thread_list& threads = thread_list::instance();
+        threads_cnt = threads.size() - 1;
+        pthread_t self = pthread_self();
 
-    for (auto& thread: threads) {
-        if (!pthread_equal(thread.pthread, self)) {
-            pthread_kill(thread.pthread, gc_signal);
+        for (auto& thread: threads) {
+            if (!pthread_equal(thread.pthread, self)) {
+                pthread_kill(thread.pthread, gc_signal);
+            }
         }
     }
+
+//    logging::info() << "GC signal broadcastet";
 
     threads_paused_barrier.wait(threads_cnt);
 

@@ -175,7 +175,7 @@ int gc (bool full) {
 
     gc_pause();
 
-	logging::info() << "Thread " << pthread_self() << " are garbage collector";
+	logging::info() << "Thread " << pthread_self() << " is garbage collector";
     mark_and_sweep();
 
     gc_resume();

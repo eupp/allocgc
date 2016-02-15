@@ -1,8 +1,10 @@
 #include "gc_init.h"
 
+#include <iostream>
+
 #include "details/thread_list.h"
 #include "details/gc_pause.h"
-//#include "details/logging.h"
+#include "details/logging.h"
 
 namespace precisegc {
 
@@ -16,10 +18,14 @@ static void create_first_thread()
     first_thread.routine = nullptr;
     first_thread.arg = nullptr;
     details::thread_list::instance().insert(first_thread);
+
+    details::logging::info() << "Thread " << pthread_self() << " main";
 }
 
 int gc_init()
 {
+    details::logging::init(std::clog);
+
     create_first_thread();
     details::gc_pause_init();
     return 0;

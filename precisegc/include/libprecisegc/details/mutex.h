@@ -9,7 +9,7 @@ namespace precisegc { namespace details {
 
 class condition_variable;
 
-class mutex: public noncopyable
+class mutex: public noncopyable, public nonmovable
 {
 public:
 
@@ -22,9 +22,6 @@ public:
     {
         pthread_mutex_destroy(&m_mutex);
     }
-
-    mutex(mutex&&) = default;
-    mutex& operator=(mutex&&) = default;
 
     void lock() noexcept
     {

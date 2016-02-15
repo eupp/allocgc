@@ -4,7 +4,7 @@
 
 namespace precisegc { namespace details {
 
-mutex thread_list::instance_mutex = mutex();
+mutex thread_list::instance_mutex;
 
 bool thread_list::empty() const
 {

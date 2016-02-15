@@ -110,12 +110,16 @@ void gc_signal_safe_mutex::lock() noexcept
 {
     m_gc_pause_lock.lock();
     m_mutex.lock();
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+//    std::clog << "Thread " <<  pthread_self() << " locks signal-safe mutex" << std::endl;
 }
 
 void gc_signal_safe_mutex::unlock() noexcept
 {
+//    std::clog << "Thread " <<  pthread_self() << " unlocks signal-safe mutex" << std::endl;
     m_mutex.unlock();
     m_gc_pause_lock.unlock();
+    std::atomic_thread_fence(std::memory_order_seq_cst);
 }
 
 bool gc_signal_safe_mutex::try_lock() noexcept

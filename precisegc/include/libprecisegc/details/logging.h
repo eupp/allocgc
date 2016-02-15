@@ -42,7 +42,7 @@ private:
         locking_wrapper();
         ~locking_wrapper();
 
-        locking_wrapper(locking_wrapper&&) = default;
+        locking_wrapper(locking_wrapper&&);
         locking_wrapper& operator=(locking_wrapper&&) = delete;
 
         template <typename T>
@@ -52,7 +52,7 @@ private:
             return *this;
         }
     private:
-        gc_signal_safe_mutex m_mutex;
+        bool m_active;
     };
 
     static locking_wrapper log(const char* loglevel);
@@ -60,6 +60,8 @@ private:
     static const char* prefix;
     // to do: switch to optional<logger>
     static std::unique_ptr<logger> logger_;
+    // to do: switch to optional<gc_signal_safe_mutex>
+    static std::unique_ptr<gc_signal_safe_mutex> mutex_;
 };
 
 }}

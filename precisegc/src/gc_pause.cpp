@@ -12,6 +12,7 @@
 #include "thread.h"
 #include "thread_list.h"
 #include "signal_safe_sync.h"
+#include "logging.h"
 
 namespace precisegc { namespace details {
 
@@ -43,6 +44,9 @@ static sigset_t get_gc_sigset()
 static void gc_signal_handler(int signum)
 {
     assert(signum == gc_signal);
+
+    logging::info() << "Thread " << pthread_self() << " enters gc signal handler";
+
     threads_paused_barrier.notify();
     if (gc_pause_handler) {
         gc_pause_handler();
@@ -105,6 +109,8 @@ void gc_pause()
         sleep(1);
     }
 
+    logging::info() << "Thread " << pthread_self() << " is requesting stop-the-world";
+
     lock_guard<mutex> lock(thread_list::instance_mutex);
     thread_list& threads = thread_list::instance();
     threads_cnt = threads.size() - 1;
@@ -117,10 +123,14 @@ void gc_pause()
     }
 
     threads_paused_barrier.wait(threads_cnt);
+
+    logging::info() << "All threads are suspended";
 }
 
 void gc_resume()
 {
+    logging::info() << "Thread " << pthread_self() << " is requesting start-the-world";
+
     gc_finished_event.notify(threads_cnt);
     threads_resumed_barrier.wait(threads_cnt);
     gc_mutex.unlock();

@@ -46,12 +46,10 @@ private:
     int m_pipefd[2];
 };
 
-class gc_signal_safe_mutex: public noncopyable
+class gc_signal_safe_mutex: public noncopyable, public nonmovable
 {
 public:
     gc_signal_safe_mutex() = default;
-    gc_signal_safe_mutex(gc_signal_safe_mutex&&) = default;
-    gc_signal_safe_mutex& operator=(gc_signal_safe_mutex&&) = default;
 
     void lock() noexcept;
     bool try_lock() noexcept;

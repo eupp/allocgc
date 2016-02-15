@@ -6,6 +6,7 @@
 #include <signal.h>
 
 #include "thread_list.h"
+#include "logging.h"
 
 namespace precisegc {
 
@@ -46,6 +47,9 @@ int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routin
     auto it = threads.insert(handler);
     int res = pthread_create(thread, attr, start_routine, &(*it));
     it->pthread = *thread;
+
+    logging::info() << "Thread " << *thread << " created";
+
     return res;
 }
 

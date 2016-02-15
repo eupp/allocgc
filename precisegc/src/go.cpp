@@ -12,6 +12,7 @@
 #include "thread.h"
 #include "thread_list.h"
 #include "gc_pause.h"
+#include "logging.h"
 
 #ifdef DEBUGE_MODE
 	size_t live_object_count = 0;
@@ -173,7 +174,10 @@ int gc (bool full) {
     }
 
     gc_pause();
+
+	logging::info() << "Thread " << pthread_self() << " are garbage collector";
     mark_and_sweep();
+
     gc_resume();
 
     printf("gc full = %d time = %lldms\n", full, (nanotime() - start) / 1000000);

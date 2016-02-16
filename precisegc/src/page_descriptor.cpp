@@ -132,7 +132,7 @@ void* page_descriptor::get_object_start(void *ptr) const noexcept
     return (void*) (ptr_ & m_mask);
 }
 
-mutex& page_descriptor::get_bitmap_mutex() const
+mutex& page_descriptor::get_bitmap_mutex() noexcept
 {
     return m_bitmap_mutex;
 }

@@ -9,7 +9,6 @@
 #include <pthread.h>
 
 #include "gc_ptr.h"
-#include "debug_print.h"
 #include "thread.h"
 #include "tlvars.h"
 #include "details/class_meta.h"

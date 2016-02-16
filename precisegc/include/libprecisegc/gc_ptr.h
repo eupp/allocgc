@@ -9,10 +9,6 @@
 #include "details/gc_untyped_pin.h"
 #include "details/gc_ptr_access.h"
 
-#define set_stack_flag(x)		(void *)	((uintptr_t)x | (uintptr_t)1)
-#define is_stack_pointer(x)		(bool)		((uintptr_t)x & (uintptr_t)1)
-#define clear_stack_flag(x)		(void *)	((uintptr_t)x & ~(uintptr_t)1)
-
 namespace precisegc {
 
 namespace details {
@@ -223,4 +219,4 @@ T* gc_pin<T[]>::get() const
 
 }
 
-#endif //DIPLOMA_GC_PTR_BASE_H
+#endif //DIPLOMA_GC_PTR_H

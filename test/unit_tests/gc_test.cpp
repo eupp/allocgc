@@ -9,7 +9,6 @@
 #include "libprecisegc/thread.h"
 #include "libprecisegc/gc_ptr.h"
 #include "libprecisegc/gc_new.h"
-#include "libprecisegc/go.h"
 #include "libprecisegc/details/barrier.h"
 #include "libprecisegc/details/math_util.h"
 

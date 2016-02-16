@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 
-#include "condition_variable.h"
+#include "mutex.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
@@ -30,7 +30,6 @@ private:
     static void* start_compacting_routine(void*);
     static void mark();
     static void traverse(void* root);
-    static void* get_pointed_to(void* ptr);
 
     enum class phase {
         IDLE,
@@ -43,7 +42,6 @@ private:
 
     phase m_phase;
     mutex m_phase_mutex;
-    condition_variable m_phase_cond;
 };
 
 }}

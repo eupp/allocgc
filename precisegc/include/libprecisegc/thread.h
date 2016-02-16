@@ -1,7 +1,6 @@
 #pragma once
 #include <pthread.h>
 #include "stack.h"
-#include "deref_roots.h"
 #include "tlvars.h"
 
 namespace precisegc {

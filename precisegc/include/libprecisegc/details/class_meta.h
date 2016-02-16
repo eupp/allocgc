@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_META_H
-#define DIPLOMA_META_H
+#ifndef DIPLOMA_CLASS_META_H
+#define DIPLOMA_CLASS_META_H
 
 #include <memory>
 #include <vector>
@@ -78,11 +78,11 @@ private:
 };
 
 template <typename T>
-recursive_mutex class_meta_provider<T>::meta_mutex = recursive_mutex();
+recursive_mutex class_meta_provider<T>::meta_mutex;
 
 template <typename T>
 std::unique_ptr<class_meta> class_meta_provider<T>::meta_inf = nullptr;
 
 } }
 
-#endif //DIPLOMA_META_H
+#endif //DIPLOMA_CLASS_META_H

@@ -46,4 +46,10 @@ void shade(void* ptr)
     }
 }
 
+void* get_pointed_to(void* ptr)
+{
+    void* res = (void*) (* ((uintptr_t*) ptr));
+    return res;
+}
+
 }}

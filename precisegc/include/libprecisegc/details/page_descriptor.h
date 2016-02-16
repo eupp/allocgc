@@ -54,7 +54,7 @@ public:
 
     void* get_object_start(void* ptr) const noexcept;
 
-    mutex& get_bitmap_mutex() const noexcept;
+    mutex& get_bitmap_mutex() noexcept;
 
     iterator begin() noexcept;
     iterator end() noexcept;

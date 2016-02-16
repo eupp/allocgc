@@ -29,7 +29,6 @@ void* start_routine(void* hand)
     handler->tlflags = & new_obj_flags_tl_instance;
 
     void* ret = handler->routine(handler->arg);
-    dprintf("Finishing thread %d\n", handler->pthread);
     lock_guard<mutex> lock(thread_list::instance_mutex);
     remove_thread(handler->pthread);
     return ret;

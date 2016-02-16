@@ -23,7 +23,7 @@ public:
 private:
     gc_mark_queue() = default;
 
-    mutex m_mutex;
+    mutable mutex m_mutex;
     std::queue<void*> m_queue;
 };
 

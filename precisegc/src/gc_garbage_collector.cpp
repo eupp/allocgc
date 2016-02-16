@@ -4,8 +4,8 @@
 
 #include "gc_ptr.h"
 #include "gc_mark.h"
-#include "gcmalloc.h"
 #include "gc_mark_queue.h"
+#include "gcmalloc.h"
 #include "gc_heap.h"
 #include "gc_pause.h"
 
@@ -114,7 +114,7 @@ void gc_garbage_collector::mark()
 
 void gc_garbage_collector::traverse(void* root)
 {
-    if (!root || is_stack_pointer(root)) {
+    if (!root) {
         return;
     }
     set_object_mark(root, true);
@@ -139,12 +139,6 @@ void gc_garbage_collector::traverse(void* root)
         }
         ptr += obj_size;
     }
-}
-
-void* gc_garbage_collector::get_pointed_to(void* ptr)
-{
-    void* res = (void*) (* ((uintptr_t*) ptr));
-    return clear_stack_flag(res);
 }
 
 }}

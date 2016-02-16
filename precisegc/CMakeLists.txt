@@ -3,7 +3,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/debug_print.h
         include/libprecisegc/fake_roots.h
         include/libprecisegc/gc_ptr.h
-        include/libprecisegc/go.h
         include/libprecisegc/gc_new.h
         include/libprecisegc/gcmalloc.h
         include/libprecisegc/index_tree.h
@@ -12,7 +11,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/tlvars.h
         include/libprecisegc/thread.h
         include/libprecisegc/meta_information.h
-        include/libprecisegc/deref_roots.h
         include/libprecisegc/object.h
 
         include/libprecisegc/details/class_meta.h
@@ -39,11 +37,9 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_new_impl.h
         include/libprecisegc/details/gc_unsafe_scope.h
         include/libprecisegc/details/gc_untyped_ptr.h
-        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h include/libprecisegc/details/logging.h include/libprecisegc/gc_init.h include/libprecisegc/details/gc_mark_queue.h include/libprecisegc/details/gc_mark.h include/libprecisegc/details/gc_garbage_collector.h)
+        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h include/libprecisegc/details/logging.h include/libprecisegc/gc_init.h include/libprecisegc/details/gc_mark_queue.h include/libprecisegc/details/gc_mark.h include/libprecisegc/details/gc_garbage_collector.h include/libprecisegc/details/write_barrier.h)
 
 set(precisegc_LIB_SRCS
-        src/deref_roots.cpp
-        src/go.cpp
         src/index_tree.cpp
         src/gcmalloc.cpp
         src/gc_mark.cpp

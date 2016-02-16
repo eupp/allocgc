@@ -31,20 +31,19 @@ public:
 
     void* get() const noexcept;
 
+    void atomic_store(const gc_untyped_ptr& value);
+
     friend class gc_untyped_pin;
 private:
     static const uintptr_t ROOT_FLAG_BIT;
-
-    static void* set_root_flag(void* ptr, bool root_flag) noexcept;
-    static void* clear_root_flag(void* ptr) noexcept;
-    static bool is_root_flag_set(void* ptr) noexcept;
 
     void set(void* ptr) noexcept;
 
     void register_root() noexcept;
     void delete_root() noexcept;
 
-    void* m_ptr;
+    std::atomic<void*> m_ptr;
+    const bool m_root_flag;
 };
 
 void swap(gc_untyped_ptr& a, gc_untyped_ptr& b) noexcept;

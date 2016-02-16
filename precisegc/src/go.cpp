@@ -130,7 +130,6 @@ int go (void * pointer, bool pin_root) {
 		}
 		object_meta* obj_meta = get_object_header(v);
         const class_meta* cls_meta = obj_meta->get_class_meta();
-		base_meta *bm = get_meta_inf(v);
 		size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
 		auto& offsets = cls_meta->get_offsets();
 		if (offsets.empty()) {

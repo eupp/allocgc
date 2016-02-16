@@ -61,7 +61,7 @@ set(precisegc_LIB_SRCS
         src/gc_untyped_ptr.cpp
         src/gc_untyped_pin.cpp
         src/logging.cpp
-        src/gc_init.cpp)
+        src/gc_init.cpp src/gc_garbage_collector.cpp)
 
 
 include_directories(include/libprecisegc)

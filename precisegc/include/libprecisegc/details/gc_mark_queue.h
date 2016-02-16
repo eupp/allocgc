@@ -14,6 +14,8 @@ public:
 
     static gc_mark_queue& instance();
 
+    bool empty() const;
+
     void push(void* ptr);
     void* pop();
 

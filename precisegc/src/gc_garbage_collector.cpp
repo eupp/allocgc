@@ -63,6 +63,7 @@ void gc_garbage_collector::start_compacting()
 //    m_phase = phase::COMPACTING;
 
     gc_pause();
+    mark();
     gc_heap& heap = gc_heap::instance();
     heap.compact();
     gc_resume();

@@ -6,7 +6,7 @@
 
 namespace precisegc { namespace details {
 
-void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
+inline void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
     dst_ptr.atomic_store(src_ptr);
     shade(src_ptr.get());

@@ -101,7 +101,6 @@ void* gc_garbage_collector::start_compacting_routine(void* pVoid)
     gc_garbage_collector& gc = gc_garbage_collector::instance();
     gc.wait_for_marking_finished();
     gc.start_compacting();
-    gc.wait_for_compacting_finished();
 }
 
 void gc_garbage_collector::mark()

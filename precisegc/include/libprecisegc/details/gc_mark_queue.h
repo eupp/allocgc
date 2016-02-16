@@ -4,6 +4,7 @@
 #include <queue>
 
 #include "gc_untyped_ptr.h"
+#include "mutex.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
@@ -20,6 +21,9 @@ public:
     void* pop();
 
 private:
+    gc_mark_queue() = default;
+
+    mutex m_mutex;
     std::queue<void*> m_queue;
 };
 

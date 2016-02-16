@@ -43,7 +43,7 @@ private:
     pthread_mutex_t m_mutex;
 };
 
-class recursive_mutex: public noncopyable
+class recursive_mutex: public noncopyable, public nonmovable
 {
 public:
 
@@ -58,11 +58,8 @@ public:
 
     ~recursive_mutex()
     {
-        pthread_mutex_destroy(&m_mutex);
+        pthread_mutex_destroy(& m_mutex);
     }
-
-    recursive_mutex(recursive_mutex&&) = default;
-    recursive_mutex& operator=(recursive_mutex&&) = default;
 
     void lock() noexcept
     {

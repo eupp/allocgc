@@ -39,14 +39,14 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_new_impl.h
         include/libprecisegc/details/gc_unsafe_scope.h
         include/libprecisegc/details/gc_untyped_ptr.h
-        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h include/libprecisegc/details/logging.h include/libprecisegc/gc_init.h)
+        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h include/libprecisegc/details/logging.h include/libprecisegc/gc_init.h include/libprecisegc/details/gc_mark_queue.h include/libprecisegc/details/gc_mark.h include/libprecisegc/details/gc_garbage_collector.h)
 
 set(precisegc_LIB_SRCS
         src/deref_roots.cpp
         src/go.cpp
         src/index_tree.cpp
         src/gcmalloc.cpp
-        src/mark.cpp
+        src/gc_mark.cpp
         src/stack.cpp
         src/taginfo.cpp
         src/thread.cpp

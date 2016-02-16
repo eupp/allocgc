@@ -132,6 +132,11 @@ void* page_descriptor::get_object_start(void *ptr) const noexcept
     return (void*) (ptr_ & m_mask);
 }
 
+mutex& page_descriptor::get_bitmap_mutex() const
+{
+    return m_bitmap_mutex;
+}
+
 void page_descriptor::index_page()
 {
     size_t page_end = (size_t) m_page + m_page_size;

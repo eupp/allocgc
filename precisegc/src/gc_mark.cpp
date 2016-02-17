@@ -39,10 +39,15 @@ bool get_object_mark(void* ptr)
 void shade(void* ptr)
 {
     page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
-    lock_guard<mutex> lock(pd->get_bitmap_mutex());
-    if (!pd->get_object_mark(ptr)) {
-        gc_mark_queue& queue = gc_mark_queue::instance();
-        queue.push(ptr);
+    // this check will be failed only when ptr is pointed to non gc_heap memory,
+    // that is not possible in correct program (i.e. when gc_new is used to create managed objects),
+    // but could occur during testing.
+    if (pd) {
+        lock_guard<mutex> lock(pd->get_bitmap_mutex());
+        if (!pd->get_object_mark(ptr)) {
+            gc_mark_queue& queue = gc_mark_queue::instance();
+            queue.push(ptr);
+        }
     }
 }
 

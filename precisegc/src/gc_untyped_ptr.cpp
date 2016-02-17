@@ -42,7 +42,6 @@ gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other) noexcept
 {
     gc_unsafe_scope unsafe_scope;
     write_barrier(*this, other);
-    atomic_store(other);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other) noexcept
@@ -50,7 +49,6 @@ gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other) noexcept
 {
     gc_unsafe_scope unsafe_scope;
     write_barrier(*this, other);
-    atomic_store(other);
 }
 
 gc_untyped_ptr::~gc_untyped_ptr() noexcept

@@ -9,6 +9,7 @@
 #include "libprecisegc/thread.h"
 #include "libprecisegc/gc_ptr.h"
 #include "libprecisegc/gc_new.h"
+#include "libprecisegc/gc.h"
 #include "libprecisegc/details/barrier.h"
 #include "libprecisegc/details/math_util.h"
 
@@ -102,7 +103,7 @@ TEST(gc_test, test_gc)
     threads_ready.wait();
 
     root.reset();
-    gc(true);
+    gc();
     gc_finished = true;
 
     for (auto& thread: threads) {

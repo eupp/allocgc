@@ -28,4 +28,10 @@ void* gc_mark_queue::pop()
     return ret;
 }
 
+void gc_mark_queue::clear()
+{
+    lock_guard<mutex> lock(m_mutex);
+    std::queue<void*>().swap(m_queue);
+}
+
 }}

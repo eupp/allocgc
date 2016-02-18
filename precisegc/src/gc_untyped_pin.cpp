@@ -11,7 +11,7 @@ gc_untyped_pin::gc_untyped_pin(const gc_untyped_ptr& ptr)
     m_raw_ptr = ptr.get();
     m_pd = (page_descriptor*) _GC_::IT_get_page_descr(m_raw_ptr);
     if (m_pd) {
-        m_pd->set_object_mark(m_raw_ptr, true);
+//        m_pd->set_object_mark(m_raw_ptr, true);
         m_pd->set_object_pin(m_raw_ptr, true);
     }
 }
@@ -21,7 +21,7 @@ gc_untyped_pin::~gc_untyped_pin()
     if (m_pd) {
         gc_unsafe_scope unsafe_scope;
         m_pd->set_object_pin(m_raw_ptr, false);
-        m_pd->set_object_mark(m_raw_ptr, false);
+//        m_pd->set_object_mark(m_raw_ptr, false);
     }
 }
 

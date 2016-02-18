@@ -24,6 +24,9 @@ public:
     void start_compacting();
     void wait_for_compacting_finished();
 
+    // very bad design, just for testing purpose
+    void force_move_to_idle();
+
 private:
     gc_garbage_collector();
 

@@ -42,6 +42,10 @@ void two_finger_compact(const Iterator& first, const Iterator& last, size_t obj_
         while (to.is_marked() && from != to) {
             ++to;
         }
+        if (to.is_pinned() && from != to) {
+            ++to;
+            continue;
+        }
         if (from != to) {
             frwd.emplace_back(*from, *to, obj_size);
             from = deallocate_it(from);
@@ -92,7 +96,7 @@ inline void fix_roots(const forwarding_list& frwds)
         thread_handler* p_handler = &handler;
         StackMap *stack_ptr = p_handler->stack;
         for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
-            printf("fix_root: from %p\n", get_pointed_to(root->addr));
+//            printf("fix_root: from %p\n", get_pointed_to(root->addr));
 //			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
             void* new_place = nullptr;
             for (auto& frwd: frwds) {
@@ -104,7 +108,7 @@ inline void fix_roots(const forwarding_list& frwds)
                 *(void * *)root->addr = new_place;
 //				fixed_count++;
             }
-            printf("\t: to %p\n", get_pointed_to(root->addr));
+//            printf("\t: to %p\n", get_pointed_to(root->addr));
         }
     }
 }

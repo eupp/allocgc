@@ -20,6 +20,8 @@ public:
     void push(void* ptr);
     void* pop();
 
+    void clear();
+
 private:
     gc_mark_queue() = default;
 

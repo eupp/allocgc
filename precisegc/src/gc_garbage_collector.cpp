@@ -31,6 +31,7 @@ void gc_garbage_collector::start_gc()
 
 void gc_garbage_collector::wait_for_gc_finished()
 {
+    start_compacting_routine(nullptr);
     wait_for_compacting_finished();
 }
 
@@ -88,6 +89,7 @@ void* gc_garbage_collector::start_marking_routine(void*)
         lock_guard<mutex> lock(thread_list::instance_mutex);
         thread_list& tl = thread_list::instance();
         gc_mark_queue& mark_queue = gc_mark_queue::instance();
+        mark_queue.clear();
         for (auto& handler: tl) {
             thread_handler* p_handler = &handler;
             StackMap* stack_ptr = p_handler->stack;
@@ -107,8 +109,6 @@ void* gc_garbage_collector::start_marking_routine(void*)
         gc.m_phase = phase::COMPACTING;
         gc.m_phase_cond.notify_all();
     }
-
-    start_compacting_routine(nullptr);
 }
 
 void* gc_garbage_collector::start_compacting_routine(void* pVoid)
@@ -155,6 +155,15 @@ void gc_garbage_collector::traverse(void* root)
         }
         ptr += obj_size;
     }
+}
+
+void gc_garbage_collector::force_move_to_idle()
+{
+    {
+        lock_guard<mutex> lock(m_phase_mutex);
+        m_phase = phase::IDLE;
+    }
+    m_phase_cond.notify_all();
 }
 
 }}

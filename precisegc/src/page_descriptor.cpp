@@ -66,6 +66,7 @@ void* page_descriptor::allocate() noexcept
 
 void page_descriptor::deallocate(void* ptr) noexcept
 {
+    assert(m_page <= ptr && ptr <= (void*) ((size_t) m_page + m_page_size));
     m_alloc_bits[calculate_offset(ptr)] = false;
     m_pool.deallocate(ptr, m_obj_size);
 }

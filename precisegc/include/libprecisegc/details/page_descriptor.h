@@ -113,7 +113,7 @@ private:
     size_t m_obj_size;
     void* m_page; // pointer on the page itself
     size_t m_mask; // a mask for pointers that points on this page (is used to find object begin)
-    mutex m_bitmap_mutex;
+    mutable mutex m_bitmap_mutex;
     page_bitset m_mark_bits; // mark bits for objects in
     page_bitset m_pin_bits; // pin bits for objects in
     page_bitset m_alloc_bits;

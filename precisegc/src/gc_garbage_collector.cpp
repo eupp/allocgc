@@ -8,6 +8,7 @@
 #include "gcmalloc.h"
 #include "gc_heap.h"
 #include "gc_pause.h"
+#include "logging.h"
 
 using namespace _GC_;
 
@@ -38,6 +39,8 @@ void gc_garbage_collector::wait_for_gc_finished()
 
 void gc_garbage_collector::start_marking()
 {
+    logging::info() << "Thread " << pthread_self() << " is requesting start of marking phase";
+
     lock_guard<mutex> lock(m_phase_mutex);
     if (m_phase == phase::IDLE) {
         m_phase = phase::MARKING;
@@ -53,11 +56,15 @@ void gc_garbage_collector::wait_for_marking_finished()
         void* ret;
         pthread_join(m_marking_thread, &ret);
         m_phase = phase::COMPACTING;
+
+        logging::info() << "Marking phase finished";
     }
 }
 
 void gc_garbage_collector::start_compacting()
 {
+    logging::info() << "Thread " << pthread_self() << " is requesting start of compacting phase";
+
     lock_guard<mutex> lock(m_phase_mutex);
     assert(m_phase == phase::COMPACTING);
 //    m_phase = phase::COMPACTING;
@@ -76,12 +83,15 @@ void gc_garbage_collector::wait_for_compacting_finished()
         void* ret;
         pthread_join(m_compacting_thread, &ret);
         m_phase = phase::IDLE;
+
+        logging::info() << "Compacting phase finished";
     }
-    return;
 }
 
 void* gc_garbage_collector::start_marking_routine(void*)
 {
+    logging::info() << "Thread " << pthread_self() << " is marking thread";
+
     {
         lock_guard<mutex> lock(thread_list::instance_mutex);
         thread_list& tl = thread_list::instance();
@@ -89,6 +99,9 @@ void* gc_garbage_collector::start_marking_routine(void*)
         for (auto& handler: tl) {
             thread_handler* p_handler = &handler;
             StackMap* stack_ptr = p_handler->stack;
+            if (!stack_ptr) {
+                continue;
+            }
             for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {
                 mark_queue.push(get_pointed_to(root->addr));
             }
@@ -99,6 +112,8 @@ void* gc_garbage_collector::start_marking_routine(void*)
 
 void* gc_garbage_collector::start_compacting_routine(void* pVoid)
 {
+    logging::info() << "Thread " << pthread_self() << " is compacting thread";
+
     gc_garbage_collector& gc = gc_garbage_collector::instance();
     gc.wait_for_marking_finished();
     gc.start_compacting();
@@ -114,7 +129,7 @@ void gc_garbage_collector::mark()
 
 void gc_garbage_collector::traverse(void* root)
 {
-    if (!root) {
+    if (!root || get_object_mark(root)) {
         return;
     }
     set_object_mark(root, true);

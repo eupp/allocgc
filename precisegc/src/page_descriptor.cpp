@@ -55,8 +55,12 @@ void page_descriptor::clear_page()
 void* page_descriptor::allocate() noexcept
 {
     assert(is_memory_available());
+    lock_guard<mutex> lock(m_bitmap_mutex);
     void* ptr = m_pool.allocate(m_obj_size);
-    m_alloc_bits[calculate_offset(ptr)] = true;
+    size_t ind = calculate_offset(ptr);
+    // allocate black objects
+    m_mark_bits[ind] = true;
+    m_alloc_bits[ind] = true;
     return ptr;
 }
 

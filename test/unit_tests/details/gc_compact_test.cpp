@@ -12,7 +12,8 @@ TEST(gc_compact_test, test_two_finger_compact)
 {
     segregated_list sl(OBJ_SIZE);
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        sl.allocate();
+        auto alloc_res = sl.allocate();
+        set_object_mark(alloc_res.first, false);
     }
 
     // mark & pin some objects

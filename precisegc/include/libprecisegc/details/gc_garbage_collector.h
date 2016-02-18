@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 #include "mutex.h"
+#include "condition_variable.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
@@ -38,10 +39,12 @@ private:
     };
 
     pthread_t m_marking_thread;
-    pthread_t m_compacting_thread;
+    pthread_t m_gc_thread;
 
     phase m_phase;
     mutex m_phase_mutex;
+    condition_variable m_phase_cond;
+
 };
 
 }}

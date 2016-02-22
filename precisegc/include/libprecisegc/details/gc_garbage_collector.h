@@ -38,8 +38,12 @@ private:
     enum class phase {
         IDLE,
         MARKING,
-        COMPACTING
+        MARKING_FINISHED,
+        COMPACTING,
+        COMPACTING_FINISHED
     };
+
+    static const char* phase_str(phase ph);
 
     pthread_t m_marking_thread;
     pthread_t m_gc_thread;

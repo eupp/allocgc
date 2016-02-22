@@ -11,11 +11,13 @@
 namespace precisegc { namespace details {
 
 template <typename Iterator>
-void two_finger_compact(const Iterator& first, const Iterator& last, size_t obj_size, forwarding_list& frwd)
+size_t two_finger_compact(const Iterator& first, const Iterator& last, size_t obj_size, forwarding_list& frwd)
 {
     if (first == last) {
-        return;
+        return 0;
     }
+
+    size_t compacted_size = 0;
 
     auto deallocate_it = [](Iterator it) {
         auto tmp = it;
@@ -48,6 +50,7 @@ void two_finger_compact(const Iterator& first, const Iterator& last, size_t obj_
         }
         if (from != to) {
             frwd.emplace_back(*from, *to, obj_size);
+            compacted_size += obj_size;
             from = deallocate_it(from);
             if (from != to) {
                 to++;

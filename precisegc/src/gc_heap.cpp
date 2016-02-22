@@ -8,6 +8,7 @@
 namespace precisegc { namespace details {
 
 gc_heap::gc_heap()
+    : m_size(0)
 {
     size_t alloc_size = MIN_ALLOC_SIZE_BITS;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i, ++alloc_size) {
@@ -22,7 +23,13 @@ gc_heap::allocate_result gc_heap::allocate(size_t size)
     size_t sl_ind = log_2(aligned_size) - MIN_ALLOC_SIZE_BITS;
     assert(aligned_size == m_storage[sl_ind].alloc_size());
     auto alloc_res = m_storage[sl_ind].allocate();
+    m_size += aligned_size;
     return std::make_pair(alloc_res.first, aligned_size);
+}
+
+size_t gc_heap::size() noexcept
+{
+    return m_size;
 }
 
 void gc_heap::compact()
@@ -38,10 +45,12 @@ void gc_heap::compact()
 forwarding_list gc_heap::compact_memory()
 {
     forwarding_list frwd;
+    size_t compacted_size = 0;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        two_finger_compact(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
+        compacted_size += two_finger_compact(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
         m_storage[i].clear_mark_bits();
     }
+    m_size -= compacted_size;
     return frwd;
 }
 

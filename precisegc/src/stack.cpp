@@ -15,7 +15,6 @@ constexpr int PAGE_SIZE = 4096;
 constexpr int ELEM_PER_PAGE = PAGE_SIZE / sizeof(StackElement);
 
 void StackMap::register_stack_root(void * newAddr) {
-	dprintf("register root %p\n", newAddr);
 	if (free_list == nullptr) {
 		StackElement * data = (StackElement *) mmap(nullptr, PAGE_SIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		assert(data != MAP_FAILED);
@@ -33,13 +32,11 @@ void StackMap::register_stack_root(void * newAddr) {
 }
 
 void StackMap::delete_stack_root(void * address) {
-	dprintf("void StackMap::delete_stack_root() { %p\n", top->addr);
 	if (top->addr != address) {
 		// if it is so, then automatic objects dectructs
 		// not in the reverse order with their constructors
 		// so we need to find and replace object that might be deleted
 		// by object that is on the top
-		dprintf("wrong element on the top ");
 		StackElement *temp = top;
 		while (temp != nullptr) {
 			if (temp->addr == address) {

@@ -55,13 +55,18 @@ void page_descriptor::clear_page()
 void* page_descriptor::allocate() noexcept
 {
     assert(is_memory_available());
+    lock_guard<mutex> lock(m_bitmap_mutex);
     void* ptr = m_pool.allocate(m_obj_size);
-    m_alloc_bits[calculate_offset(ptr)] = true;
+    size_t ind = calculate_offset(ptr);
+    // allocate black objects
+    m_mark_bits[ind] = true;
+    m_alloc_bits[ind] = true;
     return ptr;
 }
 
 void page_descriptor::deallocate(void* ptr) noexcept
 {
+    assert(m_page <= ptr && ptr <= (void*) ((size_t) m_page + m_page_size));
     m_alloc_bits[calculate_offset(ptr)] = false;
     m_pool.deallocate(ptr, m_obj_size);
 }
@@ -130,6 +135,11 @@ void* page_descriptor::get_object_start(void *ptr) const noexcept
     size_t ptr_ = (size_t) ptr;
     assert(((size_t) m_page <= ptr_) && (ptr_ < (size_t) m_page + m_page_size));
     return (void*) (ptr_ & m_mask);
+}
+
+mutex& page_descriptor::get_bitmap_mutex() noexcept
+{
+    return m_bitmap_mutex;
 }
 
 void page_descriptor::index_page()

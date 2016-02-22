@@ -9,13 +9,13 @@
 #include <pthread.h>
 
 #include "gc_ptr.h"
-#include "debug_print.h"
 #include "thread.h"
 #include "tlvars.h"
 #include "details/class_meta.h"
 #include "details/gc_unsafe_scope.h"
 #include "details/gc_ptr_access.h"
 #include "details/gc_new_impl.h"
+#include "details/gc_initator.h"
 
 namespace precisegc {
 
@@ -24,6 +24,7 @@ auto gc_new(Args&&... args)
     -> typename details::gc_new_if<T>::single_object
 {
     using namespace precisegc::details;
+    initate_gc();
     gc_unsafe_scope unsafe_scope;
     void* ptr = gc_new_impl<T>(1, std::forward<Args>(args)...);
     T* typed_ptr = reinterpret_cast<T*>(ptr);
@@ -36,6 +37,7 @@ auto gc_new(size_t n)
 {
     typedef typename std::remove_extent<T>::type U;
     using namespace precisegc::details;
+    initate_gc();
     gc_unsafe_scope unsafe_scope;
     void* ptr = gc_new_impl<U>(n);
     U* typed_ptr = reinterpret_cast<U*>(ptr);

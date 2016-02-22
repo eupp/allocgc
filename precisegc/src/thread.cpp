@@ -29,7 +29,6 @@ void* start_routine(void* hand)
     handler->tlflags = & new_obj_flags_tl_instance;
 
     void* ret = handler->routine(handler->arg);
-    dprintf("Finishing thread %d\n", handler->pthread);
     lock_guard<mutex> lock(thread_list::instance_mutex);
     remove_thread(handler->pthread);
     return ret;
@@ -44,6 +43,7 @@ int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routin
     // fill thread, routine & arg, rest will be filled in start_routine
     handler.routine = routine;
     handler.arg = arg;
+    handler.stack = nullptr;
     auto it = threads.insert(handler);
     int res = pthread_create(thread, attr, start_routine, &(*it));
     it->pthread = *thread;

@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include <cassert>
 #include <atomic>
 #include <queue>
 #include <pthread.h>
@@ -9,13 +10,13 @@
 #include "libprecisegc/thread.h"
 #include "libprecisegc/gc_ptr.h"
 #include "libprecisegc/gc_new.h"
-#include "libprecisegc/go.h"
+#include "libprecisegc/gc.h"
+#include "libprecisegc/details/gc_mark.h"
 #include "libprecisegc/details/barrier.h"
 #include "libprecisegc/details/math_util.h"
 
 using namespace precisegc;
-
-static const int THREADS_COUNT = 4; // must be power of 2
+using namespace precisegc::details;
 
 namespace {
 
@@ -30,10 +31,11 @@ gc_ptr<node> create_gc_node()
     return gc_new<node>();
 }
 
-gc_ptr<node> create_tree()
+gc_ptr<node> create_tree(size_t depth)
 {
     std::queue<gc_ptr<node>> q;
-    for (int i = 0; i < THREADS_COUNT; ++i) {
+    const size_t LEAFS_CNT = pow(2, depth);
+    for (int i = 0; i < LEAFS_CNT; ++i) {
         q.push(create_gc_node());
     }
     while (q.size() > 1) {
@@ -47,67 +49,174 @@ gc_ptr<node> create_tree()
     return q.front();
 }
 
-void print_tree(gc_ptr<node>& root, const std::string& offset)
+void unmark_tree(const gc_ptr<node>& ptr)
 {
-    gc_pin<node> pin(root);
-    std::cout << offset << & root << " (" << pin.get() << ")" << std::endl;
-    auto new_offset = offset + "    ";
-    if (root->m_left) {
+    if (ptr) {
+        gc_pin<node> pin(ptr);
+        set_object_mark(pin.get(), false);
+        unmark_tree(ptr->m_left);
+        unmark_tree(ptr->m_right);
+    }
+}
+
+//#define DEBUG_PRINT_TREE
+
+void print_tree(const gc_ptr<node>& root, const std::string& offset = "")
+{
+    #ifdef DEBUG_PRINT_TREE
+        if (!root) {
+            std::cout << offset << "nullptr" << std::endl;
+            return;
+        }
+        gc_pin<node> pin(root);
+        std::cout << offset << & root << " (" << pin.get() << ") [" << get_object_mark(pin.get()) << "]" << std::endl;
+        auto new_offset = offset + "    ";
         print_tree(root->m_left, new_offset);
-    } else {
-        std::cout << new_offset << "nullptr" << std::endl;
-    }
-    if (root->m_right) {
         print_tree(root->m_right, new_offset);
-    } else {
-        std::cout << new_offset << "nullptr" << std::endl;
+    #endif
+}
+
+void print_tree(node* root, const std::string& offset = "")
+{
+    #ifdef DEBUG_PRINT_TREE
+        std::cout << offset << "nullptr" << " (" << root << ") [" << get_object_mark(root) << "]" << std::endl;
+        auto new_offset = offset + "    ";
+        print_tree(root->m_left, new_offset);
+        print_tree(root->m_right, new_offset);
+    #endif
+}
+
+void generate_random_child(gc_ptr<node> ptr)
+{
+    while (true) {
+        gc_ptr<node>& new_ptr = rand() % 2 ? ptr->m_left : ptr->m_right;
+        if (!new_ptr || rand() % 4 == 0) {
+            new_ptr = create_gc_node();
+            return;
+        } else {
+            ptr = new_ptr;
+        }
     }
+
 }
 
 std::atomic<int> thread_num(0);
 std::atomic<bool> gc_finished(false);
 
-static ::precisegc::details::barrier threads_ready(THREADS_COUNT + 1);
+static const int TREE_DEPTH = 2;
+static const int THREADS_COUNT = 4; // must be power of 2 and <= 2^(TREE_DEPTH)
+const size_t LIVE_LEVEL = log_2(THREADS_COUNT);
+
+static barrier threads_ready(THREADS_COUNT + 1);
 
 static void* thread_routine(void* arg)
 {
-    using namespace precisegc::details;
-
     gc_ptr<node>& root = * ((gc_ptr<node>*) arg);
     int num = thread_num++;
     // assign to each thread a leaf in the tree
     gc_ptr<node> ptr = root;
-    for (int i = 0, k = 2; i < log_2(THREADS_COUNT); ++i, k *= 2) {
-        ptr = num % k ? ptr->m_left : ptr->m_right;
+    for (int i = 0; i < log_2(THREADS_COUNT); ++i, num /= 2) {
+        ptr = num % 2 ? ptr->m_left : ptr->m_right;
     }
     threads_ready.wait();
     while (!gc_finished) {
-        gc_ptr<node>& new_ptr = rand() % 2 ? ptr->m_left : ptr->m_right;
-        new_ptr = create_gc_node();
+        generate_random_child(ptr);
+//        sleep(1);
     }
 }
 
+/**
+ * The following test fixture creates tree and starts several threads.
+ * In each thread gc pointer to some node in tree is saved.
+ * Then original root is saved in raw pointer and gc_ptr to it is reset.
+ * It is assumed that then test code will perform gc or one of it phases (marking, compacting),
+ * and the top level of tree, that are not reachable from thread's gc pointers, will be freed.
+ *
+ *          0 <--------------- root
+ *         / \
+ *        0   0
+ *       / \  /\
+ *      *  * *  *  <---------- pointers to these nodes are saved in thread's program stacks
+ *     / \  /    \
+ *    *  * *      * <--------- all nodes below are randomly generated in threads
+ */
+
+struct gc_test: public ::testing::Test
+{
+    gc_test()
+    {
+        srand(time(nullptr));
+
+        gc_finished = false;
+        thread_num = 0;
+
+        root = create_tree(TREE_DEPTH);
+        unmark_tree(root);
+        print_tree(root);
+
+        for (auto& thread: threads) {
+            assert(thread_create(&thread, nullptr, thread_routine, (void*) &root) == 0);
+        }
+        threads_ready.wait();
+
+        // save root in raw pointer and then null gc_ptr to collect it during gc
+        gc_pin<node> pin(root);
+        root_raw = pin.get();
+        root.reset();
+    }
+
+    ~gc_test()
+    {
+        for (auto& thread: threads) {
+            void* ret = nullptr;
+            thread_join(thread, &ret);
+        }
+    }
+
+    gc_ptr<node> root;
+    pthread_t threads[THREADS_COUNT];
+    node* root_raw;
+};
+
+void check_nodes(node* ptr, size_t depth)
+{
+    if (depth < LIVE_LEVEL) {
+        EXPECT_FALSE(get_object_mark(ptr)) << "ptr=" << ptr;
+    } else {
+        EXPECT_TRUE(get_object_mark(ptr))  << "ptr=" << ptr;
+    }
+    if (ptr->m_left) {
+        gc_pin<node> pin(ptr->m_left);
+        check_nodes(pin.get(), depth + 1);
+    }
+    if (ptr->m_right) {
+        gc_pin<node> pin(ptr->m_right);
+        check_nodes(pin.get(), depth + 1);
+    }
+}
+
+}
+
+TEST_F(gc_test, test_marking)
+{
+    auto& collector = gc_garbage_collector::instance();
+    collector.start_marking();
+    collector.wait_for_marking_finished();
+
+    gc_finished = true;
+
+    std::cout << std::endl;
+    print_tree(root_raw);
+    // travers tree and check marks of objects
+    check_nodes(root_raw, 0);
+
+    collector.force_move_to_idle();
 }
 
 // This test doesn't check anything.
 // Consider it is passed if nothing will crash or hang.
-TEST(gc_test, test_gc)
+TEST_F(gc_test, test_gc)
 {
-    gc_ptr<node> root = create_tree();
-//    print_tree(root, "");
-
-    pthread_t threads[THREADS_COUNT];
-    for (auto& thread: threads) {
-        ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine, (void*) &root));
-    }
-    threads_ready.wait();
-
-    root.reset();
-    gc(true);
+    gc();
     gc_finished = true;
-
-    for (auto& thread: threads) {
-        void* ret = nullptr;
-        thread_join(thread, &ret);
-    }
 }

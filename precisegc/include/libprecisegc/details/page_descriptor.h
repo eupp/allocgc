@@ -10,6 +10,7 @@
 #include "constants.h"
 #include "iterator_facade.h"
 #include "iterator_access.h"
+#include "mutex.h"
 
 namespace precisegc { namespace details {
 
@@ -53,10 +54,10 @@ public:
 
     void* get_object_start(void* ptr) const noexcept;
 
+    mutex& get_bitmap_mutex() noexcept;
+
     iterator begin() noexcept;
     iterator end() noexcept;
-
-
 
     // iterator for iterating through objects in page;
     // we choose bidirectional_iterator_tag concept just because there is no need in more powerful concept;
@@ -112,12 +113,13 @@ private:
     size_t m_obj_size;
     void* m_page; // pointer on the page itself
     size_t m_mask; // a mask for pointers that points on this page (is used to find object begin)
+    mutable mutex m_bitmap_mutex;
     page_bitset m_mark_bits; // mark bits for objects in
     page_bitset m_pin_bits; // pin bits for objects in
     page_bitset m_alloc_bits;
     pool_chunk m_pool; // pool structure on page memory
 };
 
-} }
+}}
 
 #endif // DIPLOMA_PAGE_DESCRIPTOR_H

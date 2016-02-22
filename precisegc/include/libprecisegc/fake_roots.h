@@ -12,7 +12,6 @@
 *****************************************************************************************/
 
 #pragma once
-#include "go.h"
 
 /// represents node structure
 struct node {

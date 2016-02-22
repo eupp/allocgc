@@ -5,7 +5,6 @@
 *****************************************************************************************/
 
 #include "gc_new.h"
-#include "go.h"
 #include <cstdio>
 
 pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;  /* create mutex for locking function of allocating */

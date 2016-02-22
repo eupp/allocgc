@@ -68,7 +68,7 @@ public:
     }
 
 private:
-    static const int MAX_DEPTH = 8;
+    static const int MAX_DEPTH = 2;
     static int depth;
 
     gc_ptr<node1> m_ptr_left;

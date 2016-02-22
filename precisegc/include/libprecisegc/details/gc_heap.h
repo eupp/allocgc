@@ -27,6 +27,8 @@ public:
     allocate_result allocate(size_t size);
 
     void compact();
+
+    size_t size() noexcept;
 private:
     static const size_t MIN_ALLOC_SIZE_BITS = 4;
     static const size_t SEGREGATED_STORAGE_SIZE = (SYSTEM_POINTER_BITS_COUNT - RESERVED_BITS_COUNT - 1);
@@ -43,6 +45,7 @@ private:
 
     segregated_list m_storage[SEGREGATED_STORAGE_SIZE];
     mutex m_mutex;
+    size_t m_size;
 };
 
 }}

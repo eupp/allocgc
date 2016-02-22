@@ -3,6 +3,8 @@
 
 #include <pthread.h>
 #include <sys/time.h>
+#include <errno.h>
+//#include <asm-generic/errno.h>
 
 #include "mutex.h"
 

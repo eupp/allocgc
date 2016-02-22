@@ -7,12 +7,10 @@
 
 #include "gc_new_stack.h"
 #include "gc_unsafe_scope.h"
+#include "write_barrier.h"
 #include "../thread.h"
 
 namespace precisegc { namespace details {
-
-const uintptr_t gc_untyped_ptr::ROOT_FLAG_BIT = 1;
-
 
 gc_untyped_ptr::gc_untyped_ptr() noexcept
     : gc_untyped_ptr(nullptr)
@@ -23,19 +21,19 @@ gc_untyped_ptr::gc_untyped_ptr() noexcept
 //{}
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
+    : m_ptr(ptr)
+    , m_root_flag(!gc_new_stack::instance().is_active())
 {
-    gc_new_stack& stack = gc_new_stack::instance();
-    if (stack.is_active()) {
-        m_ptr = set_root_flag(ptr, false);
+    if (m_root_flag) {
+        register_root();
+    } else {
+        gc_new_stack& stack = gc_new_stack::instance();
         if (stack.is_meta_requsted()) {
             assert((void*) this >= stack.get_top_pointer());
             uintptr_t this_uintptr = reinterpret_cast<uintptr_t>(this);
             uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(stack.get_top_pointer());
             stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
         }
-    } else {
-        m_ptr = set_root_flag(ptr, true);
-        register_root();
     }
 }
 
@@ -43,14 +41,14 @@ gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other) noexcept
     : gc_untyped_ptr()
 {
     gc_unsafe_scope unsafe_scope;
-    set(other.m_ptr);
+    write_barrier(*this, other);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other) noexcept
     : gc_untyped_ptr()
 {
     gc_unsafe_scope unsafe_scope;
-    set(other.m_ptr);
+    write_barrier(*this, other);
 }
 
 gc_untyped_ptr::~gc_untyped_ptr() noexcept
@@ -70,33 +68,38 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t) noexcept
 gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other) noexcept
 {
     gc_unsafe_scope unsafe_scope;
-    set(other.m_ptr);
+    write_barrier(*this, other);
     return *this;
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other) noexcept
 {
     gc_unsafe_scope unsafe_scope;
-    set(other.m_ptr);
+    write_barrier(*this, other);
     return *this;
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other) noexcept
 {
     gc_unsafe_scope unsafe_scope;
-    void* tmp = m_ptr;
-    m_ptr = set_root_flag(other.m_ptr, is_root());
-    other.m_ptr = set_root_flag(tmp, other.is_root());
+    gc_untyped_ptr tmp = (*this);
+    (*this) = other;
+    other = tmp;
 }
 
 void* gc_untyped_ptr::get() const noexcept
 {
-    return clear_root_flag(m_ptr);
+    return m_ptr.load();
 }
 
 void gc_untyped_ptr::set(void* ptr) noexcept
 {
-    m_ptr = set_root_flag(ptr, is_root());
+    m_ptr.store(ptr);
+}
+
+void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
+{
+    m_ptr.store(value.m_ptr);
 }
 
 gc_untyped_ptr::operator bool() const noexcept
@@ -106,7 +109,7 @@ gc_untyped_ptr::operator bool() const noexcept
 
 bool gc_untyped_ptr::is_root() const noexcept
 {
-    return is_root_flag_set(m_ptr);
+    return m_root_flag;
 }
 
 void gc_untyped_ptr::register_root() noexcept
@@ -119,27 +122,6 @@ void gc_untyped_ptr::delete_root() noexcept
 {
     StackMap* root_set = get_thread_handler()->stack;
     root_set->delete_stack_root(this);
-}
-
-void* gc_untyped_ptr::set_root_flag(void* ptr, bool root_flag) noexcept
-{
-    uintptr_t uintptr = reinterpret_cast<uintptr_t>(ptr);
-    if (root_flag) {
-        return reinterpret_cast<void*>(uintptr | ROOT_FLAG_BIT);
-    } else {
-        return reinterpret_cast<void*>(uintptr & ~ROOT_FLAG_BIT);
-    }
-}
-
-void* gc_untyped_ptr::clear_root_flag(void* ptr) noexcept
-{
-    return set_root_flag(ptr, false);
-}
-
-bool gc_untyped_ptr::is_root_flag_set(void* ptr) noexcept
-{
-    uintptr_t uintptr = reinterpret_cast<uintptr_t>(ptr);
-    return uintptr & ROOT_FLAG_BIT;
 }
 
 void swap(gc_untyped_ptr& a, gc_untyped_ptr& b) noexcept

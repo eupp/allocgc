@@ -26,11 +26,11 @@ void initate_gc()
     gc_garbage_collector& garbage_collector = gc_garbage_collector::instance();
     size_t mem = heap.size();
     if (mem > mem_lower_bound) {
-        logging::info() << "Heap size exceeded " << b_to_mb(mem_lower_bound);
+        logging::debug() << "Heap size exceeded " << b_to_mb(mem_lower_bound);
         garbage_collector.start_gc();
     }
     if (mem > mem_upper_bound) {
-        logging::info() << "Heap size exceeded " << b_to_mb(mem_upper_bound);
+        logging::debug() << "Heap size exceeded " << b_to_mb(mem_upper_bound);
         garbage_collector.wait_for_gc_finished();
     }
 }

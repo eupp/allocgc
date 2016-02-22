@@ -60,6 +60,8 @@ size_t two_finger_compact(const Iterator& first, const Iterator& last, size_t ob
     if (!from.is_marked()) {
         from.deallocate();
     }
+
+    return compacted_size;
 }
 
 inline void fix_ptr(void* ptr, const forwarding_list& forwarding)

@@ -247,7 +247,7 @@ struct GCBench {
         // Create long-lived array, filling half of it
         cout << " Creating a long-lived array of " << kArraySize << " doubles" << endl;
 
-        ptr_array_t(double) array = new_array_(double, kArraySize);
+//        ptr_array_t(double) array = new_array_(double, kArraySize);
 //        for (int i = 0; i < kArraySize/2; ++i) {
 //            array[i] = 1.0/i;
 //        }

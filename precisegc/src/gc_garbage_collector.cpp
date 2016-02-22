@@ -44,6 +44,7 @@ void gc_garbage_collector::wait_for_gc_finished()
     if (m_phase == phase::COMPACTING_FINISHED) {
         m_phase = phase::IDLE;
     }
+    logging::info() << "Heap size after gc " << (size_t) gc_heap::instance().size() / (1024 * 1024);
 }
 
 void gc_garbage_collector::start_marking()

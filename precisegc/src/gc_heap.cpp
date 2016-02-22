@@ -29,6 +29,7 @@ gc_heap::allocate_result gc_heap::allocate(size_t size)
 
 size_t gc_heap::size() noexcept
 {
+    lock_guard<mutex> lock(m_mutex);
     return m_size;
 }
 

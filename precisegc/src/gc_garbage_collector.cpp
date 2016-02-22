@@ -31,9 +31,16 @@ void gc_garbage_collector::start_gc()
 
 void gc_garbage_collector::wait_for_gc_finished()
 {
+    lock_guard<mutex> lock(m_phase_mutex);
+    if (m_phase == phase::COMPACTING) {
+        return;
+    }
+    m_phase_mutex.unlock();
+
     start_compacting_routine(nullptr);
     wait_for_compacting_finished();
-    lock_guard<mutex> lock(m_phase_mutex);
+
+    m_phase_mutex.lock();
     if (m_phase == phase::COMPACTING_FINISHED) {
         m_phase = phase::IDLE;
     }
@@ -56,7 +63,7 @@ void gc_garbage_collector::start_marking()
 void gc_garbage_collector::wait_for_marking_finished()
 {
     lock_guard<mutex> lock(m_phase_mutex);
-    m_phase_cond.wait(m_phase_mutex, [this]() { return m_phase != phase::MARKING_FINISHED; });
+    m_phase_cond.wait(m_phase_mutex, [this]() { return m_phase == phase::MARKING_FINISHED; });
 
     logging::info() << "Marking phase finished";
 }
@@ -67,6 +74,11 @@ void gc_garbage_collector::start_compacting()
 
     if (m_phase == phase::IDLE || m_phase == phase::MARKING_FINISHED) {
         logging::info() << "Thread " << pthread_self() << " is requesting start of compacting phase";
+
+        if (m_phase == phase::MARKING_FINISHED) {
+            void* ret;
+            pthread_join(m_gc_thread, &ret);
+        }
 
         m_phase = phase::COMPACTING;
 

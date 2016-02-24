@@ -169,7 +169,7 @@ void gc_garbage_collector::traverse(void* root)
         return;
     }
 
-    void* ptr = root;
+    void* ptr = obj_meta->get_object_ptr();
     gc_mark_queue& mark_queue = gc_mark_queue::instance();
     for (int i = 0; i < obj_meta->get_count(); i++) {
         for (int j = 0; j < offsets.size(); j++) {

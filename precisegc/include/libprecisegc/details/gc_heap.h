@@ -31,6 +31,8 @@ public:
 
     size_t size() noexcept;
 private:
+    typedef intrusive_forwarding forwarding;
+
     static const size_t MIN_ALLOC_SIZE_BITS = 4;
     static const size_t SEGREGATED_STORAGE_SIZE = (SYSTEM_POINTER_BITS_COUNT - RESERVED_BITS_COUNT - 1);
     static size_t align_size(size_t size);
@@ -39,8 +41,8 @@ private:
     gc_heap(const gc_heap&&) = delete;
     gc_heap& operator=(const gc_heap&&) = delete;
 
-    intrusive_forwarding compact_memory();
-    void fix_pointers(const intrusive_forwarding& frwd);
+    forwarding compact_memory();
+    void fix_pointers(const forwarding& frwd);
 
     //void fix_pointers(const forwarding_list& forwarding);
 

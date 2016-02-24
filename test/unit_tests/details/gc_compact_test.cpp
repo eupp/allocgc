@@ -65,37 +65,47 @@ TEST(gc_compact_test, test_two_finger_compact)
     ASSERT_EQ(exp_to, to);
 }
 
+namespace {
+
 struct test_type
 {
-    size_t val;
+    char data[OBJ_SIZE];
 };
 
 
+}
 
 TEST(gc_compact_test, test_fix_pointers)
 {
+    static_assert(sizeof(test_type) == OBJ_SIZE, "Incorrect size of test_type");
+
     segregated_list sl(OBJ_SIZE);
 
     auto alloc_res = sl.allocate();
-    void* ptr1 = alloc_res.first;
+    void* ptr = alloc_res.first;
     page_descriptor* pd = alloc_res.second;
 
-    void* ptr2 = sl.allocate().first;
+    test_type val1;
+    void* to = &val1;
+
+    test_type val2;
+    void*& from = * (void**) ptr;
+    from = &val2;
 
     auto offsets = std::vector<size_t>({0});
     typedef class_meta_provider<test_type> provider;
     provider::create_meta(offsets);
 
-    void*& from = * (void**) ptr1;
-    object_meta* obj_meta = object_meta::get_meta_ptr(ptr1, pd->obj_size());
+
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr, pd->obj_size());
     obj_meta->set_class_meta(provider::get_meta_ptr());
     obj_meta->set_count(1);
-    obj_meta->set_object_ptr(ptr1);
+    obj_meta->set_object_ptr(ptr);
 
-    intrusive_forwarding forwarding;
-    forwarding.create(from, ptr2, OBJ_SIZE);
+    list_forwarding forwarding;
+    forwarding.create(from, to, OBJ_SIZE);
 
     fix_pointers(sl.begin(), sl.end(), OBJ_SIZE, forwarding);
 
-    ASSERT_EQ(ptr2, from);
+    ASSERT_EQ(to, from);
 }

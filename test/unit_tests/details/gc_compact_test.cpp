@@ -8,6 +8,24 @@ using namespace precisegc::details;
 static const size_t OBJ_SIZE = MEMORY_CELL_SIZE / OBJECTS_PER_PAGE;
 static const size_t OBJ_COUNT = 5;
 
+/**
+ * In this test a small pool is compated by the two-finger-compact procedure and resulting forwarding is checked.
+ * Pool layout illustrated below ( x - marked (occupied) cell, # - pinned cell).
+ *
+ *      *********************
+ *      * 0 | 1 | 2 | 3 | 4 *
+ *      *********************
+ *      * x |   |   | # | x *
+ *      *********************
+ *
+ * After compacting pool should look like:
+ *
+ *      *********************
+ *      * 0 | 1 | 2 | 3 | 4 *
+ *      *********************
+ *      * x | x |   | # |   *
+ *      *********************
+ */
 TEST(gc_compact_test, test_two_finger_compact)
 {
     segregated_list sl(OBJ_SIZE);
@@ -49,6 +67,8 @@ struct test_type
 {
     size_t val;
 };
+
+
 
 TEST(gc_compact_test, test_fix_pointers)
 {

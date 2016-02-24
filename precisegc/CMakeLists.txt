@@ -22,7 +22,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/constants.h
         include/libprecisegc/details/os_mem_ptr.h
         include/libprecisegc/details/math_util.h
-        include/libprecisegc/details/forwarding_list.h
+        include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
         include/libprecisegc/details/pool_chunk.h
@@ -60,7 +60,7 @@ set(precisegc_LIB_SRCS
         src/gc_init.cpp
         src/gc_garbage_collector.cpp
         src/gc_mark_queue.cpp
-        src/gc_initator.cpp)
+        src/gc_initator.cpp src/forwarding.cpp)
 
 
 include_directories(include/libprecisegc)

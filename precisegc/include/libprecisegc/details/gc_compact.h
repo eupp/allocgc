@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_GC_COMPACT_H
 #define DIPLOMA_GC_COMPACT_H
 
-#include "forwarding_list.h"
+#include "forwarding.h"
 #include "thread_list.h"
 #include "object_meta.h"
 #include "gc_mark.h"

@@ -2,6 +2,7 @@
 
 #include "libprecisegc/details/gc_compact.h"
 #include "libprecisegc/details/segregated_list.h"
+#include "libprecisegc/details/forwarding.h"
 
 using namespace precisegc::details;
 
@@ -48,16 +49,17 @@ TEST(gc_compact_test, test_two_finger_compact)
     void* exp_from = *it3;
     it3.set_marked(true);
 
-    forwarding_list frwd;
+    list_forwarding frwd;
     two_finger_compact(sl.begin(), sl.end(), OBJ_SIZE, frwd);
     
     auto end = it2;
     ++end;
     ASSERT_EQ(end, sl.end());
 
-    ASSERT_EQ(1, frwd.size());
-    void* from = frwd[0].from();
-    void* to = frwd[0].to();
+    auto frwd_list = frwd.get_list();
+    ASSERT_EQ(1, frwd_list.size());
+    void* from = frwd_list[0].from;
+    void* to = frwd_list[0].to;
 
     ASSERT_EQ(exp_from, from);
     ASSERT_EQ(exp_to, to);
@@ -73,24 +75,27 @@ struct test_type
 TEST(gc_compact_test, test_fix_pointers)
 {
     segregated_list sl(OBJ_SIZE);
+
     auto alloc_res = sl.allocate();
-    void* ptr = alloc_res.first;
+    void* ptr1 = alloc_res.first;
     page_descriptor* pd = alloc_res.second;
+
+    void* ptr2 = sl.allocate().first;
 
     auto offsets = std::vector<size_t>({0});
     typedef class_meta_provider<test_type> provider;
     provider::create_meta(offsets);
 
-    void*& from = * (void**) ptr;
-    object_meta* obj_meta = object_meta::get_meta_ptr(ptr, pd->obj_size());
+    void*& from = * (void**) ptr1;
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr1, pd->obj_size());
     obj_meta->set_class_meta(provider::get_meta_ptr());
     obj_meta->set_count(1);
-    obj_meta->set_object_ptr(ptr);
+    obj_meta->set_object_ptr(ptr1);
 
-    forwarding_list forwarding;
-    forwarding.emplace_back(from, nullptr, OBJ_SIZE);
+    intrusive_forwarding forwarding;
+    forwarding.create(from, ptr2, OBJ_SIZE);
 
     fix_pointers(sl.begin(), sl.end(), OBJ_SIZE, forwarding);
 
-    ASSERT_EQ(nullptr, from);
+    ASSERT_EQ(ptr2, from);
 }

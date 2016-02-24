@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "../object.h"
+#include "forwarding.h"
 #include "object_meta.h"
 #include "segregated_list.h"
 #include "mutex.h"
@@ -38,8 +39,8 @@ private:
     gc_heap(const gc_heap&&) = delete;
     gc_heap& operator=(const gc_heap&&) = delete;
 
-    forwarding_list compact_memory();
-    void fix_pointers(const forwarding_list& frwd);
+    intrusive_forwarding compact_memory();
+    void fix_pointers(const intrusive_forwarding& frwd);
 
     //void fix_pointers(const forwarding_list& forwarding);
 

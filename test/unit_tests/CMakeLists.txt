@@ -17,7 +17,9 @@ set(precisegc_TESTS
         details/gc_heap_test.cpp
         details/gc_compact_test.cpp
         gc_new_test.cpp
-        details/gc_untyped_ptr_test.cpp gc_environment.cpp details/allocators/index_tree_test.cpp details/allocators/index_tree_test.h)
+        details/gc_untyped_ptr_test.cpp
+        gc_environment.cpp
+        details/allocators/index_tree_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

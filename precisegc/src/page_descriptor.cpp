@@ -145,8 +145,8 @@ mutex& page_descriptor::get_bitmap_mutex() noexcept
 void page_descriptor::index_page()
 {
     size_t page_end = (size_t) m_page + m_page_size;
-    for (size_t it = (size_t) m_page; it < page_end; it += MEMORY_CELL_SIZE) {
-        assert(((size_t)it & ((size_t)1 << MEMORY_CELL_SIZE_BITS) - 1) == 0);
+    for (size_t it = (size_t) m_page; it < page_end; it += PAGE_SIZE) {
+        assert(((size_t)it & ((size_t)1 << PAGE_BITS_CNT) - 1) == 0);
         _GC_::IT_index_new_cell((void*) it, this);
     }
 }
@@ -154,7 +154,7 @@ void page_descriptor::index_page()
 void page_descriptor::remove_index()
 {
     size_t page_end = (size_t) m_page + m_page_size;
-    for (size_t it = (size_t) m_page; it < page_end; it += MEMORY_CELL_SIZE) {
+    for (size_t it = (size_t) m_page; it < page_end; it += PAGE_BITS_CNT) {
         _GC_::IT_remove_index((void*) it);
     }
 }
@@ -165,8 +165,8 @@ std::pair<void*, size_t> page_descriptor::allocate_page(size_t obj_size)
     size_t obj_count_bits = MAX_OBJECTS_PER_PAGE_BITS;
     // 128 * obj_size
     size_t size = obj_size << obj_count_bits;
-    size_t mem_cell_cnt = (size + MEMORY_CELL_SIZE - 1) / MEMORY_CELL_SIZE;
-    size_t page_size = mem_cell_cnt * MEMORY_CELL_SIZE;
+    size_t mem_cell_cnt = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+    size_t page_size = mem_cell_cnt * PAGE_SIZE;
     page = memory_align_allocate(page_size, page_size);
     assert(page);
     return std::make_pair(page, page_size);

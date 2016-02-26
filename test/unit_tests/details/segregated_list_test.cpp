@@ -8,7 +8,7 @@
 using namespace std;
 using namespace precisegc::details;
 
-static const size_t OBJ_SIZE = MEMORY_CELL_SIZE / OBJECTS_PER_PAGE;
+static const size_t OBJ_SIZE = PAGE_SIZE / OBJECTS_PER_PAGE;
 
 TEST(test_segregated_list_element, test_allocate)
 {

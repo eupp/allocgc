@@ -4,9 +4,9 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace precisegc { namespace details { namespace allocators {
+#include "types.h"
 
-typedef std::uint8_t byte;
+namespace precisegc { namespace details { namespace allocators {
 
 byte* memory_allocate(size_t size);
 void memory_deallocate(byte* ptr, size_t size);

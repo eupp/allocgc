@@ -5,7 +5,7 @@
 
 using namespace precisegc::details;
 
-static const size_t OBJ_SIZE = MEMORY_CELL_SIZE / OBJECTS_PER_PAGE;
+static const size_t OBJ_SIZE = PAGE_SIZE / OBJECTS_PER_PAGE;
 static const size_t OBJ_COUNT = 5;
 
 TEST(gc_compact_test, test_two_finger_compact)

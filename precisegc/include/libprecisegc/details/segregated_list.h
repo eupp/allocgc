@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <utility>
 
-#include "constants.h"
+#include "allocators/constants.h"
 #include "page_descriptor.h"
 #include "forwarding_list.h"
 #include "iterator_facade.h"
@@ -12,7 +12,7 @@
 
 namespace precisegc { namespace details {
 
-const size_t SEGREGATED_STORAGE_BITS_SIZE = SYSTEM_POINTER_BITS_COUNT - RESERVED_BITS_COUNT - 1;
+const size_t SEGREGATED_STORAGE_BITS_SIZE = POINTER_BITS_CNT - RESERVED_BITS_CNT - 1;
 const size_t SEGREGATED_STORAGE_ELEMENT_SIZE = 4096;
 
 typedef std::pair<void*, page_descriptor*> allocate_result;

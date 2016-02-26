@@ -8,8 +8,8 @@
 
 using namespace precisegc::details;
 
-const size_t SystemBitSize = precisegc::details::SYSTEM_POINTER_BITS_COUNT;
-const size_t CellBits = precisegc::details::MEMORY_CELL_SIZE_BITS;
+const size_t SystemBitSize = precisegc::details::POINTER_BITS_CNT;
+const size_t CellBits = precisegc::details::PAGE_BITS_CNT;
 
 namespace _GC_ {
 	static pthread_mutex_t index_tree_mutex = PTHREAD_MUTEX_INITIALIZER;

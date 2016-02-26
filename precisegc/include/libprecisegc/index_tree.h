@@ -1,6 +1,6 @@
 #pragma once
 
-#include "details/constants.h"
+#include "details/allocators/constants.h"
 ////////////////
 // INDEX TREE //
 ////////////////
@@ -14,7 +14,7 @@
 namespace _GC_ {
 	enum {
 		ITLevelCount      = _GC_IT_LEVEL_COUNT,
-		ITBitsInUse       = (precisegc::details::SYSTEM_POINTER_BITS_COUNT - precisegc::details::MEMORY_CELL_SIZE_BITS),
+		ITBitsInUse       = (precisegc::details::POINTER_BITS_CNT - precisegc::details::PAGE_BITS_CNT),
 		ITFirstLevelBits  = ITBitsInUse -  (size_t)(ITBitsInUse / ITLevelCount) * (ITLevelCount - 1),
 		ITOtherLevelsBits = ((size_t)(ITBitsInUse / ITLevelCount)),
 		ITOtherLevelsSize = ((size_t)1 << ITOtherLevelsBits) * sizeof(size_t),

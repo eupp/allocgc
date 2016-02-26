@@ -7,7 +7,7 @@
 #include "object_meta.h"
 #include "segregated_list.h"
 #include "mutex.h"
-#include "constants.h"
+#include "allocators/constants.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
@@ -31,7 +31,7 @@ public:
     size_t size() noexcept;
 private:
     static const size_t MIN_ALLOC_SIZE_BITS = 4;
-    static const size_t SEGREGATED_STORAGE_SIZE = (SYSTEM_POINTER_BITS_COUNT - RESERVED_BITS_COUNT - 1);
+    static const size_t SEGREGATED_STORAGE_SIZE = (POINTER_BITS_CNT - RESERVED_BITS_CNT - 1);
     static size_t align_size(size_t size);
 
     gc_heap();

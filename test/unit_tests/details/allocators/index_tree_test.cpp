@@ -30,7 +30,7 @@ TEST_F(index_tree_test, test_index)
 {
     byte* mem = (byte*) ptrs[0];
     int* expected = &entries[0];
-    tree.index(mem, expected);
+    tree.index(mem, 0, expected);
     ASSERT_EQ(expected, tree.get_entry(mem));
 }
 
@@ -38,10 +38,10 @@ TEST_F(index_tree_test, test_remove_index)
 {
     byte* mem1 = (byte*) ptrs[0];
     byte* mem2 = (byte*) ptrs[1];
-    tree.index(mem1, &entries[0]);
-    tree.index(mem2, &entries[1]);
+    tree.index(mem1, 0, & entries[0]);
+    tree.index(mem2, 0, & entries[1]);
 
-    tree.remove_index(mem1);
+    tree.remove_index(mem1, 0);
 
     ASSERT_EQ(nullptr, tree.get_entry(mem1));
     ASSERT_EQ(&entries[1], tree.get_entry(mem2));

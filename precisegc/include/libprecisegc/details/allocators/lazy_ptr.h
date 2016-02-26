@@ -5,8 +5,8 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template<typename Ptr, typename Creator>
-class lazy_ptr: private Creator
+template<typename Ptr, typename Factory>
+class lazy_ptr: private Factory
 {
 public:
     typedef std::pointer_traits<Ptr>::element_type element_type;
@@ -20,6 +20,11 @@ public:
     lazy_ptr(Ptr ptr)
         : m_ptr(ptr)
     {}
+
+    ~lazy_ptr()
+    {
+        Factory::destroy(m_ptr);
+    }
 
     lazy_ptr(const lazy_ptr&) = default;
     lazy_ptr(lazy_ptr&&) = default;
@@ -45,9 +50,14 @@ public:
         return m_ptr.get();
     }
 
+    void reset()
+    {
+
+    }
+
     void reset(Ptr ptr)
     {
-        m_ptr = ptr;
+        m_ptr.reset(ptr);
     }
 
     Ptr& get_wrapped()
@@ -63,7 +73,7 @@ private:
     void create() const
     {
         if (!m_ptr) {
-            m_ptr = Creator::operator();
+            m_ptr = Factory::create();
         }
     }
 

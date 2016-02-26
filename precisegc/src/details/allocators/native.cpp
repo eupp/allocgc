@@ -19,6 +19,9 @@ byte* memory_allocate(size_t size)
 
 void memory_deallocate(byte* ptr, size_t size)
 {
+    if (!ptr) {
+        return;
+    }
     int ret = munmap(reinterpret_cast<void*>(ptr), size);
     if (ret == -1) {
         logging::debug() << "munmap failed: " << strerror(errno);

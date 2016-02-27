@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <vector>
 #include <memory>
+#include <libprecisegc/details/logging.h>
 
 #include "constants.h"
 #include "types.h"
@@ -69,6 +70,7 @@ private:
     {
         any_ptr& get_element()
         {
+            assert(m_level);
             return m_level[m_ind];
         }
 
@@ -131,11 +133,9 @@ private:
     void index_page(byte* page, T* entry)
     {
         tree_path path = traverse(page, allocation_option::ALLOCATE);
-
         any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
         assert(!leaf);
         leaf.reset(entry);
-
         any_ptr& inner = path[LEVEL_CNT - 2].get_element();
         ++inner.as<tree_level>()->m_cnt;
     }
@@ -167,9 +167,8 @@ private:
     T* get_page_entry(byte* page)
     {
         tree_path path = traverse(page, allocation_option::NO_ALLOCATE);
-
         if (path[LEVEL_CNT - 1].m_level) {
-            any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
+            any_ptr leaf = path[LEVEL_CNT - 1].get_element();
             return leaf.as<T>();
         } else {
             return nullptr;
@@ -208,7 +207,7 @@ private:
 
     void deallocate_tree_level(tree_level* level)
     {
-        static const size_t size = LEVEL_SIZE * sizeof(tree_level);
+        static const size_t size = sizeof(tree_level);
         m_allocator.deallocate(reinterpret_cast<byte*>(level), size);
     }
 

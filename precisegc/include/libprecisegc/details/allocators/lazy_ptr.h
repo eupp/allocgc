@@ -3,13 +3,15 @@
 
 #include <memory>
 
+#include "pointer_traits.h"
+
 namespace precisegc { namespace details { namespace allocators {
 
 template<typename Ptr, typename Factory>
 class lazy_ptr: private Factory
 {
 public:
-    typedef std::pointer_traits<Ptr>::element_type element_type;
+    typedef typename std::pointer_traits<Ptr>::element_type element_type;
 
     lazy_ptr() = default;
 
@@ -41,7 +43,7 @@ public:
     element_type* operator->() const
     {
         create();
-        return m_ptr.operator->();
+        return pointer_traits<Ptr>::member_of_operator(m_ptr);
     }
 
     element_type* get() const

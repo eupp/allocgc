@@ -11,14 +11,24 @@
 #include "types.h"
 
 #include "any_ptr.h"
-#include "lazy_ptr.h"
+#include "../util.h"
 
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename T, typename Alloc>
-class index_tree
+class index_tree: private noncopyable, private nonmovable
 {
 public:
+    index_tree()
+    {
+        memset(m_first_level, 0, FIRST_LEVEL_SIZE * sizeof(any_ptr));
+    }
+
+    ~index_tree()
+    {
+        clear();
+    }
+
     void index(byte* mem, size_t size, T* entry)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
@@ -39,11 +49,8 @@ public:
 
     T* get_entry(byte* mem)
     {
-
+        return get_page_entry(mem);
     }
-
-    template <typename U>
-    friend class std::unique_ptr;
 private:
     static const size_t LEVEL_CNT = 3;
     static const size_t USED_BITS_CNT = POINTER_BITS_CNT - PAGE_BITS_CNT;
@@ -52,92 +59,161 @@ private:
     static const size_t LEVEL_SIZE = 1 << LEVEL_BITS_CNT;
     static const size_t FIRST_LEVEL_SIZE = 1 << FIRST_LEVEL_BITS_CNT;
 
-    class tree_level
+    struct tree_level
     {
-        struct factory
-        {
-        public:
-
-            tree_level* create() const
-            {
-                tree_level* level = nullptr;
-                static const size_t size = sizeof(tree_level);
-                level = reinterpret_cast<tree_level*>(allocator.allocate(size));
-                memset(level, 0, size);
-                return level;
-            }
-
-            void destroy(tree_level* ptr) const
-            {
-                static const size_t size = LEVEL_SIZE * sizeof(tree_level);
-                allocator.deallocate(reinterpret_cast<byte*>(ptr), size);
-            }
-        private:
-            static Alloc allocator;
-        };
-
-    public:
-        typedef any_ptr<lazy_ptr<tree_level, factory>> tree_level_ptr;
-
-        tree_level(size_t depth)
-            : m_cnt(0)
-            , m_shift(POINTER_BITS_CNT - FIRST_LEVEL_BITS_CNT - depth * LEVEL_BITS_CNT)
-        {}
-
-        void index(std::uintptr_t page, T* entry, size_t depth)
-        {
-            size_t ind = calculate_index(page);
-            if (depth == LEVEL_CNT - 1) {
-                ++m_cnt;
-                assert(!m_data[ind]);
-                m_data[ind] = entry;
-            } else {
-                if (!m_data[ind]) {
-                    ++m_cnt;
-                }
-                m_data[ind].as<tree_level>()->index(page, entry, depth + 1);
-            }
-        }
-
-        void remove_index(std::uintptr_t page, size_t depth)
-        {
-            size_t ind = calculate_index(page);
-            if (depth == LEVEL_CNT - 1) {
-                --m_cnt;
-                assert(m_data[ind]);
-                m_data[ind].reset();
-            } else {
-                tree_level* next = m_data[ind].as<tree_level>();
-                next->remove_index(page, depth + 1);
-                if (next->m_cnt == 0) {
-                    m_data[ind].reset();
-                    --m_cnt;
-                }
-            }
-        }
-    private:
-        size_t calculate_index(std::uintptr_t page_uintptr)
-        {
-            return (page_uintptr >> m_shift) & (((size_t) 1 << (LEVEL_BITS_CNT)) - 1);
-        }
-
         size_t m_cnt;
-        size_t m_shift;
-        tree_level_ptr m_data[LEVEL_SIZE];
+        any_ptr m_data[LEVEL_SIZE];
     };
+
+    struct path_element
+    {
+        any_ptr& get_element()
+        {
+            return m_level[m_ind];
+        }
+
+        any_ptr* m_level;
+        size_t m_ind;
+    };
+
+    typedef std::array<path_element, LEVEL_CNT> tree_path;
+
+    enum class allocation_option
+    {
+        ALLOCATE,
+        NO_ALLOCATE
+    };
+
+    tree_path traverse(byte* page, allocation_option alloc_opt)
+    {
+        tree_path path;
+        memset(&path, 0, sizeof(tree_path));
+        std::uintptr_t page_uintptr = reinterpret_cast<std::uintptr_t>(page);
+
+        size_t shift = POINTER_BITS_CNT - FIRST_LEVEL_BITS_CNT;
+        any_ptr* level = m_first_level;
+        size_t ind = page_uintptr >> shift;
+
+        path[0].m_level = level;
+        path[0].m_ind = ind;
+
+        if (!level[ind]) {
+            if (alloc_opt == allocation_option::ALLOCATE) {
+                level[ind].reset(allocate_tree_level());
+            } else {
+                return path;
+            }
+        }
+
+        for (size_t i = 1; i < LEVEL_CNT; ++i) {
+            tree_level* prev = level[ind].as<tree_level>();
+            level = prev->m_data;
+
+            shift -= LEVEL_BITS_CNT;
+            ind = (page_uintptr >> shift) & (((size_t) 1 << (LEVEL_BITS_CNT)) - 1);
+
+            path[i].m_level = level;
+            path[i].m_ind = ind;
+
+            if (!level[ind] && i < LEVEL_CNT - 1) {
+                if (alloc_opt == allocation_option::ALLOCATE) {
+                    level[ind].reset(allocate_tree_level());
+                    ++prev->m_cnt;
+                } else {
+                    return path;
+                }
+            }
+        }
+
+        return path;
+    }
 
     void index_page(byte* page, T* entry)
     {
-        std::uintptr_t page_uintptr = reinterpret_cast<std::uintptr_t>(page);
+        tree_path path = traverse(page, allocation_option::ALLOCATE);
+
+        any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
+        assert(!leaf);
+        leaf.reset(entry);
+
+        any_ptr& inner = path[LEVEL_CNT - 2].get_element();
+        ++inner.as<tree_level>()->m_cnt;
     }
 
     void remove_page_index(byte* page)
     {
-        std::uintptr_t page_uintptr = reinterpret_cast<std::uintptr_t>(page);
+        tree_path path = traverse(page, allocation_option::ALLOCATE);
+
+        any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
+        assert(leaf);
+        leaf.reset();
+
+        any_ptr& inner = path[LEVEL_CNT - 2].get_element();
+        --inner.as<tree_level>()->m_cnt;
+
+        for (size_t i = LEVEL_CNT - 2; i > 0; --i) {
+            any_ptr& inner = path[i].get_element();
+            tree_level* level = inner.as<tree_level>();
+            if (level->m_cnt == 0) {
+                inner.reset();
+                deallocate_tree_level(level);
+
+                any_ptr& prev = path[i-1].get_element();
+                --prev.as<tree_level>()->m_cnt;
+            }
+        }
+    }
+
+    T* get_page_entry(byte* page)
+    {
+        tree_path path = traverse(page, allocation_option::NO_ALLOCATE);
+
+        if (path[LEVEL_CNT - 1].m_level) {
+            any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
+            return leaf.as<T>();
+        } else {
+            return nullptr;
+        }
+    }
+
+    void clear()
+    {
+        any_ptr* level = m_first_level;
+        for (size_t i = 0; i < FIRST_LEVEL_SIZE; ++i) {
+            if (level[i]) {
+                clear_inner_level(level[i], 1);
+            }
+        }
+    }
+
+    void clear_inner_level(any_ptr ptr, size_t depth)
+    {
+        tree_level* level = ptr.as<tree_level>();
+        for (size_t i = 0; i < LEVEL_SIZE; ++i) {
+            if (level->m_data[i] && depth < LEVEL_CNT - 1) {
+                clear_inner_level(level->m_data[i], depth + 1);
+            }
+        }
+        deallocate_tree_level(level);
+    }
+
+    tree_level* allocate_tree_level()
+    {
+        tree_level* level = nullptr;
+        static const size_t size = sizeof(tree_level);
+        level = reinterpret_cast<tree_level*>(m_allocator.allocate(size));
+        memset(level, 0, size);
+        return level;
+    }
+
+    void deallocate_tree_level(tree_level* level)
+    {
+        static const size_t size = LEVEL_SIZE * sizeof(tree_level);
+        m_allocator.deallocate(reinterpret_cast<byte*>(level), size);
     }
 
 
-    tree_level* m_first_level[FIRST_LEVEL_SIZE];
+    any_ptr m_first_level[FIRST_LEVEL_SIZE];
     Alloc m_allocator;
 };
 

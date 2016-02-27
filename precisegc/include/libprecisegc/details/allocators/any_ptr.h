@@ -5,10 +5,8 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Ptr>
 class any_ptr
 {
-    typedef std::pointer_traits<Ptr>::element_type element_type;
 public:
 
     any_ptr() = default;
@@ -16,9 +14,10 @@ public:
     any_ptr(nullptr_t)
         : m_ptr(nullptr)
     {}
-    
-    any_ptr(Ptr ptr)
-        : m_ptr(ptr)
+
+    template <typename T>
+    explicit any_ptr(T* ptr)
+        : m_ptr(reinterpret_cast<void*>(ptr))
     {}
 
     any_ptr(const any_ptr&) = default;
@@ -30,21 +29,27 @@ public:
     template <typename T>
     T* as() const
     {
-        element_type* ptr = m_ptr.get();
-        return reinterpret_cast<T*>(ptr);
+        return reinterpret_cast<T*>(m_ptr);
     }
 
-    Ptr& get_wrapped()
+    void reset()
     {
-        return m_ptr;
+        m_ptr = nullptr;
     }
 
-    const Ptr& get_wrapped() const
+    template <typename T>
+    void reset(T* ptr)
     {
-        return m_ptr;
+        m_ptr = reinterpret_cast<void*>(ptr);
     }
+
+    explicit operator bool() const
+    {
+        return m_ptr != nullptr;
+    }
+
 private:
-    Ptr m_ptr;
+    void* m_ptr;
 };
 
 }}}

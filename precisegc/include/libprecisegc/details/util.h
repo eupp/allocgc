@@ -27,8 +27,6 @@ public:
     nonmovable& operator=(nonmovable&&) = delete;
 };
 
-
-
 }}
 
 #endif //DIPLOMA_NONCOPYABLE_H

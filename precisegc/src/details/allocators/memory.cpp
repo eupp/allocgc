@@ -1,4 +1,4 @@
-#include "allocators/native.h"
+#include "allocators/memory.h"
 
 #include <cstring>
 #include <sys/mman.h>
@@ -7,7 +7,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-byte* memory_allocate(size_t size)
+byte* paged_memory_allocate(size_t size)
 {
     void* mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (mem == MAP_FAILED) {
@@ -17,7 +17,7 @@ byte* memory_allocate(size_t size)
     return reinterpret_cast<byte*>(mem);
 }
 
-void memory_deallocate(byte* ptr, size_t size)
+void paged_memory_deallocate(byte* ptr, size_t size)
 {
     if (!ptr) {
         return;
@@ -28,15 +28,4 @@ void memory_deallocate(byte* ptr, size_t size)
     }
 }
 
-byte* native_allocator::allocate(size_t size)
-{
-    return memory_allocate(size);
-}
-
-void native_allocator::deallocate(byte* ptr, size_t size)
-{
-    memory_deallocate(ptr, size);
-}
-
 }}}
-

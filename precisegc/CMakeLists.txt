@@ -37,7 +37,22 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_new_impl.h
         include/libprecisegc/details/gc_unsafe_scope.h
         include/libprecisegc/details/gc_untyped_ptr.h
-        include/libprecisegc/details/gc_untyped_pin.h include/libprecisegc/details/gc_ptr_access.h include/libprecisegc/details/signal_lock.h include/libprecisegc/details/logging.h include/libprecisegc/gc_init.h include/libprecisegc/details/gc_mark_queue.h include/libprecisegc/details/gc_mark.h include/libprecisegc/details/gc_garbage_collector.h include/libprecisegc/details/write_barrier.h include/libprecisegc/gc.h include/libprecisegc/details/gc_initator.h include/libprecisegc/details/allocators/native.h include/libprecisegc/details/allocators/index_tree.h include/libprecisegc/details/allocators/types.h include/libprecisegc/details/allocators/lazy_ptr.h include/libprecisegc/details/allocators/any_ptr.h include/libprecisegc/details/allocators/pointer_traits.h)
+        include/libprecisegc/details/gc_untyped_pin.h
+        include/libprecisegc/details/gc_ptr_access.h
+        include/libprecisegc/details/signal_lock.h
+        include/libprecisegc/details/logging.h
+        include/libprecisegc/gc_init.h
+        include/libprecisegc/details/gc_mark_queue.h
+        include/libprecisegc/details/gc_mark.h
+        include/libprecisegc/details/gc_garbage_collector.h
+        include/libprecisegc/details/write_barrier.h
+        include/libprecisegc/gc.h
+        include/libprecisegc/details/gc_initator.h
+        include/libprecisegc/details/allocators/paged_allocator.h
+        include/libprecisegc/details/allocators/index_tree.h
+        include/libprecisegc/details/allocators/types.h
+        include/libprecisegc/details/allocators/any_ptr.h
+        include/libprecisegc/details/allocators/memory.h)
 
 set(precisegc_LIB_SRCS
         src/index_tree.cpp
@@ -60,7 +75,8 @@ set(precisegc_LIB_SRCS
         src/gc_init.cpp
         src/gc_garbage_collector.cpp
         src/gc_mark_queue.cpp
-        src/gc_initator.cpp src/details/allocators/native.cpp)
+        src/gc_initator.cpp
+        src/details/allocators/memory.cpp)
 
 
 include_directories(include/libprecisegc)

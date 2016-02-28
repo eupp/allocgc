@@ -4,7 +4,7 @@
 #include <limits>
 
 #include "libprecisegc/details/allocators/index_tree.h"
-#include "libprecisegc/details/allocators/native.h"
+#include "libprecisegc/details/allocators/paged_allocator.h"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
@@ -24,7 +24,7 @@ struct index_tree_test: public ::testing::Test
     static const size_t SIZE = 2;
     std::uintptr_t ptrs[SIZE];
     int entries[SIZE];
-    index_tree<int, native_allocator> tree;
+    index_tree<int, paged_allocator> tree;
 };
 
 TEST_F(index_tree_test, test_index_1)

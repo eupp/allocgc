@@ -20,8 +20,10 @@ template <typename T, typename Alloc>
 class index_tree: private noncopyable, private nonmovable
 {
 public:
-    index_tree()
+    index_tree(Alloc* allocator)
+        : m_allocator(allocator)
     {
+        assert(m_allocator);
         memset(m_first_level, 0, FIRST_LEVEL_SIZE * sizeof(any_ptr));
     }
 
@@ -151,15 +153,17 @@ private:
         any_ptr& inner = path[LEVEL_CNT - 2].get_element();
         --inner.as<tree_level>()->m_cnt;
 
-        for (size_t i = LEVEL_CNT - 2; i > 0; --i) {
+        for (int i = LEVEL_CNT - 2; i >= 0; --i) {
             any_ptr& inner = path[i].get_element();
             tree_level* level = inner.as<tree_level>();
             if (level->m_cnt == 0) {
                 inner.reset();
                 deallocate_tree_level(level);
 
-                any_ptr& prev = path[i-1].get_element();
-                --prev.as<tree_level>()->m_cnt;
+                if (i > 0) {
+                    any_ptr& prev = path[i-1].get_element();
+                    --prev.as<tree_level>()->m_cnt;
+                }
             }
         }
     }
@@ -200,7 +204,7 @@ private:
     {
         tree_level* level = nullptr;
         static const size_t size = sizeof(tree_level);
-        level = reinterpret_cast<tree_level*>(m_allocator.allocate(size));
+        level = reinterpret_cast<tree_level*>(m_allocator->allocate(size));
         memset(level, 0, size);
         return level;
     }
@@ -208,12 +212,12 @@ private:
     void deallocate_tree_level(tree_level* level)
     {
         static const size_t size = sizeof(tree_level);
-        m_allocator.deallocate(reinterpret_cast<byte*>(level), size);
+        m_allocator->deallocate(reinterpret_cast<byte*>(level), size);
     }
 
 
     any_ptr m_first_level[FIRST_LEVEL_SIZE];
-    Alloc m_allocator;
+    Alloc* m_allocator;
 };
 
 }}}

@@ -3,6 +3,9 @@
 
 namespace precisegc { namespace details {
 
+template <typename... >
+using void_t = void;
+
 class noncopyable
 {
 public:

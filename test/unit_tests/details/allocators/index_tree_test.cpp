@@ -13,7 +13,7 @@ using namespace precisegc::details::allocators;
 struct index_tree_test: public ::testing::Test
 {
     index_tree_test()
-        : m_tree(& m_alloc)
+        : m_tree(&m_alloc)
     {
         std::random_device r;
         std::default_random_engine e1(r());

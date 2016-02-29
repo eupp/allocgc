@@ -17,7 +17,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename T, typename Alloc>
-class index_tree: private noncopyable, private nonmovable
+class index_tree : private noncopyable, private nonmovable
 {
 public:
     index_tree(Alloc* allocator)

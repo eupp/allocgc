@@ -13,6 +13,12 @@ namespace precisegc { namespace details { namespace allocators {
 class paged_allocator
 {
 public:
+    typedef byte* pointer_type;
+
+    paged_allocator() = default;
+    paged_allocator(const paged_allocator&) = default;
+    paged_allocator(paged_allocator&&) = default;
+
     byte* allocate(size_t size)
     {
         return paged_memory_allocate(size);

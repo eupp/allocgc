@@ -24,15 +24,39 @@ public:
 
 TEST_F(plain_pool_chunk_test, test_is_memory_available)
 {
-    ASSERT_TRUE(m_chk.is_memory_available());
+    ASSERT_TRUE(m_chk.memory_available());
 
     for (int i = 0; i < CHUNK_SIZE; ++i) {
-        ASSERT_TRUE(m_chk.is_memory_available());
+        ASSERT_TRUE(m_chk.memory_available());
         size_t* ptr = (size_t*) m_chk.allocate(OBJ_SIZE);
         *ptr = 42;
     }
 
-    ASSERT_FALSE(m_chk.is_memory_available());
+    ASSERT_FALSE(m_chk.memory_available());
+}
+
+TEST_F(plain_pool_chunk_test, test_contains)
+{
+    ASSERT_FALSE(m_chk.contains(nullptr));
+
+    byte* ptr1 = m_chk.allocate(OBJ_SIZE);
+    ASSERT_TRUE(m_chk.contains(ptr1));
+
+    byte* ptr2 = ((byte*) m_mem.get()) - 1;
+    ASSERT_FALSE(m_chk.contains(ptr2));
+
+    byte* ptr3 = ((byte*) m_mem.get()) + OBJ_SIZE * CHUNK_SIZE;
+    ASSERT_FALSE(m_chk.contains(ptr3));
+}
+
+TEST_F(plain_pool_chunk_test, test_empty)
+{
+    ASSERT_TRUE(m_chk.empty(OBJ_SIZE));
+
+    for (int i = 0; i < CHUNK_SIZE; ++i) {
+        size_t* ptr = (size_t*) m_chk.allocate(OBJ_SIZE);
+        ASSERT_FALSE(m_chk.empty(OBJ_SIZE));
+    }
 }
 
 TEST_F(plain_pool_chunk_test, test_allocate)
@@ -57,9 +81,9 @@ TEST_F(plain_pool_chunk_test, test_deallocate)
     }
 
     m_chk.deallocate((byte*) ptr, OBJ_SIZE);
-    ASSERT_TRUE(m_chk.is_memory_available());
+    ASSERT_TRUE(m_chk.memory_available());
 
     ptr = (size_t*) m_chk.allocate(OBJ_SIZE);
     EXPECT_NE(nullptr, ptr);
-    EXPECT_FALSE(m_chk.is_memory_available());
+    EXPECT_FALSE(m_chk.memory_available());
 }

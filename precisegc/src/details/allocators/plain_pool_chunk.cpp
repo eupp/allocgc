@@ -6,6 +6,7 @@ namespace precisegc { namespace details { namespace allocators {
 
 plain_pool_chunk::plain_pool_chunk(byte* chunk, size_t size, size_t obj_size) noexcept
     : m_chunk(chunk)
+    , m_size(size)
     , m_next(0)
     , m_available(0)
 {
@@ -22,7 +23,7 @@ plain_pool_chunk::plain_pool_chunk(byte* chunk, size_t size, size_t obj_size) no
 
 byte* plain_pool_chunk::allocate(size_t obj_size) noexcept
 {
-    assert(is_memory_available());
+    assert(memory_available());
     byte* ptr = m_chunk + (m_next * obj_size);
     m_next = ptr[0];
     m_available--;
@@ -31,6 +32,7 @@ byte* plain_pool_chunk::allocate(size_t obj_size) noexcept
 
 void plain_pool_chunk::deallocate(byte* ptr, size_t obj_size) noexcept
 {
+    assert(contains(ptr));
     ptrdiff_t ind = (ptr - m_chunk) / obj_size;
     assert(ind < CHUNK_MAXSIZE);
     ptr[0] = m_next;
@@ -38,9 +40,19 @@ void plain_pool_chunk::deallocate(byte* ptr, size_t obj_size) noexcept
     m_available++;
 }
 
-bool plain_pool_chunk::is_memory_available() const noexcept
+bool plain_pool_chunk::contains(byte* ptr) const noexcept
+{
+    return (m_chunk <= ptr) && (ptr < m_chunk + m_size);
+}
+
+bool plain_pool_chunk::memory_available() const noexcept
 {
     return m_available > 0;
+}
+
+bool plain_pool_chunk::empty(size_t obj_size) const noexcept
+{
+    return m_available == m_size / obj_size;
 }
 
 }}}

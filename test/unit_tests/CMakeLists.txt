@@ -19,7 +19,7 @@ set(precisegc_TESTS
         gc_new_test.cpp
         details/gc_untyped_ptr_test.cpp
         gc_environment.cpp
-        details/allocators/index_tree_test.cpp details/allocators/plain_pool_chunk_test.cpp)
+        details/allocators/index_tree_test.cpp details/allocators/plain_pool_chunk_test.cpp details/allocators/fixed_size_allocator_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

@@ -59,3 +59,27 @@ TEST_F(indexed_ptr_test, test_remove_index)
     EXPECT_EQ(m_mem, ptr.get_wrapped());
     EXPECT_EQ(nullptr, ptr.get_indexed_entry());
 }
+
+TEST_F(indexed_ptr_test, test_iterator_interface)
+{
+    int val = 0;
+    indexed_ptr_t ptr1 = indexed_ptr_t::index(m_mem, PAGE_SIZE, &val);
+    indexed_ptr_t ptr2 = ptr1;
+    indexed_ptr_t ptr3 = ptr1 + PAGE_SIZE / 2;
+
+    EXPECT_EQ(ptr1, ptr2);
+    EXPECT_NE(ptr1, ptr3);
+
+    EXPECT_TRUE(ptr1 < ptr3);
+
+    indexed_ptr_t ptr4 = ptr1;
+    ++ptr4;
+    EXPECT_EQ(ptr1 + 1, ptr4);
+
+    indexed_ptr_t ptr5 = ptr3;
+    --ptr5;
+    EXPECT_EQ(ptr3 - 1, ptr5);
+
+    ptrdiff_t diff = ptr3 - ptr1;
+    EXPECT_EQ(PAGE_SIZE / 2, diff);
+}

@@ -46,12 +46,12 @@ public:
         return m_decorated;
     }
 protected:
-    bool equal(const pointer_decorator& other) const noexcept
+    bool equal(const Derived& other) const noexcept
     {
         return m_decorated == other.m_decorated;
     }
 
-    bool less_than(const pointer_decorator& other) const noexcept
+    bool less_than(const Derived& other) const noexcept
     {
         return m_decorated < other.m_decorated;
     }
@@ -71,7 +71,7 @@ protected:
         m_decorated += n;
     }
 
-    Distance difference(const pointer_decorator& other) const noexcept
+    Distance difference(const Derived& other) const noexcept
     {
         return m_decorated - other.m_decorated;
     }

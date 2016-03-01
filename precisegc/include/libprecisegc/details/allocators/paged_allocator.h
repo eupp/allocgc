@@ -7,7 +7,6 @@
 #include "types.h"
 #include "memory.h"
 
-
 namespace precisegc { namespace details { namespace allocators {
 
 class paged_allocator

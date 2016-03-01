@@ -10,10 +10,9 @@
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
-struct index_tree_test: public ::testing::Test
+struct index_tree_test : public ::testing::Test
 {
     index_tree_test()
-        : m_tree(&m_alloc)
     {
         std::random_device r;
         std::default_random_engine e1(r());
@@ -28,7 +27,6 @@ struct index_tree_test: public ::testing::Test
 
     static const size_t SIZE = 2;
     std::uintptr_t m_ptrs[SIZE];
-    allocator_t m_alloc;
     tree_t m_tree;
 };
 
@@ -76,13 +74,13 @@ TEST_F(index_tree_test, test_mem_1)
     m_tree.index(mem, PAGE_SIZE, &expected);
     m_tree.remove_index(mem, PAGE_SIZE);
 
-    ASSERT_EQ(0, m_alloc.get_allocated_mem_size());
+    ASSERT_EQ(0, m_tree.get_const_allocator().get_allocated_mem_size());
 }
 
 TEST_F(index_tree_test, test_mem_2)
 {
     {
-        tree_t tree(&m_alloc);
+        tree_t tree;
 
         byte* mem1 = (byte*) m_ptrs[0];
         byte* mem2 = (byte*) m_ptrs[1];
@@ -93,5 +91,5 @@ TEST_F(index_tree_test, test_mem_2)
         tree.index(mem2, PAGE_SIZE, &val2);
     }
 
-    ASSERT_EQ(0, m_alloc.get_allocated_mem_size());
+    ASSERT_EQ(0, m_tree.get_const_allocator().get_allocated_mem_size());
 }

@@ -17,13 +17,11 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename T, typename Alloc>
-class index_tree : private noncopyable, private nonmovable
+class index_tree : private ebo<Alloc>, private noncopyable, private nonmovable
 {
 public:
-    index_tree(Alloc* allocator)
-        : m_allocator(allocator)
+    index_tree()
     {
-        assert(m_allocator);
         memset(m_first_level, 0, FIRST_LEVEL_SIZE * sizeof(any_ptr));
     }
 
@@ -53,6 +51,21 @@ public:
     T* get_entry(byte* mem)
     {
         return get_page_entry(mem);
+    }
+
+    Alloc& get_allocator()
+    {
+        return this->template get_base<Alloc>();
+    }
+
+    const Alloc& get_allocator() const
+    {
+        return this->template get_base<Alloc>();
+    }
+
+    const Alloc& get_const_allocator() const
+    {
+        return this->template get_base<Alloc>();
     }
 private:
     static const size_t LEVEL_CNT = 3;
@@ -204,7 +217,7 @@ private:
     {
         tree_level* level = nullptr;
         static const size_t size = sizeof(tree_level);
-        level = reinterpret_cast<tree_level*>(m_allocator->allocate(size));
+        level = reinterpret_cast<tree_level*>(get_allocator().allocate(size));
         memset(level, 0, size);
         return level;
     }
@@ -212,12 +225,11 @@ private:
     void deallocate_tree_level(tree_level* level)
     {
         static const size_t size = sizeof(tree_level);
-        m_allocator->deallocate(reinterpret_cast<byte*>(level), size);
+        get_allocator().deallocate(reinterpret_cast<byte*>(level), size);
     }
 
 
     any_ptr m_first_level[FIRST_LEVEL_SIZE];
-    Alloc* m_allocator;
 };
 
 }}}

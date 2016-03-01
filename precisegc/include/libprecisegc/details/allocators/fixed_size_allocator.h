@@ -6,32 +6,37 @@
 #include <algorithm>
 
 #include "stl_adapter.h"
+#include "../util.h"
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename chunk, typename Alloc, typename InternalAlloc>
-class fixed_size_allocator
+template <typename Chunk, typename Alloc, typename InternalAlloc>
+class fixed_size_allocator : private ebo<Alloc>, private noncopyable
 {
 public:
-    typedef typename chunk::pointer_type pointer_type;
+    typedef typename Chunk::pointer_type pointer_type;
 
     fixed_size_allocator()
-        : m_alloc_chunk(m_chunks.end())
-    {}
+    {
+        m_alloc_chunk = m_chunks.end();
+    }
+
+    fixed_size_allocator(fixed_size_allocator&&) = default;
 
     pointer_type allocate(size_t size)
     {
         if (m_alloc_chunk == m_chunks.end()) {
-            m_chunks.push_back(chunk::create(m_allocator));
+            m_chunks.push_back(Chunk::create(size, get_allocator()));
             m_alloc_chunk = std::prev(m_chunks.end(), 1);
             return m_alloc_chunk->allocate(size);
         }
-        if (m_alloc_chunk->memory_available()) {
-            return m_alloc_chunk->allocate(size);
+        byte* ptr = m_alloc_chunk->allocate(size);
+        if (ptr != nullptr) {
+            return ptr;
         }
 
         m_alloc_chunk = std::find_if(m_chunks.begin(), m_chunks.end(),
-                                     [] (const chunk& chk) { return chk.memory_available(); });
+                                     [] (const Chunk& chk) { return chk.memory_available(); });
         return allocate(size);
     }
 
@@ -40,13 +45,13 @@ public:
         using std::swap;
 
         auto dealloc_chunk = std::find_if(m_chunks.begin(), m_chunks.end(),
-                                          [ptr] (const chunk& chk) { return chk.contains(ptr); });
+                                          [ptr] (const Chunk& chk) { return chk.contains(ptr); });
         if (dealloc_chunk != m_chunks.end()) {
             dealloc_chunk->deallocate(ptr, size);
             if (dealloc_chunk->empty(size)) {
                 ptrdiff_t alloc_chunk_ind = m_alloc_chunk - m_chunks.begin();
 
-                chunk::destroy(*dealloc_chunk, m_allocator);
+                Chunk::destroy(*dealloc_chunk, size, get_allocator());
                 auto last = std::prev(m_chunks.end(), 1);
                 swap(*dealloc_chunk, *last);
                 m_chunks.pop_back();
@@ -58,14 +63,24 @@ public:
 
     const Alloc& get_allocator() const
     {
-        return m_allocator;
+        return this->template get_base<Alloc>();
     }
-private:
-    typedef std::vector<chunk, stl_adapter<chunk, InternalAlloc>> vector_t;
 
-    vector_t m_chunks;
+    const Alloc& get_const_allocator() const
+    {
+        return this->template get_base<Alloc>();
+    }
+
+private:
+    typedef std::vector<Chunk, stl_adapter<Chunk, InternalAlloc>> vector_t;
+
+    Alloc& get_allocator()
+    {
+        return this->template get_base<Alloc>();
+    }
+
     typename vector_t::iterator m_alloc_chunk;
-    Alloc m_allocator;
+    vector_t m_chunks;
 };
 
 }}}

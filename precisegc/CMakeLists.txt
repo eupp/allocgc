@@ -52,7 +52,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/index_tree.h
         include/libprecisegc/details/allocators/types.h
         include/libprecisegc/details/allocators/any_ptr.h
-        include/libprecisegc/details/allocators/memory.h include/libprecisegc/details/allocators/debug_layer.h include/libprecisegc/details/allocators/pool.h include/libprecisegc/details/allocators/plain_pool_chunk.h include/libprecisegc/details/allocators/fixed_size_allocator.h include/libprecisegc/details/allocators/stl_adapter.h)
+        include/libprecisegc/details/allocators/memory.h include/libprecisegc/details/allocators/debug_layer.h include/libprecisegc/details/allocators/bucket_allocator.h include/libprecisegc/details/allocators/plain_pool_chunk.h include/libprecisegc/details/allocators/fixed_size_allocator.h include/libprecisegc/details/allocators/stl_adapter.h include/libprecisegc/details/allocators/region.h)
 
 set(precisegc_LIB_SRCS
         src/index_tree.cpp

@@ -23,11 +23,13 @@ plain_pool_chunk::plain_pool_chunk(byte* chunk, size_t size, size_t obj_size) no
 
 byte* plain_pool_chunk::allocate(size_t obj_size) noexcept
 {
-    assert(memory_available());
-    byte* ptr = m_chunk + (m_next * obj_size);
-    m_next = ptr[0];
-    m_available--;
-    return ptr;
+    if (memory_available()) {
+        byte* ptr = m_chunk + (m_next * obj_size);
+        m_next = ptr[0];
+        m_available--;
+        return ptr;
+    }
+    return nullptr;
 }
 
 void plain_pool_chunk::deallocate(byte* ptr, size_t obj_size) noexcept

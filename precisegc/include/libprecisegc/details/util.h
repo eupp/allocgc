@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_NONCOPYABLE_H
 #define DIPLOMA_NONCOPYABLE_H
 
+#include <type_traits>
+
 namespace precisegc { namespace details {
 
 template <typename... >
@@ -28,6 +30,34 @@ public:
 
     nonmovable(nonmovable&&) = delete;
     nonmovable& operator=(nonmovable&&) = delete;
+};
+
+template <typename... Bases>
+class ebo : private Bases...
+{
+public:
+    template <typename Base>
+    Base& get_base()
+    {
+        static_assert(std::is_base_of<Base, ebo>::value, "Inappropriate base class");
+        return (*this);
+    }
+
+    template <typename Base>
+    const Base& get_base() const
+    {
+        static_assert(std::is_base_of<Base, ebo>::value, "Inappropriate base class");
+        return (*this);
+    }
+};
+
+template <bool Cond, typename T>
+struct conditional_member {};
+
+template <typename T>
+struct conditional_member<true, T>
+{
+    T member;
 };
 
 }}

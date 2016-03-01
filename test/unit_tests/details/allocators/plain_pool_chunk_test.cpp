@@ -59,7 +59,7 @@ TEST_F(plain_pool_chunk_test, test_empty)
     }
 }
 
-TEST_F(plain_pool_chunk_test, test_allocate)
+TEST_F(plain_pool_chunk_test, test_allocate_1)
 {
     size_t* ptr1 = (size_t*) m_chk.allocate(OBJ_SIZE);
     EXPECT_NE(nullptr, ptr1);
@@ -71,6 +71,16 @@ TEST_F(plain_pool_chunk_test, test_allocate)
     EXPECT_NE(nullptr, ptr2);
     EXPECT_NE(ptr1, ptr2);
     *ptr2 = 42;
+}
+
+TEST_F(plain_pool_chunk_test, test_allocate_2)
+{
+    for (int i = 0; i < CHUNK_SIZE; ++i) {
+        size_t* ptr = (size_t*) m_chk.allocate(OBJ_SIZE);
+    }
+
+    byte* ptr = m_chk.allocate(OBJ_SIZE);
+    ASSERT_EQ(nullptr, ptr);
 }
 
 TEST_F(plain_pool_chunk_test, test_deallocate)

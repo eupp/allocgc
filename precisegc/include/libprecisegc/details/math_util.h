@@ -12,7 +12,7 @@ inline size_t log_2(size_t n)
     assert((n & (n - 1)) == 0 && n != 0);
     size_t l = sizeof(size_t) * CHAR_BIT, r = 0;
     while (true) {
-        int m = ((l - r) >> 1) + r;
+        size_t m = ((l - r) >> 1) + r;
         if (l == m || r == m) { return m; }
         if (((((size_t)1 << m) - 1) & n) == 0) { r = m; }
         else { l = m; }

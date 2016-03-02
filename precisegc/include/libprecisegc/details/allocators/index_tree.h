@@ -20,6 +20,8 @@ template <typename T, typename Alloc>
 class index_tree : private ebo<Alloc>, private noncopyable, private nonmovable
 {
 public:
+    typedef T entry_type;
+
     index_tree()
     {
         memset(m_first_level, 0, FIRST_LEVEL_SIZE * sizeof(any_ptr));

@@ -22,9 +22,7 @@ class iterator_facade: public std::iterator<Category, Value, Distance, Pointer, 
     {
         return static_cast<const Derived*>(this);
     }
-
 public:
-
     Derived& operator++() noexcept
     {
         iterator_access<Derived>::increment(cast_this());

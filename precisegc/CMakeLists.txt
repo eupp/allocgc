@@ -52,7 +52,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/index_tree.h
         include/libprecisegc/details/allocators/types.h
         include/libprecisegc/details/allocators/any_ptr.h
-        include/libprecisegc/details/allocators/memory.h include/libprecisegc/details/allocators/debug_layer.h include/libprecisegc/details/allocators/bucket_allocator.h include/libprecisegc/details/allocators/plain_pool_chunk.h include/libprecisegc/details/allocators/fixed_size_allocator.h include/libprecisegc/details/allocators/stl_adapter.h include/libprecisegc/details/allocators/region.h include/libprecisegc/details/allocators/pointer_decorator.h include/libprecisegc/details/allocators/indexed_ptr.h include/libprecisegc/details/allocators/pow2_bucket_policy.h)
+        include/libprecisegc/details/allocators/memory.h include/libprecisegc/details/allocators/debug_layer.h include/libprecisegc/details/allocators/bucket_allocator.h include/libprecisegc/details/allocators/plain_pool_chunk.h include/libprecisegc/details/allocators/fixed_size_allocator.h include/libprecisegc/details/allocators/stl_adapter.h include/libprecisegc/details/allocators/region.h include/libprecisegc/details/allocators/pointer_decorator.h include/libprecisegc/details/allocators/indexed_ptr.h include/libprecisegc/details/allocators/pow2_bucket_policy.h include/libprecisegc/details/managed_pool_chunk.h include/libprecisegc/details/managed_memory_descriptor.h include/libprecisegc/details/managed_ptr.h)
 
 set(precisegc_LIB_SRCS
         src/index_tree.cpp
@@ -76,7 +76,7 @@ set(precisegc_LIB_SRCS
         src/gc_garbage_collector.cpp
         src/gc_mark_queue.cpp
         src/gc_initator.cpp
-        src/details/allocators/memory.cpp src/details/allocators/plain_pool_chunk.cpp)
+        src/details/allocators/memory.cpp src/details/allocators/plain_pool_chunk.cpp src/details/managed_pool_chunk.cpp src/details/managed_ptr.cpp)
 
 
 include_directories(include/libprecisegc)

@@ -21,9 +21,10 @@ public:
         return i - MIN_SIZE_BITS;
     }
 
-    static size_t bucket_size(size_t ind)
+    static size_t bucket_size(size_t i)
     {
-        return (size_t) 1 << (ind + MIN_SIZE_BITS);
+        assert(i < BUCKET_COUNT);
+        return (size_t) 1 << (i + MIN_SIZE_BITS);
     }
 };
 

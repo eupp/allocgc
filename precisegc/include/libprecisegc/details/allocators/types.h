@@ -3,10 +3,10 @@
 
 #include <cstdint>
 
-namespace precisegc { namespace details { namespace allocators {
+namespace precisegc { namespace details {
 
 typedef std::uint8_t byte;
 
-}}}
+}}
 
 #endif //DIPLOMA_ALLOCATORS_TYPES_H

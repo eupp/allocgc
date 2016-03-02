@@ -2,6 +2,7 @@
 #define DIPLOMA_POINTER_DECORATOR_H
 
 #include <iterator>
+#include <utility>
 #include <memory>
 
 #include "../iterator_facade.h"
@@ -17,8 +18,12 @@ class pointer_decorator : public iterator_facade<
         typename std::pointer_traits<Decorated>::difference_type
     >
 {
+
     typedef typename std::pointer_traits<Decorated>::difference_type Distance;
 public:
+    typedef typename std::pointer_traits<Decorated>::element_type element_type;
+    typedef typename std::pointer_traits<Decorated>::difference_type difference_type;
+
     pointer_decorator(Decorated decorated)
         : m_decorated(decorated)
     {}
@@ -44,6 +49,12 @@ public:
     const Decorated& get_const_wrapped() const
     {
         return m_decorated;
+    }
+
+    friend void swap(Derived& a, Derived& b)
+    {
+        using std::swap;
+        swap(a.m_decorated, b.m_decorated);
     }
 protected:
     bool equal(const Derived& other) const noexcept

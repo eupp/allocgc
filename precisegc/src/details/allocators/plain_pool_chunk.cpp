@@ -4,6 +4,13 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
+plain_pool_chunk::plain_pool_chunk()
+    : m_chunk(nullptr)
+    , m_size(0)
+    , m_next(0)
+    , m_available(0)
+{}
+
 plain_pool_chunk::plain_pool_chunk(byte* chunk, size_t size, size_t obj_size) noexcept
     : m_chunk(chunk)
     , m_size(size)
@@ -55,6 +62,16 @@ bool plain_pool_chunk::memory_available() const noexcept
 bool plain_pool_chunk::empty(size_t obj_size) const noexcept
 {
     return m_available == m_size / obj_size;
+}
+
+byte* plain_pool_chunk::get_mem() const
+{
+    return m_chunk;
+}
+
+size_t plain_pool_chunk::get_mem_size() const
+{
+    return m_size;
 }
 
 }}}

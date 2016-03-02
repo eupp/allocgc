@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "libprecisegc/details/allocators/indexed_ptr.h"
+#include "libprecisegc/details/allocators/index_tree.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/allocators/constants.h"
 
@@ -10,7 +11,8 @@ using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
 namespace {
-typedef indexed_ptr<byte, int, paged_allocator> indexed_ptr_t;
+typedef index_tree<int, paged_allocator> index_tree_t;
+typedef indexed_ptr<byte, index_tree_t> indexed_ptr_t;
 }
 
 struct indexed_ptr_test : public ::testing::Test

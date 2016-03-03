@@ -18,11 +18,28 @@ class pointer_decorator : public iterator_facade<
         typename std::pointer_traits<Decorated>::difference_type
     >
 {
-
-    typedef typename std::pointer_traits<Decorated>::difference_type Distance;
 public:
     typedef typename std::pointer_traits<Decorated>::element_type element_type;
     typedef typename std::pointer_traits<Decorated>::difference_type difference_type;
+private:
+    template <typename T>
+    struct get_helper
+    {
+        static element_type* get(T ptr)
+        {
+            return ptr.get();
+        }
+    };
+
+    template <typename T>
+    struct get_helper<T*>
+    {
+        static element_type* get(T* ptr)
+        {
+            return ptr;
+        }
+    };
+public:
 
     pointer_decorator(Decorated decorated)
         : m_decorated(decorated)
@@ -35,6 +52,11 @@ public:
 
     pointer_decorator& operator=(const pointer_decorator&) = default;
     pointer_decorator& operator=(pointer_decorator&&) = default;
+
+    element_type* get() const
+    {
+        return get_helper<Decorated>::get(m_decorated);
+    }
 
     Decorated& get_wrapped()
     {

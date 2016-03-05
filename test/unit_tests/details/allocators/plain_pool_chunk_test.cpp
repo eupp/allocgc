@@ -2,8 +2,10 @@
 
 #include <memory>
 
+#include "libprecisegc/details/allocators/types.h"
 #include "libprecisegc/details/allocators/plain_pool_chunk.h"
 
+using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
 class plain_pool_chunk_test: public ::testing::Test

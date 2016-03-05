@@ -2,11 +2,12 @@
 #define DIPLOMA_INDEX_TREE_H
 
 #include <cstddef>
+#include <cstring>
+#include <cassert>
 #include <array>
 #include <type_traits>
 #include <vector>
 #include <memory>
-#include <libprecisegc/details/logging.h>
 
 #include "constants.h"
 #include "types.h"

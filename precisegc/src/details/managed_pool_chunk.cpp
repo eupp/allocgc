@@ -22,7 +22,7 @@ managed_pool_chunk::managed_pool_chunk(managed_pool_chunk&& other)
 {
     lock_type lock = other.m_descr->lock();
     m_descr = other.m_descr;
-    m_chunk = other.m_chunk;
+    m_chunk = std::move(other.m_chunk);
     m_descr->set_pool_chunk(this);
 }
 
@@ -48,17 +48,17 @@ void managed_pool_chunk::deallocate(managed_cell_ptr ptr, size_t cell_size)
     m_chunk.deallocate(ptr.get(), cell_size);
 }
 
-bool managed_pool_chunk::contains(byte* ptr) const
+bool managed_pool_chunk::contains(byte* ptr) const noexcept
 {
     return m_chunk.contains(ptr);
 }
 
-bool managed_pool_chunk::memory_available() const
+bool managed_pool_chunk::memory_available() const noexcept
 {
     return m_chunk.memory_available();
 }
 
-bool managed_pool_chunk::empty(size_t cell_size) const
+bool managed_pool_chunk::empty(size_t cell_size) const noexcept
 {
     return m_chunk.empty(cell_size);
 }

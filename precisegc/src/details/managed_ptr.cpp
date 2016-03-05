@@ -54,4 +54,9 @@ object_meta* managed_cell_ptr::get_meta() const
     return nullptr;
 }
 
+bool managed_cell_ptr::owns_descriptor_lock() const
+{
+    return m_lock.owns_lock();
+}
+
 }}

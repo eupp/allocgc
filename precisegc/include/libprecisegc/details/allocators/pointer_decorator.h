@@ -99,12 +99,12 @@ protected:
         --m_decorated;
     }
 
-    void advance(Distance n) noexcept
+    void advance(difference_type n) noexcept
     {
         m_decorated += n;
     }
 
-    Distance difference(const Derived& other) const noexcept
+    difference_type difference(const Derived& other) const noexcept
     {
         return m_decorated - other.m_decorated;
     }

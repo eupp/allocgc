@@ -19,8 +19,9 @@ typedef allocators::indexed_ptr<byte, index_type> managed_ptr;
 class managed_cell_ptr : public allocators::pointer_decorator<managed_cell_ptr, managed_ptr>
 {
     typedef allocators::pointer_decorator<managed_cell_ptr, managed_ptr> pointer_decorator_t;
-    typedef typename managed_memory_descriptor::lock_type lock_type;
 public:
+    typedef managed_memory_descriptor::lock_type lock_type;
+
     managed_cell_ptr();
     managed_cell_ptr(nullptr_t);
     managed_cell_ptr(managed_ptr idx_ptr);
@@ -41,6 +42,8 @@ public:
     void shade(byte* ptr);
 
     object_meta* get_meta() const;
+
+    bool owns_descriptor_lock() const;
 private:
     managed_memory_descriptor* m_descr;
     lock_type m_lock;

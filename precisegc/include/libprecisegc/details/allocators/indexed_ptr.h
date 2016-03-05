@@ -57,8 +57,8 @@ private:
     static index_type indexer;
 };
 
-template <typename T, typename Entry, typename InternalAlloc>
-typename indexed_ptr<T, Entry, InternalAlloc>::index_type indexed_ptr<T, Entry, InternalAlloc>::indexer;
+template <typename T, typename Index>
+typename indexed_ptr<T, Index>::index_type indexed_ptr<T, Index>::indexer;
 
 }}}
 

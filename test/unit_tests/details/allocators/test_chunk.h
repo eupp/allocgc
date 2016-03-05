@@ -5,7 +5,7 @@
 
 class test_chunk
 {
-    typedef precisegc::details::allocators::byte byte;
+    typedef precisegc::details::byte byte;
 public:
     typedef byte* pointer_type;
 

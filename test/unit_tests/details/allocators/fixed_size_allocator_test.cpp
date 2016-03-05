@@ -9,6 +9,7 @@
 
 #include "test_chunk.h"
 
+using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
 namespace {

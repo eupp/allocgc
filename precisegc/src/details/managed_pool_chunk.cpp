@@ -158,10 +158,10 @@ void managed_pool_chunk::memory_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bits[ind] = pin;
 }
 
-void managed_pool_chunk::memory_descriptor::shade(byte* ptr)
-{
-
-}
+//void managed_pool_chunk::memory_descriptor::shade(byte* ptr)
+//{
+//
+//}
 
 object_meta* managed_pool_chunk::memory_descriptor::get_cell_meta(byte* ptr)
 {

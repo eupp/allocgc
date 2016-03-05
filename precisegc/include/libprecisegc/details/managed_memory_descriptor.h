@@ -22,7 +22,7 @@ public:
     virtual void set_mark(byte* ptr, bool mark) = 0;
     virtual void set_pin(byte* ptr, bool pin) = 0;
 
-    virtual void shade(byte* ptr) = 0;
+//    virtual void shade(byte* ptr) = 0;
 
     virtual object_meta* get_cell_meta(byte* ptr) = 0;
     virtual byte* get_object_begin(byte* ptr) = 0;

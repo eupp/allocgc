@@ -16,19 +16,22 @@ namespace precisegc { namespace details {
 typedef allocators::index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
 typedef allocators::indexed_ptr<byte, index_type> managed_ptr;
 
-class managed_cell_ptr : public allocators::pointer_decorator<managed_cell_ptr, managed_ptr>
+class managed_cell_ptr : private noncopyable
 {
-    typedef allocators::pointer_decorator<managed_cell_ptr, managed_ptr> pointer_decorator_t;
 public:
     typedef managed_memory_descriptor::lock_type lock_type;
+
+    class unindexed_memory_exception : public std::exception
+    {
+    public:
+        const char* what() const noexcept override;
+    };
 
     managed_cell_ptr();
     managed_cell_ptr(nullptr_t);
     managed_cell_ptr(managed_ptr idx_ptr);
+    managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor);
     managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor, lock_type&& lock);
-
-    managed_cell_ptr(const managed_cell_ptr& other);
-    managed_cell_ptr& operator=(const managed_cell_ptr& other);
 
     managed_cell_ptr(managed_cell_ptr&& other) = default;
     managed_cell_ptr& operator=(managed_cell_ptr&& other) = default;
@@ -36,16 +39,21 @@ public:
     bool get_mark() const;
     bool get_pin() const;
 
-    void set_mark(byte* ptr, bool mark);
-    void set_pin(byte* ptr, bool pin);
+    void set_mark(bool mark);
+    void set_pin(bool pin);
 
-    void shade(byte* ptr);
+//    void shade(byte* ptr);
 
     object_meta* get_meta() const;
 
+    byte* get() const;
+
     bool owns_descriptor_lock() const;
 private:
-    managed_memory_descriptor* m_descr;
+    void descriptor_lazy_init() const;
+
+    managed_ptr m_ptr;
+    mutable managed_memory_descriptor* m_descr;
     lock_type m_lock;
 };
 

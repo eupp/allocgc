@@ -38,7 +38,7 @@ public:
         virtual void set_mark(byte* ptr, bool mark) override;
         virtual void set_pin(byte* ptr, bool pin) override;
 
-        virtual void shade(byte* ptr) override;
+//        virtual void shade(byte* ptr) override;
 
         virtual object_meta* get_cell_meta(byte* ptr) override;
         virtual byte* get_object_begin(byte* ptr) override;
@@ -46,10 +46,11 @@ public:
         virtual lock_type lock() override;
         virtual lock_type lock(std::defer_lock_t t) override;
         virtual lock_type lock(std::try_to_lock_t t) override;
-
         virtual lock_type lock(std::adopt_lock_t t) override;
-        managed_pool_chunk* get_pool_chunk() const;
-        void set_pool_chunk(managed_pool_chunk* pool_chunk);
+
+        // methods are virtual in test purposes
+        virtual managed_pool_chunk* get_pool_chunk() const;
+        virtual void set_pool_chunk(managed_pool_chunk* pool_chunk);
     private:
 
         static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);

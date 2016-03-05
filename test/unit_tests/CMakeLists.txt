@@ -4,6 +4,9 @@ include_directories(${GTEST_INCLUDE_DIRS})
 
 set(precisegc_TESTS
         include/time_util.h
+        include/memory_descriptor_mock.h
+        include/test_chunk.h
+
         gc_test.cpp
         gc_inside_method_test.cpp
         details/class_meta_test.cpp
@@ -20,12 +23,11 @@ set(precisegc_TESTS
         details/allocators/index_tree_test.cpp
         details/allocators/plain_pool_chunk_test.cpp
         details/allocators/fixed_size_allocator_test.cpp
-        details/allocators/test_chunk.h
         details/allocators/bucket_allocator_test.cpp
         details/allocators/indexed_ptr_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
-        )
+        include/page_ptr.h)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

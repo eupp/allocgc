@@ -2,8 +2,6 @@ enable_testing()
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 
-find_package(Threads REQUIRED)
-
 set(precisegc_TESTS
         include/time_util.h
         gc_test.cpp
@@ -32,8 +30,28 @@ set(precisegc_TESTS
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 
+find_package(Threads REQUIRED)
+
+find_library(GMOCK_LIB NAMES libgmock.a
+        PATHS
+        /usr/lib
+        /usr/lib64
+        /usr/local/lib
+        /usr/local/lib64
+        )
+
+find_library(GMOCK_MAIN_LIB NAMES libgmock_main.a
+        PATHS
+        /usr/lib
+        /usr/lib64
+        /usr/local/lib
+        /usr/local/lib64
+        )
+
+
 add_executable(precisegc_test ${precisegc_TESTS})
-target_link_libraries(precisegc_test ${GTEST_BOTH_LIBRARIES})
+target_link_libraries(precisegc_test ${GMOCK_LIB})
+target_link_libraries(precisegc_test ${GMOCK_MAIN_LIB})
 target_link_libraries(precisegc_test ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(precisegc_test libprecisegc)
 

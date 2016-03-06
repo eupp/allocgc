@@ -73,6 +73,11 @@ size_t managed_pool_chunk::get_mem_size() const
     return m_chunk.get_mem_size();
 }
 
+managed_memory_descriptor* managed_pool_chunk::get_descriptor() const
+{
+    return m_descr;
+}
+
 void managed_pool_chunk::swap(managed_pool_chunk& other)
 {
     using std::swap;
@@ -157,11 +162,6 @@ void managed_pool_chunk::memory_descriptor::set_pin(byte* ptr, bool pin)
     size_t ind = calc_cell_ind(ptr);
     m_pin_bits[ind] = pin;
 }
-
-//void managed_pool_chunk::memory_descriptor::shade(byte* ptr)
-//{
-//
-//}
 
 object_meta* managed_pool_chunk::memory_descriptor::get_cell_meta(byte* ptr)
 {

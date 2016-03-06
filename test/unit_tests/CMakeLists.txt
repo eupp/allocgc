@@ -27,7 +27,7 @@ set(precisegc_TESTS
         details/allocators/indexed_ptr_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
-        include/page_ptr.h)
+        include/page_ptr.h details/managed_pool_chunk_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

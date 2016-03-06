@@ -25,11 +25,10 @@ public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
     static const size_t CHUNK_MINSIZE = 32;
 
-    class memory_descriptor : public managed_memory_descriptor
+    class memory_descriptor : public managed_memory_descriptor, private noncopyable, private nonmovable
     {
         typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
     public:
-        memory_descriptor(managed_pool_chunk* chunk_ptr, byte* chunk_mem, size_t size, size_t cell_size);
         ~memory_descriptor();
 
         virtual bool get_mark(byte* ptr) override;
@@ -51,8 +50,11 @@ public:
         // methods are virtual in test purposes
         virtual managed_pool_chunk* get_pool_chunk() const;
         virtual void set_pool_chunk(managed_pool_chunk* pool_chunk);
-    private:
 
+        friend class managed_pool_chunk;
+    protected:
+        memory_descriptor(managed_pool_chunk* chunk_ptr, byte* chunk_mem, size_t size, size_t cell_size);
+    private:
         static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
         size_t calc_cell_ind(byte* ptr) const;
         byte* get_cell_begin(byte* ptr) const;
@@ -66,7 +68,6 @@ public:
     };
 
     managed_pool_chunk();
-    managed_pool_chunk(byte* chunk, size_t size, size_t cell_size, memory_descriptor* descr);
 
     managed_pool_chunk(managed_pool_chunk&&);
     managed_pool_chunk& operator=(managed_pool_chunk&&);
@@ -80,11 +81,18 @@ public:
     bool memory_available() const noexcept;
     bool empty(size_t cell_size) const noexcept;
 
+    managed_memory_descriptor* get_descriptor() const;
+
+    byte* get_mem() const;
+    size_t get_mem_size() const;
+
     template <typename Alloc>
     static managed_pool_chunk create(size_t cell_size, Alloc& allocator)
     {
         assert(PAGE_SIZE % cell_size == 0);
-        size_t chunk_size = std::max(CHUNK_MINSIZE, PAGE_SIZE / cell_size);
+        size_t chunk_cnt = std::max((size_t) CHUNK_MINSIZE, PAGE_SIZE / cell_size);
+        assert(chunk_cnt <= CHUNK_MAXSIZE);
+        size_t chunk_size = chunk_cnt * cell_size;
         byte* raw_ptr = allocator.allocate(chunk_size);
 
         memory_descriptor* descr = new memory_descriptor(nullptr, raw_ptr, chunk_size, cell_size);
@@ -93,18 +101,19 @@ public:
     }
 
     template <typename Alloc>
-    static void destroy(managed_pool_chunk& chk, size_t obj_size, Alloc& allocator)
+    static void destroy(managed_pool_chunk& chk, size_t cell_size, Alloc& allocator)
     {
+        assert(chk.get_mem() && chk.m_descr);
         delete chk.m_descr;
         allocator.deallocate(chk.get_mem(), chk.get_mem_size());
-        managed_pool_chunk().swap(chk);
+        chk.m_chunk = plain_pool_chunk();
+        chk.m_descr = nullptr;
     }
-
     void swap(managed_pool_chunk& other);
     friend void swap(managed_pool_chunk& a, managed_pool_chunk& b);
+protected:
+    managed_pool_chunk(byte* chunk, size_t size, size_t cell_size, memory_descriptor* descr);
 private:
-    byte* get_mem() const;
-    size_t get_mem_size() const;
 
     plain_pool_chunk m_chunk;
     memory_descriptor* m_descr;

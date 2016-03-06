@@ -46,9 +46,24 @@ public:
 
     object_meta* get_meta() const;
 
+    bool owns_descriptor_lock() const;
+
     byte* get() const;
 
-    bool owns_descriptor_lock() const;
+    managed_ptr& get_wrapped()
+    {
+        return m_ptr;
+    }
+
+    const managed_ptr& get_wrapped() const
+    {
+        return m_ptr;
+    }
+
+    const managed_ptr& get_const_wrapped() const
+    {
+        return m_ptr;
+    }
 private:
     void descriptor_lazy_init() const;
 

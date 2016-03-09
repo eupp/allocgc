@@ -18,7 +18,7 @@ public:
     typedef Index index_type;
     typedef typename Index::entry_type entry_type;
 
-    indexed_ptr(T* ptr)
+    explicit indexed_ptr(T* ptr)
         : pointer_decorator_t(ptr)
     {}
 

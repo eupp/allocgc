@@ -29,7 +29,7 @@ public:
 
     managed_cell_ptr();
     managed_cell_ptr(nullptr_t);
-    managed_cell_ptr(managed_ptr idx_ptr);
+    explicit managed_cell_ptr(managed_ptr idx_ptr);
     managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor);
     managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor, lock_type&& lock);
 

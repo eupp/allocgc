@@ -38,7 +38,7 @@ public:
     {
         auto& bp = this->template get_base<BucketPolicy>();
         size_t ind = bp.bucket(size);
-        size_t aligned_size = bp.bucket_size(size);
+        size_t aligned_size = bp.bucket_size(ind);
         lock_guard<Lock> lock(m_locks[ind]);
         m_buckets[ind].deallocate(ptr, aligned_size);
     }

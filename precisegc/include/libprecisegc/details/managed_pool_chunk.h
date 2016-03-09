@@ -4,9 +4,14 @@
 #include <bitset>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 
 #include "allocators/plain_pool_chunk.h"
+#include "allocators/iterator_range.h"
+#include "allocators/lockable_range.h"
 #include "allocators/constants.h"
+#include "iterator_facade.h"
+#include "iterator_access.h"
 #include "managed_memory_descriptor.h"
 #include "managed_ptr.h"
 #include "mutex.h"
@@ -20,8 +25,6 @@ class managed_pool_chunk : private noncopyable
     typedef allocators::plain_pool_chunk plain_pool_chunk;
     typedef managed_memory_descriptor::lock_type lock_type;
 public:
-    typedef managed_cell_ptr pointer_type;
-
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
     static const size_t CHUNK_MINSIZE = 32;
 
@@ -47,9 +50,10 @@ public:
         virtual lock_type lock(std::try_to_lock_t t) override;
         virtual lock_type lock(std::adopt_lock_t t) override;
 
-        // methods are virtual in test purposes
-        virtual managed_pool_chunk* get_pool_chunk() const;
-        virtual void set_pool_chunk(managed_pool_chunk* pool_chunk);
+        managed_pool_chunk* get_pool_chunk() const;
+        void set_pool_chunk(managed_pool_chunk* pool_chunk);
+
+        size_t get_cell_size() const;
 
         friend class managed_pool_chunk;
     protected:
@@ -66,6 +70,33 @@ public:
         bitset_t m_mark_bits;
         bitset_t m_pin_bits;
     };
+
+    class iterator: public iterator_facade<iterator, std::bidirectional_iterator_tag, managed_cell_ptr>
+    {
+    public:
+        iterator(const iterator&) noexcept = default;
+        iterator(iterator&&) noexcept = default;
+
+        iterator& operator=(const iterator&) noexcept = default;
+        iterator& operator=(iterator&&) noexcept = default;
+
+        managed_cell_ptr operator*() const noexcept;
+
+        friend class managed_pool_chunk;
+        friend class iterator_access<iterator>;
+    private:
+        iterator(byte* ptr, memory_descriptor* descr) noexcept;
+
+        bool equal(const iterator& other) const noexcept;
+        void increment() noexcept;
+        void decrement() noexcept;
+
+        byte* m_ptr;
+        memory_descriptor* m_descr;
+    };
+
+    typedef managed_cell_ptr pointer_type;
+    typedef allocators::lockable_range<allocators::iterator_range<iterator>, std::unique_lock<mutex>> range_type;
 
     managed_pool_chunk();
 
@@ -85,6 +116,8 @@ public:
 
     byte* get_mem() const;
     size_t get_mem_size() const;
+
+    range_type get_range() const;
 
     template <typename Alloc>
     static managed_pool_chunk create(size_t cell_size, Alloc& allocator)

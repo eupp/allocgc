@@ -78,6 +78,15 @@ managed_memory_descriptor* managed_pool_chunk::get_descriptor() const
     return m_descr;
 }
 
+managed_pool_chunk::range_type managed_pool_chunk::get_range() const
+{
+    assert(get_mem() && m_descr);
+    byte* b = get_mem();
+    byte* e = b + get_mem_size();
+    auto lock = std::unique_lock<mutex>(m_descr->m_mutex, std::defer_lock_t());
+    return range_type(iterator(b, m_descr), iterator(e, m_descr), std::move(lock));
+}
+
 void managed_pool_chunk::swap(managed_pool_chunk& other)
 {
     using std::swap;
@@ -115,7 +124,7 @@ managed_pool_chunk::memory_descriptor::memory_descriptor(managed_pool_chunk* chu
 
 managed_pool_chunk::memory_descriptor::~memory_descriptor()
 {
-    managed_ptr::remove_index(m_chunk_ptr->m_chunk.get_mem(), m_chunk_ptr->m_chunk.get_mem_size());
+    managed_ptr::remove_index(managed_ptr(m_chunk_ptr->m_chunk.get_mem()), m_chunk_ptr->m_chunk.get_mem_size());
 }
 
 managed_pool_chunk* managed_pool_chunk::memory_descriptor::get_pool_chunk() const
@@ -211,6 +220,36 @@ byte* managed_pool_chunk::memory_descriptor::get_cell_begin(byte* ptr) const
 {
     uintptr uiptr = reinterpret_cast<uintptr>(ptr);
     return reinterpret_cast<byte*>(uiptr & m_mask);
+}
+
+size_t managed_pool_chunk::memory_descriptor::get_cell_size() const
+{
+    return m_cell_size;
+}
+
+managed_pool_chunk::iterator::iterator(byte* ptr, managed_pool_chunk::memory_descriptor* descr) noexcept
+    : m_ptr(ptr)
+    , m_descr(descr)
+{}
+
+bool managed_pool_chunk::iterator::equal(const managed_pool_chunk::iterator& other) const noexcept
+{
+    return m_ptr == other.m_ptr;
+}
+
+void managed_pool_chunk::iterator::increment() noexcept
+{
+    m_ptr += m_descr->get_cell_size();
+}
+
+void managed_pool_chunk::iterator::decrement() noexcept
+{
+    m_ptr -= m_descr->get_cell_size();
+}
+
+managed_cell_ptr managed_pool_chunk::iterator::operator*() const noexcept
+{
+    return managed_cell_ptr(managed_ptr(m_ptr), m_descr);
 }
 
 }}

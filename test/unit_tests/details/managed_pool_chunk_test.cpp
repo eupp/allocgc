@@ -102,3 +102,14 @@ TEST_F(managed_pool_chunk_test, test_get_object_begin)
         }
     }
 }
+
+TEST_F(managed_pool_chunk_test, test_range)
+{
+    auto range = m_chunk.get_range();
+    byte* it = m_chunk.get_mem();
+    for (auto cell_ptr: range) {
+        ASSERT_EQ(it, cell_ptr.get());
+        ASSERT_FALSE(cell_ptr.owns_descriptor_lock());
+        it += CELL_SIZE;
+    }
+}

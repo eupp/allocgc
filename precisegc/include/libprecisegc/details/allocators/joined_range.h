@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_JOIN_RANGE_H
 #define DIPLOMA_JOIN_RANGE_H
 
+#include <iterator>
+
 #include "iterator_range.h"
 #include "../iterator_facade.h"
 #include "../iterator_access.h"
@@ -10,14 +12,19 @@ namespace precisegc { namespace details { namespace allocators {
 namespace details {
 
 template<typename RangeIter>
-class join_range_iterator : public iterator_facade<join_range_iterator,
+class join_range_iterator : public iterator_facade<join_range_iterator<RangeIter>,
         std::bidirectional_iterator_tag,
-        typename RangeIter::value_type::iterator_type::value_type>
+        typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::value_type,
+        ptrdiff_t,
+        typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::pointer,
+        typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::reference
+    >
 {
-    typedef typename RangeIter outer_iterator_t;
+    typedef RangeIter outer_iterator_t;
     typedef typename RangeIter::value_type::iterator_type inner_iterator_t;
 public:
-    typedef typename RangeIter::value_type::iterator_type::value_type value_type;
+    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::value_type value_type;
+    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::reference reference_type;
 
     join_range_iterator(const RangeIter& first_range, const RangeIter& last_range)
     {
@@ -45,13 +52,12 @@ public:
 
     join_range_iterator& operator=(join_range_iterator&&) noexcept = default;
 
-    value_type operator*() const noexcept
+    reference_type operator*() const noexcept
     {
         return *m_curr_it;
     }
 
     friend class iterator_access<join_range_iterator>;
-
 private:
     bool equal(const join_range_iterator& other) const
     {
@@ -95,13 +101,13 @@ private:
 }
 
 template <typename Range>
-class join_range
+class joined_range
 {
     typedef typename Range::iterator RangeIter;
 public:
     typedef details::join_range_iterator<RangeIter> iterator_type;
 
-    explicit join_range(const Range& rng)
+    explicit joined_range(Range& rng)
         : m_range(iterator_type(rng.begin(), rng.end()), iterator_type(rng.end()))
     {}
 
@@ -115,7 +121,7 @@ public:
         return m_range.end();
     }
 private:
-    iterator_range<RangeIter> m_range;
+    iterator_range<iterator_type> m_range;
 };
 
 }}}

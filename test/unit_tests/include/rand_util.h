@@ -12,6 +12,11 @@ public:
         , m_rand_distr(a, b)
     {}
 
+    uniform_rand_generator(const uniform_rand_generator& other)
+        : m_rand_gen(m_rand_dev())
+        , m_rand_distr(other.m_rand_distr.a(), other.m_rand_distr.b())
+    {}
+
     T operator()()
     {
         return m_rand_distr(m_rand_gen);

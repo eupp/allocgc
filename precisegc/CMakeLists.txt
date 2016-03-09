@@ -67,8 +67,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/managed_ptr.h
         include/libprecisegc/details/allocators/iterator_range.h
         include/libprecisegc/details/allocators/lockable_range.h
-        include/libprecisegc/details/allocators/join_range.h
-        )
+        include/libprecisegc/details/allocators/joined_range.h
+        include/libprecisegc/details/allocators/reversed_range.h)
 
 set(precisegc_LIB_SRCS
         src/index_tree.cpp

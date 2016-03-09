@@ -28,6 +28,7 @@ private:
     Iter m_end;
 };
 
+
 }}}
 
 #endif //DIPLOMA_ITERATOR_RANGE_H

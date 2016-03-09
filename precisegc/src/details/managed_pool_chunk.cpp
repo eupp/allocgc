@@ -175,7 +175,7 @@ byte* managed_pool_chunk::memory_descriptor::get_object_begin(byte* ptr)
     byte* cell_ptr = get_cell_begin(ptr);
     size_t obj_size = meta->get_class_meta()->get_type_size();
     size_t obj_ind = (ptr - cell_ptr) / obj_size;
-    return cell_ptr + obj_ind;
+    return cell_ptr + obj_ind * obj_size;
 }
 
 managed_memory_descriptor::lock_type managed_pool_chunk::memory_descriptor::lock()

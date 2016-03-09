@@ -7,6 +7,8 @@
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
 
+#include "rand_util.h"
+
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
@@ -21,6 +23,7 @@ public:
 
     managed_pool_chunk_test()
         : m_chunk(managed_pool_chunk::create(CELL_SIZE, m_alloc))
+        , m_rand(0, PAGE_SIZE - 1)
     {}
 
     ~managed_pool_chunk_test()
@@ -32,6 +35,7 @@ public:
 
     allocator_t m_alloc;
     managed_pool_chunk m_chunk;
+    uniform_rand_generator<size_t> m_rand;
 };
 
 TEST_F(managed_pool_chunk_test, test_create)
@@ -101,6 +105,36 @@ TEST_F(managed_pool_chunk_test, test_get_object_begin)
             ASSERT_EQ(obj_begin, descr->get_object_begin(p));
         }
     }
+}
+
+TEST_F(managed_pool_chunk_test, test_get_mark_pin)
+{
+    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    byte* mem = m_chunk.get_mem();
+    size_t mem_size = m_chunk.get_mem_size();
+
+    for (byte* ptr = mem; ptr < mem + mem_size; ++ptr) {
+        ASSERT_FALSE(descr->get_mark(ptr));
+        ASSERT_FALSE(descr->get_pin(ptr));
+    }
+}
+
+TEST_F(managed_pool_chunk_test, test_set_mark)
+{
+    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    byte* ptr = m_chunk.get_mem() + m_rand();
+
+    descr->set_mark(ptr, true);
+    ASSERT_EQ(descr->get_mark(ptr), true);
+}
+
+TEST_F(managed_pool_chunk_test, test_set_pin)
+{
+    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    byte* ptr = m_chunk.get_mem() + m_rand();
+
+    descr->set_pin(ptr, true);
+    ASSERT_EQ(descr->get_pin(ptr), true);
 }
 
 TEST_F(managed_pool_chunk_test, test_range)

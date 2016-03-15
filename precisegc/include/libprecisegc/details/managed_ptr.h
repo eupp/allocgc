@@ -42,6 +42,8 @@ public:
     void set_mark(bool mark);
     void set_pin(bool pin);
 
+    void sweep();
+
 //    void shade(byte* ptr);
 
     object_meta* get_meta() const;

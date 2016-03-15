@@ -53,10 +53,11 @@ void managed_cell_ptr::set_pin(bool pin)
     return m_descr->set_pin(get(), pin);
 }
 
-//void managed_cell_ptr::shade(byte* ptr)
-//{
-//
-//}
+void managed_cell_ptr::sweep()
+{
+    descriptor_lazy_init();
+    m_descr->sweep(get());
+}
 
 object_meta* managed_cell_ptr::get_meta() const
 {

@@ -21,16 +21,18 @@ namespace precisegc { namespace details {
 
 class managed_pool_chunk : private noncopyable
 {
-    typedef std::uintptr_t uintptr;
-    typedef allocators::plain_pool_chunk plain_pool_chunk;
-    typedef managed_memory_descriptor::lock_type lock_type;
 public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
     static const size_t CHUNK_MINSIZE = 32;
+private:
+    typedef std::uintptr_t uintptr;
+    typedef allocators::plain_pool_chunk plain_pool_chunk;
+    typedef managed_memory_descriptor::lock_type lock_type;
+    typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
+public:
 
     class memory_descriptor : public managed_memory_descriptor, private noncopyable, private nonmovable
     {
-        typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
     public:
         ~memory_descriptor();
 
@@ -39,6 +41,8 @@ public:
 
         virtual void set_mark(byte* ptr, bool mark) override;
         virtual void set_pin(byte* ptr, bool pin) override;
+
+        virtual void sweep(byte* ptr) override;
 
 //        virtual void shade(byte* ptr) override;
 
@@ -147,8 +151,11 @@ public:
 protected:
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size, memory_descriptor* descr);
 private:
+    static size_t calc_cell_ind(byte* ptr, size_t obj_size, byte* base_ptr, size_t size);
+
     plain_pool_chunk m_chunk;
     memory_descriptor* m_descr;
+    bitset_t m_alloc_bits;
 };
 
 }}

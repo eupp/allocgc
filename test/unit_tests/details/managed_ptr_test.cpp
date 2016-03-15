@@ -102,6 +102,16 @@ TEST_F(managed_cell_ptr_test, test_set_pin)
     cell_ptr.set_pin(true);
 }
 
+TEST_F(managed_cell_ptr_test, test_sweep)
+{
+    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+
+    EXPECT_CALL(m_mock, sweep(m_mem.get()))
+            .Times(Exactly(1));
+
+    cell_ptr.sweep();
+}
+
 TEST_F(managed_cell_ptr_test, test_get_meta)
 {
     managed_cell_ptr cell_ptr(m_ptr, &m_mock);
@@ -119,6 +129,7 @@ TEST_F(managed_cell_ptr_test, test_descriptor_lazy_init_1)
     managed_cell_ptr cell_ptr3(m_ptr);
     managed_cell_ptr cell_ptr4(m_ptr);
     managed_cell_ptr cell_ptr5(m_ptr);
+    managed_cell_ptr cell_ptr6(m_ptr);
 
     EXPECT_CALL(m_mock, get_mark(m_mem.get()))
             .Times(Exactly(1));
@@ -130,6 +141,8 @@ TEST_F(managed_cell_ptr_test, test_descriptor_lazy_init_1)
             .Times(Exactly(1));
     EXPECT_CALL(m_mock, get_cell_meta(m_mem.get()))
             .Times(Exactly(1));
+    EXPECT_CALL(m_mock, sweep(m_mem.get()))
+            .Times(Exactly(1));
 
 
     cell_ptr1.get_mark();
@@ -137,6 +150,7 @@ TEST_F(managed_cell_ptr_test, test_descriptor_lazy_init_1)
     cell_ptr3.set_mark(true);
     cell_ptr4.set_pin(true);
     cell_ptr5.get_meta();
+    cell_ptr6.sweep();
 }
 
 TEST_F(managed_cell_ptr_test, test_descriptor_lazy_init_2)

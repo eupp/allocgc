@@ -39,13 +39,20 @@ managed_cell_ptr managed_pool_chunk::allocate(size_t cell_size)
 {
     lock_type lock = m_descr->lock();
     byte* raw_ptr = m_chunk.allocate(cell_size);
+    size_t ind = calc_cell_ind(raw_ptr, cell_size, get_mem(), get_mem_size());
+    m_alloc_bits[ind] = true;
     return managed_cell_ptr(managed_ptr(raw_ptr), m_descr, std::move(lock));
 }
 
 void managed_pool_chunk::deallocate(managed_cell_ptr ptr, size_t cell_size)
 {
 //    lock_type lock = m_descr->lock();
-    m_chunk.deallocate(ptr.get(), cell_size);
+    byte* raw_ptr = ptr.get();
+    size_t ind = calc_cell_ind(raw_ptr, cell_size, get_mem(), get_mem_size());
+    if (m_alloc_bits[ind]) {
+        m_alloc_bits[ind] = false;
+        m_chunk.deallocate(ptr.get(), cell_size);
+    }
 }
 
 bool managed_pool_chunk::contains(byte* ptr) const noexcept
@@ -113,6 +120,13 @@ void swap(managed_pool_chunk& a, managed_pool_chunk& b)
     a.swap(b);
 }
 
+size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t cell_size, byte* base_ptr, size_t size)
+{
+    assert(base_ptr <= ptr && ptr < base_ptr + size);
+    assert((ptr - base_ptr) % cell_size == 0);
+    return (ptr - base_ptr) / cell_size;
+}
+
 managed_pool_chunk::memory_descriptor::memory_descriptor(managed_pool_chunk* chunk_ptr,
                                                          byte* chunk_mem, size_t size, size_t cell_size)
     : m_chunk_ptr(chunk_ptr)
@@ -137,17 +151,6 @@ void managed_pool_chunk::memory_descriptor::set_pool_chunk(managed_pool_chunk* p
     m_chunk_ptr = pool_chunk;
 }
 
-managed_pool_chunk::uintptr managed_pool_chunk::memory_descriptor::calc_mask(byte* chunk,
-                                                                             size_t chunk_size,
-                                                                             size_t cell_size)
-{
-    size_t chunk_size_bits = log_2(chunk_size);
-    size_t cell_size_bits = log_2(cell_size);
-    size_t bit_diff = chunk_size_bits - cell_size_bits;
-    uintptr ptr = reinterpret_cast<uintptr>(chunk);
-    return (ptr | ((1 << bit_diff) - 1) << cell_size_bits);
-}
-
 bool managed_pool_chunk::memory_descriptor::get_mark(byte* ptr)
 {
     size_t ind = calc_cell_ind(ptr);
@@ -170,6 +173,11 @@ void managed_pool_chunk::memory_descriptor::set_pin(byte* ptr, bool pin)
 {
     size_t ind = calc_cell_ind(ptr);
     m_pin_bits[ind] = pin;
+}
+
+void managed_pool_chunk::memory_descriptor::sweep(byte* ptr)
+{
+    m_chunk_ptr->deallocate(managed_cell_ptr(managed_ptr(get_cell_begin(ptr))), m_cell_size);
 }
 
 object_meta* managed_pool_chunk::memory_descriptor::get_cell_meta(byte* ptr)
@@ -207,13 +215,20 @@ managed_memory_descriptor::lock_type managed_pool_chunk::memory_descriptor::lock
     return std::unique_lock<mutex>(m_mutex, t);
 }
 
+managed_pool_chunk::uintptr managed_pool_chunk::memory_descriptor::calc_mask(byte* chunk,
+                                                                             size_t chunk_size,
+                                                                             size_t cell_size)
+{
+    size_t chunk_size_bits = log_2(chunk_size);
+    size_t cell_size_bits = log_2(cell_size);
+    size_t bit_diff = chunk_size_bits - cell_size_bits;
+    uintptr ptr = reinterpret_cast<uintptr>(chunk);
+    return (ptr | ((1 << bit_diff) - 1) << cell_size_bits);
+}
+
 size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr) const
 {
-    byte* mem = m_chunk_ptr->get_mem();
-    assert(mem <= ptr && ptr < mem + m_chunk_ptr->get_mem_size());
-    byte* cell_ptr = get_cell_begin(ptr);
-    assert((cell_ptr - mem) % m_cell_size == 0);
-    return (cell_ptr - mem) / m_cell_size;
+    return managed_pool_chunk::calc_cell_ind(get_cell_begin(ptr), m_cell_size, m_chunk_ptr->get_mem(), m_chunk_ptr->get_mem_size());
 }
 
 byte* managed_pool_chunk::memory_descriptor::get_cell_begin(byte* ptr) const

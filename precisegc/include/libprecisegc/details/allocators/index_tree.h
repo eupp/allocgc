@@ -11,6 +11,7 @@
 
 #include "constants.h"
 #include "types.h"
+#include "../mutex.h"
 
 #include "any_ptr.h"
 #include "../util.h"
@@ -35,6 +36,7 @@ public:
 
     void index(byte* mem, size_t size, T* entry)
     {
+        lock_guard<mutex> lock(m_mutex);
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
@@ -44,6 +46,7 @@ public:
 
     void remove_index(byte* mem, size_t size)
     {
+        lock_guard<mutex> lock(m_mutex);
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
@@ -53,6 +56,7 @@ public:
 
     T* get_entry(byte* mem)
     {
+        lock_guard<mutex> lock(m_mutex);
         return get_page_entry(mem);
     }
 
@@ -233,6 +237,7 @@ private:
 
 
     any_ptr m_first_level[FIRST_LEVEL_SIZE];
+    mutex m_mutex;
 };
 
 }}}

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <iterator>
 
 #include "libprecisegc/details/allocators/fixed_size_allocator.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
@@ -60,4 +61,18 @@ TEST_F(fixed_size_allocator_test, test_allocate_3)
 
     m_alloc.deallocate((byte*) ptr1, OBJ_SIZE);
     m_alloc.deallocate((byte*) ptr2, OBJ_SIZE);
+}
+
+TEST_F(fixed_size_allocator_test, test_range)
+{
+    byte* ptr1 = m_alloc.allocate(OBJ_SIZE);
+    byte* ptr2 = m_alloc.allocate(OBJ_SIZE);
+
+    auto rng = m_alloc.range();
+    auto first = rng.begin();
+    auto last = rng.end();
+
+    ASSERT_EQ(2, std::distance(first, last));
+    ASSERT_EQ(ptr1, *first);
+    ASSERT_EQ(ptr2, *(++first));
 }

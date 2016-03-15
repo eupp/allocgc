@@ -9,26 +9,26 @@ template<typename Range>
 class reversed_range
 {
 public:
-    typedef std::reverse_iterator<typename Range::iterator_type> iterator_type;
+    typedef std::reverse_iterator<typename Range::iterator> iterator;
 
     reversed_range(const Range& rng)
         : m_begin(rng.end())
         , m_end(rng.begin())
     {}
 
-    iterator_type begin() const
+    iterator begin() const
     {
         return m_begin;
     }
 
-    iterator_type end() const
+    iterator end() const
     {
         return m_end;
     }
 
 private:
-    iterator_type m_begin;
-    iterator_type m_end;
+    iterator m_begin;
+    iterator m_end;
 };
 
 }}}

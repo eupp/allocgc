@@ -21,7 +21,7 @@ static const size_t RANGE_SIZE = 64;
 struct test_range
 {
 public:
-    typedef byte* iterator_type;
+    typedef byte* iterator;
     typedef iterator_range<byte*> range_type;
 
     test_range()
@@ -34,6 +34,7 @@ public:
     {
         return range_type(mem, mem + RANGE_SIZE);
     }
+
     byte mem[RANGE_SIZE];
 };
 }

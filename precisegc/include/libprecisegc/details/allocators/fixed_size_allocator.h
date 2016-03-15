@@ -64,7 +64,7 @@ public:
         }
     }
 
-    range_type range() const
+    range_type range()
     {
         return range_type(m_chunks);
     }

@@ -14,17 +14,17 @@ namespace details {
 template<typename RangeIter>
 class join_range_iterator : public iterator_facade<join_range_iterator<RangeIter>,
         std::bidirectional_iterator_tag,
-        typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::value_type,
+        typename std::iterator_traits<typename RangeIter::value_type::iterator>::value_type,
         ptrdiff_t,
-        typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::pointer,
-        typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::reference
+        typename std::iterator_traits<typename RangeIter::value_type::iterator>::pointer,
+        typename std::iterator_traits<typename RangeIter::value_type::iterator>::reference
     >
 {
     typedef RangeIter outer_iterator_t;
-    typedef typename RangeIter::value_type::iterator_type inner_iterator_t;
+    typedef typename RangeIter::value_type::iterator inner_iterator_t;
 public:
-    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::value_type value_type;
-    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator_type>::reference reference_type;
+    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator>::value_type value_type;
+    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator>::reference reference_type;
 
     join_range_iterator(const RangeIter& first_range, const RangeIter& last_range)
     {
@@ -104,23 +104,23 @@ class joined_range
 {
     typedef typename Range::iterator RangeIter;
 public:
-    typedef details::join_range_iterator<RangeIter> iterator_type;
+    typedef details::join_range_iterator<RangeIter> iterator;
 
     explicit joined_range(Range& rng)
-        : m_range(iterator_type(rng.begin(), rng.end()), iterator_type(rng.end()))
+        : m_range(iterator(rng.begin(), rng.end()), iterator(rng.end()))
     {}
 
-    iterator_type begin() const
+    iterator begin() const
     {
         return m_range.begin();
     }
 
-    iterator_type end() const
+    iterator end() const
     {
         return m_range.end();
     }
 private:
-    iterator_range<iterator_type> m_range;
+    iterator_range<iterator> m_range;
 };
 
 }}}

@@ -96,7 +96,7 @@ public:
     };
 
     typedef managed_cell_ptr pointer_type;
-    typedef allocators::lockable_range<allocators::iterator_range<iterator>, std::unique_lock<mutex>> range_type;
+    typedef allocators::iterator_range<iterator> range_type;
 
     managed_pool_chunk();
 
@@ -147,7 +147,6 @@ public:
 protected:
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size, memory_descriptor* descr);
 private:
-
     plain_pool_chunk m_chunk;
     memory_descriptor* m_descr;
 };

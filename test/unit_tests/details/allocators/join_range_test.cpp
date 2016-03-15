@@ -38,6 +38,13 @@ public:
 };
 }
 
+TEST(join_range_test, test_empty)
+{
+    std::vector<test_range> vec;
+    joined_range<decltype(vec)> rng(vec);
+    ASSERT_EQ(rng.begin(), rng.end());
+}
+
 TEST(join_range_test, test_forward_pass)
 {
     static const size_t VEC_SIZE = 3;

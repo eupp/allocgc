@@ -66,6 +66,7 @@ private:
 
     void increment()
     {
+        assert(m_curr_range != m_end_range);
         ++m_curr_it;
         if (m_curr_it == m_end_it) {
             ++m_curr_range;
@@ -73,8 +74,6 @@ private:
                 auto rng = m_curr_range->get_range();
                 m_curr_it = rng.begin();
                 m_end_it = rng.end();
-            } else {
-                return;
             }
         }
     }

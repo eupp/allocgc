@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "stl_adapter.h"
+#include "joined_range.h"
 #include "../util.h"
 
 namespace precisegc { namespace details { namespace allocators {
@@ -13,8 +14,10 @@ namespace precisegc { namespace details { namespace allocators {
 template <typename Chunk, typename Alloc, typename InternalAlloc>
 class fixed_size_allocator : private ebo<Alloc>, private noncopyable
 {
+    typedef std::vector<Chunk, stl_adapter<Chunk, InternalAlloc>> vector_t;
 public:
     typedef typename Chunk::pointer_type pointer_type;
+    typedef joined_range<vector_t> range_type;
 
     fixed_size_allocator()
     {
@@ -61,6 +64,11 @@ public:
         }
     }
 
+    range_type range() const
+    {
+        return range_type(m_chunks);
+    }
+
     const Alloc& get_allocator() const
     {
         return this->template get_base<Alloc>();
@@ -72,8 +80,6 @@ public:
     }
 
 private:
-    typedef std::vector<Chunk, stl_adapter<Chunk, InternalAlloc>> vector_t;
-
     Alloc& get_allocator()
     {
         return this->template get_base<Alloc>();

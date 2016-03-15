@@ -84,7 +84,7 @@ managed_pool_chunk::range_type managed_pool_chunk::get_range() const
     byte* b = get_mem();
     byte* e = b + get_mem_size();
     auto lock = std::unique_lock<mutex>(m_descr->m_mutex, std::defer_lock_t());
-    return range_type(iterator(b, m_descr), iterator(e, m_descr), std::move(lock));
+    return range_type(iterator(b, m_descr), iterator(e, m_descr));
 }
 
 void managed_pool_chunk::swap(managed_pool_chunk& other)

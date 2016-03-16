@@ -1,41 +1,74 @@
 #include <gtest/gtest.h>
 
+#include <unordered_set>
+
 #include "libprecisegc/details/gc_compact.h"
 #include "libprecisegc/details/segregated_list.h"
 
+#include "libprecisegc/details/allocators/fixed_size_allocator.h"
+#include "libprecisegc/details/allocators/paged_allocator.h"
+#include "libprecisegc/details/managed_pool_chunk.h"
+
+#include "rand_util.h"
+
 using namespace precisegc::details;
+using namespace precisegc::details::allocators;
 
-static const size_t OBJ_SIZE = PAGE_SIZE / OBJECTS_PER_PAGE;
-static const size_t OBJ_COUNT = 5;
+namespace {
+static const size_t OBJ_SIZE = 32;      // PAGE_SIZE / OBJECTS_PER_PAGE;
+static const size_t OBJ_COUNT_1 = 5;    //
+static const size_t OBJ_COUNT_2 = 3 * managed_pool_chunk::CHUNK_MAXSIZE;
 
-TEST(gc_compact_test, test_two_finger_compact)
+struct test_type
 {
-    segregated_list sl(OBJ_SIZE);
-    for (int i = 0; i < OBJ_COUNT; ++i) {
-        auto alloc_res = sl.allocate();
-        set_object_mark(alloc_res.first, false);
+    byte data[OBJ_SIZE];
+};
+
+typedef fixed_size_allocator<managed_pool_chunk,
+                             paged_allocator,
+                             paged_allocator
+                            > allocator_t;
+}
+
+class gc_compact_test : public ::testing::Test
+{
+public:
+    ~gc_compact_test()
+    {
+        for (auto ptr: m_allocated) {
+            m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr)), OBJ_SIZE);
+        }
+    }
+
+    allocator_t m_alloc;
+    std::unordered_set<byte*> m_allocated;
+};
+
+TEST_F(gc_compact_test, test_two_finger_compact_1)
+{
+    for (int i = 0; i < OBJ_COUNT_1; ++i) {
+        managed_cell_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        m_allocated.insert(cell_ptr.get());
+        cell_ptr.set_mark(false);
     }
 
     // mark & pin some objects
-    auto it1 = sl.begin();
-    it1.set_marked(true);
+    auto rng = m_alloc.range();
+    auto it1 = rng.begin();
+    it1->set_mark(true);
     ++it1;
-    void* exp_to = *it1;
+    byte* exp_to = it1->get();
 
-    auto it2 = std::next(sl.begin(), 3);
-    it2.set_marked(true);
-    it2.set_pinned(true);
+    auto it2 = std::next(rng.begin(), 3);
+    it2->set_mark(true);
+    it2->set_pin(true);
 
-    auto it3 = std::next(sl.begin(), 4);
-    void* exp_from = *it3;
-    it3.set_marked(true);
+    auto it3 = std::next(rng.begin(), 4);
+    byte* exp_from = it3->get();
+    it3->set_mark(true);
 
     forwarding_list frwd;
-    two_finger_compact(sl.begin(), sl.end(), OBJ_SIZE, frwd);
-    
-    auto end = it2;
-    ++end;
-    ASSERT_EQ(end, sl.end());
+    two_finger_compact(rng, OBJ_SIZE, frwd);
 
     ASSERT_EQ(1, frwd.size());
     void* from = frwd[0].from();
@@ -45,12 +78,50 @@ TEST(gc_compact_test, test_two_finger_compact)
     ASSERT_EQ(exp_to, to);
 }
 
-struct test_type
+TEST_F(gc_compact_test, test_two_finger_compact_2)
 {
-    size_t val;
-};
+    bernoulli_rand_generator mark_gen(0.3);
+    bernoulli_rand_generator pin_gen(0.2);
+    size_t exp_mark_cnt = 0;
+    size_t exp_pin_cnt = 0;
+    std::unordered_set<byte*> pinned;
+    for (int i = 0; i < OBJ_COUNT_2; ++i) {
+        managed_cell_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        m_allocated.insert(cell_ptr.get());
+        bool mark = mark_gen();
+        bool pin = pin_gen();
+        cell_ptr.set_mark(mark);
+        cell_ptr.set_pin(pin);
+        if (mark) {
+            exp_mark_cnt++;
+        }
+        if (pin) {
+            exp_pin_cnt++;
+            pinned.insert(cell_ptr.get());
+        }
+    }
 
-TEST(gc_compact_test, test_fix_pointers)
+    auto rng = m_alloc.range();
+    forwarding_list frwd;
+    two_finger_compact(rng, OBJ_SIZE, frwd);
+
+    size_t mark_cnt = 0;
+    size_t pin_cnt = 0;
+    for (auto cell_ptr: rng) {
+        if (cell_ptr.get_mark()) {
+            mark_cnt++;
+        }
+        if (cell_ptr.get_pin()) {
+            pin_cnt++;
+            EXPECT_TRUE(pinned.count(cell_ptr.get()));
+        }
+    }
+
+    EXPECT_EQ(exp_mark_cnt, mark_cnt);
+    EXPECT_EQ(exp_pin_cnt, pin_cnt);
+}
+
+TEST_F(gc_compact_test, test_fix_pointers)
 {
     segregated_list sl(OBJ_SIZE);
     auto alloc_res = sl.allocate();

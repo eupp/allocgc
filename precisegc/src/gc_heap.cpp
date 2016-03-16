@@ -48,7 +48,7 @@ forwarding_list gc_heap::compact_memory()
     forwarding_list frwd;
     size_t compacted_size = 0;
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        compacted_size += two_finger_compact(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
+//        compacted_size += two_finger_compact(m_storage[i].begin(), m_storage[i].end(), m_storage[i].alloc_size(), frwd);
         m_storage[i].clear_mark_bits();
 
 //        logging::info() << "Already compacted " << compacted_size << " bytes";

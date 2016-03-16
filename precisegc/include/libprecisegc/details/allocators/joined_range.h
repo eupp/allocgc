@@ -24,7 +24,8 @@ class join_range_iterator : public iterator_facade<join_range_iterator<RangeIter
     typedef typename RangeIter::value_type::iterator inner_iterator_t;
 public:
     typedef typename std::iterator_traits<typename RangeIter::value_type::iterator>::value_type value_type;
-    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator>::reference reference_type;
+    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator>::reference reference;
+    typedef typename std::iterator_traits<typename RangeIter::value_type::iterator>::pointer pointer;
 
     join_range_iterator(const RangeIter& first_range, const RangeIter& last_range)
     {
@@ -52,9 +53,14 @@ public:
 
     join_range_iterator& operator=(join_range_iterator&&) noexcept = default;
 
-    reference_type operator*() const noexcept
+    reference operator*() const noexcept
     {
         return *m_curr_it;
+    }
+
+    pointer operator->() const noexcept
+    {
+        return m_curr_it.operator->();
     }
 
     friend class iterator_access<join_range_iterator>;
@@ -72,8 +78,9 @@ private:
             ++m_curr_range;
             if (m_curr_range != m_end_range) {
                 auto rng = m_curr_range->get_range();
-                m_curr_it = rng.begin();
+                m_begin_it = rng.begin();
                 m_end_it = rng.end();
+                m_curr_it = m_begin_it;
             }
         }
     }
@@ -83,8 +90,9 @@ private:
         if (m_curr_it == m_begin_it) {
             --m_curr_range;
             auto rng = m_curr_range->get_range();
-            m_curr_it = rng.end();
+            m_begin_it = rng.begin();
             m_end_it = rng.end();
+            m_curr_it = m_end_it;
         }
         --m_curr_it;
     }
@@ -93,8 +101,8 @@ private:
     inner_iterator_t m_end_it;
     inner_iterator_t m_curr_it;
 
-    outer_iterator_t m_curr_range;
     outer_iterator_t m_end_range;
+    outer_iterator_t m_curr_range;
 };
 
 }

@@ -55,9 +55,9 @@ void managed_pool_chunk::deallocate(managed_cell_ptr ptr, size_t cell_size)
     }
 }
 
-bool managed_pool_chunk::contains(byte* ptr) const noexcept
+bool managed_pool_chunk::contains(managed_cell_ptr ptr) const noexcept
 {
-    return m_chunk.contains(ptr);
+    return m_chunk.contains(ptr.get());
 }
 
 bool managed_pool_chunk::memory_available() const noexcept
@@ -242,6 +242,11 @@ size_t managed_pool_chunk::memory_descriptor::get_cell_size() const
     return m_cell_size;
 }
 
+managed_pool_chunk::iterator::iterator() noexcept
+    : m_ptr(nullptr)
+    , m_descr(nullptr)
+{}
+
 managed_pool_chunk::iterator::iterator(byte* ptr, managed_pool_chunk::memory_descriptor* descr) noexcept
     : m_ptr(ptr)
     , m_descr(descr)
@@ -267,4 +272,8 @@ managed_cell_ptr managed_pool_chunk::iterator::operator*() const noexcept
     return managed_cell_ptr(managed_ptr(m_ptr), m_descr);
 }
 
+managed_pool_chunk::iterator::proxy managed_pool_chunk::iterator::operator->() const noexcept
+{
+    return proxy(managed_cell_ptr(managed_ptr(m_ptr), m_descr));
+}
 }}

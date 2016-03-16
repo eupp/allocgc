@@ -16,7 +16,7 @@ namespace precisegc { namespace details {
 typedef allocators::index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
 typedef allocators::indexed_ptr<byte, index_type> managed_ptr;
 
-class managed_cell_ptr : private noncopyable
+class managed_cell_ptr
 {
 public:
     typedef managed_memory_descriptor::lock_type lock_type;
@@ -32,6 +32,9 @@ public:
     explicit managed_cell_ptr(managed_ptr idx_ptr);
     managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor);
     managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor, lock_type&& lock);
+
+    managed_cell_ptr(const managed_cell_ptr& other);
+    managed_cell_ptr& operator=(const managed_cell_ptr& other);
 
     managed_cell_ptr(managed_cell_ptr&& other) = default;
     managed_cell_ptr& operator=(managed_cell_ptr&& other) = default;

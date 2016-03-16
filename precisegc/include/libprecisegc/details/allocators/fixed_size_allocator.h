@@ -33,9 +33,8 @@ public:
             m_alloc_chunk = std::prev(m_chunks.end(), 1);
             return m_alloc_chunk->allocate(size);
         }
-        byte* ptr = m_alloc_chunk->allocate(size);
-        if (ptr != nullptr) {
-            return ptr;
+        if (m_alloc_chunk->memory_available()) {
+            return m_alloc_chunk->allocate(size);
         }
 
         m_alloc_chunk = std::find_if(m_chunks.begin(), m_chunks.end(),

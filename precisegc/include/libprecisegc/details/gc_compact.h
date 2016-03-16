@@ -1,67 +1,39 @@
 #ifndef DIPLOMA_GC_COMPACT_H
 #define DIPLOMA_GC_COMPACT_H
 
+#include <iterator>
+#include <algorithm>
+
 #include "forwarding_list.h"
 #include "thread_list.h"
 #include "object_meta.h"
 #include "gc_mark.h"
 #include "../gc_ptr.h"
 #include "../object.h"
+#include "managed_ptr.h"
 
 namespace precisegc { namespace details {
 
-template <typename Iterator>
-size_t two_finger_compact(const Iterator& first, const Iterator& last, size_t obj_size, forwarding_list& frwd)
+template <typename Range>
+void two_finger_compact(Range& rng, size_t obj_size, forwarding_list& frwd)
 {
-    if (first == last) {
-        return 0;
-    }
-
-    size_t compacted_size = 0;
-
-    auto deallocate_it = [](Iterator it) {
-        auto tmp = it;
-        --it;
-        tmp.deallocate();
-        return it;
-    };
-
-    auto from = last;
-    auto to = first;
-    --from;
+    typedef std::reverse_iterator<typename Range::iterator> reverse_iterator;
+    auto to = rng.begin();
+    auto from = rng.end();
     while (from != to) {
-        while (!from.is_marked() && from != to) {
-            if (from.is_pinned()) {
-                --from;
-            } else {
-                from = deallocate_it(from);
-            }
-        }
-        if (from.is_pinned() && from != to) {
-            --from;
-            continue;
-        }
-        while (to.is_marked() && from != to) {
-            ++to;
-        }
-        if (to.is_pinned() && from != to) {
-            ++to;
-            continue;
-        }
+        to = std::find_if(to, from,
+                          [](managed_cell_ptr cell_ptr) { return !cell_ptr.get_mark() && !cell_ptr.get_pin(); });
+        auto rev_from = std::find_if(reverse_iterator(from),
+                                     reverse_iterator(to),
+                                     [](managed_cell_ptr cell_ptr) { return cell_ptr.get_mark() && !cell_ptr.get_pin(); });
+        from = rev_from.base();
         if (from != to) {
-            frwd.emplace_back(*from, *to, obj_size);
-            compacted_size += obj_size;
-            from = deallocate_it(from);
-            if (from != to) {
-                to++;
-            }
+            --from;
+            frwd.emplace_back(from->get(), to->get(), obj_size);
+            from->set_mark(false);
+            to->set_mark(true);
         }
     }
-    if (!from.is_marked()) {
-        from.deallocate();
-    }
-
-    return compacted_size;
 }
 
 inline void fix_ptr(void* ptr, const forwarding_list& forwarding)

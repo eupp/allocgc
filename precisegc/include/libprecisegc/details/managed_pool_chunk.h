@@ -77,7 +77,27 @@ public:
 
     class iterator: public iterator_facade<iterator, std::bidirectional_iterator_tag, managed_cell_ptr>
     {
+        class proxy
+        {
+        public:
+            proxy(managed_cell_ptr&& ptr)
+                : m_ptr(std::move(ptr))
+            {}
+
+            managed_cell_ptr* operator->() noexcept
+            {
+                return &m_ptr;
+            }
+        private:
+            managed_cell_ptr m_ptr;
+        };
     public:
+
+        typedef managed_cell_ptr value_type;
+        typedef managed_cell_ptr reference;
+        typedef proxy pointer;
+
+        iterator() noexcept;
         iterator(const iterator&) noexcept = default;
         iterator(iterator&&) noexcept = default;
 
@@ -85,6 +105,7 @@ public:
         iterator& operator=(iterator&&) noexcept = default;
 
         managed_cell_ptr operator*() const noexcept;
+        proxy operator->() const noexcept;
 
         friend class managed_pool_chunk;
         friend class iterator_access<iterator>;
@@ -112,7 +133,7 @@ public:
     managed_cell_ptr allocate(size_t cell_size);
     void deallocate(managed_cell_ptr ptr, size_t cell_size);
 
-    bool contains(byte* ptr) const noexcept;
+    bool contains(managed_cell_ptr ptr) const noexcept;
     bool memory_available() const noexcept;
     bool empty(size_t cell_size) const noexcept;
 

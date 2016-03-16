@@ -2,7 +2,6 @@
 
 namespace precisegc { namespace details {
 
-
 managed_cell_ptr::managed_cell_ptr()
     : managed_cell_ptr(nullptr)
 {}
@@ -28,6 +27,21 @@ managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descripto
     , m_descr(descriptor)
     , m_lock(std::move(lock))
 {}
+
+managed_cell_ptr::managed_cell_ptr(const managed_cell_ptr& other)
+    : m_ptr(other.m_ptr)
+    , m_descr(other.m_descr)
+{}
+
+managed_cell_ptr& managed_cell_ptr::operator=(const managed_cell_ptr& other)
+{
+    if (m_ptr != other.m_ptr) {
+        m_lock.release();
+        m_ptr = other.m_ptr;
+        m_descr = other.m_descr;
+    }
+    return *this;
+}
 
 bool managed_cell_ptr::get_mark() const
 {

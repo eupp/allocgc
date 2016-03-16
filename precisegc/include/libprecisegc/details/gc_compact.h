@@ -36,6 +36,18 @@ void two_finger_compact(Range& rng, size_t obj_size, forwarding_list& frwd)
     }
 }
 
+template <typename Range>
+void sweep(Range& rng)
+{
+    for (managed_cell_ptr cell_ptr: rng) {
+        if (cell_ptr.get_mark()) {
+            cell_ptr.set_mark(false);
+        } else {
+            cell_ptr.sweep();
+        }
+    }
+}
+
 inline void fix_ptr(void* ptr, const forwarding_list& forwarding)
 {
     void*& from = * ((void**) ptr);

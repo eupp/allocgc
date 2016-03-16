@@ -7,7 +7,7 @@ template <typename Iter>
 class iterator_range
 {
 public:
-    typedef Iter iterator_type;
+    typedef Iter iterator;
 
     iterator_range(const Iter& b, const Iter& e)
         : m_begin(b)

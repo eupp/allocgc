@@ -51,7 +51,7 @@ void managed_pool_chunk::deallocate(managed_cell_ptr ptr, size_t cell_size)
     size_t ind = calc_cell_ind(raw_ptr, cell_size, get_mem(), get_mem_size());
     if (m_alloc_bits[ind]) {
         m_alloc_bits[ind] = false;
-        m_chunk.deallocate(ptr.get(), cell_size);
+        m_chunk.deallocate(raw_ptr, cell_size);
     }
 }
 

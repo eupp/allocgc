@@ -33,14 +33,21 @@ typedef fixed_size_allocator<managed_pool_chunk,
 class gc_compact_test : public ::testing::Test
 {
 public:
+    gc_compact_test()
+        : m_chunk(managed_pool_chunk::create(OBJ_SIZE, m_paged_alloc))
+    {}
+
     ~gc_compact_test()
     {
         for (auto ptr: m_allocated) {
             m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr)), OBJ_SIZE);
         }
+        managed_pool_chunk::destroy(m_chunk, OBJ_SIZE, m_paged_alloc);
     }
 
+    paged_allocator m_paged_alloc;
     allocator_t m_alloc;
+    managed_pool_chunk m_chunk;
     std::unordered_set<byte*> m_allocated;
 };
 
@@ -52,20 +59,23 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
         cell_ptr.set_mark(false);
     }
 
-    // mark & pin some objects
     auto rng = m_alloc.range();
-    auto it1 = rng.begin();
-    it1->set_mark(true);
-    ++it1;
-    byte* exp_to = it1->get();
+    auto it0 = std::next(rng.begin(), 0);
+    auto it1 = std::next(rng.begin(), 1);
+    auto it2 = std::next(rng.begin(), 2);
+    auto it3 = std::next(rng.begin(), 3);
+    auto it4 = std::next(rng.begin(), 4);
 
-    auto it2 = std::next(rng.begin(), 3);
-    it2->set_mark(true);
-    it2->set_pin(true);
+    // mark & pin some objects
+    it0->set_mark(true);
 
-    auto it3 = std::next(rng.begin(), 4);
-    byte* exp_from = it3->get();
     it3->set_mark(true);
+    it3->set_pin(true);
+
+    it4->set_mark(true);
+
+    byte* exp_to = it1->get();
+    byte* exp_from = it4->get();
 
     forwarding_list frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
@@ -76,9 +86,49 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
 
     ASSERT_EQ(exp_from, from);
     ASSERT_EQ(exp_to, to);
+
+    ASSERT_TRUE(it0->get_mark());
+    ASSERT_TRUE(it1->get_mark());
+    ASSERT_TRUE(it3->get_mark());
+    ASSERT_TRUE(it3->get_pin());
+
+    ASSERT_FALSE(it2->get_mark());
+    ASSERT_FALSE(it4->get_mark());
 }
 
 TEST_F(gc_compact_test, test_two_finger_compact_2)
+{
+    const size_t LIVE_CNT = 5;
+
+    uniform_rand_generator<size_t> rand_gen(0, managed_pool_chunk::CHUNK_MINSIZE - 1);
+    auto rng = m_chunk.get_range();
+    for (size_t i = 0; i < LIVE_CNT; ++i) {
+        size_t rand = rand_gen();
+        auto it = std::next(rng.begin(), rand);
+        while (it->get_mark()) {
+            rand = rand_gen();
+            it = std::next(rng.begin(), rand);
+        }
+        it->set_mark(true);
+    }
+
+    forwarding_list frwd;
+    two_finger_compact(rng, OBJ_SIZE, frwd);
+
+    auto live_begin = rng.begin();
+    auto live_end = std::next(live_begin, LIVE_CNT);
+    auto dead_begin = live_end;
+    auto dead_end = rng.end();
+    size_t dead_cnt = std::distance(dead_begin, dead_end);
+    for (auto it = live_begin; it != live_end; ++it) {
+        ASSERT_TRUE(it->get_mark());
+    }
+    for (auto it = dead_begin; it != dead_end; ++it) {
+        ASSERT_FALSE(it->get_mark());
+    }
+}
+
+TEST_F(gc_compact_test, test_two_finger_compact_3)
 {
     bernoulli_rand_generator mark_gen(0.3);
     bernoulli_rand_generator pin_gen(0.2);
@@ -119,6 +169,42 @@ TEST_F(gc_compact_test, test_two_finger_compact_2)
 
     EXPECT_EQ(exp_mark_cnt, mark_cnt);
     EXPECT_EQ(exp_pin_cnt, pin_cnt);
+}
+
+TEST_F(gc_compact_test, test_compact_and_sweep)
+{
+    const size_t LIVE_CNT = 5;
+
+    for (size_t i = 0; i < managed_pool_chunk::CHUNK_MINSIZE; ++i) {
+        m_chunk.allocate(OBJ_SIZE);
+    }
+
+    uniform_rand_generator<size_t> rand_gen(0, managed_pool_chunk::CHUNK_MINSIZE - 1);
+    auto rng = m_chunk.get_range();
+    for (size_t i = 0; i < LIVE_CNT; ++i) {
+        size_t rand = rand_gen();
+        auto it = std::next(rng.begin(), rand);
+        while (it->get_mark()) {
+            rand = rand_gen();
+            it = std::next(rng.begin(), rand);
+        }
+        it->set_mark(true);
+    }
+
+    forwarding_list frwd;
+    two_finger_compact(rng, OBJ_SIZE, frwd);
+    sweep(rng);
+
+    for (auto it = rng.begin(); it != rng.end(); ++it) {
+        ASSERT_FALSE(it->get_mark());
+    }
+
+    size_t dead_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
+    for (size_t i = 0; i < dead_cnt; ++i) {
+        ASSERT_TRUE(m_chunk.memory_available());
+        m_chunk.allocate(OBJ_SIZE);
+    }
+    ASSERT_FALSE(m_chunk.memory_available());
 }
 
 TEST_F(gc_compact_test, test_fix_pointers)

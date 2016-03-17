@@ -22,20 +22,18 @@ class bucket_allocator : private ebo<BucketPolicy>, private noncopyable
     typedef std::array<Lock, BUCKET_COUNT> lock_array_t;
 public:
     typedef typename Chunk::pointer_type pointer_type;
-    typedef std::pair<pointer_type, size_t> alloc_result;
     typedef typename fixed_size_allocator_t::range_type range_type;
 
     bucket_allocator() = default;
     bucket_allocator(bucket_allocator&&) = default;
 
-    alloc_result allocate(size_t size)
+    pointer_type allocate(size_t size)
     {
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
         lock_guard<Lock> lock(m_locks[ind]);
-        pointer_type ptr = m_buckets[ind].allocate(aligned_size);
-        return std::make_pair(ptr, aligned_size);
+        return m_buckets[ind].allocate(aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)

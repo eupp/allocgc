@@ -43,10 +43,10 @@ TEST_F(managed_cell_ptr_test, test_default_constructor)
 
 TEST_F(managed_cell_ptr_test, test_constructor)
 {
-    managed_cell_ptr cell_ptr1(m_ptr);
+    managed_cell_ptr cell_ptr1(m_ptr, 0);
     EXPECT_EQ(m_mem.get(), cell_ptr1.get());
 
-    managed_cell_ptr cell_ptr2(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr2(m_ptr, 0, & m_mock);
     EXPECT_EQ(m_mem.get(), cell_ptr2.get());
 }
 
@@ -54,7 +54,7 @@ TEST_F(managed_cell_ptr_test, test_lock_constructor)
 {
     mutex m;
     lock_type lock(m);
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock, std::move(lock));
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, &m_mock, std::move(lock));
 
     EXPECT_EQ(m_mem.get(), cell_ptr.get());
 
@@ -64,7 +64,7 @@ TEST_F(managed_cell_ptr_test, test_lock_constructor)
 
 TEST_F(managed_cell_ptr_test, test_get_mark)
 {
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, &m_mock);
 
     EXPECT_CALL(m_mock, get_mark(m_mem.get()))
         .Times(Exactly(1));
@@ -74,7 +74,7 @@ TEST_F(managed_cell_ptr_test, test_get_mark)
 
 TEST_F(managed_cell_ptr_test, test_get_pin)
 {
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, & m_mock);
 
     EXPECT_CALL(m_mock, get_pin(m_mem.get()))
             .Times(Exactly(1));
@@ -84,7 +84,7 @@ TEST_F(managed_cell_ptr_test, test_get_pin)
 
 TEST_F(managed_cell_ptr_test, test_set_mark)
 {
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, & m_mock);
 
     EXPECT_CALL(m_mock, set_mark(m_mem.get(), true))
             .Times(Exactly(1));
@@ -94,7 +94,7 @@ TEST_F(managed_cell_ptr_test, test_set_mark)
 
 TEST_F(managed_cell_ptr_test, test_set_pin)
 {
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, & m_mock);
 
     EXPECT_CALL(m_mock, set_pin(m_mem.get(), true))
             .Times(Exactly(1));
@@ -104,7 +104,7 @@ TEST_F(managed_cell_ptr_test, test_set_pin)
 
 TEST_F(managed_cell_ptr_test, test_sweep)
 {
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, & m_mock);
 
     EXPECT_CALL(m_mock, sweep(m_mem.get()))
             .Times(Exactly(1));
@@ -114,7 +114,7 @@ TEST_F(managed_cell_ptr_test, test_sweep)
 
 TEST_F(managed_cell_ptr_test, test_get_meta)
 {
-    managed_cell_ptr cell_ptr(m_ptr, &m_mock);
+    managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, & m_mock);
 
     EXPECT_CALL(m_mock, get_cell_meta(m_mem.get()))
             .Times(Exactly(1));
@@ -124,12 +124,12 @@ TEST_F(managed_cell_ptr_test, test_get_meta)
 
 TEST_F(managed_cell_ptr_test, test_descriptor_lazy_init_1)
 {
-    managed_cell_ptr cell_ptr1(m_ptr);
-    managed_cell_ptr cell_ptr2(m_ptr);
-    managed_cell_ptr cell_ptr3(m_ptr);
-    managed_cell_ptr cell_ptr4(m_ptr);
-    managed_cell_ptr cell_ptr5(m_ptr);
-    managed_cell_ptr cell_ptr6(m_ptr);
+    managed_cell_ptr cell_ptr1(m_ptr, PAGE_SIZE);
+    managed_cell_ptr cell_ptr2(m_ptr, PAGE_SIZE);
+    managed_cell_ptr cell_ptr3(m_ptr, PAGE_SIZE);
+    managed_cell_ptr cell_ptr4(m_ptr, PAGE_SIZE);
+    managed_cell_ptr cell_ptr5(m_ptr, PAGE_SIZE);
+    managed_cell_ptr cell_ptr6(m_ptr, PAGE_SIZE);
 
     EXPECT_CALL(m_mock, get_mark(m_mem.get()))
             .Times(Exactly(1));
@@ -157,7 +157,7 @@ TEST_F(managed_cell_ptr_test, test_descriptor_lazy_init_2)
 {
     byte val = 0;
     managed_ptr ptr(&val);
-    managed_cell_ptr cell_ptr(ptr);
+    managed_cell_ptr cell_ptr(ptr, PAGE_SIZE);
 
     EXPECT_THROW(cell_ptr.get_meta(), managed_cell_ptr::unindexed_memory_exception);
 }

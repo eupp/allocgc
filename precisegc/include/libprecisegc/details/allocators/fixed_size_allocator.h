@@ -47,7 +47,7 @@ public:
         using std::swap;
 
         auto dealloc_chunk = std::find_if(m_chunks.begin(), m_chunks.end(),
-                                          [ptr] (const Chunk& chk) { return chk.contains(ptr); });
+                                          [&ptr] (const Chunk& chk) { return chk.contains(ptr); });
         if (dealloc_chunk != m_chunks.end()) {
             dealloc_chunk->deallocate(ptr, size);
             if (dealloc_chunk->empty(size)) {

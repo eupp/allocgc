@@ -29,12 +29,12 @@ public:
 
     managed_cell_ptr();
     managed_cell_ptr(nullptr_t);
-    explicit managed_cell_ptr(managed_ptr idx_ptr);
-    managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor);
-    managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor, lock_type&& lock);
+    managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size);
+    managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size, managed_memory_descriptor* descriptor);
+    managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size, managed_memory_descriptor* descriptor, lock_type&& lock);
 
-    managed_cell_ptr(const managed_cell_ptr& other);
-    managed_cell_ptr& operator=(const managed_cell_ptr& other);
+//    managed_cell_ptr(const managed_cell_ptr& other);
+//    managed_cell_ptr& operator=(const managed_cell_ptr& other);
 
     managed_cell_ptr(managed_cell_ptr&& other) = default;
     managed_cell_ptr& operator=(managed_cell_ptr&& other) = default;
@@ -53,9 +53,19 @@ public:
 
     object_meta* get_meta() const;
 
+    void lock_descriptor();
+    void unlock_descriptor();
     bool owns_descriptor_lock() const;
 
+    byte* get_cell_begin() const;
+
     byte* get() const;
+    size_t cell_size() const;
+
+    explicit operator bool() const
+    {
+        return m_ptr.get() == nullptr;
+    }
 
     managed_ptr& get_wrapped()
     {
@@ -75,6 +85,7 @@ private:
     void descriptor_lazy_init() const;
 
     managed_ptr m_ptr;
+    size_t m_cell_size;
     mutable managed_memory_descriptor* m_descr;
     lock_type m_lock;
 };

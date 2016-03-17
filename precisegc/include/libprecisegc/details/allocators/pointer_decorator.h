@@ -58,6 +58,11 @@ public:
         return get_helper<Decorated>::get(m_decorated);
     }
 
+    explicit operator bool() const
+    {
+        return m_decorated == nullptr;
+    }
+
     Decorated& get_wrapped()
     {
         return m_decorated;

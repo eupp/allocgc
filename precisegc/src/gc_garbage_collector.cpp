@@ -6,6 +6,7 @@
 #include "gc_mark.h"
 #include "gc_mark_queue.h"
 #include "gcmalloc.h"
+#include "managed_ptr.h"
 #include "gc_heap.h"
 #include "gc_pause.h"
 #include "logging.h"
@@ -149,18 +150,22 @@ void gc_garbage_collector::mark()
 {
     gc_mark_queue& mark_queue = gc_mark_queue::instance();
     while (!mark_queue.empty()) {
-        traverse(mark_queue.pop());
+        byte* root = reinterpret_cast<byte*>(mark_queue.pop());
+        if (root) {
+            traverse(managed_cell_ptr(managed_ptr(root), 0));
+        }
     }
 }
 
-void gc_garbage_collector::traverse(void* root)
+void gc_garbage_collector::traverse(managed_cell_ptr root)
 {
-    if (!root || get_object_mark(root)) {
+    root.lock_descriptor();
+    if (root.get_mark()) {
         return;
     }
-    set_object_mark(root, true);
+    root.set_mark(true);
 
-    object_meta* obj_meta = get_object_header(root);
+    object_meta* obj_meta = root.get_meta();
     const class_meta* cls_meta = obj_meta->get_class_meta();
     size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
     auto& offsets = cls_meta->get_offsets();
@@ -169,7 +174,7 @@ void gc_garbage_collector::traverse(void* root)
         return;
     }
 
-    void* ptr = root;
+    byte* ptr = root.get_cell_begin();
     gc_mark_queue& mark_queue = gc_mark_queue::instance();
     for (int i = 0; i < obj_meta->get_count(); i++) {
         for (int j = 0; j < offsets.size(); j++) {

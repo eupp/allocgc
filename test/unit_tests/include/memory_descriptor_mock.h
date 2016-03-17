@@ -20,6 +20,7 @@ public:
 
     MOCK_METHOD1(get_cell_meta, precisegc::details::object_meta* (byte* ptr));
     MOCK_METHOD1(get_object_begin, byte*(byte* ptr));
+    MOCK_METHOD1(get_cell_begin, byte*(byte* ptr));
 
     MOCK_METHOD0(lock, lock_type());
     MOCK_METHOD1(lock, lock_type(std::defer_lock_t));

@@ -41,10 +41,17 @@ void* gc_new_impl(size_t n, Args&&... args)
     gc_new_stack::activation_entry activation_entry;
 
     size_t size = n * sizeof(T) + sizeof(object_meta);
-    auto alloc_res = gc_heap::instance().allocate(size);
-    void* ptr = alloc_res.first;
-    size_t aligned_size = alloc_res.second;
+    managed_cell_ptr cell_ptr = gc_heap::instance().allocate(size);
+    byte* ptr = cell_ptr.get();
+    size_t aligned_size = cell_ptr.cell_size();
     assert(ptr);
+
+    // allocate black objects
+    cell_ptr.set_mark(true);
+    // zero memory
+    memset(ptr, 0, aligned_size);
+    // release descriptor (object is black and all possible pointers are zeroed)
+    cell_ptr.unlock_descriptor();
 
     void* begin = ptr;
     void* end = ptr + n * sizeof(T);

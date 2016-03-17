@@ -48,24 +48,24 @@ public:
 
         virtual object_meta* get_cell_meta(byte* ptr) override;
         virtual byte* get_object_begin(byte* ptr) override;
+        virtual byte* get_cell_begin(byte* ptr) override;
 
         virtual lock_type lock() override;
         virtual lock_type lock(std::defer_lock_t t) override;
         virtual lock_type lock(std::try_to_lock_t t) override;
-        virtual lock_type lock(std::adopt_lock_t t) override;
 
+        virtual lock_type lock(std::adopt_lock_t t) override;
         managed_pool_chunk* get_pool_chunk() const;
+
         void set_pool_chunk(managed_pool_chunk* pool_chunk);
 
         size_t get_cell_size() const;
-
         friend class managed_pool_chunk;
     protected:
         memory_descriptor(managed_pool_chunk* chunk_ptr, byte* chunk_mem, size_t size, size_t cell_size);
     private:
         static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
-        size_t calc_cell_ind(byte* ptr) const;
-        byte* get_cell_begin(byte* ptr) const;
+        size_t calc_cell_ind(byte* ptr);
 
         managed_pool_chunk* m_chunk_ptr;
         size_t m_cell_size;
@@ -131,9 +131,9 @@ public:
     ~managed_pool_chunk();
 
     managed_cell_ptr allocate(size_t cell_size);
-    void deallocate(managed_cell_ptr ptr, size_t cell_size);
+    void deallocate(const managed_cell_ptr& ptr, size_t cell_size);
 
-    bool contains(managed_cell_ptr ptr) const noexcept;
+    bool contains(const managed_cell_ptr& ptr) const noexcept;
     bool memory_available() const noexcept;
     bool empty(size_t cell_size) const noexcept;
 

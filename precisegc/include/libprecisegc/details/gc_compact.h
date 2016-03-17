@@ -42,15 +42,18 @@ void two_finger_compact(Range& rng, size_t obj_size, forwarding_list& frwd)
 }
 
 template <typename Range>
-void sweep(Range& rng)
+size_t sweep(Range& rng)
 {
+    size_t sweep_cnt = 0;
     for (managed_cell_ptr cell_ptr: rng) {
         if (cell_ptr.get_mark()) {
             cell_ptr.set_mark(false);
         } else {
             cell_ptr.sweep();
+            sweep_cnt++;
         }
     }
+    return sweep_cnt;
 }
 
 inline void fix_ptr(void* ptr, const forwarding_list& forwarding)
@@ -67,7 +70,7 @@ template <typename Iterator>
 void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, const forwarding_list& frwd)
 {
     for (auto it = first; it != last; ++it) {
-        void* ptr = *it;
+        byte* ptr = it->get();
         object_meta* obj_meta = object_meta::get_meta_ptr(ptr, obj_size);
         const class_meta* cls_meta = obj_meta->get_class_meta();
         if (cls_meta != nullptr) {

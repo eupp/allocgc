@@ -2,36 +2,47 @@
 #define DIPLOMA_HEAP_H
 
 #include <utility>
+#include <atomic>
 
 #include "../object.h"
 #include "object_meta.h"
 #include "segregated_list.h"
 #include "mutex.h"
+#include "allocators/bucket_allocator.h"
+#include "allocators/pow2_bucket_policy.h"
+#include "allocators/paged_allocator.h"
 #include "allocators/constants.h"
+#include "managed_pool_chunk.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
 
 class gc_heap : public noncopyable, public nonmovable
 {
+    static const size_t SEGREGATED_STORAGE_SIZE = (POINTER_BITS_CNT - RESERVED_BITS_CNT - 1);
+    static const size_t MIN_ALLOC_SIZE_BITS = 4;
+    static const size_t MAX_ALLOC_SIZE_BITS = MIN_ALLOC_SIZE_BITS + SEGREGATED_STORAGE_SIZE;
+
+    typedef allocators::bucket_allocator<
+            managed_pool_chunk,
+            allocators::paged_allocator,
+            allocators::paged_allocator,
+            allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
+            mutex
+        > alloc_t;
 public:
-
-    typedef std::pair<void*, size_t> allocate_result;
-
     static gc_heap& instance()
     {
         static gc_heap h;
         return h;
     }
 
-    allocate_result allocate(size_t size);
+    managed_cell_ptr allocate(size_t size);
 
     void compact();
 
     size_t size() noexcept;
 private:
-    static const size_t MIN_ALLOC_SIZE_BITS = 4;
-    static const size_t SEGREGATED_STORAGE_SIZE = (POINTER_BITS_CNT - RESERVED_BITS_CNT - 1);
     static size_t align_size(size_t size);
 
     gc_heap();
@@ -43,9 +54,8 @@ private:
 
     //void fix_pointers(const forwarding_list& forwarding);
 
-    segregated_list m_storage[SEGREGATED_STORAGE_SIZE];
-    mutex m_mutex;
-    size_t m_size;
+    alloc_t m_alloc;
+    std::atomic<size_t> m_size;
 };
 
 }}

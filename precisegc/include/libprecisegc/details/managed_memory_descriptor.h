@@ -30,6 +30,7 @@ public:
 
     virtual object_meta* get_cell_meta(byte* ptr) = 0;
     virtual byte* get_object_begin(byte* ptr) = 0;
+    virtual byte* get_cell_begin(byte* ptr) = 0;
 
     virtual lock_type lock() = 0;
     virtual lock_type lock(std::defer_lock_t) = 0;

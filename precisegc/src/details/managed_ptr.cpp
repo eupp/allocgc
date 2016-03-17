@@ -6,42 +6,45 @@ managed_cell_ptr::managed_cell_ptr()
     : managed_cell_ptr(nullptr)
 {}
 
-managed_cell_ptr::managed_cell_ptr(nullptr_t t)
+managed_cell_ptr::managed_cell_ptr(nullptr_t)
     : m_ptr(nullptr)
+    , m_cell_size(0)
     , m_descr(nullptr)
 {}
 
-managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr)
+managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size)
     : m_ptr(idx_ptr)
+    , m_cell_size(cell_size)
     , m_descr(nullptr)
 {}
 
-managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor)
+managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size, managed_memory_descriptor* descriptor)
     : m_ptr(idx_ptr)
+    , m_cell_size(cell_size)
     , m_descr(descriptor)
 {}
 
-managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, managed_memory_descriptor* descriptor,
-                                   managed_cell_ptr::lock_type&& lock)
+managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size, managed_memory_descriptor* descriptor, lock_type&& lock)
     : m_ptr(idx_ptr)
+    , m_cell_size(cell_size)
     , m_descr(descriptor)
     , m_lock(std::move(lock))
 {}
 
-managed_cell_ptr::managed_cell_ptr(const managed_cell_ptr& other)
-    : m_ptr(other.m_ptr)
-    , m_descr(other.m_descr)
-{}
-
-managed_cell_ptr& managed_cell_ptr::operator=(const managed_cell_ptr& other)
-{
-    if (m_ptr != other.m_ptr) {
-        m_lock.release();
-        m_ptr = other.m_ptr;
-        m_descr = other.m_descr;
-    }
-    return *this;
-}
+//managed_cell_ptr::managed_cell_ptr(const managed_cell_ptr& other)
+//    : m_ptr(other.m_ptr)
+//    , m_descr(other.m_descr)
+//{}
+//
+//managed_cell_ptr& managed_cell_ptr::operator=(const managed_cell_ptr& other)
+//{
+//    if (m_ptr != other.m_ptr) {
+//        m_lock.release();
+//        m_ptr = other.m_ptr;
+//        m_descr = other.m_descr;
+//    }
+//    return *this;
+//}
 
 bool managed_cell_ptr::get_mark() const
 {
@@ -85,9 +88,34 @@ object_meta* managed_cell_ptr::get_meta() const
     return m_descr->get_cell_meta(get());
 }
 
+byte* managed_cell_ptr::get_cell_begin() const
+{
+    descriptor_lazy_init();
+    return m_descr->get_cell_begin(get());
+}
+
 byte* managed_cell_ptr::get() const
 {
     return m_ptr.get();
+}
+
+size_t managed_cell_ptr::cell_size() const
+{
+    assert(m_cell_size != 0);
+    return m_cell_size;
+}
+
+void managed_cell_ptr::lock_descriptor()
+{
+    descriptor_lazy_init();
+    m_lock = m_descr->lock();
+}
+
+void managed_cell_ptr::unlock_descriptor()
+{
+    if (m_lock.owns_lock()) {
+        m_lock.unlock();
+    }
 }
 
 bool managed_cell_ptr::owns_descriptor_lock() const

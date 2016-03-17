@@ -26,9 +26,8 @@ void _GC_::set_meta_after_gcmalloc(void *ptr, const precisegc::details::class_me
 
 precisegc::details::object_meta* _GC_::get_object_header(void *ptr) {
     using namespace precisegc::details;
-    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
-    void* obj_start = pd->get_object_start(ptr);
-    return object_meta::get_meta_ptr(obj_start, pd->obj_size());
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    return cell_ptr.get_meta();
 }
 
 static precisegc::details::mutex get_meta_inf_mutex;

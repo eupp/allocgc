@@ -41,10 +41,10 @@ managed_cell_ptr managed_pool_chunk::allocate(size_t cell_size)
     byte* raw_ptr = m_chunk.allocate(cell_size);
     size_t ind = calc_cell_ind(raw_ptr, cell_size, get_mem(), get_mem_size());
     m_alloc_bits[ind] = true;
-    return managed_cell_ptr(managed_ptr(raw_ptr), m_descr, std::move(lock));
+    return managed_cell_ptr(managed_ptr(raw_ptr), cell_size, m_descr, std::move(lock));
 }
 
-void managed_pool_chunk::deallocate(managed_cell_ptr ptr, size_t cell_size)
+void managed_pool_chunk::deallocate(const managed_cell_ptr& ptr, size_t cell_size)
 {
 //    lock_type lock = m_descr->lock();
     byte* raw_ptr = ptr.get();
@@ -55,7 +55,7 @@ void managed_pool_chunk::deallocate(managed_cell_ptr ptr, size_t cell_size)
     }
 }
 
-bool managed_pool_chunk::contains(managed_cell_ptr ptr) const noexcept
+bool managed_pool_chunk::contains(const managed_cell_ptr& ptr) const noexcept
 {
     return m_chunk.contains(ptr.get());
 }
@@ -177,7 +177,7 @@ void managed_pool_chunk::memory_descriptor::set_pin(byte* ptr, bool pin)
 
 void managed_pool_chunk::memory_descriptor::sweep(byte* ptr)
 {
-    m_chunk_ptr->deallocate(managed_cell_ptr(managed_ptr(get_cell_begin(ptr))), m_cell_size);
+    m_chunk_ptr->deallocate(managed_cell_ptr(managed_ptr(get_cell_begin(ptr)), 0), m_cell_size);
 }
 
 bool managed_pool_chunk::memory_descriptor::is_live(byte* ptr)
@@ -232,7 +232,7 @@ managed_pool_chunk::uintptr managed_pool_chunk::memory_descriptor::calc_mask(byt
     return (ptr | ((1 << bit_diff) - 1) << cell_size_bits);
 }
 
-size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr) const
+size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr)
 {
     return managed_pool_chunk::calc_cell_ind(get_cell_begin(ptr),
                                              m_cell_size,
@@ -240,7 +240,7 @@ size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr) const
                                              m_chunk_ptr->get_mem_size());
 }
 
-byte* managed_pool_chunk::memory_descriptor::get_cell_begin(byte* ptr) const
+byte* managed_pool_chunk::memory_descriptor::get_cell_begin(byte* ptr)
 {
     uintptr uiptr = reinterpret_cast<uintptr>(ptr);
     return reinterpret_cast<byte*>(uiptr & m_mask);
@@ -278,11 +278,11 @@ void managed_pool_chunk::iterator::decrement() noexcept
 
 managed_cell_ptr managed_pool_chunk::iterator::operator*() const noexcept
 {
-    return managed_cell_ptr(managed_ptr(m_ptr), m_descr);
+    return managed_cell_ptr(managed_ptr(m_ptr), 0, m_descr);
 }
 
 managed_pool_chunk::iterator::proxy managed_pool_chunk::iterator::operator->() const noexcept
 {
-    return proxy(managed_cell_ptr(managed_ptr(m_ptr), m_descr));
+    return proxy(managed_cell_ptr(managed_ptr(m_ptr), 0, m_descr));
 }
 }}

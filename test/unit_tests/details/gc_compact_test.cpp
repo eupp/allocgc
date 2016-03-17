@@ -40,7 +40,7 @@ public:
     ~gc_compact_test()
     {
         for (auto ptr: m_allocated) {
-            m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr)), OBJ_SIZE);
+            m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr), 0), OBJ_SIZE);
         }
         managed_pool_chunk::destroy(m_chunk, OBJ_SIZE, m_paged_alloc);
     }
@@ -197,13 +197,14 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 
     forwarding_list frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
-    sweep(rng);
+    size_t sweep_cnt = sweep(rng);
 
     for (auto it = rng.begin(); it != rng.end(); ++it) {
         ASSERT_FALSE(it->get_mark());
     }
 
     size_t dead_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
+    ASSERT_EQ(dead_cnt, sweep_cnt);
     for (size_t i = 0; i < dead_cnt; ++i) {
         ASSERT_TRUE(m_chunk.memory_available());
         m_chunk.allocate(OBJ_SIZE);
@@ -213,17 +214,15 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 
 TEST_F(gc_compact_test, test_fix_pointers)
 {
-    segregated_list sl(OBJ_SIZE);
-    auto alloc_res = sl.allocate();
-    void* ptr = alloc_res.first;
-    page_descriptor* pd = alloc_res.second;
+    managed_cell_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
+    byte* ptr = cell_ptr.get();
 
     auto offsets = std::vector<size_t>({0});
     typedef class_meta_provider<test_type> provider;
     provider::create_meta(offsets);
 
     void*& from = * (void**) ptr;
-    object_meta* obj_meta = object_meta::get_meta_ptr(ptr, pd->obj_size());
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);
     obj_meta->set_class_meta(provider::get_meta_ptr());
     obj_meta->set_count(1);
     obj_meta->set_object_ptr(ptr);
@@ -231,7 +230,8 @@ TEST_F(gc_compact_test, test_fix_pointers)
     forwarding_list forwarding;
     forwarding.emplace_back(from, nullptr, OBJ_SIZE);
 
-    fix_pointers(sl.begin(), sl.end(), OBJ_SIZE, forwarding);
+    auto rng = m_chunk.get_range();
+    fix_pointers(rng.begin(), rng.end(), OBJ_SIZE, forwarding);
 
     ASSERT_EQ(nullptr, from);
 }

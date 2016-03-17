@@ -6,6 +6,7 @@
 #include "mutex.h"
 #include "condition_variable.h"
 #include "util.h"
+#include "managed_ptr.h"
 
 namespace precisegc { namespace details {
 
@@ -33,7 +34,8 @@ private:
     static void* start_marking_routine(void*);
     static void* start_compacting_routine(void*);
     static void mark();
-    static void traverse(void* root);
+    static void traverse(
+            precisegc::details::managed_cell_ptr root);
 
     enum class phase {
         IDLE,

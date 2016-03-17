@@ -1,53 +1,61 @@
 #include "gc_mark.h"
 
-#include "details/page_descriptor.h"
-#include "details/gc_mark_queue.h"
-#include "index_tree.h"
+#include <cassert>
 
-using namespace _GC_;
+#include "details/managed_ptr.h"
+#include "details/gc_mark_queue.h"
 
 namespace precisegc { namespace details {
 
 void set_object_pin(void* ptr, bool pinned)
 {
-    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
-    lock_guard<mutex> lock(pd->get_bitmap_mutex());
-    pd->set_object_pin(ptr, pinned);
+    assert(ptr);
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    cell_ptr.lock_descriptor();
+    cell_ptr.set_pin(pinned);
 }
 
 void set_object_mark(void* ptr, bool marked)
 {
-    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
-    lock_guard<mutex> lock(pd->get_bitmap_mutex());
-    pd->set_object_mark(ptr, marked);
+    assert(ptr);
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    cell_ptr.lock_descriptor();
+    cell_ptr.set_mark(marked);
 }
 
 bool get_object_pin(void* ptr)
 {
-    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
-    lock_guard<mutex> lock(pd->get_bitmap_mutex());
-    return pd->get_object_pin(ptr);
+    assert(ptr);
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    cell_ptr.lock_descriptor();
+    return cell_ptr.get_mark();
 }
 
 bool get_object_mark(void* ptr)
 {
-    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
-    lock_guard<mutex> lock(pd->get_bitmap_mutex());
-    return pd->get_object_mark(ptr);
+    assert(ptr);
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    cell_ptr.lock_descriptor();
+    return cell_ptr.get_mark();
 }
 
 void shade(void* ptr)
 {
-    page_descriptor* pd = (page_descriptor*) IT_get_page_descr(ptr);
+    if (!ptr) {
+        return;
+    }
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
     // this check will be failed only when ptr is pointed to non gc_heap memory,
     // that is not possible in correct program (i.e. when gc_new is used to create managed objects),
     // but could occur during testing.
-    if (pd) {
-        lock_guard<mutex> lock(pd->get_bitmap_mutex());
-        if (!pd->get_object_mark(ptr)) {
+    try {
+        cell_ptr.lock_descriptor();
+        if (cell_ptr.get_mark()) {
             gc_mark_queue& queue = gc_mark_queue::instance();
             queue.push(ptr);
         }
+    } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
+        return;
     }
 }
 

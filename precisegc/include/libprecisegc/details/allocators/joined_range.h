@@ -29,10 +29,15 @@ public:
 
     join_range_iterator(const RangeIter& first_range, const RangeIter& last_range)
     {
-        auto rng = first_range->get_range();
-        m_begin_it = rng.begin();
-        m_end_it = rng.end();
-        m_curr_it = m_begin_it;
+        if (first_range != last_range) {
+            auto rng = first_range->get_range();
+            m_begin_it = rng.begin();
+            m_end_it = rng.end();
+            m_curr_it = m_begin_it;
+            m_end_flag = false;
+        } else {
+            m_end_flag = true;
+        }
 
         m_curr_range = first_range;
         m_end_range = last_range;
@@ -41,6 +46,7 @@ public:
     // for end of range construction
     explicit join_range_iterator(const RangeIter& end)
     {
+        m_end_flag = true;
         m_curr_range = end;
         m_end_range = end;
     }
@@ -55,11 +61,13 @@ public:
 
     reference operator*() const noexcept
     {
+        assert(!m_end_flag);
         return *m_curr_it;
     }
 
     pointer operator->() const noexcept
     {
+        assert(!m_end_flag);
         return m_curr_it.operator->();
     }
 
@@ -67,7 +75,8 @@ public:
 private:
     bool equal(const join_range_iterator& other) const
     {
-        return m_curr_it == other.m_curr_it || (m_curr_range == other.m_curr_range && m_curr_range == m_end_range);
+        return (m_end_flag && other.m_end_flag && (m_curr_range == other.m_curr_range))
+               || m_curr_it == other.m_curr_it;
     }
 
     void increment()
@@ -81,13 +90,18 @@ private:
                 m_begin_it = rng.begin();
                 m_end_it = rng.end();
                 m_curr_it = m_begin_it;
+            } else {
+                m_end_flag = true;
             }
         }
     }
 
     void decrement()
     {
-        if (m_curr_it == m_begin_it) {
+        if (m_end_flag || m_curr_it == m_begin_it) {
+            if (m_end_flag) {
+                m_end_flag = false;
+            }
             --m_curr_range;
             auto rng = m_curr_range->get_range();
             m_begin_it = rng.begin();
@@ -103,6 +117,7 @@ private:
 
     outer_iterator_t m_end_range;
     outer_iterator_t m_curr_range;
+    bool m_end_flag;
 };
 
 }

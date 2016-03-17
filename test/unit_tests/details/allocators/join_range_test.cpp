@@ -62,6 +62,8 @@ TEST(join_range_test, test_forward_pass)
     ASSERT_TRUE(std::equal(rng.begin(), rng.end(), joined.begin()));
 }
 
+#include <iostream>
+
 TEST(join_range_test, test_reverse_pass)
 {
     static const size_t VEC_SIZE = 3;
@@ -76,5 +78,12 @@ TEST(join_range_test, test_reverse_pass)
 
     joined_range<decltype(vec)> rng(vec);
     reversed_range<decltype(rng)> rev_rng(rng);
+
+    auto it1 = rev_rng.begin();
+    auto it2 = joined.rbegin();
+
+//    for (; )
+
+    ASSERT_EQ(joined.size(), std::distance(rev_rng.begin(), rev_rng.end()));
     ASSERT_TRUE(std::equal(rev_rng.begin(), rev_rng.end(), joined.rbegin()));
 }

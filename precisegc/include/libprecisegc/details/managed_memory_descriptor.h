@@ -24,6 +24,8 @@ public:
 
     virtual void sweep(byte* ptr) = 0;
 
+    virtual bool is_live(byte* ptr) = 0;
+
 //    virtual void shade(byte* ptr) = 0;
 
     virtual object_meta* get_cell_meta(byte* ptr) = 0;

@@ -44,7 +44,7 @@ public:
 
         virtual void sweep(byte* ptr) override;
 
-//        virtual void shade(byte* ptr) override;
+        virtual bool is_live(byte* ptr) override;
 
         virtual object_meta* get_cell_meta(byte* ptr) override;
         virtual byte* get_object_begin(byte* ptr) override;

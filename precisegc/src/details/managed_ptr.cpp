@@ -73,6 +73,12 @@ void managed_cell_ptr::sweep()
     m_descr->sweep(get());
 }
 
+bool managed_cell_ptr::is_live() const
+{
+    descriptor_lazy_init();
+    return m_descr->is_live(get());
+}
+
 object_meta* managed_cell_ptr::get_meta() const
 {
     descriptor_lazy_init();

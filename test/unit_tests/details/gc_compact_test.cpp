@@ -100,6 +100,10 @@ TEST_F(gc_compact_test, test_two_finger_compact_2)
 {
     const size_t LIVE_CNT = 5;
 
+    for (size_t i = 0; i < managed_pool_chunk::CHUNK_MINSIZE; ++i) {
+        m_chunk.allocate(OBJ_SIZE);
+    }
+
     uniform_rand_generator<size_t> rand_gen(0, managed_pool_chunk::CHUNK_MINSIZE - 1);
     auto rng = m_chunk.get_range();
     for (size_t i = 0; i < LIVE_CNT; ++i) {

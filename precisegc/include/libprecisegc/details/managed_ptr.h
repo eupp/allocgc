@@ -47,6 +47,8 @@ public:
 
     void sweep();
 
+    bool is_live() const;
+
 //    void shade(byte* ptr);
 
     object_meta* get_meta() const;

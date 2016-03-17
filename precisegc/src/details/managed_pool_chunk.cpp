@@ -180,6 +180,12 @@ void managed_pool_chunk::memory_descriptor::sweep(byte* ptr)
     m_chunk_ptr->deallocate(managed_cell_ptr(managed_ptr(get_cell_begin(ptr))), m_cell_size);
 }
 
+bool managed_pool_chunk::memory_descriptor::is_live(byte* ptr)
+{
+    size_t ind = calc_cell_ind(ptr);
+    return m_chunk_ptr->m_alloc_bits[ind];
+}
+
 object_meta* managed_pool_chunk::memory_descriptor::get_cell_meta(byte* ptr)
 {
     byte* cell_ptr = get_cell_begin(ptr);
@@ -228,7 +234,10 @@ managed_pool_chunk::uintptr managed_pool_chunk::memory_descriptor::calc_mask(byt
 
 size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr) const
 {
-    return managed_pool_chunk::calc_cell_ind(get_cell_begin(ptr), m_cell_size, m_chunk_ptr->get_mem(), m_chunk_ptr->get_mem_size());
+    return managed_pool_chunk::calc_cell_ind(get_cell_begin(ptr),
+                                             m_cell_size,
+                                             m_chunk_ptr->get_mem(),
+                                             m_chunk_ptr->get_mem_size());
 }
 
 byte* managed_pool_chunk::memory_descriptor::get_cell_begin(byte* ptr) const

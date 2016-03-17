@@ -16,6 +16,8 @@ public:
 
     MOCK_METHOD1(sweep, void (byte* ptr));
 
+    MOCK_METHOD1(is_live, bool (byte* ptr));
+
     MOCK_METHOD1(get_cell_meta, precisegc::details::object_meta* (byte* ptr));
     MOCK_METHOD1(get_object_begin, byte*(byte* ptr));
 

@@ -127,10 +127,10 @@ static void* thread_routine(void* arg)
 
 /**
  * The following test fixture creates tree and starts several threads.
- * In each thread gc pointer to some node in tree is saved.
- * Then original root is saved in raw pointer and gc_ptr to it is reset.
+ * In each thread gc pointer to some node in the tree is saved.
+ * Then the original root is saved in a raw pointer and gc_ptr to it is reset.
  * It is assumed that then test code will perform gc or one of it phases (marking, compacting),
- * and the top level of tree, that are not reachable from thread's gc pointers, will be freed.
+ * and the top levels of tree, that are not reachable from thread's gc pointers, will be freed.
  *
  *          0 <--------------- root
  *         / \

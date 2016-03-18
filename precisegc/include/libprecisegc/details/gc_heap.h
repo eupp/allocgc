@@ -3,8 +3,10 @@
 
 #include <utility>
 #include <atomic>
+#include <cstddef>
 
 #include "../object.h"
+#include "forwarding.h"
 #include "object_meta.h"
 #include "segregated_list.h"
 #include "mutex.h"
@@ -30,6 +32,8 @@ class gc_heap : public noncopyable, public nonmovable
             allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
             mutex
         > alloc_t;
+
+    typedef intrusive_forwarding forwarding;
 public:
     static gc_heap& instance()
     {
@@ -49,8 +53,8 @@ private:
     gc_heap(const gc_heap&&) = delete;
     gc_heap& operator=(const gc_heap&&) = delete;
 
-    forwarding_list compact_memory();
-    void fix_pointers(const forwarding_list& frwd);
+    forwarding compact_memory();
+    void fix_pointers(const forwarding& frwd);
 
     //void fix_pointers(const forwarding_list& forwarding);
 

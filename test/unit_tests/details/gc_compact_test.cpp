@@ -4,6 +4,7 @@
 
 #include "libprecisegc/details/gc_compact.h"
 #include "libprecisegc/details/segregated_list.h"
+#include "libprecisegc/details/forwarding.h"
 
 #include "libprecisegc/details/allocators/fixed_size_allocator.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
@@ -51,6 +52,24 @@ public:
     std::unordered_set<byte*> m_allocated;
 };
 
+/**
+ * In this test a small pool is compated by the two-finger-compact procedure and resulting forwarding is checked.
+ * Pool layout illustrated below ( x - marked (occupied) cell, # - pinned cell).
+ *
+ *      *********************
+ *      * 0 | 1 | 2 | 3 | 4 *
+ *      *********************
+ *      * x |   |   | # | x *
+ *      *********************
+ *
+ * After compacting pool should look like:
+ *
+ *      *********************
+ *      * 0 | 1 | 2 | 3 | 4 *
+ *      *********************
+ *      * x | x |   | # |   *
+ *      *********************
+ */
 TEST_F(gc_compact_test, test_two_finger_compact_1)
 {
     for (int i = 0; i < OBJ_COUNT_1; ++i) {
@@ -77,12 +96,13 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
     byte* exp_to = it1->get();
     byte* exp_from = it4->get();
 
-    forwarding_list frwd;
+    list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
 
-    ASSERT_EQ(1, frwd.size());
-    void* from = frwd[0].from();
-    void* to = frwd[0].to();
+    auto frwd_list = frwd.get_list();
+    ASSERT_EQ(1, frwd_list.size());
+    void* from = frwd_list[0].from;
+    void* to = frwd_list[0].to;
 
     ASSERT_EQ(exp_from, from);
     ASSERT_EQ(exp_to, to);
@@ -116,7 +136,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_2)
         it->set_mark(true);
     }
 
-    forwarding_list frwd;
+    list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
 
     auto live_begin = rng.begin();
@@ -156,7 +176,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
     }
 
     auto rng = m_alloc.range();
-    forwarding_list frwd;
+    list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
 
     size_t mark_cnt = 0;
@@ -195,7 +215,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
         it->set_mark(true);
     }
 
-    forwarding_list frwd;
+    list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
     size_t sweep_cnt = sweep(rng);
 
@@ -217,21 +237,27 @@ TEST_F(gc_compact_test, test_fix_pointers)
     managed_cell_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
     byte* ptr = cell_ptr.get();
 
+    test_type val1;
+    void* to = &val1;
+
+    test_type val2;
+    void*& from = * (void**) ptr;
+    from = &val2;
+
     auto offsets = std::vector<size_t>({0});
     typedef class_meta_provider<test_type> provider;
     provider::create_meta(offsets);
 
-    void*& from = * (void**) ptr;
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);
     obj_meta->set_class_meta(provider::get_meta_ptr());
     obj_meta->set_count(1);
     obj_meta->set_object_ptr(ptr);
 
-    forwarding_list forwarding;
-    forwarding.emplace_back(from, nullptr, OBJ_SIZE);
+    list_forwarding forwarding;
+    forwarding.create(from, to, OBJ_SIZE);
 
     auto rng = m_chunk.get_range();
     fix_pointers(rng.begin(), rng.end(), OBJ_SIZE, forwarding);
 
-    ASSERT_EQ(nullptr, from);
+    ASSERT_EQ(to, from);
 }

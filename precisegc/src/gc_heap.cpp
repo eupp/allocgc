@@ -28,14 +28,14 @@ void gc_heap::compact()
     // don't lock here, because compact is guarantee to be called during gc phase,
     // while other threads are suspended.
 //    lock_guard<mutex> lock(m_mutex);
-    forwarding_list frwd = compact_memory();
+    gc_heap::forwarding frwd = compact_memory();
     fix_pointers(frwd);
     fix_roots(frwd);
 }
 
-forwarding_list gc_heap::compact_memory()
+gc_heap::forwarding gc_heap::compact_memory()
 {
-    forwarding_list frwd;
+    forwarding frwd;
     size_t sweep_size = 0;
     auto& bp = m_alloc.get_bucket_policy();
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
@@ -49,7 +49,7 @@ forwarding_list gc_heap::compact_memory()
     return frwd;
 }
 
-void gc_heap::fix_pointers(const forwarding_list &frwd)
+void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
 {
     auto& bp = m_alloc.get_bucket_policy();
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {

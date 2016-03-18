@@ -223,9 +223,10 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
         ASSERT_FALSE(it->get_mark());
     }
 
-    size_t dead_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
+    size_t dead_cnt = managed_pool_chunk::CHUNK_MINSIZE - LIVE_CNT;
+    size_t free_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
     ASSERT_EQ(dead_cnt, sweep_cnt);
-    for (size_t i = 0; i < dead_cnt; ++i) {
+    for (size_t i = 0; i < free_cnt; ++i) {
         ASSERT_TRUE(m_chunk.memory_available());
         m_chunk.allocate(OBJ_SIZE);
     }

@@ -45,11 +45,16 @@ std::vector<list_forwarding::entry>& list_forwarding::get_list()
     return m_frwd_list;
 }
 
+intrusive_forwarding::intrusive_forwarding()
+    : m_frwd_cnt(0)
+{}
+
 void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 {
     object_meta* meta = object_meta::get_meta_ptr(from, obj_size);
     meta->set_object_ptr(to);
     move_cell(from, to, obj_size);
+    m_frwd_cnt++;
 }
 
 void intrusive_forwarding::forward(void* ptr) const
@@ -72,5 +77,4 @@ void intrusive_forwarding::forward(void* ptr) const
         }
     }
 }
-
 }}

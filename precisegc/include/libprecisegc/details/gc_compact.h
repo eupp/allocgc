@@ -28,7 +28,7 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
         auto rev_from = std::find_if(reverse_iterator(from),
                                      reverse_iterator(to),
                                      [](managed_cell_ptr cell_ptr) {
-                                         return cell_ptr.get_mark() && !cell_ptr.get_pin();
+                                         return cell_ptr.get_mark() && !cell_ptr.get_pin() && cell_ptr.is_live();
         });
 
         from = rev_from.base();
@@ -48,7 +48,7 @@ size_t sweep(Range& rng)
     for (managed_cell_ptr cell_ptr: rng) {
         if (cell_ptr.get_mark()) {
             cell_ptr.set_mark(false);
-        } else {
+        } else if (cell_ptr.is_live()) {
             cell_ptr.sweep();
             sweep_cnt++;
         }
@@ -61,6 +61,9 @@ template <typename Iterator, typename Forwarding>
 void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, const Forwarding& frwd)
 {
     for (auto it = first; it != last; ++it) {
+        if (!it->is_live()) {
+            continue;
+        }
         byte* ptr = it->get();
         object_meta* obj_meta = object_meta::get_meta_ptr(ptr, obj_size);
         const class_meta* cls_meta = obj_meta->get_class_meta();

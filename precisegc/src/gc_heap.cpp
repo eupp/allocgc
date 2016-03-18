@@ -69,7 +69,7 @@ void gc_heap::sweep()
         sweep_size += sweep_cnt * bp.bucket_size(i);
     }
     assert(m_size >= sweep_size);
-    m_size -= sweep_size;
+    m_size.fetch_sub(sweep_size);
 }
 
 size_t gc_heap::align_size(size_t size)

@@ -1,5 +1,7 @@
 #include "gc_initator.h"
 
+#include <atomic>
+
 #include "gc_heap.h"
 #include "gc_garbage_collector.h"
 #include "logging.h"
@@ -8,6 +10,7 @@ namespace precisegc { namespace details {
 
 static size_t mem_lower_bound = 0;
 static size_t mem_upper_bound = 0;
+static std::atomic<size_t> alloc_ticks(0);
 
 static double b_to_mb(size_t size)
 {
@@ -24,13 +27,15 @@ void initate_gc()
 {
     gc_heap& heap = gc_heap::instance();
     gc_garbage_collector& garbage_collector = gc_garbage_collector::instance();
+    ++alloc_ticks;
     size_t mem = heap.size();
-    if (mem > mem_lower_bound) {
+    if (mem > mem_lower_bound ) {
         logging::debug() << "Heap size exceeded " << b_to_mb(mem_lower_bound);
         garbage_collector.start_gc();
     }
-    if (mem > mem_upper_bound) {
+    if (mem > mem_upper_bound && alloc_ticks > 3000) {
         logging::debug() << "Heap size exceeded " << b_to_mb(mem_upper_bound);
+        alloc_ticks.store(0);
         garbage_collector.wait_for_gc_finished();
     }
 }

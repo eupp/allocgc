@@ -40,6 +40,7 @@ public:
         }
 
         m_curr_range = first_range;
+        m_begin_range = first_range;
         m_end_range = last_range;
     }
 
@@ -48,6 +49,7 @@ public:
     {
         m_end_flag = true;
         m_curr_range = end;
+        m_begin_range = end;
         m_end_range = end;
     }
 
@@ -101,6 +103,8 @@ private:
         if (m_end_flag || m_curr_it == m_begin_it) {
             if (m_end_flag) {
                 m_end_flag = false;
+            } else {
+                assert(m_curr_range != m_begin_range);
             }
             --m_curr_range;
             auto rng = m_curr_range->get_range();
@@ -115,6 +119,7 @@ private:
     inner_iterator_t m_end_it;
     inner_iterator_t m_curr_it;
 
+    outer_iterator_t m_begin_range;
     outer_iterator_t m_end_range;
     outer_iterator_t m_curr_range;
     bool m_end_flag;

@@ -43,16 +43,16 @@
 #include <sys/time.h>
 
 // Our precise GC
-#define PRECISE_GC
+//#define PRECISE_GC
 
 // Boehm/Demers/Weiser conservative GC
-//#define BDW_GC
+#define BDW_GC
 
 // Manual memory management
 //#define NO_GC
 
 #ifdef BDW_GC
-    #include "gc.h"
+    #include <gc/gc.h>
 #endif
 
 #ifdef PRECISE_GC
@@ -82,7 +82,7 @@ static const int kArraySize  = 500000;      //500000;   // about 4Mb
 static const int kMinTreeDepth = 4;         //4
 static const int kMaxTreeDepth = 10;        //16;
 
-#ifdef PRECISE_GC
+#if defined(PRECISE_GC)
     #define ptr_t(T) gc_ptr<T>
     #define ptr_in(T) const gc_ptr<T>&
     #define new_(T) gc_new<T>()
@@ -91,7 +91,7 @@ static const int kMaxTreeDepth = 10;        //16;
     #define new_array_(T, size) gc_new<T[]>(size)
     #define delete_(ptr)
     #define set_null(ptr) ptr.reset()
-#elif BDW_GC
+#elif defined(BDW_GC)
     #define ptr_t(T) T*
     #define ptr_in(T) T*
     #define new_(T) new (GC_NEW(Node0)) Node0()
@@ -100,7 +100,7 @@ static const int kMaxTreeDepth = 10;        //16;
     #define new_array_(T, size) (T*) GC_MALLOC_ATOMIC(sizeof(T) * size);
     #define delete_(ptr)
     #define set_null(ptr) ptr = nullptr
-#elif NO_GC
+#elif defined(NO_GC)
     #define ptr_t(T) T*
     #define ptr_in(T) T*
     #define new_(T) new Node0()
@@ -125,7 +125,14 @@ struct Node0
         , right(r)
     {}
 
-    Node0() {}
+    #ifndef PRECISE_GC
+        Node0()
+            : left(nullptr)
+            , right(nullptr)
+        {}
+    #else
+        Node0() {}
+    #endif
 
     ~Node0()
     {
@@ -218,11 +225,6 @@ struct GCBench {
         long    tStart, tFinish;
         long    tElapsed;
 
-        #ifdef BDW_GC
-            GC_full_freq = 30;
-            GC_enable_incremental();
-        #endif
-
         cout << "Garbage Collector Test" << endl;
         cout << " Live storage will peak at "
              << 2 * sizeof(Node0) * TreeSize(kLongLivedTreeDepth) + sizeof(double) * kArraySize
@@ -278,7 +280,12 @@ struct GCBench {
 };
 
 int main () {
-    gc_init();
+    #if defined(PRECISE_GC)
+        gc_init();
+    #elif defined(BDW_GC)
+        GC_full_freq = 30;
+        GC_enable_incremental();
+    #endif
     GCBench x;
     x.main();
     return 0;

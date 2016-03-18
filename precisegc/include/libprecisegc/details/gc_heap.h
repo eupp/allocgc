@@ -55,6 +55,7 @@ private:
 
     forwarding compact_memory();
     void fix_pointers(const forwarding& frwd);
+    void sweep();
 
     //void fix_pointers(const forwarding_list& forwarding);
 

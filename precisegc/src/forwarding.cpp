@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "gc_untyped_ptr.h"
+#include "managed_ptr.h"
 #include "object_meta.h"
 #include "gcmalloc.h"
 
@@ -45,22 +47,28 @@ std::vector<list_forwarding::entry>& list_forwarding::get_list()
 
 void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 {
-    move_cell(from, to, obj_size);
     object_meta* meta = object_meta::get_meta_ptr(from, obj_size);
     meta->set_object_ptr(to);
+    move_cell(from, to, obj_size);
 }
 
 void intrusive_forwarding::forward(void* ptr) const
 {
-    void*& from = * ((void**) ptr);
+    gc_untyped_ptr* gcptr = reinterpret_cast<gc_untyped_ptr*>(ptr);
+    void* from = gcptr->get();
     if (from) {
-        object_meta* meta = _GC_::get_object_header(from);
-        if (meta) {
-            void* to = meta->get_object_ptr();
-            if (from != to) {
-                logging::debug() << "fix ptr: from " << from << " to " << to;
-                from = to;
+        try {
+            object_meta* meta = _GC_::get_object_header(from);
+            if (meta) {
+                void* to = meta->get_object_ptr();
+                if (from != to) {
+                    logging::debug() << "fix ptr: from " << from << " to " << to;
+                    gcptr->set(to);
+                }
             }
+        } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
+            logging::error() << "Unindexed memory discovered: " << from;
+            throw;
         }
     }
 }

@@ -72,7 +72,11 @@ void* gc_new_impl(size_t n, Args&&... args)
     }
 
     // construct object_meta
-    new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(class_meta_provider<T>::get_meta_ptr(), n, ptr);
+    {
+        cell_ptr.lock_descriptor();
+        new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(class_meta_provider<T>::get_meta_ptr(), n, ptr);
+        cell_ptr.unlock_descriptor();
+    }
 
     return ptr;
 };

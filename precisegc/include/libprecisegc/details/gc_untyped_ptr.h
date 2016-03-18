@@ -29,15 +29,14 @@ public:
 
     bool is_root() const noexcept;
 
+    void set(void* ptr) noexcept;
     void* get() const noexcept;
 
     void atomic_store(const gc_untyped_ptr& value);
-
     friend class gc_untyped_pin;
 private:
-    static const uintptr_t ROOT_FLAG_BIT;
 
-    void set(void* ptr) noexcept;
+    static const uintptr_t ROOT_FLAG_BIT;
 
     void register_root() noexcept;
     void delete_root() noexcept;

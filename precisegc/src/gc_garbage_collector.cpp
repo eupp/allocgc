@@ -174,6 +174,7 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
         return;
     }
 
+    root.unlock_descriptor();
     byte* ptr = root.get_cell_begin();
     gc_mark_queue& mark_queue = gc_mark_queue::instance();
     for (int i = 0; i < obj_meta->get_count(); i++) {

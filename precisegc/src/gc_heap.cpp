@@ -4,6 +4,7 @@
 
 #include "gc_compact.h"
 #include "math_util.h"
+#include "logging.h"
 
 namespace precisegc { namespace details {
 
@@ -28,24 +29,24 @@ void gc_heap::compact()
     // don't lock here, because compact is guarantee to be called during gc phase,
     // while other threads are suspended.
 //    lock_guard<mutex> lock(m_mutex);
+    logging::info() << "Compacting memory...";
     gc_heap::forwarding frwd = compact_memory();
+    logging::info() << "Fixing pointers...";
     fix_pointers(frwd);
+    logging::info() << "Fixing roots...";
     fix_roots(frwd);
+    logging::info() << "Sweeping...";
+    sweep();
 }
 
 gc_heap::forwarding gc_heap::compact_memory()
 {
     forwarding frwd;
-    size_t sweep_size = 0;
     auto& bp = m_alloc.get_bucket_policy();
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
         auto rng = m_alloc.range(i);
         two_finger_compact(rng, bp.bucket_size(i), frwd);
-        size_t sweep_cnt = sweep(rng);
-        sweep_size += sweep_cnt * bp.bucket_size(i);
     }
-    assert(m_size >= sweep_size);
-    m_size -= sweep_size;
     return frwd;
 }
 
@@ -56,6 +57,19 @@ void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
         auto rng = m_alloc.range(i);
         ::precisegc::details::fix_pointers(rng.begin(), rng.end(), bp.bucket_size(i), frwd);
     }
+}
+
+void gc_heap::sweep()
+{
+    size_t sweep_size = 0;
+    auto& bp = m_alloc.get_bucket_policy();
+    for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
+        auto rng = m_alloc.range(i);
+        size_t sweep_cnt = ::precisegc::details::sweep(rng);
+        sweep_size += sweep_cnt * bp.bucket_size(i);
+    }
+    assert(m_size >= sweep_size);
+    m_size -= sweep_size;
 }
 
 size_t gc_heap::align_size(size_t size)
@@ -74,5 +88,4 @@ size_t gc_heap::align_size(size_t size)
     size = size << 1;
     return size;
 }
-
 }}

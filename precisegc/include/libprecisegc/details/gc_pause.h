@@ -7,7 +7,7 @@
 #include <signal.h>
 
 #include "thread_list.h"
-#include "signal_lock.h"
+#include "sigmask_signal_lock.h"
 
 namespace precisegc { namespace details {
 
@@ -26,17 +26,26 @@ private:
     std::string m_msg;
 };
 
-class gc_pause_lock: public signal_lock_base<gc_pause_lock>, public noncopyable, public nonmovable
+class flag_gc_signal_lock
+{
+public:
+    static int lock() noexcept;
+    static int unlock() noexcept;
+    static bool is_locked() noexcept;
+    static void set_pending() noexcept;
+private:
+    static thread_local volatile sig_atomic_t depth;
+    static thread_local volatile sig_atomic_t signal_pending_flag;
+};
+
+class gc_pause_lock: public noncopyable, public nonmovable
 {
 public:
     gc_pause_lock() = default;
-
     void lock() noexcept;
     void unlock() noexcept;
-
-    friend class signal_lock_base<gc_pause_lock>;
 private:
-    static sigset_t get_sigset() noexcept;
+    typedef flag_gc_signal_lock siglock;
 };
 
 typedef std::function<void(void)> pause_handler_t;

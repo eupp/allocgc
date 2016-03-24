@@ -7,10 +7,10 @@
 namespace precisegc { namespace details {
 
 template <typename Derived>
-class signal_lock_base
+class sigmask_signal_lock_base
 {
 public:
-    static void lock() noexcept
+    static int lock() noexcept
     {
         if (depth == 0) {
             std::atomic_signal_fence(std::memory_order_seq_cst);
@@ -21,19 +21,19 @@ public:
         } else {
             depth++;
         }
+        return depth;
     }
 
-    static bool unlock() noexcept
+    static int unlock() noexcept
     {
         if (depth == 1) {
             pthread_sigmask(SIG_SETMASK, &old_sigset, nullptr);
             std::atomic_signal_fence(std::memory_order_seq_cst);
             depth = 0;
-            return true;
         } else {
             depth--;
-            return false;
         }
+        return depth;
     }
 private:
     static thread_local volatile sig_atomic_t depth;
@@ -46,33 +46,33 @@ private:
 };
 
 template <typename T>
-thread_local volatile sig_atomic_t signal_lock_base<T>::depth = 0;
+thread_local volatile sig_atomic_t sigmask_signal_lock_base<T>::depth = 0;
 
 template <typename T>
-thread_local sigset_t signal_lock_base<T>::old_sigset = sigset_t();
+thread_local sigset_t sigmask_signal_lock_base<T>::old_sigset = sigset_t();
 
-class signal_lock: public signal_lock_base<signal_lock>
+const int gc_signal = SIGUSR1;
+
+inline sigset_t get_gc_sigset()
+{
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, gc_signal);
+    return sigset;
+}
+
+class sigmask_gc_signal_lock : public sigmask_signal_lock_base<sigmask_gc_signal_lock>
 {
 public:
-    void lock() noexcept
-    {
-        signal_lock_base::lock();
-    }
-
-    void unlock() noexcept
-    {
-        signal_lock_base::unlock();
-    }
-
-    friend class signal_lock_base<signal_lock>;
+    friend class sigmask_signal_lock_base<sigmask_gc_signal_lock>;
 private:
     static sigset_t get_sigset() noexcept
     {
-        sigset_t sigset;
-        sigfillset(&sigset);
-        return sigset;
+        return get_gc_sigset();
     }
 };
+
+
 
 }}
 

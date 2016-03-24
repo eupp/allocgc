@@ -15,13 +15,7 @@ find_library(BDWGC NAMES gc
         /usr/local/lib64
         )
 
-if(BDWGC)
-    message(WARNING "GOOD")
-else()
-    message(WARNING "BAD")
-endif()
-
 add_executable(boehm_test ${boehm_SRC})
 target_link_libraries(boehm_test ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(boehm_test ${BDWGC})
+#target_link_libraries(boehm_test ${BDWGC})
 target_link_libraries(boehm_test libprecisegc)

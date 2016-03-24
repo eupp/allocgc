@@ -43,10 +43,10 @@
 #include <sys/time.h>
 
 // Our precise GC
-//#define PRECISE_GC
+#define PRECISE_GC
 
 // Boehm/Demers/Weiser conservative GC
-#define BDW_GC
+//#define BDW_GC
 
 // Manual memory management
 //#define NO_GC

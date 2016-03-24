@@ -8,6 +8,7 @@
 #include "libprecisegc/thread.h"
 #include "libprecisegc/details/gc_pause.h"
 #include "libprecisegc/details/signal_safe_sync.h"
+#include "libprecisegc/details/logging.h"
 
 using namespace precisegc;
 using namespace precisegc::details;
@@ -80,6 +81,8 @@ static void* thread_routine_3(void*)
 
 TEST(gc_pause_test, test_gc_pause_lock_2)
 {
+    logging::init(std::cout, logging::loglevel::INFO);
+
     const int THREADS_CNT = 10;
 
 //    std::cout << "Thread " << pthread_self() << " test." << std::endl;

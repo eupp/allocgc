@@ -16,8 +16,6 @@
 
 namespace precisegc { namespace details {
 
-static const int gc_signal = SIGUSR1;
-
 static bool gc_signal_set = false;
 
 static thread_local bool gc_pause_disabled = false;
@@ -33,19 +31,18 @@ static size_t threads_cnt = 0;
 static std::function<void(void)> gc_pause_handler;
 static gc_signal_safe_mutex gc_pause_handler_mutex;
 
-static sigset_t get_gc_sigset()
-{
-    sigset_t sigset;
-    sigemptyset(&sigset);
-    sigaddset(&sigset, gc_signal);
-    return sigset;
-}
-
 static void gc_signal_handler(int signum)
 {
     assert(signum == gc_signal);
 
     logging::info() << "Thread " << pthread_self() << " enters gc signal handler";
+
+    if (flag_gc_signal_lock::is_locked()) {
+        flag_gc_signal_lock::set_pending();
+        return;
+    }
+
+    logging::info() << "Thread " << pthread_self() << " enters gc pause handler";
 
     threads_paused_barrier.notify();
     if (gc_pause_handler) {
@@ -64,22 +61,56 @@ const char* gc_pause_disabled_exception::what() const noexcept
     return m_msg.c_str();
 }
 
+thread_local volatile sig_atomic_t flag_gc_signal_lock::depth = 0;
+thread_local volatile sig_atomic_t flag_gc_signal_lock::signal_pending_flag = false;
+
+int flag_gc_signal_lock::lock() noexcept
+{
+    if (depth == 0) {
+        std::atomic_signal_fence(std::memory_order_seq_cst);
+        depth = 1;
+        std::atomic_signal_fence(std::memory_order_seq_cst);
+    } else {
+        depth++;
+    }
+    return depth;
+}
+
+int flag_gc_signal_lock::unlock() noexcept
+{
+    if (depth == 1) {
+        if (signal_pending_flag) {
+            gc_signal_handler(gc_signal);
+        }
+        std::atomic_signal_fence(std::memory_order_seq_cst);
+        depth = 0;
+    } else {
+        depth--;
+    }
+    return depth;
+}
+
+bool flag_gc_signal_lock::is_locked() noexcept
+{
+    return depth > 0;
+}
+
+void flag_gc_signal_lock::set_pending() noexcept
+{
+    signal_pending_flag = true;
+}
+
 void gc_pause_lock::lock() noexcept
 {
-    signal_lock_base::lock();
+    siglock::lock();
     gc_pause_disabled = true;
 }
 
 void gc_pause_lock::unlock() noexcept
 {
-    if (signal_lock_base::unlock()) {
+    if (!siglock::unlock()) {
         gc_pause_disabled = false;
     }
-}
-
-sigset_t gc_pause_lock::get_sigset() noexcept
-{
-    return get_gc_sigset();
 }
 
 void gc_pause_init()
@@ -151,5 +182,4 @@ pause_handler_t get_gc_pause_handler()
     lock_guard<gc_signal_safe_mutex> lock(gc_pause_handler_mutex);
     return gc_pause_handler;
 }
-
 }}

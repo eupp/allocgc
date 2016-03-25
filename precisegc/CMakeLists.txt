@@ -104,11 +104,11 @@ set(precisegc_LIB_SRCS
 include_directories(include/libprecisegc)
 include_directories(include/libprecisegc/details)
 
-add_library(libprecisegc SHARED ${precisegc_LIB_HDRS} ${precisegc_LIB_SRCS})
+add_library(libprecisegc STATIC ${precisegc_LIB_HDRS} ${precisegc_LIB_SRCS})
 
 find_package(Threads REQUIRED)
 target_link_libraries(libprecisegc "${CMAKE_THREAD_LIBS_INIT}")
 
 set_target_properties(libprecisegc PROPERTIES VERSION 1.0.0 SOVERSION 1)
-install(TARGETS libprecisegc LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
+install(TARGETS libprecisegc ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 install(FILES ${precisegc_LIB_HDRS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libprecisegc)

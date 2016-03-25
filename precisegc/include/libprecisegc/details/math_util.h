@@ -19,6 +19,11 @@ inline size_t log_2(size_t n)
     }
 }
 
+inline size_t pow_2(size_t n)
+{
+    return ((size_t) 1) << n;
+}
+
 inline size_t msb(size_t n)
 {
     size_t i = 0;

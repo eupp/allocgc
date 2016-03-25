@@ -60,6 +60,7 @@ public:
         void set_pool_chunk(managed_pool_chunk* pool_chunk);
 
         size_t get_cell_size() const;
+        size_t get_log2_cell_size() const;
         friend class managed_pool_chunk;
     protected:
         memory_descriptor(managed_pool_chunk* chunk_ptr, byte* chunk_mem, size_t size, size_t cell_size);
@@ -69,6 +70,7 @@ public:
 
         managed_pool_chunk* m_chunk_ptr;
         size_t m_cell_size;
+        size_t m_log2_cell_size;
         uintptr m_mask;
         mutex m_mutex;
         bitset_t m_mark_bits;

@@ -43,13 +43,13 @@
 #include <sys/time.h>
 
 // Our precise GC
-//#define PRECISE_GC
+#define PRECISE_GC
 
 // Boehm/Demers/Weiser conservative GC
 //#define BDW_GC
 //
 // Manual memory management
-#define NO_GC
+//#define NO_GC
 
 #ifdef BDW_GC
     #include <gc/gc.h>
@@ -57,6 +57,8 @@
 
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.h"
+    #include "libprecisegc/details/gc_garbage_collector.h"
+    #include "libprecisegc/details/gc_heap.h"
     using namespace precisegc;
 #endif
 
@@ -272,9 +274,12 @@ struct GCBench {
         tElapsed = elapsedTime(tFinish-tStart);
         PrintDiagnostics();
         cout << "Completed in " << tElapsed << " msec" << endl;
-        #ifdef BDW_GC
+        #if defined(BDW_GC)
             cout << "Completed " << GC_gc_no << " collections" <<endl;
             cout << "Heap size is " << GC_get_heap_size() << endl;
+        #elif defined(PRECISE_GC)
+            cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
+            cout << "Heap size is " << details::gc_heap::instance().size() << endl;
         #endif
     }
 };

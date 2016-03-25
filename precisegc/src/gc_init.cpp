@@ -30,7 +30,7 @@ int gc_init()
     create_first_thread();
     details::gc_pause_init();
 
-    const size_t MEM_UPPER_BOUND = 100 * 1024 * 1024;
+    const size_t MEM_UPPER_BOUND = 32 * 1024 * 1024;
     details::init_initator(0.22 * MEM_UPPER_BOUND, MEM_UPPER_BOUND);
 
     return 0;

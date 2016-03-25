@@ -28,6 +28,8 @@ public:
     // very bad design, just for testing purpose
     void force_move_to_idle();
 
+    size_t get_gc_cycles_count() const;
+
 private:
     gc_garbage_collector();
 
@@ -53,6 +55,7 @@ private:
     phase m_phase;
     mutex m_phase_mutex;
     condition_variable m_phase_cond;
+    size_t m_gc_cycles_cnt;
 
 };
 

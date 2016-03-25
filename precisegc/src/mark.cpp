@@ -74,7 +74,7 @@ int get_object_mark(void *ptr, bool mark_pin) {
 
 bool mark_after_overflow() {
 // TODO write it
-    myfile << "mark_after_overflow is called! ERROR! Exit!" << endl;
+//    myfile << "mark_after_overflow is called! ERROR! Exit!" << endl;
     assert(true);
     return true;
 }

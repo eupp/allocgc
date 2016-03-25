@@ -136,7 +136,7 @@ namespace _GC_ {
 	    size_t * level = tree_level_one, * prev_level = NULL;
 		for (int i = 0; i < (int) ITLevelCount - 1; i++) {
 			if ((void *) level[i_l] == NULL) {
-				myfile << "IT_remove_index : doesn't contain cell " << cell << endl;
+//				myfile << "IT_remove_index : doesn't contain cell " << cell << endl;
 				pthread_mutex_unlock(&index_tree_mutex);
 				return;
 			}

@@ -27,7 +27,7 @@ void unlock_all_mutexes (void) {
 bool _GC_::is_heap_pointer(void *ptr) { return IT_get_page_descr(ptr) != NULL; }
 
 int _GC_::init_segregated_storage (void) {
-    myfile.open("log.out");
+//    myfile.open("log.out");
 
     size_t sle_size = 4; // i.e. min size == 32 (i.e. round_up_to_power_of_two(16(i.e. 16 === sizeof(Object)) + ?))
     for (int i = 0; i < SegregatedStorageSize; i++, sle_size++) {
@@ -66,7 +66,7 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
     // i.e. it is no space (following our allocating stotegy)
     // so allocate new page
 	assert(d != NULL);
-    myfile << "\tallocate_on_new_page" << endl;
+//    myfile << "\tallocate_on_new_page" << endl;
     size_t objects_on_page_bits = ObjectsPerPageBits;
     assert(power_of_two(obj_size) + objects_on_page_bits < 64 - CellBits);
     size_t page_size = obj_size << objects_on_page_bits;
@@ -79,7 +79,7 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
         if (new_page == NULL) {
             page_size = (page_size << 1); objects_on_page_bits++;
         } else {
-            myfile << "\tmemalign: begin = " << new_page << " end = " << (void *)((size_t)new_page + page_size) << " page_size = " << page_size << endl;
+//            myfile << "\tmemalign: begin = " << new_page << " end = " << (void *)((size_t)new_page + page_size) << " page_size = " << page_size << endl;
         }
     }
 	assert(((size_t)new_page & (((size_t)1 << power_of_two(page_size)) - 1)) == 0);
@@ -89,8 +89,8 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
     d->page_size = page_size;
     d->free = (void *)((size_t)d->page + d->obj_size);
     d->mask = calculate_mask(page_size, obj_size, new_page);
-    myfile << "\t\t res = page = " << d->page << " free = " << d->free << " obj_size = " << d->obj_size
-        << " page_size = " << d->page_size << " mask = " << d->mask << endl;
+//    myfile << "\t\t res = page = " << d->page << " free = " << d->free << " obj_size = " << d->obj_size
+//        << " page_size = " << d->page_size << " mask = " << d->mask << endl;
     // add new cells to index tree
     index_new_page(d);
 
@@ -99,7 +99,7 @@ void * allocate_on_new_page (PageDescriptor * d, size_t obj_size, void * meta, s
     obj->count = count;
     obj->meta = meta;
     obj->begin = res;
-    myfile << "allocate_on_new_page: end\n" << endl;
+//    myfile << "allocate_on_new_page: end\n" << endl;
 	assert(d->free > res);
     return res;
 }
@@ -108,8 +108,8 @@ extern Object * get_object_header (PageDescriptor * d, void * ptr);
 /* sets meta information by pointer to the object begin */
 int _GC_::set_meta_after_gcmalloc (void * ptr, void * clMeta) {
 	PageDescriptor * d = (PageDescriptor *)IT_get_page_descr(ptr);
-	myfile << "set_meta_after_gcmalloc : PageDescriptor = " << (void *)d << endl;
-	if (d == NULL) { myfile << "set_meta_after_gcmalloc : incorrect pointer" << endl; return -1; }
+//	myfile << "set_meta_after_gcmalloc : PageDescriptor = " << (void *)d << endl;
+	if (d == NULL) { /*myfile << "set_meta_after_gcmalloc : incorrect pointer" << endl;*/ return -1; }
 	get_object_header(d, ptr)->meta = clMeta;
 	return 0;
 }
@@ -122,8 +122,8 @@ base_meta * _GC_::get_meta_inf (void * ptr) {  /*!< get the block with meta_inf*
 	if (d->free != NULL && ! ((size_t)ptr < (size_t)d->free)) {
 		assert(d->free == NULL || (size_t) ptr < (size_t) d->free);
 	}
-	myfile << "get_meta_inf: PageDescriptor = " << (void *)d << endl;
-	if (d == NULL) { myfile << "get_meta_inf : incorrect pointer" << endl; return NULL; }
+//	myfile << "get_meta_inf: PageDescriptor = " << (void *)d << endl;
+	if (d == NULL) { /*myfile << "get_meta_inf : incorrect pointer" << endl;*/ return NULL; }
 //	return (base_meta *)get_object_header(d, ptr);
 
 	base_meta * res = (base_meta *)get_object_header(d, ptr);
@@ -134,12 +134,12 @@ base_meta * _GC_::get_meta_inf (void * ptr) {  /*!< get the block with meta_inf*
 // TODO we need some gc strategy
 void * _GC_::gcmalloc (size_t s, void * meta, size_t count = 1) {
 gcmalloc_begin:
-    myfile << "gcmalloc: " << endl;
+//    myfile << "gcmalloc: " << endl;
     size_t size = align_object_size(s * count + sizeof(Object));
     void * res = NULL;
     int pot = power_of_two(size), ss_i = pot - (int) SmallBitAlign - 1;
-    myfile << "s = " << s << " meta = " << meta << " count = " << count << " ||| locals: size = " << size
-        << " pot = " << pot << " ss_i = " << ss_i << endl;
+//    myfile << "s = " << s << " meta = " << meta << " count = " << count << " ||| locals: size = " << size
+//        << " pot = " << pot << " ss_i = " << ss_i << endl;
     assert(ss_i > -1);
     size_t sle_size = (size_t)1 << pot;
     assert(sle_size == ((size_t)1 << segregated_storage[ss_i].size));
@@ -169,15 +169,15 @@ gcmalloc_begin:
             assert(new_free - (size_t)d->free == d->obj_size);
             d->free = new_free + d->obj_size <= page_end ? (void *)new_free : NULL;
 	        assert(d->free > res || d->free == NULL);
-            myfile << "\t\t res = "<< res << " free = "<< d->free << " page =" << d->page  << " obj_size = "
-                << d->obj_size << " page_size =" << d->page_size << "  mask = " << d->mask << endl;
+//            myfile << "\t\t res = "<< res << " free = "<< d->free << " page =" << d->page  << " obj_size = "
+//                << d->obj_size << " page_size =" << d->page_size << "  mask = " << d->mask << endl;
 
             Object * obj = (Object *)((size_t)res + size - sizeof(Object));
             *obj = {meta, count, res};
 
 	        /// this assert checks mask
             assert((void *)((size_t)d->mask & (size_t)((size_t)res + d->obj_size / 2)) == res);
-            myfile << "gcmalloc: end1" << endl;
+//            myfile << "gcmalloc: end1" << endl;
 //	        pthread_mutex_unlock(&malloc_mutexes[ss_i]);
 	        unlock_all_mutexes();
             return res;
@@ -209,7 +209,7 @@ gcmalloc_begin:
 /* returns object header by the pointer somewhere in */
 Object * get_object_header (PageDescriptor * d, void * ptr) {
     size_t obj_beg = ((size_t)ptr & d->mask);
-    myfile << "get_object_header : obj_beg = " << (void *)obj_beg << endl;
+//    myfile << "get_object_header : obj_beg = " << (void *)obj_beg << endl;
     assert(obj_beg >= (size_t)d->page);
     assert(obj_beg < (size_t)d->free || d->free == NULL);
     Object * res = (Object *)(obj_beg + d->obj_size - sizeof(Object));
@@ -224,22 +224,22 @@ inline Object * get_object_header (void * ptr) {
 /* removes one object from page */
 void _GC_::remove_object (void * ptr) {
     PageDescriptor * d = (PageDescriptor *)IT_get_page_descr(ptr);
-    myfile << "remove_object : PageDescriptor = " << (void *)d << endl;
-    if (d == NULL) { myfile << "remove_object : incorrect pointer" << endl; return; }
+//    myfile << "remove_object : PageDescriptor = " << (void *)d << endl;
+    if (d == NULL) { /*myfile << "remove_object : incorrect pointer" << endl;*/ return; }
     Object * obj = get_object_header(d, ptr);
-    myfile << "remove_object : obj = " << (void *)obj << endl;
+//    myfile << "remove_object : obj = " << (void *)obj << endl;
 
     if ((size_t)obj + sizeof(Object) == (size_t)d->free) {
         d->free = obj->begin;
         assert((size_t)d->free >= (size_t)d->page);
     }
-    myfile << "remove_object : remove " << obj->begin << endl;
+//    myfile << "remove_object : remove " << obj->begin << endl;
     memset(obj->begin, 0, ((size_t)d->obj_size) / sizeof(int));
 }
 
 /* free memory occupied by sle and removes indexes for all cells in this sle from index tree */
 void deallocate_sle (SegregatedListElement * sle) {
-	myfile << "deallocate_sle: starts" << endl;
+//	myfile << "deallocate_sle: starts" << endl;
 	for (int i = 0; i < SSEDescrCount; i++) {
 		size_t page = (size_t)sle->descrs[i].page, page_size = sle->descrs[i].page_size;
 		for (void * cell = (void *)page; (size_t)cell - page < page_size; cell = (void *)((size_t)cell + MemoryCell)) {
@@ -247,10 +247,10 @@ void deallocate_sle (SegregatedListElement * sle) {
 		}
 	}
 	if (munmap((void *)sle, SSESize) == -1) {
-		myfile << "\tdeallocate_sle: munmap fails!! ==> exit!" << endl;
+//		myfile << "\tdeallocate_sle: munmap fails!! ==> exit!" << endl;
 		assert(true);
 	}
-	myfile << "\tdeallocate_sle: ends" << endl;
+//	myfile << "\tdeallocate_sle: ends" << endl;
 }
 
 // TODO we need some better way to fix pointers! This way is unacceptable

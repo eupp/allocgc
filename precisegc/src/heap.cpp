@@ -144,8 +144,8 @@ gcmalloc_begin:
     size_t sle_size = (size_t)1 << pot;
     assert(sle_size == ((size_t)1 << segregated_storage[ss_i].size));
 
-//	pthread_mutex_lock(&malloc_mutexes[ss_i]);
-	lock_all_mutexes();
+	pthread_mutex_lock(&malloc_mutexes[ss_i]);
+//	lock_all_mutexes();
 
 	SegregatedListElement * sle = segregated_storage[ss_i].first;
 	if (sle == NULL) {
@@ -178,8 +178,8 @@ gcmalloc_begin:
 	        /// this assert checks mask
             assert((void *)((size_t)d->mask & (size_t)((size_t)res + d->obj_size / 2)) == res);
 //            myfile << "gcmalloc: end1" << endl;
-//	        pthread_mutex_unlock(&malloc_mutexes[ss_i]);
-	        unlock_all_mutexes();
+	        pthread_mutex_unlock(&malloc_mutexes[ss_i]);
+//	        unlock_all_mutexes();
             return res;
         };
     }
@@ -201,8 +201,8 @@ gcmalloc_begin:
     }
 	sle->last_descr++;
 	res = allocate_on_new_page(&(sle->descrs[sle->last_descr-1]), size, meta, count);
-//	pthread_mutex_unlock(&malloc_mutexes[ss_i]);
-	unlock_all_mutexes();
+	pthread_mutex_unlock(&malloc_mutexes[ss_i]);
+//	unlock_all_mutexes();
     return res;
 }
 

@@ -19,6 +19,7 @@ typedef allocators::indexed_ptr<byte, index_type> managed_ptr;
 class managed_cell_ptr
 {
 public:
+    typedef managed_memory_descriptor::mutex_type mutex_type;
     typedef managed_memory_descriptor::lock_type lock_type;
 
     class unindexed_memory_exception : public std::exception

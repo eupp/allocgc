@@ -27,6 +27,7 @@ public:
 private:
     typedef std::uintptr_t uintptr;
     typedef allocators::plain_pool_chunk plain_pool_chunk;
+    typedef managed_memory_descriptor::mutex_type mutex_type;
     typedef managed_memory_descriptor::lock_type lock_type;
     typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
 public:
@@ -72,7 +73,7 @@ public:
         size_t m_cell_size;
         size_t m_log2_cell_size;
         uintptr m_mask;
-        mutex m_mutex;
+        mutex_type m_mutex;
         bitset_t m_mark_bits;
         bitset_t m_pin_bits;
     };

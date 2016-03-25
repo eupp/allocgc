@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "math_util.h"
+#include "logging.h"
 
 namespace precisegc { namespace details {
 
@@ -24,6 +25,7 @@ managed_pool_chunk::managed_pool_chunk(managed_pool_chunk&& other)
     m_descr = other.m_descr;
     m_chunk = std::move(other.m_chunk);
     m_descr->set_pool_chunk(this);
+    m_alloc_bits = other.m_alloc_bits;
 }
 
 managed_pool_chunk::~managed_pool_chunk()
@@ -92,7 +94,7 @@ managed_pool_chunk::range_type managed_pool_chunk::get_range() const
     assert(get_mem() && m_descr);
     byte* b = get_mem();
     byte* e = b + get_mem_size();
-    auto lock = std::unique_lock<mutex>(m_descr->m_mutex, std::defer_lock_t());
+    auto lock = std::unique_lock<mutex_type>(m_descr->m_mutex, std::defer_lock_t());
     return range_type(iterator(b, m_descr), iterator(e, m_descr));
 }
 
@@ -109,6 +111,7 @@ void managed_pool_chunk::swap(managed_pool_chunk& other)
     }
     swap(m_chunk, other.m_chunk);
     swap(m_descr, other.m_descr);
+    swap(m_alloc_bits, other.m_alloc_bits);
     if (m_descr) {
         m_descr->set_pool_chunk(this);
     }
@@ -206,22 +209,22 @@ byte* managed_pool_chunk::memory_descriptor::get_object_begin(byte* ptr)
 
 managed_memory_descriptor::lock_type managed_pool_chunk::memory_descriptor::lock()
 {
-    return std::unique_lock<mutex>(m_mutex);
+    return std::unique_lock<mutex_type>(m_mutex);
 }
 
 managed_memory_descriptor::lock_type managed_pool_chunk::memory_descriptor::lock(std::defer_lock_t t)
 {
-    return std::unique_lock<mutex>(m_mutex, t);
+    return std::unique_lock<mutex_type>(m_mutex, t);
 }
 
 managed_memory_descriptor::lock_type managed_pool_chunk::memory_descriptor::lock(std::try_to_lock_t t)
 {
-    return std::unique_lock<mutex>(m_mutex, t);
+    return std::unique_lock<mutex_type>(m_mutex);
 }
 
 managed_memory_descriptor::lock_type managed_pool_chunk::memory_descriptor::lock(std::adopt_lock_t t)
 {
-    return std::unique_lock<mutex>(m_mutex, t);
+    return std::unique_lock<mutex_type>(m_mutex, t);
 }
 
 managed_pool_chunk::uintptr managed_pool_chunk::memory_descriptor::calc_mask(byte* chunk,
@@ -246,7 +249,9 @@ size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr)
 byte* managed_pool_chunk::memory_descriptor::get_cell_begin(byte* ptr)
 {
     uintptr uiptr = reinterpret_cast<uintptr>(ptr);
-    return reinterpret_cast<byte*>(uiptr & m_mask);
+    uintptr res = (uiptr & m_mask);
+    assert(res % m_cell_size == 0);
+    return reinterpret_cast<byte*>(res);
 }
 
 size_t managed_pool_chunk::memory_descriptor::get_cell_size() const

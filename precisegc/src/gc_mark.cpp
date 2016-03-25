@@ -50,7 +50,7 @@ void shade(void* ptr)
     // but could occur during testing.
     try {
         cell_ptr.lock_descriptor();
-        if (cell_ptr.get_mark()) {
+        if (!cell_ptr.get_mark()) {
             gc_mark_queue& queue = gc_mark_queue::instance();
             queue.push(ptr);
         }

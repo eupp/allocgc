@@ -12,7 +12,8 @@ namespace precisegc { namespace details {
 class managed_memory_descriptor
 {
 public:
-    typedef std::unique_lock<mutex> lock_type;
+    typedef recursive_mutex mutex_type;
+    typedef std::unique_lock<mutex_type> lock_type;
 
     virtual ~managed_memory_descriptor() {}
 

@@ -160,6 +160,7 @@ void gc_garbage_collector::mark()
 void gc_garbage_collector::traverse(managed_cell_ptr root)
 {
     root.lock_descriptor();
+    assert(root.is_live());
     if (root.get_mark()) {
         return;
     }

@@ -42,6 +42,7 @@ void* gc_new_impl(size_t n, Args&&... args)
 
     size_t size = n * sizeof(T) + sizeof(object_meta);
     managed_cell_ptr cell_ptr = gc_heap::instance().allocate(size);
+    assert(cell_ptr.is_live());
     byte* ptr = cell_ptr.get();
     size_t aligned_size = cell_ptr.cell_size();
     assert(ptr);
@@ -51,7 +52,7 @@ void* gc_new_impl(size_t n, Args&&... args)
     // zero memory
     memset(ptr, 0, aligned_size);
     // release descriptor (object is black and all possible pointers are zeroed)
-    cell_ptr.unlock_descriptor();
+//    cell_ptr.unlock_descriptor();
 
     void* begin = ptr;
     void* end = ptr + n * sizeof(T);

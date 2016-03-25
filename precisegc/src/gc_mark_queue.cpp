@@ -1,5 +1,7 @@
 #include "gc_mark_queue.h"
 
+#include "logging.h"
+
 namespace precisegc { namespace details {
 
 gc_mark_queue& gc_mark_queue::instance()

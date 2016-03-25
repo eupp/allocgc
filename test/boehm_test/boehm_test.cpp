@@ -43,13 +43,13 @@
 #include <sys/time.h>
 
 // Our precise GC
-#define PRECISE_GC
+//#define PRECISE_GC
 
 // Boehm/Demers/Weiser conservative GC
 //#define BDW_GC
 //
 // Manual memory management
-//#define NO_GC
+#define NO_GC
 
 #ifdef BDW_GC
     #include <gc/gc.h>
@@ -80,7 +80,7 @@ static const int kStretchTreeDepth    = 18; //18;       // about 16Mb
 static const int kLongLivedTreeDepth  = 16; //16;       // about 4Mb
 static const int kArraySize  = 500000;      //500000;   // about 4Mb
 static const int kMinTreeDepth = 4;         //4
-static const int kMaxTreeDepth = 10;        //16;
+static const int kMaxTreeDepth = 16;        //16;
 
 #if defined(PRECISE_GC)
     #define ptr_t(T) gc_ptr<T>

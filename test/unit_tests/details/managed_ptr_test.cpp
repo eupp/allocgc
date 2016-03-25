@@ -12,6 +12,7 @@ using namespace precisegc::details;
 using ::testing::Exactly;
 
 namespace {
+typedef managed_cell_ptr::mutex_type mutex_type;
 typedef managed_cell_ptr::lock_type lock_type;
 }
 
@@ -52,7 +53,7 @@ TEST_F(managed_cell_ptr_test, test_constructor)
 
 TEST_F(managed_cell_ptr_test, test_lock_constructor)
 {
-    mutex m;
+    mutex_type m;
     lock_type lock(m);
     managed_cell_ptr cell_ptr(m_ptr, PAGE_SIZE, &m_mock, std::move(lock));
 

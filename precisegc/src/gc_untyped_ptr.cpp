@@ -8,6 +8,7 @@
 #include "gc_new_stack.h"
 #include "gc_unsafe_scope.h"
 #include "write_barrier.h"
+#include "logging.h"
 #include "../thread.h"
 
 namespace precisegc { namespace details {
@@ -99,7 +100,7 @@ void gc_untyped_ptr::set(void* ptr) noexcept
 
 void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
 {
-    m_ptr.store(value.m_ptr);
+    m_ptr.store(value.get());
 }
 
 gc_untyped_ptr::operator bool() const noexcept

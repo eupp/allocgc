@@ -38,9 +38,9 @@ size_t _GC_::align_object_size (size_t size) {
 	assert(size > 0);
 	size_t i = size & (size -1);
 	// if size === power of two then return it
-	if (i == 0) { return size > MemoryCell ? size : MemoryCell; }
+	if (i == 0) { return size /*> MemoryCell ? size : MemoryCell */ ; }
 	// otherwise --- round it up
 	while (i != 0) { size = i; i = size & (size -1); }
 	size = size << 1;
-	return size > MemoryCell ? size : MemoryCell;
+	return size /* > MemoryCell ? size : MemoryCell */;
 }

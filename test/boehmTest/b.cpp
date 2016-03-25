@@ -47,7 +47,7 @@
 #ifdef GC
   #ifdef precise
 //    #include <libprecisegc/libprecisegc.h>
-    #include "../../sources/libprecisegc.h"
+    #include "libprecisegc/libprecisegc.h"
   #else
     #include <gc.h>
   #endif

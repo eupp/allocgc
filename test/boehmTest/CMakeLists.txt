@@ -8,9 +8,11 @@ add_executable(${TEST} EXCLUDE_FROM_ALL ${SOURCE})
 #find_path(PRECISEGC_PATH libprecisegc/libprecisegc.h)
 #include_directories(${PRECISEGC_PATH})
 
-#find_library(PRECISEGC_LIB precisegc REQUIRED)
-find_library(PTHREAD_LIB pthread REQUIRED)
+include_directories(${PROJECT_SOURCE_DIR}/precisegc/include/)
+
+find_package(Threads REQUIRED)
 
 #set(LIBS ${PRECISEGC_LIB} ${PTHREAD_LIB})
-set(LIBS ${PTHREAD_LIB})
-target_link_libraries(${TEST} ${LIBS})
+
+target_link_libraries(${TEST} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${TEST} libprecisegc)

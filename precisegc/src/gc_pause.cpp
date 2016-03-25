@@ -31,7 +31,17 @@ static size_t threads_cnt = 0;
 static std::function<void(void)> gc_pause_handler;
 static gc_signal_safe_mutex gc_pause_handler_mutex;
 
-static void gc_signal_handler(int signum)
+static void gc_signal_handler()
+{
+    threads_paused_barrier.notify();
+    if (gc_pause_handler) {
+        gc_pause_handler();
+    }
+    gc_finished_event.wait();
+    threads_resumed_barrier.notify();
+}
+
+static void check_gc_siglock(int signum)
 {
     assert(signum == gc_signal);
 
@@ -42,14 +52,7 @@ static void gc_signal_handler(int signum)
         return;
     }
 
-    logging::info() << "Thread " << pthread_self() << " enters gc pause handler";
-
-    threads_paused_barrier.notify();
-    if (gc_pause_handler) {
-        gc_pause_handler();
-    }
-    gc_finished_event.wait();
-    threads_resumed_barrier.notify();
+    gc_signal_handler();
 }
 
 gc_pause_disabled_exception::gc_pause_disabled_exception()
@@ -80,7 +83,8 @@ int flag_gc_signal_lock::unlock() noexcept
 {
     if (depth == 1) {
         if (signal_pending_flag) {
-            gc_signal_handler(gc_signal);
+            gc_signal_handler();
+            signal_pending_flag = false;
         }
         std::atomic_signal_fence(std::memory_order_seq_cst);
         depth = 0;
@@ -98,6 +102,7 @@ bool flag_gc_signal_lock::is_locked() noexcept
 void flag_gc_signal_lock::set_pending() noexcept
 {
     signal_pending_flag = true;
+    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 void gc_pause_lock::lock() noexcept
@@ -119,7 +124,7 @@ void gc_pause_init()
         sigset_t sigset = get_gc_sigset();
         struct sigaction sa;
         memset(&sa, 0, sizeof(struct sigaction));
-        sa.sa_handler = gc_signal_handler;
+        sa.sa_handler = check_gc_siglock;
         sa.sa_mask = sigset;
         int sa_ret = sigaction(gc_signal, &sa, nullptr);
         assert(sa_ret == 0);
@@ -150,6 +155,7 @@ void gc_pause()
 
         for (auto& thread: threads) {
             if (!pthread_equal(thread.pthread, self)) {
+                logging::info() << "Sending gc_signal to thread " << thread.pthread;
                 pthread_kill(thread.pthread, gc_signal);
             }
         }

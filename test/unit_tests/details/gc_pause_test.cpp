@@ -85,26 +85,34 @@ TEST(gc_pause_test, test_gc_pause_lock_2)
 
     const int THREADS_CNT = 10;
 
-//    std::cout << "Thread " << pthread_self() << " test." << std::endl;
     pthread_t threads[THREADS_CNT];
     for (auto& thread: threads) {
         ASSERT_EQ(0, thread_create(&thread, nullptr, thread_routine_2, nullptr));
-//        std::cout << "Thread " << thread << " worker." << std::endl;
     }
 
-    pause_handler_setter handler_setter([&g_counter]() {
+    pthread_t pause_disabled_thread = pthread_self();
+    signal_safe_barrier barrier;
+
+    pause_handler_setter handler_setter([&g_counter, &barrier, pause_disabled_thread, THREADS_CNT]() {
+        if (g_counter < THREADS_CNT) {
+            ASSERT_NE(pause_disabled_thread, pthread_self());
+        } else {
+            ASSERT_EQ(pause_disabled_thread, pthread_self());
+        }
         ++g_counter;
-//        std::cout << "Thread " << pthread_self() << " reach signal handler." << std::endl;
+        barrier.notify();
     });
 
     {
         gc_pause_lock pause_lock;
         lock_guard<gc_pause_lock> lock(pause_lock);
 
+        logging::info() << "Thread " << pthread_self() << " disable signals";
+
         pthread_t gc_thread;
         ASSERT_EQ(0, thread_create(&gc_thread, nullptr, thread_routine_3, nullptr));
 
-        sleep(1);
+        barrier.wait(THREADS_CNT);
         // Assert that all other threads, except us, increase counter.
         // If disable_gc_pause is broken then likely this thread have been interrupted by pause handler before this assertion,
         // and counter had been incremented to THREADS_CNT + 1.
@@ -112,7 +120,7 @@ TEST(gc_pause_test, test_gc_pause_lock_2)
     }
 
     gc_pause_enabled = true;
-    sleep(1);
+    barrier.wait(1);
 
     ASSERT_EQ(THREADS_CNT + 1, g_counter);
 }

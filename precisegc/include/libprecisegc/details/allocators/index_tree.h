@@ -36,7 +36,6 @@ public:
 
     void index(byte* mem, size_t size, T* entry)
     {
-        lock_guard<mutex> lock(m_mutex);
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
@@ -46,7 +45,6 @@ public:
 
     void remove_index(byte* mem, size_t size)
     {
-        lock_guard<mutex> lock(m_mutex);
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
@@ -56,7 +54,6 @@ public:
 
     T* get_entry(byte* mem)
     {
-        lock_guard<mutex> lock(m_mutex);
         return get_page_entry(mem);
     }
 
@@ -154,6 +151,7 @@ private:
 
     void index_page(byte* page, T* entry)
     {
+        lock_guard<mutex> lock(m_mutex);
         tree_path path = traverse(page, allocation_option::ALLOCATE);
         any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
         assert(!leaf);
@@ -164,6 +162,8 @@ private:
 
     void remove_page_index(byte* page)
     {
+        lock_guard<mutex> lock(m_mutex);
+
         tree_path path = traverse(page, allocation_option::ALLOCATE);
 
         any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
@@ -190,6 +190,7 @@ private:
 
     T* get_page_entry(byte* page)
     {
+        lock_guard<mutex> lock(m_mutex);
         tree_path path = traverse(page, allocation_option::NO_ALLOCATE);
         if (path[LEVEL_CNT - 1].m_level) {
             any_ptr leaf = path[LEVEL_CNT - 1].get_element();

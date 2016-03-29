@@ -25,7 +25,7 @@ static void create_first_thread()
 
 int gc_init()
 {
-    details::logging::init(std::clog, details::logging::loglevel::OFF);
+    details::logging::init(std::clog, details::logging::loglevel::DEBUG);
 
     create_first_thread();
     details::gc_pause_init();

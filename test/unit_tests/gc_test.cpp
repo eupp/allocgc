@@ -18,6 +18,8 @@
 using namespace precisegc;
 using namespace precisegc::details;
 
+//#define DEBUG_PRINT_TREE
+
 namespace {
 
 struct node
@@ -58,8 +60,6 @@ void unmark_tree(const gc_ptr<node>& ptr)
         unmark_tree(ptr->m_right);
     }
 }
-
-//#define DEBUG_PRINT_TREE
 
 void print_tree(const gc_ptr<node>& root, const std::string& offset = "")
 {
@@ -150,12 +150,14 @@ struct gc_test: public ::testing::Test
         gc_finished = false;
         thread_num = 0;
 
+        std::cout << "Creating tree" << std::endl;
         root = create_tree(TREE_DEPTH);
         unmark_tree(root);
         print_tree(root);
 
         for (auto& thread: threads) {
-            assert(thread_create(&thread, nullptr, thread_routine, (void*) &root) == 0);
+            int res = thread_create(&thread, nullptr, thread_routine, (void*) &root);
+            assert(res == 0);
         }
         threads_ready.wait();
 
@@ -200,7 +202,9 @@ void check_nodes(node* ptr, size_t depth)
 TEST_F(gc_test, test_marking)
 {
     auto& collector = gc_garbage_collector::instance();
+    std::cout << "Start marking" << std::endl;
     collector.start_marking();
+    std::cout << "Wait for marking finished" << std::endl;
     collector.wait_for_marking_finished();
 
     gc_finished = true;

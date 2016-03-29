@@ -1,7 +1,7 @@
 #pragma once
 #include <pthread.h>
+
 #include "stack.h"
-#include "tlvars.h"
 
 namespace precisegc {
 
@@ -12,7 +12,6 @@ struct thread_handler
     void* arg;
     size_t flags;
     StackMap* stack;
-    tlvars* tlflags;
 };
 
 int thread_create(pthread_t* thread, const pthread_attr_t* attr,

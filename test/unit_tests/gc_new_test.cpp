@@ -3,6 +3,7 @@
 #include "libprecisegc/gc_new.h"
 #include "libprecisegc/gcmalloc.h"
 #include "libprecisegc/details/class_meta.h"
+#include "libprecisegc/details/gc_mark.h"
 
 using namespace precisegc;
 using namespace precisegc::details;

@@ -26,7 +26,6 @@ void* start_routine(void* hand)
     thread_handler* handler = (thread_handler*) hand;
     handler->stack = StackMap::getInstance();
     handler->flags = 0;
-    handler->tlflags = & new_obj_flags_tl_instance;
 
     void* ret = handler->routine(handler->arg);
     lock_guard<mutex> lock(thread_list::instance_mutex);

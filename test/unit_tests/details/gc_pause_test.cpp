@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <time.h>
 
-#include "libprecisegc/thread.h"
 #include "libprecisegc/details/gc_pause.h"
 #include "libprecisegc/details/signal_safe_sync.h"
 #include "libprecisegc/details/logging.h"

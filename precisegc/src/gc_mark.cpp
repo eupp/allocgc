@@ -1,3 +1,4 @@
+#include "gcmalloc.h"
 #include "gc_mark.h"
 
 #include <cassert>
@@ -64,6 +65,11 @@ void* get_pointed_to(void* ptr)
     gc_untyped_ptr* gcptr = reinterpret_cast<gc_untyped_ptr*>(ptr);
     void* res = gcptr->get();
     return res;
+}
+
+object_meta* get_object_header(void *ptr) {
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    return cell_ptr.get_meta();
 }
 
 }}

@@ -9,8 +9,6 @@
 #define _GC_IT_LEVEL_COUNT ((size_t) 3)
 #endif
 
-#include "details/page_descriptor.h"
-
 namespace _GC_ {
 	enum {
 		ITLevelCount      = _GC_IT_LEVEL_COUNT,

@@ -9,7 +9,6 @@
 #include "object_meta.h"
 #include "gc_mark.h"
 #include "../gc_ptr.h"
-#include "../object.h"
 #include "managed_ptr.h"
 
 namespace precisegc { namespace details {

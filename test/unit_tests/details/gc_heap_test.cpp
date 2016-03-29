@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/object.h"
 #include "libprecisegc/details/gc_heap.h"
 #include "libprecisegc/gcmalloc.h"
 

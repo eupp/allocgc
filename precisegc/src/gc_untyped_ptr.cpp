@@ -9,7 +9,6 @@
 #include "gc_unsafe_scope.h"
 #include "write_barrier.h"
 #include "logging.h"
-#include "../thread.h"
 
 namespace precisegc { namespace details {
 

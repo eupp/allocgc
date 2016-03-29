@@ -2,6 +2,7 @@
 #define DIPLOMA_JOIN_RANGE_H
 
 #include <iterator>
+#include <cassert>
 
 #include "iterator_range.h"
 #include "../iterator_facade.h"
@@ -63,13 +64,13 @@ public:
 
     reference operator*() const noexcept
     {
-        assert(!m_end_flag);
+        assert(!this->m_end_flag);
         return *m_curr_it;
     }
 
     pointer operator->() const noexcept
     {
-        assert(!m_end_flag);
+        assert(!this->m_end_flag);
         return m_curr_it.operator->();
     }
 

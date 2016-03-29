@@ -9,8 +9,6 @@
 #include <pthread.h>
 
 #include "gc_ptr.h"
-#include "thread.h"
-#include "tlvars.h"
 #include "details/class_meta.h"
 #include "details/gc_unsafe_scope.h"
 #include "details/gc_ptr_access.h"

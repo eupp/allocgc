@@ -1,31 +1,20 @@
 
 set(precisegc_LIB_HDRS
-        include/libprecisegc/debug_print.h
-        include/libprecisegc/fake_roots.h
         include/libprecisegc/gc_ptr.h
         include/libprecisegc/gc_new.h
         include/libprecisegc/gcmalloc.h
         include/libprecisegc/index_tree.h
         include/libprecisegc/stack.h
-        include/libprecisegc/taginfo.h
-        include/libprecisegc/tlvars.h
-        include/libprecisegc/thread.h
-        include/libprecisegc/meta_information.h
-        include/libprecisegc/object.h
 
         include/libprecisegc/details/class_meta.h
+        include/libprecisegc/details/object_meta.h
         include/libprecisegc/details/mutex.h
-        include/libprecisegc/details/os.h
-        include/libprecisegc/details/page_descriptor.h
-        include/libprecisegc/details/segregated_list.h
         include/libprecisegc/details/gc_heap.h
         include/libprecisegc/details/allocators/constants.h
-        include/libprecisegc/details/os_mem_ptr.h
         include/libprecisegc/details/math_util.h
         include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
-        include/libprecisegc/details/pool_chunk.h
         include/libprecisegc/details/condition_variable.h
         include/libprecisegc/details/gc_pause.h
         include/libprecisegc/details/barrier.h
@@ -69,19 +58,13 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/lockable_range.h
         include/libprecisegc/details/allocators/joined_range.h
         include/libprecisegc/details/allocators/reversed_range.h
-        )
+        include/libprecisegc/thread.h)
 
 set(precisegc_LIB_SRCS
-        src/index_tree.cpp
-        src/gcmalloc.cpp
         src/gc_mark.cpp
         src/stack.cpp
-        src/taginfo.cpp
         src/thread.cpp
-        src/tlvars.cpp
-        src/page_descriptor.cpp
-        src/segregated_list.cpp
-        src/gc_heap.cpp src/pool_chunk.cpp
+        src/gc_heap.cpp
         src/gc_pause.cpp
         src/thread_list.cpp
         src/signal_safe_sync.cpp

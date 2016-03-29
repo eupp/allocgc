@@ -5,9 +5,9 @@
 #include "gc_untyped_ptr.h"
 #include "managed_ptr.h"
 #include "object_meta.h"
-#include "gcmalloc.h"
 
 #include "logging.h"
+#include "gc_mark.h"
 
 namespace precisegc { namespace details {
 
@@ -63,7 +63,7 @@ void intrusive_forwarding::forward(void* ptr) const
     void* from = gcptr->get();
     if (from) {
         try {
-            object_meta* meta = _GC_::get_object_header(from);
+            object_meta* meta = get_object_header(from);
             if (meta) {
                 void* to = meta->get_object_ptr();
                 if (from != to) {

@@ -7,7 +7,6 @@
 #include "libprecisegc/details/signal_safe_sync.h"
 #include "libprecisegc/details/condition_variable.h"
 #include "libprecisegc/details/gc_pause.h"
-#include "libprecisegc/thread.h"
 
 #include "time_util.h"
 

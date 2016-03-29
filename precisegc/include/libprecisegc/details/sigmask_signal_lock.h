@@ -72,8 +72,6 @@ private:
     }
 };
 
-
-
 }}
 
 #endif //DIPLOMA_SIGNAL_LOCK_IMPL_H

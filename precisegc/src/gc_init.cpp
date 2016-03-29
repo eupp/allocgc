@@ -15,7 +15,6 @@ static void create_first_thread()
     first_thread.pthread = pthread_self();
     first_thread.stack = StackMap::getInstance();
     first_thread.flags = 0;
-    first_thread.tlflags = &new_obj_flags_tl_instance;
     first_thread.routine = nullptr;
     first_thread.arg = nullptr;
     details::thread_list::instance().insert(first_thread);
@@ -25,7 +24,7 @@ static void create_first_thread()
 
 int gc_init()
 {
-    details::logging::init(std::clog, details::logging::loglevel::DEBUG);
+    details::logging::init(std::clog, details::logging::loglevel::OFF);
 
     create_first_thread();
     details::gc_pause_init();

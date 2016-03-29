@@ -6,7 +6,6 @@
 #include <pthread.h>
 
 #include "mutex.h"
-#include "os.h"
 
 namespace precisegc { namespace details {
 
@@ -61,14 +60,14 @@ public:
     static const class_meta& get_meta()
     {
         // we don't need syncronization here since class_meta is immutable object
-        assert(meta_inf);
+//        assert(meta_inf);
         return *meta_inf;
     }
 
     static const class_meta* get_meta_ptr()
     {
         // we don't need syncronization here since class_meta is immutable object
-        assert(meta_inf);
+//        assert(meta_inf);
         return meta_inf.get();
     }
 

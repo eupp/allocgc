@@ -10,9 +10,6 @@ set(precisegc_TESTS
         gc_test.cpp
         gc_inside_method_test.cpp
         details/class_meta_test.cpp
-        details/page_descriptor_test.cpp
-        details/segregated_list_test.cpp
-        details/pool_chunk_test.cpp
         details/gc_pause_test.cpp
         details/signal_safe_sync_test.cpp
         details/gc_heap_test.cpp
@@ -27,7 +24,8 @@ set(precisegc_TESTS
         details/allocators/indexed_ptr_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
-        include/page_ptr.h details/managed_pool_chunk_test.cpp include/rand_util.h details/allocators/join_range_test.cpp)
+        include/page_ptr.h details/managed_pool_chunk_test.cpp include/rand_util.h details/allocators/join_range_test.cpp
+        )
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

@@ -13,6 +13,8 @@ void set_object_pin(void* ptr, bool pinned);
 
 void* get_pointed_to(void* ptr);
 
+object_meta * get_object_header(void *ptr);
+
 }}
 
 #endif //DIPLOMA_GC_MARK_H

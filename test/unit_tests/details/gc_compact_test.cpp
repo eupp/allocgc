@@ -3,7 +3,6 @@
 #include <unordered_set>
 
 #include "libprecisegc/details/gc_compact.h"
-#include "libprecisegc/details/segregated_list.h"
 #include "libprecisegc/details/forwarding.h"
 
 #include "libprecisegc/details/allocators/fixed_size_allocator.h"

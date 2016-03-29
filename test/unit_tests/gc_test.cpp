@@ -7,7 +7,6 @@
 #include <queue>
 #include <pthread.h>
 
-#include "libprecisegc/thread.h"
 #include "libprecisegc/gc_ptr.h"
 #include "libprecisegc/gc_new.h"
 #include "libprecisegc/gc.h"

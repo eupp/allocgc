@@ -9,7 +9,6 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "thread.h"
 #include "thread_list.h"
 #include "signal_safe_sync.h"
 #include "logging.h"

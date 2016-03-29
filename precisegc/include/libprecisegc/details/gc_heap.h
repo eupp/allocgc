@@ -5,10 +5,8 @@
 #include <atomic>
 #include <cstddef>
 
-#include "../object.h"
 #include "forwarding.h"
 #include "object_meta.h"
-#include "segregated_list.h"
 #include "mutex.h"
 #include "allocators/bucket_allocator.h"
 #include "allocators/pow2_bucket_policy.h"

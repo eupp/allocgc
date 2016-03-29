@@ -17,8 +17,8 @@ namespace _GC_ {
     void* gcmalloc(size_t, const precisegc::details::class_meta* , size_t);
 
     void set_meta_after_gcmalloc(void *ptr, const precisegc::details::class_meta *cls_meta);
-    precisegc::details::object_meta * get_object_header(void *ptr);
-    base_meta * get_meta_inf (void * ptr);
+
+base_meta * get_meta_inf (void * ptr);
 
     bool get_object_mark(void* ptr);
     bool get_object_pin(void* ptr);

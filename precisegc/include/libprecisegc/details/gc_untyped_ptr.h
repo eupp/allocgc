@@ -6,6 +6,7 @@
 #include <atomic>
 
 #include "gc_untyped_pin.h"
+#include "allocators/types.h"
 
 namespace precisegc { namespace details {
 
@@ -34,14 +35,12 @@ public:
 
     void atomic_store(const gc_untyped_ptr& value);
     friend class gc_untyped_pin;
+protected:
+    std::atomic<byte*> m_ptr;
 private:
-
-    static const uintptr_t ROOT_FLAG_BIT;
-
     void register_root() noexcept;
     void delete_root() noexcept;
-
-    std::atomic<void*> m_ptr;
+    
     const bool m_root_flag;
 };
 

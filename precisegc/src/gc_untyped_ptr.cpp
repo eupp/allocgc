@@ -21,7 +21,7 @@ gc_untyped_ptr::gc_untyped_ptr() noexcept
 //{}
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
-    : m_ptr(ptr)
+    : m_ptr(reinterpret_cast<byte*>(ptr))
     , m_root_flag(!gc_new_stack::instance().is_active())
 {
     if (m_root_flag) {
@@ -94,12 +94,12 @@ void* gc_untyped_ptr::get() const noexcept
 
 void gc_untyped_ptr::set(void* ptr) noexcept
 {
-    m_ptr.store(ptr);
+    m_ptr.store(reinterpret_cast<byte*>(ptr));
 }
 
 void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
 {
-    m_ptr.store(value.get());
+    m_ptr.store(reinterpret_cast<byte*>(value.get()));
 }
 
 gc_untyped_ptr::operator bool() const noexcept

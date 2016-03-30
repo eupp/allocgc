@@ -1,13 +1,11 @@
 #include <gtest/gtest.h>
 
 #include "libprecisegc/gc_new.h"
-#include "libprecisegc/gcmalloc.h"
 #include "libprecisegc/details/class_meta.h"
 #include "libprecisegc/details/gc_mark.h"
 
 using namespace precisegc;
 using namespace precisegc::details;
-using namespace _GC_;
 
 TEST(gc_new_test, test_gc_new_int)
 {

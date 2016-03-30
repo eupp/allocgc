@@ -16,10 +16,8 @@
 namespace precisegc {
 
 namespace details {
-
 template <typename T>
 class gc_ptr_access;
-
 }
 
 template <typename T>
@@ -29,7 +27,7 @@ template<typename T>
 class gc_pin: private details::gc_untyped_pin
 {
 public:
-    gc_pin(const gc_ptr<T>& ptr);
+    explicit gc_pin(const gc_ptr<T>& ptr);
 
     T* get() const;
 
@@ -39,12 +37,13 @@ public:
 };
 
 template <typename T>
-class gc_pin<T[]>: private details::gc_untyped_pin
+class gc_pin<T[]> : private details::gc_untyped_pin
 {
 public:
-    gc_pin(const gc_ptr<T[]>& ptr);
+    explicit gc_pin(const gc_ptr<T[]>& ptr);
 
     T* get() const;
+    T& operator*() const;
     T& operator[](size_t n) const;
 };
 
@@ -267,6 +266,12 @@ template <typename T>
 T* gc_pin<T[]>::get() const
 {
     return reinterpret_cast<T*>(details::gc_untyped_pin::get());
+}
+
+template <typename T>
+T& gc_pin<T[]>::operator*() const
+{
+    return *(reinterpret_cast<T*>(details::gc_untyped_pin::get()));
 }
 
 template <typename T>

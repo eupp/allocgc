@@ -235,7 +235,7 @@ managed_pool_chunk::uintptr managed_pool_chunk::memory_descriptor::calc_mask(byt
     size_t cell_size_bits = log_2(cell_size);
     size_t bit_diff = chunk_size_bits - cell_size_bits;
     uintptr ptr = reinterpret_cast<uintptr>(chunk);
-    return (ptr | ((1 << bit_diff) - 1) << cell_size_bits);
+    return (ptr | (((1 << bit_diff) - 1) << cell_size_bits));
 }
 
 size_t managed_pool_chunk::memory_descriptor::calc_cell_ind(byte* ptr)

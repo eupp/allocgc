@@ -15,8 +15,9 @@ public:
     ~gc_untyped_pin();
 
     void* get() const noexcept;
-private:
+protected:
     void* m_raw_ptr;
+private:
     managed_memory_descriptor* m_descr;
 };
 

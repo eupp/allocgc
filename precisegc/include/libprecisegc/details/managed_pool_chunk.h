@@ -23,7 +23,7 @@ class managed_pool_chunk : private noncopyable
 {
 public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
-    static const size_t CHUNK_MINSIZE = 32;
+    static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;
     typedef allocators::plain_pool_chunk plain_pool_chunk;
@@ -154,6 +154,7 @@ public:
         size_t chunk_cnt = std::max((size_t) CHUNK_MINSIZE, PAGE_SIZE / cell_size);
         assert(chunk_cnt <= CHUNK_MAXSIZE);
         size_t chunk_size = chunk_cnt * cell_size;
+        assert(chunk_size <= PAGE_SIZE);
         byte* raw_ptr = allocator.allocate(chunk_size);
 
         memory_descriptor* descr = new memory_descriptor(nullptr, raw_ptr, chunk_size, cell_size);

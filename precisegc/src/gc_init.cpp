@@ -9,6 +9,8 @@
 
 namespace precisegc {
 
+static bool init_flag = false;
+
 static void create_first_thread()
 {
     thread_handler first_thread;
@@ -24,13 +26,17 @@ static void create_first_thread()
 
 int gc_init()
 {
-    details::logging::init(std::clog, details::logging::loglevel::OFF);
+    if (!init_flag) {
+        details::logging::init(std::clog, details::logging::loglevel::OFF);
 
-    create_first_thread();
-    details::gc_pause_init();
+        create_first_thread();
+        details::gc_pause_init();
 
-    const size_t MEM_UPPER_BOUND = 32 * 1024 * 1024;
-    details::init_initator(0.22 * MEM_UPPER_BOUND, MEM_UPPER_BOUND);
+        const size_t MEM_UPPER_BOUND = 32 * 1024 * 1024;
+        details::init_initator(0.22 * MEM_UPPER_BOUND, MEM_UPPER_BOUND);
+
+        init_flag = true;
+    }
 
     return 0;
 }

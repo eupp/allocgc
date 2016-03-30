@@ -58,7 +58,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/lockable_range.h
         include/libprecisegc/details/allocators/joined_range.h
         include/libprecisegc/details/allocators/reversed_range.h
-        include/libprecisegc/thread.h)
+        include/libprecisegc/thread.h
+        )
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

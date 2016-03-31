@@ -85,12 +85,15 @@ set(precisegc_LIB_SRCS
         )
 
 
+find_package(Threads REQUIRED)
+find_package(Boost 1.54)
+
+include_directories(${Boost_INCLUDE_DIR})
 include_directories(include/libprecisegc)
 include_directories(include/libprecisegc/details)
 
 add_library(libprecisegc STATIC ${precisegc_LIB_HDRS} ${precisegc_LIB_SRCS})
 
-find_package(Threads REQUIRED)
 target_link_libraries(libprecisegc "${CMAKE_THREAD_LIBS_INIT}")
 
 set_target_properties(libprecisegc PROPERTIES VERSION 1.0.0 SOVERSION 1)

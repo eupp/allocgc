@@ -4,36 +4,39 @@
 
 namespace precisegc { namespace details {
 
+gc_mark_queue::gc_mark_queue()
+    : m_queue(0)
+{}
+
 gc_mark_queue& gc_mark_queue::instance()
 {
     static gc_mark_queue queue;
     return queue;
 }
 
-bool gc_mark_queue::empty() const
+bool gc_mark_queue::empty()
 {
-    lock_guard<mutex> lock(m_mutex);
     return m_queue.empty();
 }
 
 void gc_mark_queue::push(void* ptr)
 {
-    lock_guard<mutex> lock(m_mutex);
-    m_queue.push(ptr);
+    bool res = m_queue.push(ptr);
+    assert(res);
 }
 
 void* gc_mark_queue::pop()
 {
-    lock_guard<mutex> lock(m_mutex);
-    void* ret = m_queue.front();
-    m_queue.pop();
+    void* ret;
+    if (!m_queue.pop(ret)) {
+        ret = nullptr;
+    }
     return ret;
 }
 
 void gc_mark_queue::clear()
 {
-    lock_guard<mutex> lock(m_mutex);
-    std::queue<void*>().swap(m_queue);
+    void* ret;
+    while (m_queue.pop(ret)) {}
 }
-
 }}

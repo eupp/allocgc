@@ -118,12 +118,13 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
 TEST_F(gc_compact_test, test_two_finger_compact_2)
 {
     const size_t LIVE_CNT = 5;
+    const size_t CHUNK_SIZE = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
 
-    for (size_t i = 0; i < managed_pool_chunk::CHUNK_MINSIZE; ++i) {
+    for (size_t i = 0; i < CHUNK_SIZE; ++i) {
         m_chunk.allocate(OBJ_SIZE);
     }
 
-    uniform_rand_generator<size_t> rand_gen(0, managed_pool_chunk::CHUNK_MINSIZE - 1);
+    uniform_rand_generator<size_t> rand_gen(0, CHUNK_SIZE - 1);
     auto rng = m_chunk.get_range();
     for (size_t i = 0; i < LIVE_CNT; ++i) {
         size_t rand = rand_gen();
@@ -197,12 +198,13 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
 TEST_F(gc_compact_test, test_compact_and_sweep)
 {
     const size_t LIVE_CNT = 5;
+    const size_t CHUNK_SIZE = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
 
-    for (size_t i = 0; i < managed_pool_chunk::CHUNK_MINSIZE; ++i) {
+    for (size_t i = 0; i < CHUNK_SIZE; ++i) {
         m_chunk.allocate(OBJ_SIZE);
     }
 
-    uniform_rand_generator<size_t> rand_gen(0, managed_pool_chunk::CHUNK_MINSIZE - 1);
+    uniform_rand_generator<size_t> rand_gen(0, CHUNK_SIZE - 1);
     auto rng = m_chunk.get_range();
     for (size_t i = 0; i < LIVE_CNT; ++i) {
         size_t rand = rand_gen();
@@ -222,7 +224,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
         ASSERT_FALSE(it->get_mark());
     }
 
-    size_t dead_cnt = managed_pool_chunk::CHUNK_MINSIZE - LIVE_CNT;
+    size_t dead_cnt = CHUNK_SIZE - LIVE_CNT;
     size_t free_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
     ASSERT_EQ(dead_cnt, sweep_cnt);
     for (size_t i = 0; i < free_cnt; ++i) {

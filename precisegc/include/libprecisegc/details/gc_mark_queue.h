@@ -2,6 +2,7 @@
 #define DIPLOMA_GC_MARK_QUEUE_H
 
 #include <queue>
+#include <boost/lockfree/queue.hpp>
 
 #include "gc_untyped_ptr.h"
 #include "mutex.h"
@@ -15,7 +16,7 @@ public:
 
     static gc_mark_queue& instance();
 
-    bool empty() const;
+    bool empty();
 
     void push(void* ptr);
     void* pop();
@@ -23,10 +24,9 @@ public:
     void clear();
 
 private:
-    gc_mark_queue() = default;
+    gc_mark_queue();
 
-    mutable mutex m_mutex;
-    std::queue<void*> m_queue;
+    boost::lockfree::queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
 };
 
 }}

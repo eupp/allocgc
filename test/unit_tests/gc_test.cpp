@@ -29,6 +29,7 @@ struct node
 
 gc_ptr<node> create_gc_node()
 {
+
     return gc_new<node>();
 }
 

@@ -38,7 +38,7 @@ size_t gc_garbage_collector::get_gc_cycles_count() const
 
 void gc_garbage_collector::wait_for_gc_finished()
 {
-    lock_guard<mutex> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     if (m_phase == phase::COMPACTING) {
         return;
     }
@@ -57,7 +57,7 @@ void gc_garbage_collector::wait_for_gc_finished()
 
 void gc_garbage_collector::start_marking()
 {
-    lock_guard<mutex> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     if (m_phase == phase::IDLE) {
         logging::info() << "Thread " << pthread_self() << " is requesting start of marking phase";
 
@@ -71,7 +71,7 @@ void gc_garbage_collector::start_marking()
 
 void gc_garbage_collector::wait_for_marking_finished()
 {
-    lock_guard<mutex> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     m_phase_cond.wait(m_phase_mutex, [this]() { return m_phase == phase::MARKING_FINISHED; });
 
     logging::info() << "Marking phase finished";
@@ -79,7 +79,8 @@ void gc_garbage_collector::wait_for_marking_finished()
 
 void gc_garbage_collector::start_compacting()
 {
-    lock_guard<mutex> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
+//    m_phase_mutex.lock();
 
     if (m_phase == phase::IDLE || m_phase == phase::MARKING_FINISHED) {
         logging::info() << "Thread " << pthread_self() << " is requesting start of compacting phase";
@@ -91,6 +92,8 @@ void gc_garbage_collector::start_compacting()
 
         m_phase = phase::COMPACTING;
 
+        m_phase_mutex.unlock();
+
         gc_pause();
         mark();
         gc_heap& heap = gc_heap::instance();
@@ -98,6 +101,10 @@ void gc_garbage_collector::start_compacting()
         gc_resume();
 
         std::atomic_thread_fence(std::memory_order_seq_cst);
+
+        m_phase_mutex.lock();
+        assert(m_phase == phase::COMPACTING);
+
         m_phase = phase::COMPACTING_FINISHED;
         m_phase_cond.notify_all();
     } else {
@@ -108,7 +115,7 @@ void gc_garbage_collector::start_compacting()
 
 void gc_garbage_collector::wait_for_compacting_finished()
 {
-    lock_guard<mutex> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     m_phase_cond.wait(m_phase_mutex, [this]() { return m_phase == phase::COMPACTING_FINISHED; });
 
     logging::info() << "Compacting phase finished";
@@ -138,7 +145,7 @@ void* gc_garbage_collector::start_marking_routine(void*)
 
     gc_garbage_collector& gc = gc_garbage_collector::instance();
     {
-        lock_guard<mutex> lock(gc.m_phase_mutex);
+        lock_guard<mutex_type> lock(gc.m_phase_mutex);
         gc.m_phase = phase::MARKING_FINISHED;
         gc.m_phase_cond.notify_all();
     }
@@ -199,7 +206,7 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
 void gc_garbage_collector::force_move_to_idle()
 {
     {
-        lock_guard<mutex> lock(m_phase_mutex);
+        lock_guard<mutex_type> lock(m_phase_mutex);
         logging::debug() << "Move to phase " << phase_str(phase::IDLE) << " from phase " << phase_str(m_phase);
         m_phase = phase::IDLE;
     }
@@ -208,12 +215,22 @@ void gc_garbage_collector::force_move_to_idle()
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
-    lock_guard<mutex> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     gc_unsafe_scope unsafe_scope;
     dst_ptr.atomic_store(src_ptr);
     if (m_phase == phase::MARKING) {
         shade(src_ptr.get());
     }
+}
+
+void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
+{
+    cell_ptr.set_mark(true);
+//    lock_guard<mutex_type> lock(m_phase_mutex);
+//    if (m_phase == phase::MARKING) {
+//        // allocate black objects
+//
+//    }
 }
 
 const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)
@@ -231,5 +248,4 @@ const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)
             return "Compacting (finished)";
     }
 }
-
 }}

@@ -32,6 +32,7 @@ public:
     size_t get_gc_cycles_count() const;
 
     void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr);
+    void new_cell(managed_cell_ptr& cell_ptr);
 
 private:
     gc_garbage_collector();
@@ -55,8 +56,10 @@ private:
     pthread_t m_marking_thread;
     pthread_t m_gc_thread;
 
+    typedef mutex mutex_type;
+
     phase m_phase;
-    mutex m_phase_mutex;
+    mutex_type m_phase_mutex;
     condition_variable m_phase_cond;
     size_t m_gc_cycles_cnt;
 

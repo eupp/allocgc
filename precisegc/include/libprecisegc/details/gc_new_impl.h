@@ -7,6 +7,7 @@
 #include "gc_heap.h"
 #include "class_meta.h"
 #include "object_meta.h"
+#include "gc_garbage_collector.h"
 #include "gc_new_stack.h"
 #include "../gc_ptr.h"
 
@@ -47,12 +48,8 @@ void* gc_new_impl(size_t n, Args&&... args)
     size_t aligned_size = cell_ptr.cell_size();
     assert(ptr);
 
-    // allocate black objects
-    cell_ptr.set_mark(true);
-    // zero memory
-    memset(ptr, 0, aligned_size);
-    // release descriptor (object is black and all possible pointers are zeroed)
-//    cell_ptr.unlock_descriptor();
+    auto& collector = gc_garbage_collector::instance();
+    collector.new_cell(cell_ptr);
 
     void* begin = ptr;
     void* end = ptr + n * sizeof(T);
@@ -74,9 +71,7 @@ void* gc_new_impl(size_t n, Args&&... args)
 
     // construct object_meta
     {
-        cell_ptr.lock_descriptor();
         new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(class_meta_provider<T>::get_meta_ptr(), n, ptr);
-        cell_ptr.unlock_descriptor();
     }
 
     return ptr;

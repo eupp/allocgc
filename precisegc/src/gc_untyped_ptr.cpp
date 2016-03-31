@@ -40,20 +40,19 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other) noexcept
     : gc_untyped_ptr()
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     write_barrier(*this, other);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other) noexcept
     : gc_untyped_ptr()
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     write_barrier(*this, other);
 }
 
 gc_untyped_ptr::~gc_untyped_ptr() noexcept
 {
-    gc_unsafe_scope unsafe_scope;
     if (is_root()) {
         delete_root();
     }
@@ -67,21 +66,21 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t) noexcept
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other) noexcept
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     write_barrier(*this, other);
     return *this;
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other) noexcept
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     write_barrier(*this, other);
     return *this;
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other) noexcept
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     gc_untyped_ptr tmp = (*this);
     (*this) = other;
     other = tmp;
@@ -99,6 +98,7 @@ void gc_untyped_ptr::set(void* ptr) noexcept
 
 void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
 {
+    gc_unsafe_scope unsafe_scope;
     m_ptr.store(reinterpret_cast<byte*>(value.get()));
 }
 

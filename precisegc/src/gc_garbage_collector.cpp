@@ -206,6 +206,16 @@ void gc_garbage_collector::force_move_to_idle()
     m_phase_cond.notify_all();
 }
 
+void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
+{
+    lock_guard<mutex> lock(m_phase_mutex);
+    gc_unsafe_scope unsafe_scope;
+    dst_ptr.atomic_store(src_ptr);
+    if (m_phase == phase::MARKING) {
+        shade(src_ptr.get());
+    }
+}
+
 const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)
 {
     switch (ph) {

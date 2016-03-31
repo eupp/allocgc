@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 
+#include "gc_untyped_ptr.h"
 #include "mutex.h"
 #include "condition_variable.h"
 #include "util.h"
@@ -29,6 +30,8 @@ public:
     void force_move_to_idle();
 
     size_t get_gc_cycles_count() const;
+
+    void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr);
 
 private:
     gc_garbage_collector();

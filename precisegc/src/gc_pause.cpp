@@ -32,6 +32,7 @@ static gc_signal_safe_mutex gc_pause_handler_mutex;
 
 static void gc_signal_handler()
 {
+    logging::info() << "Thread " << pthread_self() << " enters gc signal handler";
     threads_paused_barrier.notify();
     if (gc_pause_handler) {
         gc_pause_handler();
@@ -44,7 +45,7 @@ static void check_gc_siglock(int signum)
 {
     assert(signum == gc_signal);
 
-    logging::info() << "Thread " << pthread_self() << " enters gc signal handler";
+    logging::info() << "Thread " << pthread_self() << " enters check_gc_siglock";
 
     if (flag_gc_signal_lock::is_locked()) {
         flag_gc_signal_lock::set_pending();
@@ -81,12 +82,14 @@ int flag_gc_signal_lock::lock() noexcept
 int flag_gc_signal_lock::unlock() noexcept
 {
     if (depth == 1) {
-        if (signal_pending_flag) {
-            gc_signal_handler();
-            signal_pending_flag = false;
-        }
         std::atomic_signal_fence(std::memory_order_seq_cst);
         depth = 0;
+        std::atomic_signal_fence(std::memory_order_seq_cst);
+        bool pending = signal_pending_flag;
+        signal_pending_flag = false;
+        if (pending) {
+            gc_signal_handler();
+        }
     } else {
         depth--;
     }

@@ -32,16 +32,16 @@ public:
     condition_variable(condition_variable&&) noexcept = default;
     condition_variable& operator=(condition_variable&&) noexcept = default;
 
-    template <typename Pred>
-    void wait(mutex& m, Pred pred) noexcept
+    template <typename Mutex, typename Pred>
+    void wait(Mutex& m, Pred pred) noexcept
     {
         while (!pred()) {
             pthread_cond_wait(&m_cond, &m.m_mutex);
         }
     }
 
-    template <typename Pred>
-    wait_status wait_for(mutex& m, const timespec* ts, Pred pred) noexcept
+    template <typename Mutex, typename Pred>
+    wait_status wait_for(Mutex& m, const timespec* ts, Pred pred) noexcept
     {
         while (!pred()) {
             if (pthread_cond_timedwait(&m_cond, &m.m_mutex, ts) == ETIMEDOUT) {

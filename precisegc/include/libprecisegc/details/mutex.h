@@ -71,6 +71,7 @@ public:
         pthread_mutex_unlock(&m_mutex);
     }
 
+    friend class condition_variable;
 private:
     pthread_mutex_t m_mutex;
 };

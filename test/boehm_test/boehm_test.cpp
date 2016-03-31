@@ -47,13 +47,18 @@
 
 // Boehm/Demers/Weiser conservative GC
 //#define BDW_GC
-//
+
+// std::shared_ptr (reference count)
+//#define SHARED_PTR
+
 // Manual memory management
 //#define NO_GC
 
 #ifdef BDW_GC
     #include <gc/gc.h>
 #endif
+
+#include "../../common/macro.h"
 
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.h"
@@ -83,35 +88,6 @@ static const int kLongLivedTreeDepth  = 16; //16;       // about 4Mb
 static const int kArraySize  = 500000;      //500000;   // about 4Mb
 static const int kMinTreeDepth = 4;         //4
 static const int kMaxTreeDepth = 16;        //16;
-
-#if defined(PRECISE_GC)
-    #define ptr_t(T) gc_ptr<T>
-    #define ptr_in(T) const gc_ptr<T>&
-    #define new_(T) gc_new<T>()
-    #define new_args_(T, ...) gc_new<T>(__VA_ARGS__)
-    #define ptr_array_t(T) gc_ptr<T[]>
-    #define new_array_(T, size) gc_new<T[]>(size)
-    #define delete_(ptr)
-    #define set_null(ptr) ptr.reset()
-#elif defined(BDW_GC)
-    #define ptr_t(T) T*
-    #define ptr_in(T) T*
-    #define new_(T) new (GC_NEW(Node0)) Node0()
-    #define new_args_(T, ...) new (GC_NEW(Node0)) Node0(__VA_ARGS__)
-    #define ptr_array_t(T) T*
-    #define new_array_(T, size) (T*) GC_MALLOC_ATOMIC(sizeof(T) * size);
-    #define delete_(ptr)
-    #define set_null(ptr) ptr = nullptr
-#elif defined(NO_GC)
-    #define ptr_t(T) T*
-    #define ptr_in(T) T*
-    #define new_(T) new Node0()
-    #define new_args_(T, ...) new Node0(__VA_ARGS__)
-    #define ptr_array_t(T) T*
-    #define new_array_(T, size) new T[kArraySize]
-    #define delete_(ptr) if (ptr) delete ptr
-    #define set_null(ptr) ptr = nullptr
-#endif
 
 typedef struct Node0 *Node;
 

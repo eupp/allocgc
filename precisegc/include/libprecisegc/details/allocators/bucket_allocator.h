@@ -45,6 +45,13 @@ public:
         m_buckets[ind].deallocate(ptr, aligned_size);
     }
 
+    void reset_cache()
+    {
+        for (auto& alloc: m_buckets) {
+            alloc.reset_cache();
+        }
+    }
+
     range_type range(size_t bucket_ind)
     {
         return m_buckets[bucket_ind].range();

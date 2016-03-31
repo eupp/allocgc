@@ -47,6 +47,7 @@ gc_heap::forwarding gc_heap::compact_memory()
         auto rng = m_alloc.range(i);
         two_finger_compact(rng, bp.bucket_size(i), frwd);
     }
+    m_alloc.reset_cache();
     return frwd;
 }
 

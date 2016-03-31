@@ -21,7 +21,7 @@ public:
 
     fixed_size_allocator()
     {
-        m_alloc_chunk = m_chunks.end();
+        m_alloc_chunk = m_chunks.begin();
     }
 
     fixed_size_allocator(fixed_size_allocator&&) = default;
@@ -37,7 +37,7 @@ public:
             return m_alloc_chunk->allocate(size);
         }
 
-        m_alloc_chunk = std::find_if(m_chunks.begin(), m_chunks.end(),
+        m_alloc_chunk = std::find_if(m_alloc_chunk, m_chunks.end(),
                                      [] (const Chunk& chk) { return chk.memory_available(); });
         return allocate(size);
     }
@@ -61,6 +61,11 @@ public:
                 m_alloc_chunk = std::next(m_chunks.begin(), alloc_chunk_ind);
             }
         }
+    }
+
+    void reset_cache()
+    {
+        m_alloc_chunk = m_chunks.begin();
     }
 
     range_type range()

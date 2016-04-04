@@ -151,7 +151,7 @@ private:
 
     void index_page(byte* page, T* entry)
     {
-        lock_guard<mutex> lock(m_mutex);
+//        lock_guard<mutex> lock(m_mutex);
         tree_path path = traverse(page, allocation_option::ALLOCATE);
         any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
         assert(!leaf);
@@ -162,7 +162,7 @@ private:
 
     void remove_page_index(byte* page)
     {
-        lock_guard<mutex> lock(m_mutex);
+//        lock_guard<mutex> lock(m_mutex);
 
         tree_path path = traverse(page, allocation_option::ALLOCATE);
 
@@ -190,7 +190,7 @@ private:
 
     T* get_page_entry(byte* page)
     {
-        lock_guard<mutex> lock(m_mutex);
+//        lock_guard<mutex> lock(m_mutex);
         tree_path path = traverse(page, allocation_option::NO_ALLOCATE);
         if (path[LEVEL_CNT - 1].m_level) {
             any_ptr leaf = path[LEVEL_CNT - 1].get_element();
@@ -238,7 +238,7 @@ private:
 
 
     any_ptr m_first_level[FIRST_LEVEL_SIZE];
-    mutex m_mutex;
+//    mutex m_mutex;
 };
 
 }}}

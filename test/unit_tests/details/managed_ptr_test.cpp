@@ -19,7 +19,8 @@ typedef managed_cell_ptr::lock_type lock_type;
 struct managed_cell_ptr_test : public ::testing::Test
 {
     managed_cell_ptr_test()
-        : m_ptr(managed_ptr::index(m_mem.get(), PAGE_SIZE, &m_mock))
+        : m_mem(make_page_ptr())
+        , m_ptr(managed_ptr::index(m_mem.get(), PAGE_SIZE, &m_mock))
     {}
 
     ~managed_cell_ptr_test()

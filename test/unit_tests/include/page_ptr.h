@@ -23,7 +23,9 @@ page_ptr make_page_ptr()
 {
     using namespace precisegc::details;
     using namespace precisegc::details::allocators;
-    return page_ptr(paged_memory_allocate(PAGE_SIZE));
+    byte* p = paged_memory_allocate(PAGE_SIZE);
+    assert(p);
+    return page_ptr(p);
 }
 
 #endif //DIPLOMA_PAGED_DELETER_H

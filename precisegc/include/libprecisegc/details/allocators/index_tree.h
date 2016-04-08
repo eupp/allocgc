@@ -25,9 +25,7 @@ public:
     typedef T entry_type;
 
     index_tree()
-    {
-        memset(m_first_level, 0, FIRST_LEVEL_SIZE * sizeof(any_ptr));
-    }
+    {}
 
     ~index_tree()
     {
@@ -79,166 +77,180 @@ private:
     static const size_t LEVEL_SIZE = 1 << LEVEL_BITS_CNT;
     static const size_t FIRST_LEVEL_SIZE = 1 << FIRST_LEVEL_BITS_CNT;
 
-    struct tree_level
+    typedef mutex mutex_type;
+
+    struct tree_third_level
     {
-        size_t m_cnt;
-        any_ptr m_data[LEVEL_SIZE];
+        T* m_data[LEVEL_SIZE] = {0};
+        mutex_type m_mutex;
     };
 
-    struct path_element
+    struct tree_second_level
     {
-        any_ptr& get_element()
-        {
-            assert(m_level);
-            return m_level[m_ind];
-        }
-
-        any_ptr* m_level;
-        size_t m_ind;
+        tree_third_level* m_data[LEVEL_SIZE] = {0};
+        size_t m_cnts[LEVEL_SIZE] = {0};
+        mutex_type m_mutex;
     };
 
-    typedef std::array<path_element, LEVEL_CNT> tree_path;
-
-    enum class allocation_option
+    struct tree_first_level
     {
-        ALLOCATE,
-        NO_ALLOCATE
+        tree_second_level* m_data[FIRST_LEVEL_SIZE] = {0};
+        size_t m_cnts[FIRST_LEVEL_SIZE] = {0};
+        mutex_type m_mutex;
     };
 
-    tree_path traverse(byte* page, allocation_option alloc_opt)
+    typedef std::array<size_t, LEVEL_CNT> level_indices;
+
+    level_indices get_indicies(byte* page) const
     {
-        tree_path path;
-        memset(&path, 0, sizeof(tree_path));
         std::uintptr_t page_uintptr = reinterpret_cast<std::uintptr_t>(page);
-
         size_t shift = POINTER_BITS_CNT - FIRST_LEVEL_BITS_CNT;
-        any_ptr* level = m_first_level;
-        size_t ind = page_uintptr >> shift;
-
-        path[0].m_level = level;
-        path[0].m_ind = ind;
-
-        if (!level[ind]) {
-            if (alloc_opt == allocation_option::ALLOCATE) {
-                level[ind].reset(allocate_tree_level());
-            } else {
-                return path;
-            }
-        }
-
+        level_indices ind;
+        ind[0] = page_uintptr >> shift;
         for (size_t i = 1; i < LEVEL_CNT; ++i) {
-            tree_level* prev = level[ind].as<tree_level>();
-            level = prev->m_data;
-
             shift -= LEVEL_BITS_CNT;
-            ind = (page_uintptr >> shift) & (((size_t) 1 << (LEVEL_BITS_CNT)) - 1);
-
-            path[i].m_level = level;
-            path[i].m_ind = ind;
-
-            if (!level[ind] && i < LEVEL_CNT - 1) {
-                if (alloc_opt == allocation_option::ALLOCATE) {
-                    level[ind].reset(allocate_tree_level());
-                    ++prev->m_cnt;
-                } else {
-                    return path;
-                }
-            }
+            ind[i] = (page_uintptr >> shift) & (((size_t) 1 << (LEVEL_BITS_CNT)) - 1);
         }
-
-        return path;
+        return ind;
     }
 
     void index_page(byte* page, T* entry)
     {
-//        lock_guard<mutex> lock(m_mutex);
-        tree_path path = traverse(page, allocation_option::ALLOCATE);
-        any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
-        assert(!leaf);
-        leaf.reset(entry);
-        any_ptr& inner = path[LEVEL_CNT - 2].get_element();
-        ++inner.as<tree_level>()->m_cnt;
+        level_indices ind;
+        ind = get_indicies(page);
+//        lock_guard<mutex_type> lock(m_mutex);
+
+        tree_second_level* second_level = nullptr;
+        {
+//            lock_guard<mutex_type> lock(m_first_level.m_mutex);
+            ++m_first_level.m_cnts[ind[0]];
+            if (!m_first_level.m_data[ind[0]]) {
+                m_first_level.m_data[ind[0]] = allocate<tree_second_level>();
+            }
+            second_level = m_first_level.m_data[ind[0]];
+        }
+
+        tree_third_level* third_level = nullptr;
+        {
+//            lock_guard<mutex_type> lock(second_level->m_mutex);
+            ++second_level->m_cnts[ind[1]];
+            if (!second_level->m_data[ind[1]]) {
+                second_level->m_data[ind[1]] = allocate<tree_third_level>();
+            }
+            third_level = second_level->m_data[ind[1]];
+        }
+
+        {
+//            lock_guard<mutex_type> lock(third_level->m_mutex);
+            third_level->m_data[ind[2]] = entry;
+        }
     }
 
     void remove_page_index(byte* page)
     {
-//        lock_guard<mutex> lock(m_mutex);
+        level_indices ind;
+        ind = get_indicies(page);
+//        lock_guard<mutex_type> lock(m_mutex);
 
-        tree_path path = traverse(page, allocation_option::ALLOCATE);
-
-        any_ptr& leaf = path[LEVEL_CNT - 1].get_element();
-        assert(leaf);
-        leaf.reset();
-
-        any_ptr& inner = path[LEVEL_CNT - 2].get_element();
-        --inner.as<tree_level>()->m_cnt;
-
-        for (int i = LEVEL_CNT - 2; i >= 0; --i) {
-            any_ptr& inner = path[i].get_element();
-            tree_level* level = inner.as<tree_level>();
-            if (level->m_cnt == 0) {
-                inner.reset();
-                deallocate_tree_level(level);
-
-                if (i > 0) {
-                    any_ptr& prev = path[i-1].get_element();
-                    --prev.as<tree_level>()->m_cnt;
-                }
+        tree_second_level* second_level = nullptr;
+        size_t second_cnt = 0;
+        {
+//            lock_guard<mutex_type> lock(m_first_level.m_mutex);
+            second_level = m_first_level.m_data[ind[0]];
+            second_cnt = --m_first_level.m_cnts[ind[0]];
+            if (second_cnt == 0) {
+                m_first_level.m_data[ind[0]] = nullptr;
             }
+        }
+        assert(second_level);
+
+        tree_third_level* third_level = nullptr;
+        size_t third_cnt = 0;
+        {
+//            lock_guard<mutex_type> lock(second_level->m_mutex);
+            third_level = second_level->m_data[ind[1]];
+            third_cnt = --second_level->m_cnts[ind[1]];
+            if (third_cnt == 0) {
+                second_level->m_data[ind[1]] = nullptr;
+            }
+        }
+        assert(third_level);
+
+        {
+//            lock_guard<mutex_type> lock(third_level->m_mutex);
+            third_level->m_data[ind[2]] = nullptr;
+        }
+
+        if (second_cnt == 0) {
+            deallocate(second_level);
+        }
+
+        if (third_cnt == 0) {
+            deallocate(third_level);
         }
     }
 
     T* get_page_entry(byte* page)
     {
-//        lock_guard<mutex> lock(m_mutex);
-        tree_path path = traverse(page, allocation_option::NO_ALLOCATE);
-        if (path[LEVEL_CNT - 1].m_level) {
-            any_ptr leaf = path[LEVEL_CNT - 1].get_element();
-            return leaf.as<T>();
-        } else {
+        level_indices ind;
+        ind = get_indicies(page);
+//        lock_guard<mutex_type> lock(m_mutex);
+
+        tree_second_level* second_level = nullptr;
+        {
+//            lock_guard<mutex_type> lock(m_first_level.m_mutex);
+            second_level = m_first_level.m_data[ind[0]];
+        }
+        if (!second_level) {
             return nullptr;
+        }
+
+        tree_third_level* third_level = nullptr;
+        {
+//            lock_guard<mutex_type> lock(second_level->m_mutex);
+            third_level = second_level->m_data[ind[1]];
+        }
+        if (!third_level) {
+            return nullptr;
+        }
+
+        {
+//            lock_guard<mutex_type> lock(third_level->m_mutex);
+            return third_level->m_data[ind[2]];
         }
     }
 
     void clear()
     {
-        any_ptr* level = m_first_level;
-        for (size_t i = 0; i < FIRST_LEVEL_SIZE; ++i) {
-            if (level[i]) {
-                clear_inner_level(level[i], 1);
+        for (auto second_level: m_first_level.m_data) {
+            if (second_level) {
+                for (auto third_level: second_level->m_data) {
+                    if (third_level) {
+                        deallocate(third_level);
+                    }
+                }
+                deallocate(second_level);
             }
         }
     }
 
-    void clear_inner_level(any_ptr ptr, size_t depth)
+    template <typename U>
+    U* allocate()
     {
-        tree_level* level = ptr.as<tree_level>();
-        for (size_t i = 0; i < LEVEL_SIZE; ++i) {
-            if (level->m_data[i] && depth < LEVEL_CNT - 1) {
-                clear_inner_level(level->m_data[i], depth + 1);
-            }
-        }
-        deallocate_tree_level(level);
+        U* p = reinterpret_cast<U*>(get_allocator().allocate(sizeof(U)));
+        new (p) U();
+        return p;
     }
 
-    tree_level* allocate_tree_level()
+    template <typename U>
+    void deallocate(U* p)
     {
-        tree_level* level = nullptr;
-        static const size_t size = sizeof(tree_level);
-        level = reinterpret_cast<tree_level*>(get_allocator().allocate(size));
-        memset(level, 0, size);
-        return level;
+        p->~U();
+        get_allocator().deallocate(reinterpret_cast<byte*>(p), sizeof(U));
     }
 
-    void deallocate_tree_level(tree_level* level)
-    {
-        static const size_t size = sizeof(tree_level);
-        get_allocator().deallocate(reinterpret_cast<byte*>(level), size);
-    }
-
-
-    any_ptr m_first_level[FIRST_LEVEL_SIZE];
-//    mutex m_mutex;
+    tree_first_level m_first_level;
+    mutex_type m_mutex;
 };
 
 }}}

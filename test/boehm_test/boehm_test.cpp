@@ -133,7 +133,7 @@ struct GCBench {
     }
 
     // Build tree top down, assigning to older objects.
-    static void Populate (int iDepth, ptr_t(Node0) thisNode)
+    static void Populate (int iDepth, ptr_in(Node0) thisNode)
     {
         if (iDepth<=0) {
             return;

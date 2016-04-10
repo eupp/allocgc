@@ -208,8 +208,10 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
     root.unlock_descriptor();
     byte* ptr = root.get_cell_begin();
     gc_mark_queue& mark_queue = gc_mark_queue::instance();
-    for (int i = 0; i < obj_meta->get_count(); i++) {
-        for (int j = 0; j < offsets.size(); j++) {
+    size_t obj_count = obj_meta->get_count();
+    size_t offsets_size = offsets.size();
+    for (size_t i = 0; i < obj_count; i++) {
+        for (size_t j = 0; j < offsets_size; j++) {
             void *p = get_pointed_to((char *) ptr + offsets[j]);
             if (p && !get_object_mark(p)) {
                 mark_queue.push(p);
@@ -245,12 +247,12 @@ void gc_garbage_collector::force_move_to_no_gc()
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
-//    lock_guard<mutex_type> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     gc_unsafe_scope unsafe_scope;
     dst_ptr.atomic_store(src_ptr);
-//    if (m_phase == phase::MARKING) {
+    if (m_phase == phase::MARKING) {
         shade(src_ptr.get());
-//    }
+    }
 }
 
 void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)

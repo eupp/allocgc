@@ -47,7 +47,7 @@ size_t sweep(Range& rng)
     for (managed_cell_ptr cell_ptr: rng) {
         if (cell_ptr.get_mark()) {
             cell_ptr.set_mark(false);
-        } else if (cell_ptr.is_live()) {
+        } else if (cell_ptr.is_live() && !cell_ptr.get_pin()) {
             cell_ptr.sweep();
             sweep_cnt++;
         }

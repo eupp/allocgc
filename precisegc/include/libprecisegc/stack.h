@@ -20,7 +20,7 @@ class StackMap {
 protected:
 	StackMap() {}
 public:
-	static StackMap * getInstance();
+	static StackMap* getInstance();
 
 	/// add new element
 	/// @param stored pointer

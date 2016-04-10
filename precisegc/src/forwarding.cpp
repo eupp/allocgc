@@ -47,7 +47,9 @@ std::vector<list_forwarding::entry>& list_forwarding::get_list()
 
 intrusive_forwarding::intrusive_forwarding()
     : m_frwd_cnt(0)
-{}
+{
+    m_cache.reserve(2 * CACHE_SIZE);
+}
 
 void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 {
@@ -63,7 +65,15 @@ void intrusive_forwarding::forward(void* ptr) const
     void* from = gcptr->get();
     if (from) {
         try {
-            object_meta* meta = get_object_header(from);
+            object_meta* meta = nullptr;
+            if (m_cache.count(from)) {
+                meta = m_cache[from];
+            } else {
+                meta = get_object_header(from);
+                if (m_cache.size() < CACHE_SIZE) {
+                    m_cache[from] = meta;
+                }
+            }
             if (meta) {
                 void* to = meta->get_object_ptr();
                 if (from != to) {

@@ -69,8 +69,10 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
         if (cls_meta != nullptr) {
             size_t obj_size = cls_meta->get_type_size();
             auto& offsets = cls_meta->get_offsets();
-            for (size_t i = 0; i < obj_meta->get_count(); ++i, ptr += obj_size) {
-                for (size_t j = 0; j < offsets.size(); ++j) {
+            size_t obj_count = obj_meta->get_count();
+            size_t offsets_size = offsets.size();
+            for (size_t i = 0; i < obj_count; ++i, ptr += obj_size) {
+                for (size_t j = 0; j < offsets_size; ++j) {
                     frwd.forward((void*) ptr + offsets[j]);
                 }
             }

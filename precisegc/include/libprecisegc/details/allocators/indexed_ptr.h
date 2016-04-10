@@ -52,6 +52,11 @@ public:
         indexer.remove_index(reinterpret_cast<byte*>(ptr.get_wrapped()), size);
     }
 
+    static void reset_index_cache()
+    {
+        indexer.reset_cache();
+    }
+
     friend class iterator_access<indexed_ptr>;
 private:
     static index_type indexer;

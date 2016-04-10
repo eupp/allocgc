@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 
 #include "constants.h"
 #include "types.h"
@@ -21,11 +22,15 @@ namespace precisegc { namespace details { namespace allocators {
 template <typename T, typename Alloc>
 class index_tree : private ebo<Alloc>, private noncopyable, private nonmovable
 {
+    static const size_t CACHE_SIZE = 128;
+    typedef std::unordered_map<byte*, T*> cache_t;
 public:
     typedef T entry_type;
 
     index_tree()
-    {}
+    {
+//        m_cache.reserve(CACHE_SIZE);
+    }
 
     ~index_tree()
     {
@@ -53,6 +58,11 @@ public:
     T* get_entry(byte* mem)
     {
         return get_page_entry(mem);
+    }
+
+    void reset_cache()
+    {
+//        m_cache.clear();
     }
 
     Alloc& get_allocator()
@@ -116,6 +126,10 @@ private:
 
     void index_page(byte* page, T* entry)
     {
+//        if (m_cache.size() < CACHE_SIZE) {
+//            m_cache[page] = entry;
+//        }
+
         level_indices ind;
         ind = get_indicies(page);
 //        lock_guard<mutex_type> lock(m_mutex);
@@ -148,6 +162,8 @@ private:
 
     void remove_page_index(byte* page)
     {
+//        m_cache.erase(page);
+
         level_indices ind;
         ind = get_indicies(page);
 //        lock_guard<mutex_type> lock(m_mutex);
@@ -192,6 +208,11 @@ private:
 
     T* get_page_entry(byte* page)
     {
+//        T*& cached_entry = m_cache[page];
+//        if (cached_entry) {
+//            return cached_entry;
+//        }
+
         level_indices ind;
         ind = get_indicies(page);
 //        lock_guard<mutex_type> lock(m_mutex);
@@ -216,7 +237,11 @@ private:
 
         {
 //            lock_guard<mutex_type> lock(third_level->m_mutex);
-            return third_level->m_data[ind[2]];
+            T* entry = third_level->m_data[ind[2]];
+//            if (m_cache.size() < CACHE_SIZE) {
+//                cached_entry = entry;
+//            }
+            return entry;
         }
     }
 
@@ -250,6 +275,7 @@ private:
     }
 
     tree_first_level m_first_level;
+//    cache_t m_cache;
     mutex_type m_mutex;
 };
 

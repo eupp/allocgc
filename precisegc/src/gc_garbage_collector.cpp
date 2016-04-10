@@ -100,6 +100,7 @@ void gc_garbage_collector::start_compacting()
         mark();
         gc_heap& heap = gc_heap::instance();
         heap.compact();
+        managed_ptr::reset_index_cache();
         gc_resume();
 
         std::atomic_thread_fence(std::memory_order_seq_cst);

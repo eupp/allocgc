@@ -45,6 +45,15 @@ public:
         m_buckets[ind].deallocate(ptr, aligned_size);
     }
 
+    size_t shrink()
+    {
+        size_t size = 0;
+        for (auto& alloc: m_buckets) {
+            size += alloc.shrink();
+        }
+        return size;
+    }
+
     void reset_cache()
     {
         for (auto& alloc: m_buckets) {

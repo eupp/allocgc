@@ -74,6 +74,11 @@ bool managed_pool_chunk::empty(size_t cell_size) const noexcept
     return m_chunk.empty(cell_size);
 }
 
+bool managed_pool_chunk::is_dead() const noexcept
+{
+    return m_descr->m_mark_bits.none() && m_descr->m_pin_bits.none();
+}
+
 byte* managed_pool_chunk::get_mem() const
 {
     return m_chunk.get_mem();
@@ -82,6 +87,11 @@ byte* managed_pool_chunk::get_mem() const
 size_t managed_pool_chunk::get_mem_size() const
 {
     return m_chunk.get_mem_size();
+}
+
+size_t managed_pool_chunk::get_cell_size() const
+{
+    return m_descr->m_cell_size;
 }
 
 managed_memory_descriptor* managed_pool_chunk::get_descriptor() const

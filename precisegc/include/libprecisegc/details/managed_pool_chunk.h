@@ -140,10 +140,13 @@ public:
     bool memory_available() const noexcept;
     bool empty(size_t cell_size) const noexcept;
 
+    bool is_dead() const noexcept;
+
     managed_memory_descriptor* get_descriptor() const;
 
     byte* get_mem() const;
     size_t get_mem_size() const;
+    size_t get_cell_size() const;
 
     range_type get_range() const;
 

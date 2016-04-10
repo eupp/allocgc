@@ -62,6 +62,8 @@ void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
 
 void gc_heap::sweep()
 {
+    size_t shrinked_size = m_alloc.shrink();
+    logging::info() << "Shrinked " << shrinked_size << " bytes";
     size_t sweep_size = 0;
     auto& bp = m_alloc.get_bucket_policy();
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
@@ -69,8 +71,10 @@ void gc_heap::sweep()
         size_t sweep_cnt = ::precisegc::details::sweep(rng);
         sweep_size += sweep_cnt * bp.bucket_size(i);
     }
-    assert(m_size >= sweep_size);
-    m_size.fetch_sub(sweep_size);
+    logging::info() << "Sweeped " << sweep_size << " bytes";
+    size_t freed = sweep_size + shrinked_size;
+    assert(m_size >= freed);
+    m_size.fetch_sub(freed);
 }
 
 size_t gc_heap::align_size(size_t size)

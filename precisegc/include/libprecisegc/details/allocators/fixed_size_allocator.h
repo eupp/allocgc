@@ -44,23 +44,32 @@ public:
 
     void deallocate(pointer_type ptr, size_t size)
     {
-        using std::swap;
-
         auto dealloc_chunk = std::find_if(m_chunks.begin(), m_chunks.end(),
                                           [&ptr] (const Chunk& chk) { return chk.contains(ptr); });
         if (dealloc_chunk != m_chunks.end()) {
             dealloc_chunk->deallocate(ptr, size);
             if (dealloc_chunk->empty(size)) {
                 ptrdiff_t alloc_chunk_ind = m_alloc_chunk - m_chunks.begin();
-
-                Chunk::destroy(*dealloc_chunk, size, get_allocator());
-                auto last = std::prev(m_chunks.end(), 1);
-                swap(*dealloc_chunk, *last);
-                m_chunks.pop_back();
-
+                destroy_chunk(dealloc_chunk, size);
                 m_alloc_chunk = std::next(m_chunks.begin(), alloc_chunk_ind);
             }
         }
+    }
+
+    size_t shrink()
+    {
+        size_t size = 0;
+        for (size_t i = 0; i < m_chunks.size(); ) {
+            auto& chk = m_chunks[i];
+            if (chk.is_dead()) {
+                size += chk.get_mem_size();
+                destroy_chunk(chk, chk.get_cell_size());
+            } else {
+                ++i;
+            }
+        }
+        reset_cache();
+        return size;
     }
 
     void reset_cache()
@@ -84,6 +93,20 @@ public:
     }
 
 private:
+    void destroy_chunk(typename vector_t::iterator it, size_t cell_size)
+    {
+        destroy_chunk(*it, cell_size);
+    }
+
+    void destroy_chunk(Chunk& chk, size_t cell_size)
+    {
+        using std::swap;
+        Chunk::destroy(chk, cell_size, get_allocator());
+        auto last = std::prev(m_chunks.end(), 1);
+        swap(chk, *last);
+        m_chunks.pop_back();
+    }
+
     Alloc& get_allocator()
     {
         return this->template get_base<Alloc>();

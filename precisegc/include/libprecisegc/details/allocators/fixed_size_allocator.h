@@ -7,6 +7,7 @@
 
 #include "stl_adapter.h"
 #include "joined_range.h"
+#include "constants.h"
 #include "../util.h"
 
 namespace precisegc { namespace details { namespace allocators {
@@ -21,6 +22,7 @@ public:
 
     fixed_size_allocator()
     {
+        m_chunks.reserve(PAGE_SIZE / sizeof(Chunk));
         m_alloc_chunk = m_chunks.begin();
     }
 

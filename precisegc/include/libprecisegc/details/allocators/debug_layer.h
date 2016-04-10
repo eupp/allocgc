@@ -10,7 +10,8 @@ namespace precisegc { namespace details { namespace allocators {
 template <typename Alloc>
 class debug_layer
 {
-    static_assert(std::is_same<typename Alloc::pointer_type, byte*>::value, "stl_adapter should be used with raw memory allocator");
+    static_assert(std::is_same<typename Alloc::pointer_type, byte*>::value,
+                  "debug_layer should be used with raw memory allocator");
 public:
     typedef byte* pointer_type;
 

@@ -1,8 +1,0 @@
-//
-// Created by evgeniy on 10.04.16.
-//
-
-#ifndef DIPLOMA_FIXED_BLOCK_CACHE_HPP
-#define DIPLOMA_FIXED_BLOCK_CACHE_HPP
-
-#endif //DIPLOMA_FIXED_BLOCK_CACHE_HPP

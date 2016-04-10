@@ -79,6 +79,12 @@ byte* managed_cell_ptr::get_cell_begin() const
     return m_descr->get_cell_begin(get());
 }
 
+managed_memory_descriptor* managed_cell_ptr::get_descriptor() const
+{
+    descriptor_lazy_init();
+    return m_descr;
+}
+
 byte* managed_cell_ptr::get() const
 {
     return m_ptr.get();

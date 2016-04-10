@@ -65,13 +65,18 @@ void intrusive_forwarding::forward(void* ptr) const
     void* from = gcptr->get();
     if (from) {
         try {
+            static const uintptr_t mask = ~(((uintptr_t)1 << PAGE_BITS_CNT) - 1);
+            void* page = (void*) ((uintptr_t) from & mask);
             object_meta* meta = nullptr;
-            if (m_cache.count(from)) {
-                meta = m_cache[from];
+            if (m_cache.count(page)) {
+                managed_memory_descriptor* descr = m_cache[page];
+                auto cell_ptr = managed_cell_ptr(managed_ptr(reinterpret_cast<byte*>(from)), 0, descr);
+                meta = cell_ptr.get_meta();
             } else {
-                meta = get_object_header(from);
+                auto cell_ptr = managed_cell_ptr(managed_ptr(reinterpret_cast<byte*>(from)), 0);
+                meta = cell_ptr.get_meta();
                 if (m_cache.size() < CACHE_SIZE) {
-                    m_cache[from] = meta;
+                    m_cache[page] = cell_ptr.get_descriptor();
                 }
             }
             if (meta) {

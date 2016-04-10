@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "object_meta.h"
+#include "managed_memory_descriptor.h"
 
 namespace precisegc { namespace details {
 
@@ -48,7 +49,7 @@ private:
     };
 
     static const size_t CACHE_SIZE = 1024;
-    typedef std::unordered_map<void*, object_meta*, fast_pointer_hash<void>> cache_t;
+    typedef std::unordered_map<void*, managed_memory_descriptor*, fast_pointer_hash<void>> cache_t;
 
     size_t m_frwd_cnt;
     mutable cache_t m_cache;

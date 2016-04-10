@@ -63,6 +63,8 @@ public:
     byte* get() const;
     size_t cell_size() const;
 
+    managed_memory_descriptor* get_descriptor() const;
+
     explicit operator bool() const
     {
         return m_ptr.get() == nullptr;

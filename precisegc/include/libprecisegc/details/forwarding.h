@@ -39,12 +39,15 @@ private:
     struct fast_pointer_hash {
         size_t operator() (const T* val) const
         {
-            uintptr_t ad = (uintptr_t) val;
-            return (size_t)(ad ^ (ad >> 16));
+            uintptr_t ad = (uintptr_t)val;
+            return (size_t)((13 * ad) ^ (ad >> 15));
+//            return (size_t)(val) >> 3;
+//            uintptr_t ad = (uintptr_t) val;
+//            return (size_t)(ad ^ (ad >> 16));
         }
     };
 
-    static const size_t CACHE_SIZE = 8192;
+    static const size_t CACHE_SIZE = 1024;
     typedef std::unordered_map<void*, object_meta*, fast_pointer_hash<void>> cache_t;
 
     size_t m_frwd_cnt;

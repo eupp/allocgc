@@ -24,6 +24,7 @@ gc_garbage_collector& gc_garbage_collector::instance()
 gc_garbage_collector::gc_garbage_collector()
     : m_phase(phase::IDLE)
     , m_gc_cycles_cnt(0)
+    , m_gc_thread_launch(false)
 {}
 
 void gc_garbage_collector::start_gc()
@@ -62,7 +63,13 @@ void gc_garbage_collector::start_marking()
         logging::info() << "Thread " << pthread_self() << " is requesting start of marking phase";
 
         m_phase = phase::MARKING;
-        thread_create(&m_gc_thread, nullptr, start_marking_routine, nullptr); // managed thread (because of gc_pause implementation)
+        m_phase_cond.notify_all();
+
+        if (!m_gc_thread_launch) {
+            // managed thread (because of gc_pause implementation)
+            thread_create(&m_gc_thread, nullptr, start_marking_routine, nullptr);
+            m_gc_thread_launch = true;
+        }
     } else {
         logging::debug() << "Thread " << pthread_self()
                          << " is requesting start of marking phase, but gc is already running: " << phase_str(m_phase);
@@ -84,11 +91,6 @@ void gc_garbage_collector::start_compacting()
 
     if (m_phase == phase::IDLE || m_phase == phase::MARKING_FINISHED) {
         logging::info() << "Thread " << pthread_self() << " is requesting start of compacting phase";
-
-        if (m_phase == phase::MARKING_FINISHED) {
-            void* ret;
-            pthread_join(m_gc_thread, &ret);
-        }
 
         m_phase = phase::COMPACTING;
 
@@ -125,29 +127,42 @@ void* gc_garbage_collector::start_marking_routine(void*)
 {
     logging::info() << "Thread " << pthread_self() << " is marking thread";
 
-    {
-        lock_guard<mutex> lock(thread_list::instance_mutex);
-        thread_list& tl = thread_list::instance();
-        gc_mark_queue& mark_queue = gc_mark_queue::instance();
-        mark_queue.clear();
-        for (auto& handler: tl) {
-            thread_handler* p_handler = &handler;
-            StackMap* stack_ptr = p_handler->stack;
-            if (!stack_ptr) {
-                continue;
-            }
-            for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {
-                mark_queue.push(get_pointed_to(root->addr));
+    gc_garbage_collector& gc = gc_garbage_collector::instance();
+
+    while (true) {
+        {
+            lock_guard<mutex_type> lock(gc.m_phase_mutex);
+            gc.m_phase_cond.wait(gc.m_phase_mutex, [&gc] () {
+                return gc.m_phase == phase::MARKING || gc.m_phase == phase::GC_OFF;
+            });
+            if (gc.m_phase == phase::GC_OFF) {
+                return nullptr;
             }
         }
-    }
-    mark();
 
-    gc_garbage_collector& gc = gc_garbage_collector::instance();
-    {
-        lock_guard<mutex_type> lock(gc.m_phase_mutex);
-        gc.m_phase = phase::MARKING_FINISHED;
-        gc.m_phase_cond.notify_all();
+        {
+            lock_guard<mutex> lock(thread_list::instance_mutex);
+            thread_list& tl = thread_list::instance();
+            gc_mark_queue& mark_queue = gc_mark_queue::instance();
+            mark_queue.clear();
+            for (auto& handler: tl) {
+                thread_handler* p_handler = &handler;
+                StackMap* stack_ptr = p_handler->stack;
+                if (!stack_ptr) {
+                    continue;
+                }
+                for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {
+                    mark_queue.push(get_pointed_to(root->addr));
+                }
+            }
+        }
+        mark();
+
+        {
+            lock_guard<mutex_type> lock(gc.m_phase_mutex);
+            gc.m_phase = phase::MARKING_FINISHED;
+            gc.m_phase_cond.notify_all();
+        }
     }
 }
 
@@ -209,8 +224,22 @@ void gc_garbage_collector::force_move_to_idle()
         lock_guard<mutex_type> lock(m_phase_mutex);
         logging::debug() << "Move to phase " << phase_str(phase::IDLE) << " from phase " << phase_str(m_phase);
         m_phase = phase::IDLE;
+
     }
     m_phase_cond.notify_all();
+}
+
+void gc_garbage_collector::force_move_to_no_gc()
+{
+    {
+        lock_guard<mutex_type> lock(m_phase_mutex);
+        logging::debug() << "Move to phase " << phase_str(phase::GC_OFF) << " from phase " << phase_str(m_phase);
+        m_phase = phase::GC_OFF;
+    }
+    m_phase_cond.notify_all();
+
+    void* ret;
+    thread_join(m_gc_thread, &ret);
 }
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
@@ -246,6 +275,8 @@ const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)
             return "Compacting";
         case phase::COMPACTING_FINISHED:
             return "Compacting (finished)";
+        case phase::GC_OFF:
+            return "GC off";
     }
 }
 }}

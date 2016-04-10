@@ -53,6 +53,15 @@ logging::log_line::log_line(loglevel lv)
 {
     if (m_active) {
         mutex_->lock();
+
+        time_t rawtime;
+        struct tm * timeinfo;
+        static const size_t BUF_SIZE = 64;
+        char time_buffer[BUF_SIZE] = {0};
+        time (&rawtime);
+        timeinfo = localtime(&rawtime);
+        strftime(time_buffer, BUF_SIZE, "%d-%m-%Y %I:%M:%S-", timeinfo);
+
         const char* lv_str = nullptr;
         switch (lv)
         {
@@ -69,7 +78,7 @@ logging::log_line::log_line(loglevel lv)
                 lv_str = "ERROR";
                 break;
         }
-        (*this) << prefix << lv_str << ": ";
+        (*this) << time_buffer << prefix << lv_str << ": ";
     }
 }
 

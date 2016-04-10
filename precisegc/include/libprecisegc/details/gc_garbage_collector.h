@@ -28,6 +28,7 @@ public:
 
     // very bad design, just for testing purpose
     void force_move_to_idle();
+    void force_move_to_no_gc();
 
     size_t get_gc_cycles_count() const;
 
@@ -48,12 +49,13 @@ private:
         MARKING,
         MARKING_FINISHED,
         COMPACTING,
-        COMPACTING_FINISHED
+        COMPACTING_FINISHED,
+        GC_OFF
     };
 
     static const char* phase_str(phase ph);
 
-    pthread_t m_marking_thread;
+    bool m_gc_thread_launch;
     pthread_t m_gc_thread;
 
     typedef mutex mutex_type;

@@ -223,4 +223,6 @@ TEST_F(gc_test, test_gc)
 {
     gc();
     gc_finished = true;
+    auto& collector = gc_garbage_collector::instance();
+    collector.force_move_to_no_gc();
 }

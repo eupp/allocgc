@@ -3,7 +3,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.h
         include/libprecisegc/gc_new.h
         include/libprecisegc/gcmalloc.h
-        include/libprecisegc/index_tree.h
         include/libprecisegc/stack.h
 
         include/libprecisegc/details/class_meta.h

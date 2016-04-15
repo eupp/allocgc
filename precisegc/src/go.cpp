@@ -180,7 +180,7 @@ int gc (bool full) {
 		handler->stack_top = __builtin_frame_address(0);
 		if (!gc_thread) {
 			gc_thread = handler;
-			printf("thread %d is garbage collector\n", (int)handler->thread);
+//			printf("thread %d is garbage collector\n", (int)handler->thread);
 			if (full) {
 				mark_and_sweep();
 			} else {
@@ -190,7 +190,7 @@ int gc (bool full) {
 			exit_safepoint(handler);
 			pthread_cond_broadcast(&gc_is_finished);
 		} else {
-			printf("Thread %d reached safepoint\n", (int)handler->thread);
+//			printf("Thread %d reached safepoint\n", (int)handler->thread);
 			pthread_cond_signal(&safepoint_reached);
 			pthread_cond_wait(&gc_is_finished, &gc_mutex);
 			exit_safepoint(handler);
@@ -304,14 +304,14 @@ void fix_roots() {
 	while (handler) {
 		StackMap *stack_ptr = handler->stack;
 		for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
-			printf("fix_root: from %p\n", get_next_obj(root->addr));
+//			printf("fix_root: from %p\n", get_next_obj(root->addr));
 //			fix_one_ptr(reinterpret_cast <void*> (*((size_t *)(root->addr))));
 			void * new_place = get_new_destination(get_next_obj(root->addr));
 			if (new_place) {
 				*(void * *)root->addr = set_stack_flag(new_place);
 				fixed_count++;
 			}
-			printf("\t: to %p\n", get_next_obj(root->addr));
+//			printf("\t: to %p\n", get_next_obj(root->addr));
 		}
 		handler = handler->next;
 	}

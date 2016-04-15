@@ -215,18 +215,20 @@ struct GCBench {
       #endif
     #endif
     }
+    gc(true);
 
     tFinish = currentTime();
     cout << "\tTop down construction took " << elapsedTime(tFinish - tStart) << " msec" << endl;
 
     tStart = currentTime();
     for (int i = 0; i < iNumIters; ++i) {
-      tempTree = MakeTree(depth);
+        tempTree = MakeTree(depth);
     #ifndef GC
       // delete tempTree;
     #else
       #ifdef precise
         tempTree.setNULL();
+        gc(true);
       #endif
     #endif
     }
@@ -269,7 +271,7 @@ struct GCBench {
     // delete tempTree;
   #else
   #ifdef precise
-//    tempTree.setNULL();
+    tempTree.setNULL();
   #endif
   #endif
 

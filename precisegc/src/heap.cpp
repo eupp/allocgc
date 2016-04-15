@@ -344,7 +344,7 @@ void _GC_::fix_one_ptr (void * ptr) {
 			if (get_new_destination(next) != NULL) {
 				void *new_destination = forward_pointer(next);
 				if (new_destination != NULL) {
-				printf("fix ptr from %p to %p\n", *(void**)ptr, new_destination);
+//				printf("fix ptr from %p to %p\n", *(void**)ptr, new_destination);
 					*(void **) ptr = new_destination;
 //				*(void **) ptr = move_ptr(*(void **) ptr, new_destination);
 					fixed_count++;
@@ -384,6 +384,8 @@ void gcmalloc_fix_ptr (void) {
 					}
 				}
 			}
+//			printf("clear sle %p \n", (void*) sle);
+//			fflush(stdout);
 		}
 	}
 	fix_roots();
@@ -507,7 +509,7 @@ void _GC_::two_fingers_compact_full (void) {
 			add_moved_record(from_place, to_place);
 			set_forward_pointer(from_place, to_place);
 
-			printf("moved %p to %p %i %i\n", from_place, to_place, sf_i, ff_i);
+//			printf("moved %p to %p %i %i\n", from_place, to_place, sf_i, ff_i);
 			moved_count++;
 			sf_mark = false, ff_mark = true, ff_i++, sf_i--;
 		}
@@ -516,9 +518,9 @@ void _GC_::two_fingers_compact_full (void) {
 	}
 	gcmalloc_fix_ptr();
 	unlock_all_mutexes();
-	printf("moved count == %zu\n", moved_count);
-	printf("fixed count == %zu\n", fixed_count);
-	printf("marked count == %zu %zu pined count = %zu\n", marked_objects, marked_objects_in_sweep, pined_objects_in_sweep);
+//	printf("moved count == %zu\n", moved_count);
+//	printf("fixed count == %zu\n", fixed_count);
+//	printf("marked count == %zu %zu pined count = %zu\n", marked_objects, marked_objects_in_sweep, pined_objects_in_sweep);
 	assert(marked_objects_in_sweep >= marked_objects - 1);
 	moved_count = fixed_count = marked_objects = marked_objects_in_sweep = pined_objects_in_sweep = 0;
 }

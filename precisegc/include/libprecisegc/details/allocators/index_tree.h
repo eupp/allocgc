@@ -132,7 +132,7 @@ private:
 
         level_indices ind;
         ind = get_indicies(page);
-//        lock_guard<mutex_type> lock(m_mutex);
+        lock_guard<mutex_type> lock(m_mutex);
 
         tree_second_level* second_level = nullptr;
         {
@@ -166,7 +166,7 @@ private:
 
         level_indices ind;
         ind = get_indicies(page);
-//        lock_guard<mutex_type> lock(m_mutex);
+        lock_guard<mutex_type> lock(m_mutex);
 
         tree_second_level* second_level = nullptr;
         size_t second_cnt = 0;
@@ -215,7 +215,7 @@ private:
 
         level_indices ind;
         ind = get_indicies(page);
-//        lock_guard<mutex_type> lock(m_mutex);
+        lock_guard<mutex_type> lock(m_mutex);
 
         tree_second_level* second_level = nullptr;
         {

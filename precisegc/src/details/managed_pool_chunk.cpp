@@ -199,7 +199,7 @@ void managed_pool_chunk::memory_descriptor::sweep(byte* ptr)
 bool managed_pool_chunk::memory_descriptor::is_live(byte* ptr)
 {
     size_t ind = calc_cell_ind(ptr);
-    return m_chunk_ptr->m_alloc_bits[ind];
+    return  m_chunk_ptr->m_alloc_bits[ind];
 }
 
 object_meta* managed_pool_chunk::memory_descriptor::get_cell_meta(byte* ptr)

@@ -247,12 +247,12 @@ void gc_garbage_collector::force_move_to_no_gc()
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
-    lock_guard<mutex_type> lock(m_phase_mutex);
+//    lock_guard<mutex_type> lock(m_phase_mutex);
     gc_unsafe_scope unsafe_scope;
     dst_ptr.atomic_store(src_ptr);
-    if (m_phase == phase::MARKING) {
-        shade(src_ptr.get());
-    }
+    shade(src_ptr.get());
+//    if (m_phase == phase::MARKING) {
+//    }
 }
 
 void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)

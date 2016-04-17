@@ -39,6 +39,7 @@ NONIUS_BENCHMARK("make_shared", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("gc_new", [](nonius::chronometer meter)
 {
     gc_init();
+    gc_new<obj_type>();
     meter.measure([] {
         gc_ptr<obj_type> p = gc_new<obj_type>();
         return p;
@@ -60,8 +61,12 @@ NONIUS_BENCHMARK("raw_ptr_constructor", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("shared_ptr_constructor", [](nonius::chronometer meter)
 {
     std::vector<nonius::storage_for<std::shared_ptr<obj_type>>> storage(meter.runs());
-    meter.measure([&storage] (size_t i) {
-        storage[i].construct();
+    std::vector<obj_type*> ptrs(meter.runs());
+    for (auto& ptr: ptrs) {
+        ptr = new obj_type(42);
+    }
+    meter.measure([&storage, &ptrs] (size_t i) {
+        storage[i].construct(ptrs[i]);
     });
 });
 
@@ -76,7 +81,8 @@ NONIUS_BENCHMARK("gc_ptr_constructor", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("raw_ptr_assign", [](nonius::chronometer meter)
 {
     std::vector<obj_type*> ptrs(meter.runs());
-    obj_type* p;
+    obj_type v = 42;
+    obj_type* p = &v;
     meter.measure([&ptrs, p] (size_t i) {
         ptrs[i] = p;
     });
@@ -103,9 +109,16 @@ NONIUS_BENCHMARK("gc_ptr_assign", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("raw_ptr_deref", [](nonius::chronometer meter)
 {
     std::vector<obj_type*> ptrs(meter.runs());
+    for (auto& ptr: ptrs) {
+        ptr = new obj_type(42);
+    }
     meter.measure([&ptrs] (size_t i) {
-        return *ptrs[i];
+        obj_type o = *ptrs[i];
+        return o;
     });
+    for (auto& ptr: ptrs) {
+        delete ptr;
+    }
 });
 
 NONIUS_BENCHMARK("shared_ptr_deref", [](nonius::chronometer meter)
@@ -115,7 +128,8 @@ NONIUS_BENCHMARK("shared_ptr_deref", [](nonius::chronometer meter)
         ptr = std::make_shared<obj_type>(42);
     }
     meter.measure([&ptrs] (size_t i) {
-        return *ptrs[i];
+        obj_type o = *ptrs[i];
+        return o;
     });
 });
 
@@ -127,6 +141,7 @@ NONIUS_BENCHMARK("gc_ptr_deref", [](nonius::chronometer meter)
     }
     meter.measure([&ptrs] (size_t i) {
         gc_pin<obj_type> pin(ptrs[i]);
-        return *pin;
+        obj_type o = *pin;
+        return o;
     });
 });

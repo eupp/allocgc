@@ -46,10 +46,6 @@ NONIUS_BENCHMARK("gc_new", [](nonius::chronometer meter)
     });
 });
 
-namespace {
-static const size_t PTR_CNT = 10;
-}
-
 NONIUS_BENCHMARK("raw_ptr_constructor", [](nonius::chronometer meter)
 {
     std::vector<nonius::storage_for<obj_type*>> storage(meter.runs());
@@ -72,6 +68,7 @@ NONIUS_BENCHMARK("shared_ptr_constructor", [](nonius::chronometer meter)
 
 NONIUS_BENCHMARK("gc_ptr_constructor", [](nonius::chronometer meter)
 {
+    gc_init();
     std::vector<nonius::storage_for<gc_ptr<obj_type>>> storage(meter.runs());
     meter.measure([&storage] (size_t i) {
         storage[i].construct();

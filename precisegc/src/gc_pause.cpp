@@ -110,14 +110,15 @@ void flag_gc_signal_lock::set_pending() noexcept
 void gc_pause_lock::lock() noexcept
 {
     siglock::lock();
-    gc_pause_disabled = true;
+//    gc_pause_disabled = true;
 }
 
 void gc_pause_lock::unlock() noexcept
 {
-    if (!siglock::unlock()) {
-        gc_pause_disabled = false;
-    }
+    siglock::unlock();
+//    if (!) {
+//        gc_pause_disabled = false;
+//    }
 }
 
 void gc_pause_init()
@@ -138,7 +139,7 @@ void gc_pause()
 {
     assert(gc_signal_set);
 
-    if (gc_pause_disabled) {
+    if (flag_gc_signal_lock::is_locked()) {
         throw gc_pause_disabled_exception();
     }
 

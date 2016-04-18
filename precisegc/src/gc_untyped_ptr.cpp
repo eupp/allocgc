@@ -98,7 +98,7 @@ void gc_untyped_ptr::set(void* ptr) noexcept
 
 void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     m_ptr.store(reinterpret_cast<byte*>(value.get()));
 }
 

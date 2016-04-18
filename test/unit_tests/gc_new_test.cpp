@@ -131,3 +131,29 @@ TEST(gc_new_test, test_nested_2)
     ASSERT_EQ(sizeof(gc_ptr<simple_object>), complex_obj_meta.get_offsets()[1]);
     ASSERT_EQ(2 * sizeof(gc_ptr<simple_object>), complex_obj_meta.get_offsets()[2]);
 }
+
+namespace {
+
+class simple_object_with_ctor
+{
+public:
+    simple_object_with_ctor()
+    {
+        gc_ptr<simple_object> p = gc_new<simple_object>();
+    }
+};
+
+}
+
+TEST(gc_new_test, test_with_ctor)
+{
+    gc_ptr<simple_object_with_ctor> ptr = gc_new<simple_object_with_ctor>();
+
+    typedef class_meta_provider<simple_object_with_ctor> meta_provider;
+
+    ASSERT_TRUE(meta_provider::is_created());
+
+    const class_meta& obj_meta = meta_provider::get_meta();
+    ASSERT_EQ(sizeof(simple_object_with_ctor), obj_meta.get_type_size());
+    ASSERT_EQ(0, obj_meta.get_offsets().size());
+}

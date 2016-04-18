@@ -29,10 +29,13 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
     } else {
         gc_new_stack& stack = gc_new_stack::instance();
         if (stack.is_meta_requsted()) {
+            void
             assert((void*) this >= stack.get_top_pointer());
             uintptr_t this_uintptr = reinterpret_cast<uintptr_t>(this);
             uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(stack.get_top_pointer());
-            stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
+            if (top_uintptr <= this_uintptr && this_uintptr < top_uintptr + stack.get_top_size()) {
+                stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
+            }
         }
     }
 }

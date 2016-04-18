@@ -23,11 +23,12 @@ public:
     class stack_entry
     {
     public:
-        stack_entry(void* new_ptr);
+        stack_entry(void* new_ptr, size_t new_size);
         ~stack_entry();
     private:
         std::vector<size_t> m_old_offsets;
         void* m_old_ptr;
+        size_t m_old_size;
         bool m_old_is_meta_requested;
     };
 
@@ -35,6 +36,7 @@ public:
 
     std::vector<size_t>& get_top_offsets();
     void* get_top_pointer() const noexcept;
+    size_t get_top_size() const noexcept;
 
     bool is_active() const noexcept;
     bool is_meta_requsted() const noexcept;
@@ -45,6 +47,7 @@ private:
 
     std::vector<size_t> m_top_offsets;
     void* m_top_ptr;
+    size_t m_top_size;
     size_t m_nesting_level;
     bool m_is_meta_requested;
 };

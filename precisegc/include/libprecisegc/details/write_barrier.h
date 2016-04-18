@@ -9,7 +9,7 @@ namespace precisegc { namespace details {
 
 inline void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
-    auto& collector = gc_garbage_collector::instance();
+    static auto& collector = gc_garbage_collector::instance();
     collector.write_barrier(dst_ptr, src_ptr);
 }
 

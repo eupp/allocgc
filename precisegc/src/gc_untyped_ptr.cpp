@@ -91,18 +91,18 @@ void gc_untyped_ptr::swap(gc_untyped_ptr& other) noexcept
 
 void* gc_untyped_ptr::get() const noexcept
 {
-    return m_ptr.load();
+    return m_ptr.load(std::memory_order_acquire);
 }
 
 void gc_untyped_ptr::set(void* ptr) noexcept
 {
-    m_ptr.store(reinterpret_cast<byte*>(ptr));
+    m_ptr.store(reinterpret_cast<byte*>(ptr), std::memory_order_release);
 }
 
 void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
 {
 //    gc_unsafe_scope unsafe_scope;
-    m_ptr.store(reinterpret_cast<byte*>(value.get()));
+    m_ptr.store(reinterpret_cast<byte*>(value.get()), std::memory_order_release);
 }
 
 gc_untyped_ptr::operator bool() const noexcept

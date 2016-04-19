@@ -249,8 +249,9 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
 {
 //    lock_guard<mutex_type> lock(m_phase_mutex);
     gc_unsafe_scope unsafe_scope;
-    dst_ptr.atomic_store(src_ptr);
-    shade(src_ptr.get());
+    void* p = src_ptr.get();
+    dst_ptr.set(p);
+    shade(p);
 //    if (m_phase == phase::MARKING) {
 //    }
 }

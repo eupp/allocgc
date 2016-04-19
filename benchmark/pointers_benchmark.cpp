@@ -98,7 +98,7 @@ NONIUS_BENCHMARK("gc_ptr_assign", [](nonius::chronometer meter)
 {
     std::vector<gc_ptr<obj_type>> ptrs(meter.runs());
     auto p = gc_new<obj_type>(42);
-    meter.measure([&ptrs, p] (size_t i) {
+    meter.measure([&ptrs, &p] (size_t i) {
         ptrs[i] = p;
     });
 });

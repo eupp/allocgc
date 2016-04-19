@@ -3,6 +3,7 @@
 
 #include <queue>
 #include <boost/lockfree/queue.hpp>
+#include <boost/lockfree/spsc_queue.hpp>
 
 #include "gc_untyped_ptr.h"
 #include "mutex.h"
@@ -26,7 +27,7 @@ public:
 private:
     gc_mark_queue();
 
-    boost::lockfree::queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
+    boost::lockfree::spsc_queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
 };
 
 }}

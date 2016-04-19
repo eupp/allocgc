@@ -152,6 +152,7 @@ void* gc_garbage_collector::start_marking_routine(void*)
                 if (!stack_ptr) {
                     continue;
                 }
+                StackMap::lock_type stack_lock = stack_ptr->lock();
                 for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {
                     mark_queue.push(get_pointed_to(root->addr));
                 }

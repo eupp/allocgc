@@ -27,7 +27,7 @@ public:
 private:
     gc_mark_queue();
 
-    boost::lockfree::spsc_queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
+    boost::lockfree::queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
 };
 
 }}

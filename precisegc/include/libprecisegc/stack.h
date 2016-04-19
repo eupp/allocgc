@@ -7,6 +7,10 @@
 #include <unistd.h>
 
 
+#include <mutex>
+
+#include "details/mutex.h"
+
 /**
 * @structure --- represents a one stack element;
 * @field addr --- is a pointer on the approptiate gc_ptr
@@ -19,7 +23,11 @@ struct StackElement {
 class StackMap {
 protected:
 	StackMap() {}
+
+	typedef precisegc::details::mutex mutex_type;
 public:
+	typedef std::unique_lock<mutex_type> lock_type;
+
 	static StackMap* getInstance();
 
 	/// add new element
@@ -31,7 +39,10 @@ public:
 
 	StackElement* begin();
 
+	lock_type lock();
+
 private:
+	mutex_type m_mutex;
 	StackElement *top;
 	StackElement * free_list;
 };

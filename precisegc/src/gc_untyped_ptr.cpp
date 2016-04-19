@@ -117,13 +117,13 @@ bool gc_untyped_ptr::is_root() const noexcept
 
 void gc_untyped_ptr::register_root() noexcept
 {
-    StackMap* root_set = get_thread_handler()->stack;
+    static thread_local StackMap* root_set = get_thread_handler()->stack;
     root_set->register_stack_root(this);
 }
 
 void gc_untyped_ptr::delete_root() noexcept
 {
-    StackMap* root_set = get_thread_handler()->stack;
+    static thread_local StackMap* root_set = get_thread_handler()->stack;
     root_set->delete_stack_root(this);
 }
 

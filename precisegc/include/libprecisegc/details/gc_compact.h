@@ -86,7 +86,7 @@ void fix_roots(const Forwarding& frwd)
     thread_list& tl = thread_list::instance();
     for (auto& handler: tl) {
         thread_handler* p_handler = &handler;
-        StackMap *stack_ptr = p_handler->stack;
+        auto stack_ptr = p_handler->stack;
         for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
             frwd.forward(root->addr);
         }

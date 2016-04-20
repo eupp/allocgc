@@ -2,6 +2,7 @@
 #define DIPLOMA_GC_GARBAGE_COLLECTOR_H
 
 #include <pthread.h>
+#include <queue>
 
 #include "gc_untyped_ptr.h"
 #include "mutex.h"
@@ -41,8 +42,12 @@ private:
     static void* start_marking_routine(void*);
     static void* start_compacting_routine(void*);
     static void mark();
-    static void traverse(
-            precisegc::details::managed_cell_ptr root);
+    static void traverse(precisegc::details::managed_cell_ptr root);
+
+    void queue_push(void* p);
+    void* queue_pop();
+    bool queue_empty();
+    void clear_queue();
 
     enum class phase {
         IDLE,
@@ -64,7 +69,7 @@ private:
     mutex_type m_phase_mutex;
     condition_variable m_phase_cond;
     size_t m_gc_cycles_cnt;
-
+    std::queue<void*> m_queue;
 };
 
 }}

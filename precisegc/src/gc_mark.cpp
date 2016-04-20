@@ -5,6 +5,7 @@
 
 #include "details/managed_ptr.h"
 #include "details/gc_mark_queue.h"
+#include "thread.h"
 
 namespace precisegc { namespace details {
 
@@ -42,24 +43,25 @@ bool get_object_mark(void* ptr)
 
 void shade(void* ptr)
 {
-    static gc_mark_queue& queue = gc_mark_queue::instance();
-    queue.push(ptr);
-//    if (!ptr) {
-//        return;
-//    }
-//    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
-//    // this check will be failed only when ptr is pointed to non gc_heap memory,
-//    // that is not possible in correct program (i.e. when gc_new is used to create managed objects),
-//    // but could occur during testing.
-//    try {
-//        cell_ptr.lock_descriptor();
-//        if (!cell_ptr.get_mark()) {
+//    static gc_mark_queue& queue = gc_mark_queue::instance();
+    static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
+//    queue->push(ptr);
+    if (!ptr) {
+        return;
+    }
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    // this check will be failed only when ptr is pointed to non gc_heap memory,
+    // that is not possible in correct program (i.e. when gc_new is used to create managed objects),
+    // but could occur during testing.
+    try {
+        cell_ptr.lock_descriptor();
+        if (!cell_ptr.get_mark()) {
 //            static gc_mark_queue& queue = gc_mark_queue::instance();
-//            queue.push(ptr);
-//        }
-//    } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
-//        return;
-//    }
+            queue->push(ptr);
+        }
+    } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
+        return;
+    }
 }
 
 void* get_pointed_to(void* ptr)

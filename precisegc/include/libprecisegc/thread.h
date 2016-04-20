@@ -1,7 +1,10 @@
 #pragma once
+
 #include <pthread.h>
+#include <memory>
 
 #include "stack.h"
+#include "details/gc_mark_queue.h"
 
 namespace precisegc {
 
@@ -11,7 +14,9 @@ struct thread_handler
     void* (* routine)(void*); // for init
     void* arg;
     size_t flags;
-    StackMap* stack;
+    std::shared_ptr<StackMap> stack;
+    std::shared_ptr<StackMap> pins;
+    std::shared_ptr<details::gc_mark_queue> mark_queue;
 };
 
 int thread_create(pthread_t* thread, const pthread_attr_t* attr,

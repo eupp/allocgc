@@ -6,10 +6,10 @@
 #include <sys/mman.h>
 #include <assert.h>
 
-StackMap * StackMap::getInstance() {
-	static thread_local StackMap instance;
-	return &instance;
-}
+//StackMap * StackMap::getInstance() {
+//	static thread_local StackMap instance;
+//	return &instance;
+//}
 
 constexpr int PAGE_SIZE = 4096;
 constexpr int ELEM_PER_PAGE = PAGE_SIZE / sizeof(StackElement);
@@ -64,3 +64,8 @@ StackMap::lock_type StackMap::lock()
 {
     return lock_type(m_mutex);
 }
+
+StackMap::StackMap()
+	: free_list(nullptr)
+	, top(nullptr)
+{}

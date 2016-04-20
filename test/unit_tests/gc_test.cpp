@@ -17,7 +17,7 @@
 using namespace precisegc;
 using namespace precisegc::details;
 
-//#define DEBUG_PRINT_TREE
+#define DEBUG_PRINT_TREE
 
 namespace {
 
@@ -29,7 +29,6 @@ struct node
 
 gc_ptr<node> create_gc_node()
 {
-
     return gc_new<node>();
 }
 
@@ -184,7 +183,7 @@ void check_nodes(node* ptr, size_t depth)
 {
     if (depth < LIVE_LEVEL) {
         EXPECT_FALSE(get_object_mark(ptr)) << "ptr=" << ptr;
-    } else {
+    } else if (depth == LIVE_LEVEL) {
         EXPECT_TRUE(get_object_mark(ptr))  << "ptr=" << ptr;
     }
     if (ptr->m_left) {

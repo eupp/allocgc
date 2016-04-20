@@ -22,13 +22,12 @@ struct StackElement {
 
 class StackMap {
 protected:
-	StackMap() {}
-
 	typedef precisegc::details::mutex mutex_type;
-public:
-	typedef std::unique_lock<mutex_type> lock_type;
 
-	static StackMap* getInstance();
+public:
+	StackMap();
+
+	typedef std::unique_lock<mutex_type> lock_type;
 
 	/// add new element
 	/// @param stored pointer

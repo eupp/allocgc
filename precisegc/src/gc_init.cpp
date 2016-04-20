@@ -15,10 +15,13 @@ static void create_first_thread()
 {
     thread_handler first_thread;
     first_thread.pthread = pthread_self();
-    first_thread.stack = StackMap::getInstance();
+//    first_thread.stack = StackMap::getInstance();
     first_thread.flags = 0;
     first_thread.routine = nullptr;
     first_thread.arg = nullptr;
+    first_thread.stack.reset(new StackMap());
+    first_thread.pins.reset(new StackMap());
+    first_thread.mark_queue.reset(new details::gc_mark_queue());
     details::thread_list::instance().insert(first_thread);
 
     details::logging::info() << "Thread " << pthread_self() << " main";

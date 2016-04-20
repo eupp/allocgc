@@ -24,7 +24,7 @@ static void remove_thread(pthread_t thread)
 void* start_routine(void* hand)
 {
     thread_handler* handler = (thread_handler*) hand;
-    handler->stack = StackMap::getInstance();
+//    handler->stack = StackMap::getInstance();
     handler->flags = 0;
 
     void* ret = handler->routine(handler->arg);
@@ -42,7 +42,9 @@ int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routin
     // fill thread, routine & arg, rest will be filled in start_routine
     handler.routine = routine;
     handler.arg = arg;
-    handler.stack = nullptr;
+    handler.stack.reset(new StackMap());
+    handler.pins.reset(new StackMap());
+    handler.mark_queue.reset(new details::gc_mark_queue());
     auto it = threads.insert(handler);
     int res = pthread_create(thread, attr, start_routine, &(*it));
     it->pthread = *thread;

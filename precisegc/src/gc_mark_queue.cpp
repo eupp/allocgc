@@ -5,14 +5,14 @@
 namespace precisegc { namespace details {
 
 gc_mark_queue::gc_mark_queue()
-    : m_queue(0)
+    : m_queue(MAX_SIZE)
 {}
 
-gc_mark_queue& gc_mark_queue::instance()
-{
-    static gc_mark_queue queue;
-    return queue;
-}
+//gc_mark_queue& gc_mark_queue::instance()
+//{
+//    static gc_mark_queue queue;
+//    return queue;
+//}
 
 bool gc_mark_queue::empty()
 {
@@ -21,17 +21,15 @@ bool gc_mark_queue::empty()
 
 void gc_mark_queue::push(void* ptr)
 {
-    bool res = m_queue.push(ptr);
-    assert(res);
+    bool res = false;
+    while (!res) {
+        res = m_queue.push(ptr);
+    }
 }
 
-void* gc_mark_queue::pop()
+bool gc_mark_queue::pop(void*& p)
 {
-    void* ret;
-    if (!m_queue.pop(ret)) {
-        ret = nullptr;
-    }
-    return ret;
+    return m_queue.pop(p);
 }
 
 void gc_mark_queue::clear()

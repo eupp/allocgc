@@ -2,6 +2,7 @@
 #define DIPLOMA_GC_MARK_QUEUE_H
 
 #include <queue>
+#include <memory>
 #include <boost/lockfree/queue.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 
@@ -15,19 +16,22 @@ class gc_mark_queue: public noncopyable, public nonmovable
 {
 public:
 
-    static gc_mark_queue& instance();
+//    static gc_mark_queue& instance();
 
-    bool empty();
-
-    void push(void* ptr);
-    void* pop();
-
-    void clear();
-
-private:
     gc_mark_queue();
 
-    boost::lockfree::queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
+    bool empty();
+    void push(void* ptr);
+
+    bool pop(void*& p);
+
+    void clear();
+private:
+
+    static const size_t MAX_SIZE = 65536;
+
+    boost::lockfree::allocator<std::allocator<void*>> m_alloc;
+    boost::lockfree::spsc_queue<void*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;
 };
 
 }}

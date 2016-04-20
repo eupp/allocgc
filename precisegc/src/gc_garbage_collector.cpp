@@ -144,17 +144,17 @@ void* gc_garbage_collector::start_marking_routine(void*)
         {
             lock_guard<mutex> lock(thread_list::instance_mutex);
             thread_list& tl = thread_list::instance();
-            gc_mark_queue& mark_queue = gc_mark_queue::instance();
-            mark_queue.clear();
+//            gc_mark_queue& mark_queue = gc_mark_queue::instance();
+            gc.clear_queue();
             for (auto& handler: tl) {
                 thread_handler* p_handler = &handler;
-                StackMap* stack_ptr = p_handler->stack;
-                if (!stack_ptr) {
+                auto stack = p_handler->stack;
+                if (!stack) {
                     continue;
                 }
-                StackMap::lock_type stack_lock = stack_ptr->lock();
-                for (StackElement* root = stack_ptr->begin(); root != nullptr; root = root->next) {
-                    mark_queue.push(get_pointed_to(root->addr));
+                StackMap::lock_type stack_lock = stack->lock();
+                for (StackElement* root = stack->begin(); root != nullptr; root = root->next) {
+                    gc.queue_push(get_pointed_to(root->addr));
                 }
             }
         }
@@ -179,9 +179,10 @@ void* gc_garbage_collector::start_compacting_routine(void* pVoid)
 
 void gc_garbage_collector::mark()
 {
-    gc_mark_queue& mark_queue = gc_mark_queue::instance();
-    while (!mark_queue.empty()) {
-        byte* root = reinterpret_cast<byte*>(mark_queue.pop());
+//    gc_mark_queue& mark_queue = gc_mark_queue::instance();
+    static gc_garbage_collector& gc = gc_garbage_collector::instance();
+    while (!gc.queue_empty()) {
+        byte* root = reinterpret_cast<byte*>(gc.queue_pop());
         if (root) {
             traverse(managed_cell_ptr(managed_ptr(root), 0));
         }
@@ -190,6 +191,8 @@ void gc_garbage_collector::mark()
 
 void gc_garbage_collector::traverse(managed_cell_ptr root)
 {
+    static gc_garbage_collector& gc = gc_garbage_collector::instance();
+
     root.lock_descriptor();
     assert(root.is_live());
     if (root.get_mark()) {
@@ -208,14 +211,14 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
 
     root.unlock_descriptor();
     byte* ptr = root.get_cell_begin();
-    gc_mark_queue& mark_queue = gc_mark_queue::instance();
+//    gc_mark_queue& mark_queue = gc_mark_queue::instance();
     size_t obj_count = obj_meta->get_count();
     size_t offsets_size = offsets.size();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
             void *p = get_pointed_to((char *) ptr + offsets[j]);
             if (p && !get_object_mark(p)) {
-                mark_queue.push(p);
+                gc.queue_push(p);
             }
         }
         ptr += obj_size;
@@ -248,13 +251,13 @@ void gc_garbage_collector::force_move_to_no_gc()
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
-//    lock_guard<mutex_type> lock(m_phase_mutex);
+    lock_guard<mutex_type> lock(m_phase_mutex);
     gc_unsafe_scope unsafe_scope;
     void* p = src_ptr.get();
     dst_ptr.set(p);
-    shade(p);
-//    if (m_phase == phase::MARKING) {
-//    }
+    if (m_phase == phase::MARKING) {
+        shade(p);
+    }
 }
 
 void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
@@ -284,4 +287,39 @@ const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)
             return "GC off";
     }
 }
+
+void gc_garbage_collector::queue_push(void* p)
+{
+    m_queue.push(p);
+}
+
+void* gc_garbage_collector::queue_pop()
+{
+    void* p = m_queue.front();
+    m_queue.pop();
+    return p;
+}
+
+bool gc_garbage_collector::queue_empty()
+{
+    if (m_queue.empty()) {
+        lock_guard<mutex> lock(thread_list::instance_mutex);
+        thread_list& tl = thread_list::instance();
+        for (auto& thread: tl) {
+            void* p = nullptr;
+            bool res = thread.mark_queue->pop(p);
+            while (res) {
+                m_queue.push(p);
+                res = thread.mark_queue->pop(p);
+            }
+        }
+    }
+    return m_queue.empty();
+}
+
+void gc_garbage_collector::clear_queue()
+{
+    std::queue<void*>().swap(m_queue);
+}
+
 }}

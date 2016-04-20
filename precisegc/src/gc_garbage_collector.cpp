@@ -97,10 +97,12 @@ void gc_garbage_collector::start_compacting()
         m_phase_mutex.unlock();
 
         gc_pause();
+        pin_objects();
         mark();
         gc_heap& heap = gc_heap::instance();
         heap.compact();
         managed_ptr::reset_index_cache();
+        unpin_objects();
         gc_resume();
 
         std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -320,6 +322,40 @@ bool gc_garbage_collector::queue_empty()
 void gc_garbage_collector::clear_queue()
 {
     std::queue<void*>().swap(m_queue);
+}
+
+void gc_garbage_collector::pin_objects()
+{
+    lock_guard<mutex> lock(thread_list::instance_mutex);
+    thread_list& tl = thread_list::instance();
+    for (auto& handler: tl) {
+        thread_handler* p_handler = &handler;
+        auto pins = p_handler->pins;
+        if (!pins) {
+            continue;
+        }
+        StackMap::lock_type stack_lock = pins->lock();
+        for (StackElement* pin = pins->begin(); pin != nullptr; pin = pin->next) {
+            set_object_pin(pin->addr, true);
+        }
+    }
+}
+
+void gc_garbage_collector::unpin_objects()
+{
+    lock_guard<mutex> lock(thread_list::instance_mutex);
+    thread_list& tl = thread_list::instance();
+    for (auto& handler: tl) {
+        thread_handler* p_handler = &handler;
+        auto pins = p_handler->pins;
+        if (!pins) {
+            continue;
+        }
+        StackMap::lock_type stack_lock = pins->lock();
+        for (StackElement* pin = pins->begin(); pin != nullptr; pin = pin->next) {
+            set_object_pin(pin->addr, false);
+        }
+    }
 }
 
 }}

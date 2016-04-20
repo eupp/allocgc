@@ -60,6 +60,9 @@ private:
 
     static const char* phase_str(phase ph);
 
+    void pin_objects();
+    void unpin_objects();
+
     bool m_gc_thread_launch;
     pthread_t m_gc_thread;
 

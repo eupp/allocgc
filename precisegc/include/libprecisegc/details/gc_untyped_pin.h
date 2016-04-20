@@ -17,8 +17,6 @@ public:
     void* get() const noexcept;
 protected:
     void* m_raw_ptr;
-private:
-    managed_memory_descriptor* m_descr;
 };
 
 }}

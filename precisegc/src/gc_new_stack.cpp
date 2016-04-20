@@ -47,7 +47,7 @@ bool gc_new_stack::is_meta_requsted() const noexcept
 
 gc_new_stack::stack_entry::stack_entry(void* new_ptr, size_t new_size)
 {
-    gc_new_stack& stack = gc_new_stack::instance();
+    static thread_local gc_new_stack& stack = gc_new_stack::instance();
     assert(stack.is_active());
     m_old_ptr = stack.m_top_ptr;
     stack.m_top_ptr = new_ptr;
@@ -60,7 +60,7 @@ gc_new_stack::stack_entry::stack_entry(void* new_ptr, size_t new_size)
 
 gc_new_stack::stack_entry::~stack_entry()
 {
-    gc_new_stack& stack = gc_new_stack::instance();
+    static thread_local gc_new_stack& stack = gc_new_stack::instance();
     stack.m_top_ptr = m_old_ptr;
     stack.m_top_size = m_old_size;
     stack.m_is_meta_requested = m_old_is_meta_requested;
@@ -69,13 +69,13 @@ gc_new_stack::stack_entry::~stack_entry()
 
 gc_new_stack::activation_entry::activation_entry()
 {
-    gc_new_stack& stack = gc_new_stack::instance();
+    static thread_local gc_new_stack& stack = gc_new_stack::instance();
     stack.m_nesting_level++;
 }
 
 gc_new_stack::activation_entry::~activation_entry()
 {
-    gc_new_stack& stack = gc_new_stack::instance();
+    static thread_local gc_new_stack& stack = gc_new_stack::instance();
     stack.m_nesting_level--;
 }
 }}

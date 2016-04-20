@@ -48,7 +48,7 @@ void* gc_new_impl(size_t n, Args&&... args)
     size_t aligned_size = cell_ptr.cell_size();
     assert(ptr);
 
-    auto& collector = gc_garbage_collector::instance();
+    static auto& collector = gc_garbage_collector::instance();
     collector.new_cell(cell_ptr);
 
     void* begin = ptr;

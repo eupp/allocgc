@@ -30,11 +30,11 @@ void gc_heap::compact()
     // while other threads are suspended.
 //    lock_guard<mutex> lock(m_mutex);
 //    logging::info() << "Compacting memory...";
-    gc_heap::forwarding frwd = compact_memory();
+//    gc_heap::forwarding frwd = compact_memory();
 //    logging::info() << "Fixing pointers...";
-    fix_pointers(frwd);
+//    fix_pointers(frwd);
 //    logging::info() << "Fixing roots...";
-    fix_roots(frwd);
+//    fix_roots(frwd);
 //    logging::info() << "Sweeping...";
     sweep();
 }

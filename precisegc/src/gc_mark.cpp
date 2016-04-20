@@ -45,11 +45,12 @@ void shade(void* ptr)
 {
 //    static gc_mark_queue& queue = gc_mark_queue::instance();
     static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
-//    queue->push(ptr);
+
     if (!ptr) {
         return;
     }
     queue->push(ptr);
+
 //    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
 //    // this check will be failed only when ptr is pointed to non gc_heap memory,
 //    // that is not possible in correct program (i.e. when gc_new is used to create managed objects),

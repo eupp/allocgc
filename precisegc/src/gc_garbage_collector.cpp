@@ -173,6 +173,7 @@ void* gc_garbage_collector::start_marking_routine(void*)
                 }
             }
         }
+
         mark();
 
         {
@@ -266,8 +267,8 @@ void gc_garbage_collector::force_move_to_no_gc()
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
-    lock_guard<mutex_type> lock(m_phase_mutex);
     gc_unsafe_scope unsafe_scope;
+    lock_guard<mutex_type> lock(m_phase_mutex);
     void* p = src_ptr.get();
     dst_ptr.set(p);
     if (m_phase == phase::MARKING) {
@@ -277,12 +278,17 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
 
 void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
 {
-    cell_ptr.set_mark(true);
-//    lock_guard<mutex_type> lock(m_phase_mutex);
-//    if (m_phase == phase::MARKING) {
-//        // allocate black objects
-//
-//    }
+//    static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
+//    queue->push(cell_ptr.get());
+//    cell_ptr.set_mark(true);
+    lock_guard<mutex_type> lock(m_phase_mutex);
+    if (m_phase == phase::MARKING || m_phase == phase::MARKING_FINISHED) {
+//         allocate black objects
+        cell_ptr.set_mark(true);
+    }
+    else {
+        cell_ptr.set_mark(false);
+    }
 }
 
 const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)

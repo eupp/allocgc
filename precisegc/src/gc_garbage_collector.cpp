@@ -15,6 +15,12 @@ using namespace _GC_;
 
 namespace precisegc { namespace details {
 
+inline long long nanotime( void ) {
+    timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    return ts.tv_sec * 1000000000ll + ts.tv_nsec;
+}
+
 gc_garbage_collector& gc_garbage_collector::instance()
 {
     static gc_garbage_collector collector;
@@ -97,12 +103,19 @@ void gc_garbage_collector::start_compacting()
         m_phase_mutex.unlock();
 
         gc_pause();
+
+        long long start = nanotime();
+
         pin_objects();
         mark();
         gc_heap& heap = gc_heap::instance();
         heap.compact();
         managed_ptr::reset_index_cache();
         unpin_objects();
+
+//        static gc_heap& heap = gc_heap::instance();
+        printf("gc time = %lldms; heap size: %lldb\n", (nanotime() - start) / 1000000, heap.size());
+
         gc_resume();
 
         std::atomic_thread_fence(std::memory_order_seq_cst);

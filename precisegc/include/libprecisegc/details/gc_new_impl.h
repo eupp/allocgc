@@ -48,9 +48,6 @@ void* gc_new_impl(size_t n, Args&&... args)
     size_t aligned_size = cell_ptr.cell_size();
     assert(ptr);
 
-    static auto& collector = gc_garbage_collector::instance();
-    collector.new_cell(cell_ptr);
-
     void* begin = ptr;
     void* end = ptr + n * sizeof(T);
 
@@ -73,6 +70,9 @@ void* gc_new_impl(size_t n, Args&&... args)
     {
         new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(class_meta_provider<T>::get_meta_ptr(), n, ptr);
     }
+
+    static auto& collector = gc_garbage_collector::instance();
+    collector.new_cell(cell_ptr);
 
     return ptr;
 };

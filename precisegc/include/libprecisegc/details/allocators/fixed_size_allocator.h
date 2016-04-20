@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <vector>
 #include <algorithm>
+#include <memory>
+#include <list>
 
 #include "stl_adapter.h"
 #include "joined_range.h"
@@ -15,14 +17,13 @@ namespace precisegc { namespace details { namespace allocators {
 template <typename Chunk, typename Alloc, typename InternalAlloc>
 class fixed_size_allocator : private ebo<Alloc>, private noncopyable
 {
-    typedef std::vector<Chunk, stl_adapter<Chunk, InternalAlloc>> vector_t;
+    typedef std::list<Chunk, std::allocator<Chunk>> list_t;
 public:
     typedef typename Chunk::pointer_type pointer_type;
-    typedef joined_range<vector_t> range_type;
+    typedef joined_range<list_t> range_type;
 
     fixed_size_allocator()
     {
-        m_chunks.reserve(PAGE_SIZE / sizeof(Chunk));
         m_alloc_chunk = m_chunks.begin();
     }
 
@@ -51,9 +52,10 @@ public:
         if (dealloc_chunk != m_chunks.end()) {
             dealloc_chunk->deallocate(ptr, size);
             if (dealloc_chunk->empty(size)) {
-                ptrdiff_t alloc_chunk_ind = m_alloc_chunk - m_chunks.begin();
+                if (m_alloc_chunk == dealloc_chunk) {
+                    m_alloc_chunk++;
+                }
                 destroy_chunk(dealloc_chunk, size);
-                m_alloc_chunk = std::next(m_chunks.begin(), alloc_chunk_ind);
             }
         }
     }
@@ -61,13 +63,12 @@ public:
     size_t shrink()
     {
         size_t size = 0;
-        for (size_t i = 0; i < m_chunks.size(); ) {
-            auto& chk = m_chunks[i];
-            if (chk.is_dead()) {
-                size += chk.get_mem_size();
-                destroy_chunk(chk, chk.get_cell_size());
+        for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
+            if (it->is_dead()) {
+                size += it->get_mem_size();
+                it = destroy_chunk(it, it->get_cell_size());
             } else {
-                ++i;
+                ++it;
             }
         }
         reset_cache();
@@ -95,18 +96,10 @@ public:
     }
 
 private:
-    void destroy_chunk(typename vector_t::iterator it, size_t cell_size)
+    typename list_t::iterator destroy_chunk(typename list_t::iterator chk, size_t cell_size)
     {
-        destroy_chunk(*it, cell_size);
-    }
-
-    void destroy_chunk(Chunk& chk, size_t cell_size)
-    {
-        using std::swap;
-        Chunk::destroy(chk, cell_size, get_allocator());
-        auto last = std::prev(m_chunks.end(), 1);
-        swap(chk, *last);
-        m_chunks.pop_back();
+        Chunk::destroy(*chk, cell_size, get_allocator());
+        return m_chunks.erase(chk);
     }
 
     Alloc& get_allocator()
@@ -114,8 +107,8 @@ private:
         return this->template get_base<Alloc>();
     }
 
-    typename vector_t::iterator m_alloc_chunk;
-    vector_t m_chunks;
+    typename list_t::iterator m_alloc_chunk;
+    list_t m_chunks;
 };
 
 }}}

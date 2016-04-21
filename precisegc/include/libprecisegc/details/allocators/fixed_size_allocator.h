@@ -68,6 +68,7 @@ public:
                 size += it->get_mem_size();
                 it = destroy_chunk(it, it->get_cell_size());
             } else {
+                it->reset_bits();
                 ++it;
             }
         }

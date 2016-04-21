@@ -66,11 +66,11 @@ void gc_heap::sweep()
     logging::info() << "Shrinked " << shrinked_size << " bytes";
     size_t sweep_size = 0;
     auto& bp = m_alloc.get_bucket_policy();
-    for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        auto rng = m_alloc.range(i);
-        size_t sweep_cnt = ::precisegc::details::sweep(rng);
-        sweep_size += sweep_cnt * bp.bucket_size(i);
-    }
+//    for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
+//        auto rng = m_alloc.range(i);
+//        size_t sweep_cnt = ::precisegc::details::sweep(rng);
+//        sweep_size += sweep_cnt * bp.bucket_size(i);
+//    }
     logging::info() << "Sweeped " << sweep_size << " bytes";
     size_t freed = sweep_size + shrinked_size;
     assert(m_size >= freed);

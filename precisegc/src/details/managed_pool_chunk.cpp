@@ -79,6 +79,12 @@ bool managed_pool_chunk::is_dead() const noexcept
     return m_descr->m_mark_bits.none() && m_descr->m_pin_bits.none();
 }
 
+void managed_pool_chunk::reset_bits()
+{
+    m_descr->m_mark_bits.reset();
+    m_descr->m_pin_bits.reset();
+}
+
 byte* managed_pool_chunk::get_mem() const
 {
     return m_chunk.get_mem();
@@ -308,4 +314,5 @@ managed_pool_chunk::iterator::proxy managed_pool_chunk::iterator::operator->() c
 {
     return proxy(managed_cell_ptr(managed_ptr(m_ptr), 0, m_descr));
 }
+
 }}

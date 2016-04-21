@@ -111,7 +111,7 @@ void gc_garbage_collector::start_compacting()
         gc_heap& heap = gc_heap::instance();
         heap.compact();
         managed_ptr::reset_index_cache();
-        unpin_objects();
+//        unpin_objects();
 
 //        static gc_heap& heap = gc_heap::instance();
         printf("gc time = %lldms; heap size: %lldb\n", (nanotime() - start) / 1000000, heap.size());

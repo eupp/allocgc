@@ -141,6 +141,7 @@ public:
     bool empty(size_t cell_size) const noexcept;
 
     bool is_dead() const noexcept;
+    void reset_bits();
 
     managed_memory_descriptor* get_descriptor() const;
 

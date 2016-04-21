@@ -26,17 +26,23 @@ size_t gc_heap::size() noexcept
 
 void gc_heap::compact()
 {
+    size_t shrinked_size = m_alloc.shrink();
+    logging::info() << "Shrinked " << shrinked_size << " bytes";
+    size_t freed = shrinked_size;
+    assert(m_size >= freed);
+    m_size.fetch_sub(freed);
     // don't lock here, because compact is guarantee to be called during gc phase,
     // while other threads are suspended.
 //    lock_guard<mutex> lock(m_mutex);
 //    logging::info() << "Compacting memory...";
-//    gc_heap::forwarding frwd = compact_memory();
+    gc_heap::forwarding frwd = compact_memory();
 //    logging::info() << "Fixing pointers...";
-//    fix_pointers(frwd);
+    fix_pointers(frwd);
 //    logging::info() << "Fixing roots...";
-//    fix_roots(frwd);
+    fix_roots(frwd);
 //    logging::info() << "Sweeping...";
-    sweep();
+//    sweep();
+    m_alloc.reset_bits();
 }
 
 gc_heap::forwarding gc_heap::compact_memory()

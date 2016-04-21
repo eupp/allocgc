@@ -54,6 +54,13 @@ public:
         return size;
     }
 
+    void reset_bits()
+    {
+        for (auto& alloc: m_buckets) {
+            alloc.reset_bits();
+        }
+    }
+
     void reset_cache()
     {
         for (auto& alloc: m_buckets) {

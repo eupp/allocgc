@@ -68,12 +68,19 @@ public:
                 size += it->get_mem_size();
                 it = destroy_chunk(it, it->get_cell_size());
             } else {
-                it->reset_bits();
+//                it->reset_bits();
                 ++it;
             }
         }
         reset_cache();
         return size;
+    }
+
+    void reset_bits()
+    {
+        for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ++it) {
+            it->reset_bits();
+        }
     }
 
     void reset_cache()

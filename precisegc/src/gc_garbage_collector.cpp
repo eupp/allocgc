@@ -157,6 +157,8 @@ void* gc_garbage_collector::start_marking_routine(void*)
         }
 
         {
+            gc_pause();
+
             lock_guard<mutex> lock(thread_list::instance_mutex);
             thread_list& tl = thread_list::instance();
 //            gc_mark_queue& mark_queue = gc_mark_queue::instance();
@@ -167,11 +169,13 @@ void* gc_garbage_collector::start_marking_routine(void*)
                 if (!stack) {
                     continue;
                 }
-                StackMap::lock_type stack_lock = stack->lock();
+//                StackMap::lock_type stack_lock = stack->lock();
                 for (StackElement* root = stack->begin(); root != nullptr; root = root->next) {
                     gc.queue_push(get_pointed_to(root->addr));
                 }
             }
+
+            gc_resume();
         }
 
         mark();

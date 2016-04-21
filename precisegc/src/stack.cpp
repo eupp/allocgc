@@ -15,7 +15,7 @@ constexpr int PAGE_SIZE = 4096;
 constexpr int ELEM_PER_PAGE = PAGE_SIZE / sizeof(StackElement);
 
 void StackMap::register_stack_root(void * newAddr) {
-    precisegc::details::lock_guard<mutex_type> lock(m_mutex);
+//    precisegc::details::lock_guard<mutex_type> lock(m_mutex);
 	if (free_list == nullptr) {
 		StackElement * data = (StackElement *) mmap(nullptr, PAGE_SIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		assert(data != MAP_FAILED);
@@ -33,7 +33,7 @@ void StackMap::register_stack_root(void * newAddr) {
 }
 
 void StackMap::delete_stack_root(void * address) {
-    precisegc::details::lock_guard<mutex_type> lock(m_mutex);
+//    precisegc::details::lock_guard<mutex_type> lock(m_mutex);
 	if (top->addr != address) {
 		// if it is so, then automatic objects dectructs
 		// not in the reverse order with their constructors

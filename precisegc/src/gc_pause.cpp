@@ -39,6 +39,8 @@ static void gc_signal_handler()
     }
     gc_finished_event.wait();
     threads_resumed_barrier.notify();
+
+    logging::info() << "Thread " << pthread_self() << " leaves gc signal handler";
 }
 
 static void check_gc_siglock(int signum)
@@ -178,6 +180,8 @@ void gc_resume()
     gc_finished_event.notify(threads_cnt);
     threads_resumed_barrier.wait(threads_cnt);
     gc_mutex.unlock();
+
+    logging::info() << "All threads are resumed";
 }
 
 void set_gc_pause_handler(const pause_handler_t& pause_handler)

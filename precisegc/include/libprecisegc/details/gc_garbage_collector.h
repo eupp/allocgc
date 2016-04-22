@@ -36,6 +36,7 @@ private:
     gc_garbage_collector();
 
     static void* marking_routine(void*);
+    void compacting_routine();
     static void mark();
     static void traverse(precisegc::details::managed_cell_ptr root);
 
@@ -49,6 +50,7 @@ private:
     enum class phase {
         IDLE,
         MARKING,
+        MARKING_FINISHED,
         COMPACTING,
         GC_OFF
     };

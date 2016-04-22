@@ -41,22 +41,9 @@ size_t gc_garbage_collector::get_gc_cycles_count() const
 
 void gc_garbage_collector::start_marking()
 {
-    phase phs = m_phase.load(std::memory_order_acquire);
-    if (phs == phase::IDLE) {
-        logging::info() << "Thread " << pthread_self() << " is requesting start of marking phase";
-
-        lock_guard<mutex_type> lock(m_mark_mutex);
-        assert(m_mark_state == marking_state::PAUSED);
-        m_mark_state = marking_state::REQUESTED;
-        m_mark_cond.notify_all();
-
-        if (!m_mark_thread_launch) {
-            // managed thread (because of gc_pause implementation)
-            thread_create(&m_mark_thread, nullptr, marking_routine, nullptr);
-            m_mark_thread_launch = true;
-        }
-
-        m_mark_cond.wait(m_mark_mutex, [this] { return m_mark_state == marking_state::RUNNING; });
+    phase expected = phase::IDLE;
+    if (m_phase.compare_exchange_strong(expected, phase::MARKING)) {
+        thread_create(&m_mark_thread, nullptr, marking_routine, nullptr);
     } else {
         logging::debug() << "Thread " << pthread_self()
                          << " is requesting start of marking phase, but gc is already running: " << phase_str(m_phase);
@@ -65,16 +52,13 @@ void gc_garbage_collector::start_marking()
 
 void gc_garbage_collector::pause_marking()
 {
-    phase phs = m_phase.load(std::memory_order_acquire);
-    if (phs == phase::MARKING) {
+//    logging::info() << "ola";
+    phase expected = phase::MARKING;
+    if (m_phase.compare_exchange_strong(expected, phase::COMPACTING)) {
         logging::info() << "Thread " << pthread_self() << " is requesting pause of marking phase";
 
-        lock_guard<mutex_type> lock(m_mark_mutex);
-        assert(m_mark_state == marking_state::RUNNING);
-        m_mark_state = marking_state::PAUSE_REQUESTED;
-        m_mark_cond.notify_all();
-
-        m_mark_cond.wait(m_mark_mutex, [this] { return m_mark_state == marking_state::PAUSED; });
+        void* ret;
+        thread_join(m_mark_thread, &ret);
     } else {
         logging::debug() << "Thread " << pthread_self()
                          << " is requesting pause of marking phase, but marking is not running: " << phase_str(m_phase);
@@ -86,7 +70,7 @@ void gc_garbage_collector::compact()
     pause_marking();
 
     gc_pause();
-    m_phase.store(phase::COMPACTING, std::memory_order_release);
+//    m_phase.store(phase::COMPACTING, std::memory_order_release);
 
     long long start = nanotime();
 
@@ -98,7 +82,7 @@ void gc_garbage_collector::compact()
 
     printf("gc time = %lldms; heap size: %lldb\n", (nanotime() - start) / 1000000, heap.size());
 
-    m_phase.store(phase::IDLE, std::memory_order_release);
+    m_phase.store(phase::IDLE, std::memory_order_seq_cst);
     gc_resume();
 }
 
@@ -108,56 +92,38 @@ void* gc_garbage_collector::marking_routine(void*)
 
     gc_garbage_collector& gc = gc_garbage_collector::instance();
 
-    while (true) {
-        {
-            lock_guard<mutex_type> lock(gc.m_mark_mutex);
-            gc.m_mark_cond.wait(gc.m_mark_mutex, [&gc] {
-                return gc.m_mark_state == marking_state::REQUESTED || gc.m_mark_state == marking_state::OFF;
-            });
+    {
+        gc_pause();
 
-            if (gc.m_mark_state == marking_state::OFF) {
-                return nullptr;
+        logging::info() << "Copy roots";
+
+//        gc.m_phase.store(phase::MARKING, std::memory_order_release);
+
+        lock_guard<mutex> lock(thread_list::instance_mutex);
+        thread_list& tl = thread_list::instance();
+        gc.clear_queue();
+        for (auto& handler: tl) {
+            thread_handler* p_handler = &handler;
+            auto stack = p_handler->stack;
+            if (!stack) {
+                continue;
             }
-
-            {
-                gc_pause();
-
-                gc.m_phase.store(phase::MARKING, std::memory_order_release);
-
-                lock_guard<mutex> lock(thread_list::instance_mutex);
-                thread_list& tl = thread_list::instance();
-                gc.clear_queue();
-                for (auto& handler: tl) {
-                    thread_handler* p_handler = &handler;
-                    auto stack = p_handler->stack;
-                    if (!stack) {
-                        continue;
-                    }
-                    for (StackElement* root = stack->begin(); root != nullptr; root = root->next) {
-                        gc.queue_push(get_pointed_to(root->addr));
-                    }
-                }
-
-                gc_resume();
-            }
-
-            gc.m_mark_state = marking_state::RUNNING;
-            gc.m_mark_cond.notify_all();
-        }
-
-        while (true) {
-            mark();
-
-            lock_guard<mutex_type> lock(gc.m_mark_mutex);
-            if (gc.m_mark_state == marking_state::PAUSE_REQUESTED) {
-                gc.m_mark_state = marking_state::PAUSED;
-                gc.m_mark_cond.notify_all();
-                break;
-            }
-            if (gc.m_mark_state == marking_state::OFF) {
-                return nullptr;
+            for (StackElement* root = stack->begin(); root != nullptr; root = root->next) {
+                gc.queue_push(get_pointed_to(root->addr));
             }
         }
+
+        gc_resume();
+    }
+
+    static const size_t MAX_ATTEMPTS = 10;
+    size_t attempts = 0;
+    phase phs = gc.m_phase.load(std::memory_order_seq_cst);
+    while (phs == phase::MARKING) {
+        logging::info() << "Marking...";
+        mark();
+        ++attempts;
+        phs = gc.m_phase.load(std::memory_order_seq_cst);
     }
 }
 
@@ -234,7 +200,7 @@ void gc_garbage_collector::force_move_to_idle()
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
 {
     gc_unsafe_scope unsafe_scope;
-    phase phs = m_phase.load(std::memory_order_acquire);
+    phase phs = m_phase.load(std::memory_order_seq_cst);
     void* p = src_ptr.get();
     dst_ptr.set(p);
     if (phs == phase::MARKING) {
@@ -248,7 +214,7 @@ void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
 //    queue->push(cell_ptr.get());
 //    cell_ptr.set_mark(true);
     gc_unsafe_scope unsafe_scope;
-    phase phs = m_phase.load(std::memory_order_acquire);
+    phase phs = m_phase.load(std::memory_order_seq_cst);
     if (phs == phase::MARKING) {
 //         allocate black objects
         cell_ptr.set_mark(true);

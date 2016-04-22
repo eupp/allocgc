@@ -3,6 +3,7 @@
 
 #include <pthread.h>
 #include <queue>
+#include <atomic>
 
 #include "gc_untyped_ptr.h"
 #include "mutex.h"
@@ -18,18 +19,13 @@ public:
 
     static gc_garbage_collector& instance();
 
-    void start_gc();
-    void wait_for_gc_finished();
-
     void start_marking();
-    void wait_for_marking_finished();
-
-    void start_compacting();
-    void wait_for_compacting_finished();
+    void pause_marking();
+    void compact();
 
     // very bad design, just for testing purpose
-    void force_move_to_idle();
     void force_move_to_no_gc();
+    void force_move_to_idle();
 
     size_t get_gc_cycles_count() const;
 
@@ -39,8 +35,7 @@ public:
 private:
     gc_garbage_collector();
 
-    static void* start_marking_routine(void*);
-    static void* start_compacting_routine(void*);
+    static void* marking_routine(void*);
     static void mark();
     static void traverse(precisegc::details::managed_cell_ptr root);
 
@@ -49,30 +44,36 @@ private:
     bool queue_empty();
     void clear_queue();
 
+    typedef mutex mutex_type;
+
     enum class phase {
         IDLE,
         MARKING,
-        MARKING_FINISHED,
         COMPACTING,
-        COMPACTING_FINISHED,
         GC_OFF
     };
 
-    static const char* phase_str(phase ph);
+    enum class marking_state {
+        REQUESTED,
+        RUNNING,
+        PAUSE_REQUESTED,
+        PAUSED,
+        OFF
+    };
 
+    static const char* phase_str(phase ph);
     void pin_objects();
+
     void unpin_objects();
 
-    bool m_gc_thread_launch;
-    pthread_t m_gc_thread;
-
-    typedef mutex mutex_type;
-
-    phase m_phase;
-    mutex_type m_phase_mutex;
-    condition_variable m_phase_cond;
+    std::atomic<phase> m_phase;
+    mutex_type m_mark_mutex;
+    condition_variable m_mark_cond;
+    marking_state m_mark_state;
     size_t m_gc_cycles_cnt;
     std::queue<void*> m_queue;
+    bool m_mark_thread_launch;
+    pthread_t m_mark_thread;
 };
 
 }}

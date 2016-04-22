@@ -34,12 +34,12 @@ void initate_gc()
     size_t mem = heap.size();
     if (mem > mem_lower_bound ) {
         logging::debug() << "Heap size exceeded " << b_to_mb(mem_lower_bound);
-        garbage_collector.start_gc();
+        garbage_collector.start_marking();
     }
     if (mem > mem_upper_bound) {
         logging::debug() << "Heap size exceeded " << b_to_mb(mem_upper_bound);
         alloc_ticks.store(0);
-        garbage_collector.wait_for_gc_finished();
+        garbage_collector.compact();
     }
 }
 

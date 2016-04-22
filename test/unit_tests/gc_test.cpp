@@ -203,8 +203,9 @@ TEST_F(gc_test, test_marking)
     auto& collector = gc_garbage_collector::instance();
     std::cout << "Start marking" << std::endl;
     collector.start_marking();
-    std::cout << "Wait for marking finished" << std::endl;
-    collector.wait_for_marking_finished();
+    sleep(2);
+    std::cout << "Pause marking" << std::endl;
+    collector.pause_marking();
 
     gc_finished = true;
 

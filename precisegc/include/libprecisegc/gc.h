@@ -8,8 +8,8 @@ namespace precisegc {
 inline void gc()
 {
     auto& collector = details::gc_garbage_collector::instance();
-    collector.start_gc();
-    collector.wait_for_gc_finished();
+    collector.start_marking();
+    collector.compact();
 }
 
 }

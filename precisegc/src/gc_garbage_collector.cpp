@@ -42,7 +42,7 @@ inline timespec now()
     return ts;
 }
 
-static const long WAIT_TIMEOUT_MS = 1000;
+static const long WAIT_TIMEOUT_MS = 100;
 
 inline timespec abs_timeout()
 {

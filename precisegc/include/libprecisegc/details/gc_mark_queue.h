@@ -28,7 +28,7 @@ public:
     void clear();
 private:
 
-    static const size_t MAX_SIZE = 65536;
+    static const size_t MAX_SIZE = 4096;
 
     boost::lockfree::allocator<std::allocator<void*>> m_alloc;
     boost::lockfree::spsc_queue<void*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;

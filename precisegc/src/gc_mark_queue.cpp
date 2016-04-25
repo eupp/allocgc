@@ -19,12 +19,9 @@ bool gc_mark_queue::empty()
     return m_queue.empty();
 }
 
-void gc_mark_queue::push(void* ptr)
+bool gc_mark_queue::push(void* ptr)
 {
-    bool res = false;
-    while (!res) {
-        res = m_queue.push(ptr);
-    }
+    return m_queue.push(ptr);
 }
 
 bool gc_mark_queue::pop(void*& p)

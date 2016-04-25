@@ -41,15 +41,15 @@ bool get_object_mark(void* ptr)
     return cell_ptr.get_mark();
 }
 
-void shade(void* ptr)
+bool shade(void* ptr)
 {
 //    static gc_mark_queue& queue = gc_mark_queue::instance();
     static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
 
     if (!ptr) {
-        return;
+        return true;
     }
-    queue->push(ptr);
+    return queue->push(ptr);
 
 //    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
 //    // this check will be failed only when ptr is pointed to non gc_heap memory,

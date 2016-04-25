@@ -21,7 +21,7 @@ public:
     gc_mark_queue();
 
     bool empty();
-    void push(void* ptr);
+    bool push(void* ptr);
 
     bool pop(void*& p);
 

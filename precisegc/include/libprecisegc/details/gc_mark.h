@@ -3,7 +3,7 @@
 
 namespace precisegc { namespace details {
 
-void shade(void* ptr);
+bool shade(void* ptr);
 
 bool get_object_mark(void* ptr);
 bool get_object_pin(void* ptr);

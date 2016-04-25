@@ -1,6 +1,7 @@
 #include "gc_garbage_collector.h"
 
 #include <cstdint>
+#include <unistd.h>
 
 #include "gc_ptr.h"
 #include "gc_mark.h"
@@ -21,6 +22,34 @@ inline long long nanotime( void ) {
     return ts.tv_sec * 1000000000ll + ts.tv_nsec;
 }
 
+inline timespec add(const timespec& a, const timespec& b)
+{
+    static const long BILLION = 1000000000;
+    timespec res;
+    res.tv_sec = a.tv_sec + b.tv_sec;
+    res.tv_nsec = a.tv_nsec + b.tv_nsec;
+    if (res.tv_nsec >= BILLION) {
+        res.tv_nsec -= BILLION;
+        res.tv_sec++;
+    }
+    return res;
+}
+
+inline timespec now()
+{
+    timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts;
+}
+
+static const long WAIT_TIMEOUT_MS = 500;
+
+inline timespec abs_timeout()
+{
+    static timespec wait_timeout = {.tv_sec = 0, .tv_nsec = WAIT_TIMEOUT_MS * 1000};
+    return add(now(), wait_timeout);
+}
+
 gc_garbage_collector& gc_garbage_collector::instance()
 {
     static gc_garbage_collector collector;
@@ -29,10 +58,12 @@ gc_garbage_collector& gc_garbage_collector::instance()
 
 gc_garbage_collector::gc_garbage_collector()
     : m_phase(phase::IDLE)
-    , m_mark_state(marking_state::PAUSED)
+    , m_event(gc_event::NO_EVENT)
     , m_gc_cycles_cnt(0)
-    , m_mark_thread_launch(false)
-{}
+{
+    int res = thread_create(&m_gc_thread, nullptr, gc_garbage_collector::gc_routine, nullptr);
+    assert(res == 0);
+}
 
 size_t gc_garbage_collector::get_gc_cycles_count() const
 {
@@ -41,89 +72,107 @@ size_t gc_garbage_collector::get_gc_cycles_count() const
 
 void gc_garbage_collector::start_marking()
 {
-    phase expected = phase::IDLE;
-    if (m_phase.compare_exchange_strong(expected, phase::MARKING)) {
-        thread_create(&m_mark_thread, nullptr, marking_routine, nullptr);
+    gc_unsafe_scope unsafe_scope;
+    phase phs = m_phase.load();
+    if (phs == phase::IDLE) {
+        lock_guard<mutex_type> lock(m_event_mutex);
+        m_event = gc_event::START_MARKING;
+        m_event_cond.notify_all();
     } else {
         logging::debug() << "Thread " << pthread_self()
                          << " is requesting start of marking phase, but gc is already running: " << phase_str(m_phase);
     }
 }
 
-void gc_garbage_collector::pause_marking()
+void gc_garbage_collector::start_compacting()
 {
-//    logging::info() << "ola";
-    phase expected = phase::MARKING;
-    if (m_phase.compare_exchange_strong(expected, phase::COMPACTING)) {
-        logging::info() << "Thread " << pthread_self() << " is requesting pause of marking phase";
-
-        void* ret;
-        thread_join(m_mark_thread, &ret);
+    gc_unsafe_scope unsafe_scope;
+    phase phs = m_phase.load();
+    if (phs == phase::IDLE || phs == phase::MARKING) {
+        lock_guard<mutex_type> lock(m_event_mutex);
+        m_event = gc_event::START_COMPACTING;
+        m_event_cond.notify_all();
     } else {
         logging::debug() << "Thread " << pthread_self()
-                         << " is requesting pause of marking phase, but marking is not running: " << phase_str(m_phase);
+            << " is requesting start of compacting phase, but gc is already running: " << phase_str(m_phase);
     }
 }
 
-void gc_garbage_collector::compact()
+void* gc_garbage_collector::gc_routine(void* pVoid)
 {
-    pause_marking();
-
-    gc_pause();
-//    m_phase.store(phase::COMPACTING, std::memory_order_release);
-
-    long long start = nanotime();
-
-    pin_objects();
-    mark();
-    gc_heap& heap = gc_heap::instance();
-    heap.compact();
-    managed_ptr::reset_index_cache();
-
-    printf("gc time = %lldms; heap size: %lldb\n", (nanotime() - start) / 1000000, heap.size());
-
-    m_phase.store(phase::IDLE, std::memory_order_seq_cst);
-    gc_resume();
-}
-
-void* gc_garbage_collector::marking_routine(void*)
-{
-    logging::info() << "Thread " << pthread_self() << " is marking thread";
+    logging::info() << "Thread " << pthread_self() << " is gc thread";
 
     gc_garbage_collector& gc = gc_garbage_collector::instance();
 
-    {
-        gc_pause();
+    while (true) {
+        gc_event event = gc_event::NO_EVENT;
+        {
+            lock_guard<mutex_type> lock(gc.m_event_mutex);
 
-        logging::info() << "Copy roots";
-
-//        gc.m_phase.store(phase::MARKING, std::memory_order_release);
-
-        lock_guard<mutex> lock(thread_list::instance_mutex);
-        thread_list& tl = thread_list::instance();
-        gc.clear_queue();
-        for (auto& handler: tl) {
-            thread_handler* p_handler = &handler;
-            auto stack = p_handler->stack;
-            if (!stack) {
-                continue;
-            }
-            for (StackElement* root = stack->begin(); root != nullptr; root = root->next) {
-                gc.queue_push(get_pointed_to(root->addr));
-            }
+            timespec timeout = abs_timeout();
+            gc.m_event_cond.wait_for(gc.m_event_mutex, &timeout, [&gc] { return    gc.m_event == gc_event::START_MARKING
+                                                                                || gc.m_event == gc_event::START_COMPACTING
+                                                                                || gc.m_event == gc_event::MOVE_TO_IDLE
+                                                                                || gc.m_event == gc_event::GC_OFF; });
+            event = gc.m_event;
         }
 
-        gc_resume();
-    }
+        phase phs = gc.m_phase.load();
+        if (event == gc_event::START_MARKING && phs == phase::IDLE) {
+            gc_pause();
+            gc.m_phase.store(phase::MARKING);
+            gc.trace_roots();
+            gc_resume();
+        }
+        if (event == gc_event::START_COMPACTING && phs == phase::MARKING) {
+            gc_pause();
+            gc.m_phase.store(phase::COMPACTING);
+            gc.compact();
+            gc.m_phase.store(phase::IDLE);
+            gc_resume();
+        }
+        if (event == gc_event::START_COMPACTING && phs == phase::IDLE) {
+            gc_pause();
+            gc.m_phase.store(phase::MARKING);
+            gc.trace_roots();
+            gc.mark();
+            gc.m_phase.store(phase::COMPACTING);
+            gc.compact();
+            gc.m_phase.store(phase::IDLE);
+            gc_resume();
+        }
+        if (event == gc_event::MOVE_TO_IDLE) {
+            gc_pause();
+            gc.m_phase.store(phase::IDLE);
+            gc_resume();
+        }
+        if (event == gc_event::GC_OFF) {
+            return nullptr;
+        }
 
-    static const size_t MAX_ATTEMPTS = 10;
-    size_t attempts = 0;
-    phase phs = gc.m_phase.load(std::memory_order_seq_cst);
-    while (phs == phase::MARKING) {
-        logging::info() << "Marking...";
-        mark();
-        ++attempts;
-        phs = gc.m_phase.load(std::memory_order_seq_cst);
+        phase new_phs = gc.m_phase.load();
+        if (new_phs == phase::MARKING) {
+            mark();
+        }
+    }
+}
+
+void gc_garbage_collector::trace_roots()
+{
+    logging::info() << "Tracing roots...";
+
+    lock_guard<mutex> lock(thread_list::instance_mutex);
+    thread_list& tl = thread_list::instance();
+    clear_queue();
+    for (auto& handler: tl) {
+        thread_handler* p_handler = &handler;
+        auto stack = p_handler->stack;
+        if (!stack) {
+            continue;
+        }
+        for (StackElement* root = stack->begin(); root != nullptr; root = root->next) {
+            queue_push(get_pointed_to(root->addr));
+        }
     }
 }
 
@@ -136,6 +185,19 @@ void gc_garbage_collector::mark()
             traverse(managed_cell_ptr(managed_ptr(root), 0));
         }
     }
+}
+
+void gc_garbage_collector::compact()
+{
+    long long start = nanotime();
+
+    pin_objects();
+    mark();
+    gc_heap& heap = gc_heap::instance();
+    heap.compact();
+    managed_ptr::reset_index_cache();
+
+    printf("gc time = %lldms; heap size: %lldb\n", (nanotime() - start) / 1000000, heap.size());
 }
 
 void gc_garbage_collector::traverse(managed_cell_ptr root)
@@ -175,26 +237,21 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
 
 void gc_garbage_collector::force_move_to_no_gc()
 {
-    logging::debug() << "Move to phase " << phase_str(phase::GC_OFF) << " from phase " << phase_str(m_phase);
+//    logging::debug() << "Move to phase " << phase_str(phase::GC_OFF) << " from phase " << phase_str(m_phase);
 
-    {
-        lock_guard<mutex_type> lock(m_mark_mutex);
-        m_mark_state = marking_state::OFF;
-        m_mark_cond.notify_all();
-    }
-
-    void* ret;
-    thread_join(m_mark_thread, &ret);
-    m_mark_thread_launch = false;
-
-    m_phase.store(phase::GC_OFF, std::memory_order_release);
+    lock_guard<mutex_type> lock(m_event_mutex);
+    m_event = gc_event::GC_OFF;
+    m_event_cond.notify_all();
 }
 
 void gc_garbage_collector::force_move_to_idle()
 {
-    gc_pause();
-    m_phase = phase::IDLE;
-    gc_resume();
+    {
+        lock_guard<mutex_type> lock(m_event_mutex);
+        m_event = gc_event::MOVE_TO_IDLE;
+        m_event_cond.notify_all();
+    }
+    while (m_phase.load() != phase::IDLE) {};
 }
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
@@ -204,7 +261,11 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
     void* p = src_ptr.get();
     dst_ptr.set(p);
     if (phs == phase::MARKING) {
-        shade(p);
+        bool res = shade(p);
+        while (!res) {
+            usleep(WAIT_TIMEOUT_MS);
+            res = shade(p);
+        }
     }
 }
 
@@ -232,8 +293,6 @@ const char* gc_garbage_collector::phase_str(gc_garbage_collector::phase ph)
             return "Marking";
         case phase::COMPACTING:
             return "Compacting";
-        case phase::GC_OFF:
-            return "GC off";
     }
 }
 

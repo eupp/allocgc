@@ -20,8 +20,7 @@ public:
     static gc_garbage_collector& instance();
 
     void start_marking();
-    void pause_marking();
-    void compact();
+    void start_compacting();
 
     // very bad design, just for testing purpose
     void force_move_to_no_gc();
@@ -35,8 +34,11 @@ public:
 private:
     gc_garbage_collector();
 
-    static void* marking_routine(void*);
-    void compacting_routine();
+    static void* gc_routine(void*);
+
+    void trace_roots();
+    void compact();
+
     static void mark();
     static void traverse(precisegc::details::managed_cell_ptr root);
 
@@ -50,9 +52,16 @@ private:
     enum class phase {
         IDLE,
         MARKING,
-        MARKING_FINISHED,
-        COMPACTING,
-        GC_OFF
+        COMPACTING
+    };
+
+    enum class gc_event {
+        START_MARKING,
+        START_COMPACTING,
+        START_GC,
+        MOVE_TO_IDLE,
+        GC_OFF,
+        NO_EVENT
     };
 
     enum class marking_state {
@@ -69,13 +78,14 @@ private:
     void unpin_objects();
 
     std::atomic<phase> m_phase;
-    mutex_type m_mark_mutex;
-    condition_variable m_mark_cond;
-    marking_state m_mark_state;
+
+    gc_event m_event;
+    mutex_type m_event_mutex;
+    condition_variable m_event_cond;
+
     size_t m_gc_cycles_cnt;
     std::queue<void*> m_queue;
-    bool m_mark_thread_launch;
-    pthread_t m_mark_thread;
+    pthread_t m_gc_thread;
 };
 
 }}

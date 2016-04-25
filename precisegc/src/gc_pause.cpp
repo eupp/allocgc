@@ -47,7 +47,7 @@ static void check_gc_siglock(int signum)
 {
     assert(signum == gc_signal);
 
-    logging::info() << "Thread " << pthread_self() << " enters check_gc_siglock";
+//    logging::info() << "Thread " << pthread_self() << " enters check_gc_siglock";
 
     if (flag_gc_signal_lock::is_locked()) {
         flag_gc_signal_lock::set_pending();
@@ -100,11 +100,13 @@ int flag_gc_signal_lock::unlock() noexcept
 
 bool flag_gc_signal_lock::is_locked() noexcept
 {
+    std::atomic_signal_fence(std::memory_order_seq_cst);
     return depth > 0;
 }
 
 void flag_gc_signal_lock::set_pending() noexcept
 {
+    std::atomic_signal_fence(std::memory_order_seq_cst);
     signal_pending_flag = true;
     std::atomic_signal_fence(std::memory_order_seq_cst);
 }

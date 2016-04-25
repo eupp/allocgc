@@ -42,7 +42,7 @@ inline timespec now()
     return ts;
 }
 
-static const long WAIT_TIMEOUT_MS = 500;
+static const long WAIT_TIMEOUT_MS = 1000;
 
 inline timespec abs_timeout()
 {
@@ -63,6 +63,14 @@ gc_garbage_collector::gc_garbage_collector()
 {
     int res = thread_create(&m_gc_thread, nullptr, gc_garbage_collector::gc_routine, nullptr);
     assert(res == 0);
+    assert(m_phase.is_lock_free());
+}
+
+gc_garbage_collector::~gc_garbage_collector()
+{
+    force_move_to_no_gc();
+    void* ret;
+    thread_join(m_gc_thread, &ret);
 }
 
 size_t gc_garbage_collector::get_gc_cycles_count() const
@@ -74,13 +82,16 @@ void gc_garbage_collector::start_marking()
 {
     gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load();
+
+    logging::debug() << "Thread " << pthread_self()
+        << " is requesting start of marking phase, current phase is: " << phase_str(m_phase);
+
     if (phs == phase::IDLE) {
         lock_guard<mutex_type> lock(m_event_mutex);
-        m_event = gc_event::START_MARKING;
-        m_event_cond.notify_all();
-    } else {
-        logging::debug() << "Thread " << pthread_self()
-                         << " is requesting start of marking phase, but gc is already running: " << phase_str(m_phase);
+        if (m_event != gc_event::START_MARKING) {
+            m_event = gc_event::START_MARKING;
+            m_event_cond.notify_all();
+        }
     }
 }
 
@@ -88,13 +99,16 @@ void gc_garbage_collector::start_compacting()
 {
     gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load();
+
+    logging::debug() << "Thread " << pthread_self()
+        << " is requesting start of compacting phase, current phase is: " << phase_str(m_phase);
+
     if (phs == phase::IDLE || phs == phase::MARKING) {
         lock_guard<mutex_type> lock(m_event_mutex);
-        m_event = gc_event::START_COMPACTING;
-        m_event_cond.notify_all();
-    } else {
-        logging::debug() << "Thread " << pthread_self()
-            << " is requesting start of compacting phase, but gc is already running: " << phase_str(m_phase);
+        if (m_event != gc_event::START_COMPACTING) {
+            m_event = gc_event::START_COMPACTING;
+            m_event_cond.notify_all();
+        }
     }
 }
 
@@ -115,9 +129,15 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
                                                                                 || gc.m_event == gc_event::MOVE_TO_IDLE
                                                                                 || gc.m_event == gc_event::GC_OFF; });
             event = gc.m_event;
+            gc.m_event = gc_event::NO_EVENT;
         }
 
         phase phs = gc.m_phase.load();
+
+        if (phs == phase::MARKING) {
+            mark();
+        }
+
         if (event == gc_event::START_MARKING && phs == phase::IDLE) {
             gc_pause();
             gc.m_phase.store(phase::MARKING);
@@ -148,11 +168,6 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
         }
         if (event == gc_event::GC_OFF) {
             return nullptr;
-        }
-
-        phase new_phs = gc.m_phase.load();
-        if (new_phs == phase::MARKING) {
-            mark();
         }
     }
 }
@@ -189,6 +204,8 @@ void gc_garbage_collector::mark()
 
 void gc_garbage_collector::compact()
 {
+    logging::info() << "Compacting...";
+
     long long start = nanotime();
 
     pin_objects();
@@ -263,6 +280,7 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
     if (phs == phase::MARKING) {
         bool res = shade(p);
         while (!res) {
+            logging::info() << "Queue overflow !!!";
             usleep(WAIT_TIMEOUT_MS);
             res = shade(p);
         }
@@ -363,5 +381,4 @@ void gc_garbage_collector::unpin_objects()
         }
     }
 }
-
 }}

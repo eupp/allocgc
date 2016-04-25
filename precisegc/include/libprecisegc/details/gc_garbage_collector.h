@@ -18,6 +18,7 @@ class gc_garbage_collector: public noncopyable, public nonmovable
 public:
 
     static gc_garbage_collector& instance();
+    ~gc_garbage_collector();
 
     void start_marking();
     void start_compacting();

@@ -88,7 +88,7 @@ void gc_garbage_collector::start_marking()
 
     if (phs == phase::IDLE) {
         lock_guard<mutex_type> lock(m_event_mutex);
-        if (m_event != gc_event::START_MARKING) {
+        if (m_event != gc_event::START_MARKING && m_event != gc_event::START_COMPACTING) {
             m_event = gc_event::START_MARKING;
             m_event_cond.notify_all();
         }
@@ -103,7 +103,7 @@ void gc_garbage_collector::start_compacting()
     logging::debug() << "Thread " << pthread_self()
         << " is requesting start of compacting phase, current phase is: " << phase_str(m_phase);
 
-    if (phs == phase::IDLE || phs == phase::MARKING) {
+    if (phs == phase::IDLE || phs == phase::MARKING || phs == phase::MARKING_FINISHED) {
         lock_guard<mutex_type> lock(m_event_mutex);
         if (m_event != gc_event::START_COMPACTING) {
             m_event = gc_event::START_COMPACTING;
@@ -124,27 +124,27 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
             lock_guard<mutex_type> lock(gc.m_event_mutex);
 
             timespec timeout = abs_timeout();
-            gc.m_event_cond.wait_for(gc.m_event_mutex, &timeout, [&gc] { return    gc.m_event == gc_event::START_MARKING
-                                                                                || gc.m_event == gc_event::START_COMPACTING
-                                                                                || gc.m_event == gc_event::MOVE_TO_IDLE
-                                                                                || gc.m_event == gc_event::GC_OFF; });
+            gc.m_event_cond.wait(gc.m_event_mutex, [&gc] { return    gc.m_event == gc_event::START_MARKING
+                                                                   || gc.m_event == gc_event::START_COMPACTING
+                                                                   || gc.m_event == gc_event::MOVE_TO_IDLE
+                                                                   || gc.m_event == gc_event::GC_OFF; });
             event = gc.m_event;
             gc.m_event = gc_event::NO_EVENT;
         }
 
         phase phs = gc.m_phase.load();
 
-        if (phs == phase::MARKING) {
-            mark();
-        }
-
         if (event == gc_event::START_MARKING && phs == phase::IDLE) {
             gc_pause();
             gc.m_phase.store(phase::MARKING);
             gc.trace_roots();
             gc_resume();
+//            long long start = nanotime();
+            mark();
+//            printf("marking time = %lldmcrs;\n", (nanotime() - start) / 1000);
+            gc.m_phase.store(phase::MARKING_FINISHED);
         }
-        if (event == gc_event::START_COMPACTING && phs == phase::MARKING) {
+        if (event == gc_event::START_COMPACTING && (phs == phase::MARKING || phs == phase::MARKING_FINISHED)) {
             gc_pause();
             gc.m_phase.store(phase::COMPACTING);
             gc.compact();
@@ -204,7 +204,7 @@ void gc_garbage_collector::mark()
 
 void gc_garbage_collector::compact()
 {
-    logging::info() << "Compacting...";
+//    logging::info() << "Compacting...";
 
     long long start = nanotime();
 
@@ -214,7 +214,7 @@ void gc_garbage_collector::compact()
     heap.compact();
     managed_ptr::reset_index_cache();
 
-    printf("gc time = %lldms; heap size: %lldb\n", (nanotime() - start) / 1000000, heap.size());
+//    printf("gc time = %lldmcrs; heap size: %lldb\n", (nanotime() - start) / 1000, heap.size());
 }
 
 void gc_garbage_collector::traverse(managed_cell_ptr root)
@@ -279,10 +279,11 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
     dst_ptr.set(p);
     if (phs == phase::MARKING) {
         bool res = shade(p);
-        while (!res) {
+        while (!res && phs == phase::MARKING) {
             logging::info() << "Queue overflow !!!";
-            usleep(WAIT_TIMEOUT_MS);
+            pthread_yield();
             res = shade(p);
+            phs = m_phase.load(std::memory_order_seq_cst);
         }
     }
 }
@@ -294,7 +295,7 @@ void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
 //    cell_ptr.set_mark(true);
     gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load(std::memory_order_seq_cst);
-    if (phs == phase::MARKING) {
+    if (phs == phase::MARKING || phs == phase::MARKING_FINISHED) {
 //         allocate black objects
         cell_ptr.set_mark(true);
     } else {

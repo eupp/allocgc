@@ -53,6 +53,7 @@ private:
     enum class phase {
         IDLE,
         MARKING,
+        MARKING_FINISHED,
         COMPACTING
     };
 

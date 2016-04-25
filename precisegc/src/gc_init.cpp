@@ -30,7 +30,7 @@ static void create_first_thread()
 int gc_init()
 {
     if (!init_flag) {
-        details::logging::init(std::clog, details::logging::loglevel::OFF);
+        details::logging::init(std::clog, details::logging::loglevel::INFO);
 
         create_first_thread();
         details::gc_pause_init();

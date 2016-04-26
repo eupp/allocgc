@@ -52,7 +52,7 @@ TEST_F(managed_pool_chunk_test, test_allocate)
 
     EXPECT_NE(nullptr, cell_ptr.get());
     EXPECT_EQ(m_chunk.get_descriptor(), cell_ptr.get_wrapped().get_indexed_entry());
-    EXPECT_TRUE(cell_ptr.owns_descriptor_lock());
+//    EXPECT_TRUE(cell_ptr.owns_descriptor_lock());
 }
 
 TEST_F(managed_pool_chunk_test, test_get_cell_meta)

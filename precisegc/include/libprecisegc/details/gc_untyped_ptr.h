@@ -7,6 +7,7 @@
 
 #include "gc_untyped_pin.h"
 #include "allocators/types.h"
+#include "gc_new_stack.h"
 
 namespace precisegc { namespace details {
 
@@ -38,6 +39,8 @@ public:
 protected:
     std::atomic<byte*> m_ptr;
 private:
+    static thread_local gc_new_stack& gcnew_stack;
+
     void register_root() noexcept;
     void delete_root() noexcept;
     

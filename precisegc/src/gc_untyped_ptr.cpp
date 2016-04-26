@@ -12,6 +12,8 @@
 
 namespace precisegc { namespace details {
 
+thread_local gc_new_stack& gc_untyped_ptr::gcnew_stack = gc_new_stack::instance();
+
 gc_untyped_ptr::gc_untyped_ptr() noexcept
     : gc_untyped_ptr(nullptr)
 {}
@@ -22,19 +24,18 @@ gc_untyped_ptr::gc_untyped_ptr() noexcept
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
     : m_ptr(reinterpret_cast<byte*>(ptr))
-    , m_root_flag(!gc_new_stack::instance().is_active())
+    , m_root_flag(!gcnew_stack.is_active())
 {
     if (m_root_flag) {
         register_root();
     } else {
-        static thread_local gc_new_stack& stack = gc_new_stack::instance();
-        if (stack.is_meta_requsted()) {
+        if (gcnew_stack.is_meta_requsted()) {
             void
-            assert((void*) this >= stack.get_top_pointer());
+            assert((void*) this >= gcnew_stack.get_top_pointer());
             uintptr_t this_uintptr = reinterpret_cast<uintptr_t>(this);
-            uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(stack.get_top_pointer());
-            if (top_uintptr <= this_uintptr && this_uintptr < top_uintptr + stack.get_top_size()) {
-                stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
+            uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(gcnew_stack.get_top_pointer());
+            if (top_uintptr <= this_uintptr && this_uintptr < top_uintptr + gcnew_stack.get_top_size()) {
+                gcnew_stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
             }
         }
     }

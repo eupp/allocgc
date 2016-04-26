@@ -32,7 +32,8 @@ public:
     pointer_type allocate(size_t size)
     {
         if (m_alloc_chunk == m_chunks.end()) {
-            m_chunks.push_back(Chunk::create(size, get_allocator()));
+            auto alloc_res = allocate_block(size);
+            m_chunks.emplace_back(alloc_res.first, alloc_res.second, size);
             m_alloc_chunk = std::prev(m_chunks.end(), 1);
             return m_alloc_chunk->allocate(size);
         }
@@ -104,9 +105,28 @@ public:
     }
 
 private:
+    typedef typename Alloc::pointer_type internal_pointer_type;
+
+    std::pair<internal_pointer_type, size_t> allocate_block(size_t cell_size)
+    {
+        assert(PAGE_SIZE % cell_size == 0);
+        size_t chunk_cnt = std::max((size_t) Chunk::CHUNK_MINSIZE, PAGE_SIZE / cell_size);
+        chunk_cnt = std::min((size_t) Chunk::CHUNK_MAXSIZE, chunk_cnt);
+        assert(chunk_cnt <= Chunk::CHUNK_MAXSIZE);
+        size_t chunk_size = chunk_cnt * cell_size;
+        assert(chunk_size <= PAGE_SIZE);
+        return std::make_pair(get_allocator().allocate(chunk_size), chunk_size);
+    }
+
+    void deallocate_block(internal_pointer_type p, size_t size)
+    {
+        assert(p);
+        get_allocator().deallocate(p, size);
+    }
+
     typename list_t::iterator destroy_chunk(typename list_t::iterator chk, size_t cell_size)
     {
-        Chunk::destroy(*chk, cell_size, get_allocator());
+        deallocate_block(chk->get_mem(), chk->get_mem_size());
         return m_chunks.erase(chk);
     }
 

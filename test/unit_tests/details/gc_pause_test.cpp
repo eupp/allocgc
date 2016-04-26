@@ -80,8 +80,6 @@ static void* thread_routine_3(void*)
 
 TEST(gc_pause_test, test_gc_pause_lock_2)
 {
-    logging::init(std::cout, logging::loglevel::INFO);
-
     const int THREADS_CNT = 10;
 
     pthread_t threads[THREADS_CNT];

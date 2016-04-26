@@ -34,7 +34,7 @@ class gc_compact_test : public ::testing::Test
 {
 public:
     gc_compact_test()
-        : m_chunk(managed_pool_chunk::create(OBJ_SIZE, m_paged_alloc))
+        : m_chunk(m_paged_alloc.allocate(managed_pool_chunk::CHUNK_MAXSIZE * OBJ_SIZE), managed_pool_chunk::CHUNK_MAXSIZE * OBJ_SIZE, OBJ_SIZE)
     {}
 
     ~gc_compact_test()
@@ -42,7 +42,7 @@ public:
         for (auto ptr: m_allocated) {
             m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr), 0), OBJ_SIZE);
         }
-        managed_pool_chunk::destroy(m_chunk, OBJ_SIZE, m_paged_alloc);
+        m_paged_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
     }
 
     paged_allocator m_paged_alloc;

@@ -25,6 +25,7 @@ void init_initator(size_t lower_bound, size_t upper_bound)
 
 void initate_gc()
 {
+    return;
     ++alloc_ticks;
     if (alloc_ticks < 3000) {
         return;

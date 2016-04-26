@@ -19,7 +19,7 @@
 
 namespace precisegc { namespace details {
 
-class managed_pool_chunk : private noncopyable
+class managed_pool_chunk : public managed_memory_descriptor, private noncopyable
 {
 public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
@@ -31,52 +31,6 @@ private:
     typedef managed_memory_descriptor::lock_type lock_type;
     typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
 public:
-
-    class memory_descriptor : public managed_memory_descriptor, private noncopyable, private nonmovable
-    {
-    public:
-        ~memory_descriptor();
-
-        virtual bool get_mark(byte* ptr) override;
-        virtual bool get_pin(byte* ptr) override;
-
-        virtual void set_mark(byte* ptr, bool mark) override;
-        virtual void set_pin(byte* ptr, bool pin) override;
-
-        virtual void sweep(byte* ptr) override;
-
-        virtual bool is_live(byte* ptr) override;
-
-        virtual object_meta* get_cell_meta(byte* ptr) override;
-        virtual byte* get_object_begin(byte* ptr) override;
-        virtual byte* get_cell_begin(byte* ptr) override;
-
-        virtual lock_type lock() override;
-        virtual lock_type lock(std::defer_lock_t t) override;
-        virtual lock_type lock(std::try_to_lock_t t) override;
-
-        virtual lock_type lock(std::adopt_lock_t t) override;
-        managed_pool_chunk* get_pool_chunk() const;
-
-        void set_pool_chunk(managed_pool_chunk* pool_chunk);
-
-        size_t get_cell_size() const;
-        size_t get_log2_cell_size() const;
-        friend class managed_pool_chunk;
-    protected:
-        memory_descriptor(managed_pool_chunk* chunk_ptr, byte* chunk_mem, size_t size, size_t cell_size);
-    private:
-        static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
-        size_t calc_cell_ind(byte* ptr);
-
-        managed_pool_chunk* m_chunk_ptr;
-        size_t m_cell_size;
-        size_t m_log2_cell_size;
-        uintptr m_mask;
-        mutex_type m_mutex;
-        bitset_t m_mark_bits;
-        bitset_t m_pin_bits;
-    };
 
     class iterator: public iterator_facade<iterator, std::bidirectional_iterator_tag, managed_cell_ptr>
     {
@@ -113,24 +67,20 @@ public:
         friend class managed_pool_chunk;
         friend class iterator_access<iterator>;
     private:
-        iterator(byte* ptr, memory_descriptor* descr) noexcept;
+        iterator(byte* ptr, managed_pool_chunk* descr) noexcept;
 
         bool equal(const iterator& other) const noexcept;
         void increment() noexcept;
         void decrement() noexcept;
 
         byte* m_ptr;
-        memory_descriptor* m_descr;
+        managed_pool_chunk* m_chunk;
     };
 
     typedef managed_cell_ptr pointer_type;
     typedef allocators::iterator_range<iterator> range_type;
 
-    managed_pool_chunk();
-
-    managed_pool_chunk(managed_pool_chunk&&);
-    managed_pool_chunk& operator=(managed_pool_chunk&&);
-
+    managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
     ~managed_pool_chunk();
 
     managed_cell_ptr allocate(size_t cell_size);
@@ -143,48 +93,50 @@ public:
     bool is_dead() const noexcept;
     void reset_bits();
 
-    managed_memory_descriptor* get_descriptor() const;
+    managed_memory_descriptor* get_descriptor();
+
+    virtual bool get_mark(byte* ptr) override;
+    virtual bool get_pin(byte* ptr) override;
+
+    virtual void set_mark(byte* ptr, bool mark) override;
+    virtual void set_pin(byte* ptr, bool pin) override;
+
+    virtual void sweep(byte* ptr) override;
+
+    virtual bool is_live(byte* ptr) override;
+
+    virtual object_meta* get_cell_meta(byte* ptr) override;
+    virtual byte* get_object_begin(byte* ptr) override;
+    virtual byte* get_cell_begin(byte* ptr) override;
+
+    virtual lock_type lock() override;
+    virtual lock_type lock(std::defer_lock_t t) override;
+    virtual lock_type lock(std::try_to_lock_t t) override;
+    virtual lock_type lock(std::adopt_lock_t t) override;
 
     byte* get_mem() const;
     size_t get_mem_size() const;
     size_t get_cell_size() const;
 
-    range_type get_range() const;
+    range_type get_range();
 
-    template <typename Alloc>
-    static managed_pool_chunk create(size_t cell_size, Alloc& allocator)
-    {
-        assert(PAGE_SIZE % cell_size == 0);
-        size_t chunk_cnt = std::max((size_t) CHUNK_MINSIZE, PAGE_SIZE / cell_size);
-        assert(chunk_cnt <= CHUNK_MAXSIZE);
-        size_t chunk_size = chunk_cnt * cell_size;
-        assert(chunk_size <= PAGE_SIZE);
-        byte* raw_ptr = allocator.allocate(chunk_size);
-
-        memory_descriptor* descr = new memory_descriptor(nullptr, raw_ptr, chunk_size, cell_size);
-        managed_pool_chunk chunk = managed_pool_chunk(raw_ptr, chunk_size, cell_size, descr);
-        return chunk;
-    }
-
-    template <typename Alloc>
-    static void destroy(managed_pool_chunk& chk, size_t cell_size, Alloc& allocator)
-    {
-        assert(chk.get_mem() && chk.m_descr);
-        delete chk.m_descr;
-        allocator.deallocate(chk.get_mem(), chk.get_mem_size());
-        chk.m_chunk = plain_pool_chunk();
-        chk.m_descr = nullptr;
-    }
     void swap(managed_pool_chunk& other);
     friend void swap(managed_pool_chunk& a, managed_pool_chunk& b);
-protected:
-    managed_pool_chunk(byte* chunk, size_t size, size_t cell_size, memory_descriptor* descr);
 private:
+    static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
     static size_t calc_cell_ind(byte* ptr, size_t obj_size, byte* base_ptr, size_t size);
 
+    size_t calc_cell_ind(byte* ptr);
+    size_t get_log2_cell_size() const;
+
     plain_pool_chunk m_chunk;
-    memory_descriptor* m_descr;
     bitset_t m_alloc_bits;
+    size_t m_cell_size;
+    size_t m_log2_cell_size;
+    uintptr m_mask;
+    mutex_type m_mutex;
+    bitset_t m_mark_bits;
+    bitset_t m_pin_bits;
 };
 
 }}

@@ -12,6 +12,9 @@ class test_chunk
 public:
     typedef byte* pointer_type;
 
+    static const size_t CHUNK_MINSIZE = 1;
+    static const size_t CHUNK_MAXSIZE = 1;
+
     class iterator: public precisegc::details::iterator_facade<iterator, std::bidirectional_iterator_tag, byte* const>
     {
     public:
@@ -62,12 +65,13 @@ public:
 
     typedef precisegc::details::allocators::iterator_range<iterator> range_type;
 
-    test_chunk(byte* mem, size_t obj_size)
+    test_chunk(byte* mem, size_t size, size_t obj_size)
             : m_mem(mem)
             , m_obj_size(obj_size)
             , m_available(true)
     {
         assert(mem);
+        assert(size == obj_size);
     }
 
     test_chunk(const test_chunk&) = delete;
@@ -110,23 +114,19 @@ public:
         return m_available;
     }
 
+    byte* get_mem() const
+    {
+        return m_mem;
+    }
+
+    size_t get_mem_size() const
+    {
+        return m_obj_size;
+    }
+
     range_type get_range()
     {
         return range_type(iterator(m_mem, m_obj_size), iterator(m_mem + m_obj_size, m_obj_size));
-    }
-
-    template <typename Alloc>
-    static test_chunk create(size_t obj_size, Alloc& allocator)
-    {
-        return test_chunk(allocator.allocate(obj_size), obj_size);
-    }
-
-    template <typename Alloc>
-    static void destroy(test_chunk& chk, size_t obj_size, Alloc& allocator)
-    {
-        allocator.deallocate(chk.m_mem, obj_size);
-        chk.m_mem = nullptr;
-        chk.m_available = false;
     }
 private:
     byte* m_mem;

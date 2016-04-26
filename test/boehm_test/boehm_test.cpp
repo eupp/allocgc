@@ -51,9 +51,6 @@
 // std::shared_ptr (reference count)
 //#define SHARED_PTR
 
-// Manual memory management
-//#define NO_GC
-
 #ifdef BDW_GC
     #include <gc/gc.h>
 #endif

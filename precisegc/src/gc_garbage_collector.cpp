@@ -18,7 +18,7 @@ namespace precisegc { namespace details {
 
 inline long long nanotime( void ) {
     timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
+    clock_gettime(CLOCK_MONOTONIC, &ts);
     return ts.tv_sec * 1000000000ll + ts.tv_nsec;
 }
 
@@ -135,23 +135,33 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
         phase phs = gc.m_phase.load();
 
         if (event == gc_event::START_MARKING && phs == phase::IDLE) {
+            long long start = nanotime();
+
             gc_pause();
             gc.m_phase.store(phase::MARKING);
             gc.trace_roots();
             gc_resume();
-//            long long start = nanotime();
+
+            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
+
             mark();
-//            printf("marking time = %lldmcrs;\n", (nanotime() - start) / 1000);
             gc.m_phase.store(phase::MARKING_FINISHED);
         }
         if (event == gc_event::START_COMPACTING && (phs == phase::MARKING || phs == phase::MARKING_FINISHED)) {
+            long long start = nanotime();
+
             gc_pause();
             gc.m_phase.store(phase::COMPACTING);
             gc.compact();
             gc.m_phase.store(phase::IDLE);
+            ++gc.m_gc_cycles_cnt;
             gc_resume();
+
+            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
         }
         if (event == gc_event::START_COMPACTING && phs == phase::IDLE) {
+            long long start = nanotime();
+
             gc_pause();
             gc.m_phase.store(phase::MARKING);
             gc.trace_roots();
@@ -159,7 +169,10 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
             gc.m_phase.store(phase::COMPACTING);
             gc.compact();
             gc.m_phase.store(phase::IDLE);
+            ++gc.m_gc_cycles_cnt;
             gc_resume();
+
+            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
         }
         if (event == gc_event::MOVE_TO_IDLE) {
             gc_pause();

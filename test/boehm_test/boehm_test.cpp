@@ -261,10 +261,11 @@ int main () {
     #if defined(PRECISE_GC)
         gc_init();
     #elif defined(BDW_GC)
-        GC_full_freq = 30;
+//        GC_full_freq = 30;
         GC_enable_incremental();
     #endif
     GCBench x;
     x.main();
+    cout.flush();
     return 0;
 }

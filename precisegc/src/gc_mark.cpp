@@ -13,7 +13,7 @@ void set_object_pin(void* ptr, bool pinned)
 {
     assert(ptr);
     managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
-    cell_ptr.lock_descriptor();
+//    cell_ptr.lock_descriptor();
     cell_ptr.set_pin(pinned);
 }
 
@@ -21,7 +21,7 @@ void set_object_mark(void* ptr, bool marked)
 {
     assert(ptr);
     managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
-    cell_ptr.lock_descriptor();
+//    cell_ptr.lock_descriptor();
     cell_ptr.set_mark(marked);
 }
 
@@ -29,7 +29,7 @@ bool get_object_pin(void* ptr)
 {
     assert(ptr);
     managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
-    cell_ptr.lock_descriptor();
+//    cell_ptr.lock_descriptor();
     return cell_ptr.get_pin();
 }
 
@@ -37,7 +37,7 @@ bool get_object_mark(void* ptr)
 {
     assert(ptr);
     managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
-    cell_ptr.lock_descriptor();
+//    cell_ptr.lock_descriptor();
     return cell_ptr.get_mark();
 }
 

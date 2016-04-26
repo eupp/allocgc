@@ -221,7 +221,7 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
 {
     static gc_garbage_collector& gc = gc_garbage_collector::instance();
 
-    root.lock_descriptor();
+//    root.lock_descriptor();
     assert(root.is_live());
     if (root.get_mark()) {
         return;

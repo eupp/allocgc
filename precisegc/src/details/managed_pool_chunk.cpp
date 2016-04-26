@@ -24,7 +24,7 @@ managed_pool_chunk::~managed_pool_chunk()
 managed_cell_ptr managed_pool_chunk::allocate(size_t cell_size)
 {
     assert(cell_size == get_cell_size());
-    lock_type lk = lock();
+    lock_type lk = lock(std::defer_lock_t());
     byte* raw_ptr = m_chunk.allocate(cell_size);
     size_t ind = calc_cell_ind(raw_ptr, get_log2_cell_size(), get_mem(), get_mem_size());
     m_alloc_bits[ind] = true;

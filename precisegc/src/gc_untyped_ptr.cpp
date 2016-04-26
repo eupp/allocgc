@@ -27,7 +27,7 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
     if (m_root_flag) {
         register_root();
     } else {
-        gc_new_stack& stack = gc_new_stack::instance();
+        static thread_local gc_new_stack& stack = gc_new_stack::instance();
         if (stack.is_meta_requsted()) {
             void
             assert((void*) this >= stack.get_top_pointer());

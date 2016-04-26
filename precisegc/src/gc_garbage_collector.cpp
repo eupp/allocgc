@@ -293,7 +293,10 @@ void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
 //    static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
 //    queue->push(cell_ptr.get());
 //    cell_ptr.set_mark(true);
-    gc_unsafe_scope unsafe_scope;
+
+    // do not call unsafe scope here
+    // because new_cell is always called in the context of gc_new which is already marked as unsafe_scope
+//    gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load(std::memory_order_seq_cst);
     if (phs == phase::MARKING || phs == phase::MARKING_FINISHED) {
 //         allocate black objects

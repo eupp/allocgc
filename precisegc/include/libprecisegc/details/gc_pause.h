@@ -41,10 +41,10 @@ private:
 class gc_pause_lock: public noncopyable, public nonmovable
 {
 public:
-    gc_pause_lock() = default;
+    constexpr gc_pause_lock() = default;
     void lock() noexcept;
     void unlock() noexcept;
-private:
+
     typedef flag_gc_signal_lock siglock;
 };
 

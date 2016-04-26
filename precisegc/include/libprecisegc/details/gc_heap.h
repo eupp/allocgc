@@ -26,7 +26,7 @@ class gc_heap : public noncopyable, public nonmovable
 
     typedef allocators::bucket_allocator<
             managed_pool_chunk,
-            allocators::fixed_block_cache<allocators::paged_allocator, PAGE_SIZE, 32 * 1024 * 1024>,
+            allocators::paged_allocator,
             allocators::paged_allocator,
             allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
             mutex

@@ -9,20 +9,19 @@ namespace precisegc { namespace details {
 
 class gc_unsafe_scope
 {
+    typedef gc_pause_lock::siglock siglock;
 public:
     gc_unsafe_scope()
-        : m_lock_guard(m_pause_lock)
     {
 //        logging::debug() << "Thread " << pthread_self() << " enters unsafe scope (gc signal is disabled)";
+        siglock::lock();
     }
 
     ~gc_unsafe_scope()
     {
 //        logging::debug() << "Thread " << pthread_self() << " leaves unsafe scope (gc signal is enabled)";
+        siglock::unlock();
     }
-private:
-    gc_pause_lock m_pause_lock;
-    lock_guard<gc_pause_lock> m_lock_guard;
 };
 
 }

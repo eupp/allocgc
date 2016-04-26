@@ -15,7 +15,9 @@ gc_untyped_pin::gc_untyped_pin(const gc_untyped_ptr& ptr)
 
 gc_untyped_pin::~gc_untyped_pin()
 {
-    gc_unsafe_scope unsafe_scope;
+    // here we not use unsafe_scope because it is always used in delete_stack_root
+    // and taking pinned raw pointer is safe
+//    gc_unsafe_scope unsafe_scope;
     static thread_local StackMap* pin_set = get_thread_handler()->pins.get();
     pin_set->delete_stack_root(m_raw_ptr);
 }

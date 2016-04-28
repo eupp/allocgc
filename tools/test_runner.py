@@ -2,14 +2,10 @@ import os
 import re
 import subprocess
 import tempfile
+import logging
+import json
 
-from functools import partial
-
-
-def mean(array_like):
-    if not array_like:
-        return 0
-    return float(sum(array_like)) / len(array_like)
+import numpy as np
 
 
 def call_with_cwd(args, cwd):
@@ -18,17 +14,24 @@ def call_with_cwd(args, cwd):
     assert proc.returncode == 0
 
 
+def call_with_cwd_output(args, cwd):
+    proc = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, err = proc.communicate()
+    return out
+
+
 class Builder:
 
     _tmpdir = None
 
     def __init__(self, prj_dir):
-        self._tmpdir = tempfile.TemporaryDirectory()
-        cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", prj_dir]
-        call_with_cwd(cmake_cmd, self._tmpdir.name)
+        self._prj_dir = prj_dir
 
     def __enter__(self):
+        self._tmpdir = tempfile.TemporaryDirectory()
         self._tmpdir.__enter__()
+        cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", self._prj_dir]
+        call_with_cwd(cmake_cmd, self._tmpdir.name)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -41,6 +44,9 @@ class Builder:
     def build_dir(self):
         return self._tmpdir.name
 
+    def project_dir(self):
+        return self._prj_dir
+
     @staticmethod
     def _parse_cppflags(flags):
         res = "CPPFLAGS='"
@@ -49,60 +55,133 @@ class Builder:
         return res + "'"
 
 
-def run(exe, build_dir):
+def run(build_dir, exe, args):
     exe = os.path.join(build_dir, exe)
-    call_with_cwd(exe, build_dir)
+    call_args = [exe] + args
+    return call_with_cwd_output(call_args, build_dir)
+
+
+class Scanner:
+
+    def __init__(self, token_spec):
+        token_regex = "|".join("(?P<{}>{})".format(tok, spec["re"]) for tok, spec in token_spec.items())
+        self._re = re.compile(token_regex)
+        self._ts = token_spec
+
+    def scan(self, text):
+        match = self._re.match(text)
+        while match is not None:
+            tok = match.lastgroup
+            action = self._ts[tok]["cmd"]
+            action(match)
+            pos = match.end()
+            match = self._re.match(text, pos)
 
 
 class BoehmTestParser:
 
-    # _tree_re        =
-    # _td_time_re     = re.compile()
-    _bu_time_re     = re.compile("Bottom up construction took (\d*) msec")
-    _total_time_re  = re.compile("Completed in (\d*) msec")
-    _total_gc_re    = re.compile("Completed (\d*) collections")
-
-    _tr_stw_re      = re.compile("trace roots stw time = (\d*) mcrs")
-    _cmpc_stw_re    = re.compile("compact stw time     = (\d*) mcrs")
-
     def __init__(self):
-        self._parse_actions = {
-            "Creating (\d*) trees of depth (\d*)"   : partial(self._parse_creating_tree, self),
-            "Top down construction took (\d*) msec" : partial(self._parse_td_construction, self, "top-down"),
-            "Bottom up construction took (\d*) msec": partial(self._parse_td_construction, self, "bottom-up"),
-            "trace roots stw time = (\d*) mcrs"     : partial(self._parse_stw_time, self, "trace"),
-            "compact stw time     = (\d*) mcrs"     : partial(self._parse_stw_time, self, "compact")
+
+        def parse_tree_info(match):
+            self._context["tree_count"] = int(match.group("tree_count"))
+            self._context["tree_depth"] = int(match.group("tree_depth"))
+
+        def parse_top_down_time(match):
+            self._context["td_time"] += [int(match.group("td_time"))]
+
+        def parse_bottom_up_time(match):
+            self._context["bp_time"] += [int(match.group("bu_time"))]
+
+        def parse_trace_stw_time(match):
+            self._context["trace_stw"] += [int(match.group("trace_stw"))]
+            self._context["stw_count"] += 1
+
+        def parse_compact_stw_time(match):
+            self._context["compact_stw"] += [int(match.group("compact_stw"))]
+            self._context["stw_count"] += 1
+
+        def parse_full_time(match):
+            self._context["full_time"] += [int(match.group("full_time"))]
+
+        def parse_gc_count(match):
+            self._context["gc_count"] = [int(match.group("gc_count"))]
+
+        token_spec = {
+            "TREE_INFO": {"cmd": parse_tree_info, "re": "Creating (?P<tree_count>\d*) trees of depth (?P<tree_depth>\d*)"},
+            "TOP_DOWN" : {"cmd": parse_top_down_time, "re": "Top down construction took (?P<td_time>\d*) msec"},
+            "BOTTOM_UP": {"cmd": parse_bottom_up_time, "re": "Bottom up construction took (?P<bu_time>\d*) msec"},
+            "TRACE_STW": {"cmd": parse_trace_stw_time, "re": "Trace roots stw time = (?P<trace_stw>\d*) microsec"},
+            "CMPCT_STW": {"cmd": parse_compact_stw_time, "re": "Compact stw time = (?P<compact_stw>\d*) microsec"},
+            "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) msec"},
+            "GC_COUNT" : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
         }
 
+        self._scanner = Scanner(token_spec)
+
     def parse(self, test_output):
-        pass
+        self._context = {}
+        self._context["td_time"] = []
+        self._context["bp_time"] = []
+        self._context["stw_count"] = 0
+        self._context["trace_stw"] = []
+        self._context["compact_stw"] = []
+        self._context["full_time"] = []
+        self._context["gc_count"] = []
 
-    def _parse_creating_tree(self, match):
-        self._tree_depth = int(match.group(1))
-        self._results[self._tree_depth] = {}
+        self._scanner.scan(test_output)
 
-    def _parse_construction_time(self, constr_type, match):
-        total_time = int(match.group(1))
-        self._results.append({
-            "tree_depth": self._tree_depth,
-            "construct_type": constr_type,
-            "stw_count": self._stw_count,
-            "total_time": total_time,
-            "trace_pause_mean": mean(self._trase_stw_times),
-            "compact_pause_mean": mean(self._compact_stw_times)
-        })
+        res = {}
+        res["td_time_mean"] = np.mean(self._context["td_time"])
+        res["td_time_std"]  = np.std(self._context["td_time"])
+        res["bp_time_mean"] = np.mean(self._context["bp_time"])
+        res["bp_time_std"]  = np.std(self._context["bp_time"])
 
-    def _parse_stw_time(self, stw_type, match):
-        time = int(match.group(1))
-        self._stw_count += 1
-        if stw_type == "trace":
-            self._trace_stw_times.append(time)
-        elif stw_type == "compact":
-            self._compact_stw_times.append(time)
+        res["trace_stw_mean"] = np.mean(self._context["trace_stw"])
+        res["trace_stw_std"]  = np.std(self._context["trace_stw"])
+
+        res["compact_stw_mean"] = np.mean(self._context["compact_stw"])
+        res["compact_stw_std"]  = np.std(self._context["compact_stw"])
+
+        res["full_time_mean"] = np.mean(self._context["full_time"])
+        res["full_time_std"]  = np.std(self._context["full_time"])
+
+        res["stw_count"] = self._context["stw_count"]
+        res["gc_count"]  = self._context["gc_count"]
+
+        return res
+
+
+class TestRunner:
+
+    def __init__(self, prj_dir):
+        self._builder = Builder(prj_dir)
+
+    def run(self, target, runnable, cppflags_list, args_list, parser, printer):
+        with self._builder as builder:
+            for cppflags in cppflags_list:
+                logging.info("Build {} with cppflags: {}".format(target, cppflags))
+                builder.build(target, cppflags)
+                for args in args_list:
+                    logging.info("Run {} with args: {}".format(runnable, args))
+                    output = run(builder.build_dir(), runnable, args)
+
+                    logging.info("Parse output")
+                    logging.debug("Output: \n {}".format(output))
+                    parsed = parser.parse(output)
+                    logging.debug("Parsed: \n {}".format(json.dumps(parsed)))
+
+                    logging.info("Add parsed output to printer")
+                    printer.add_row(parsed)
+
+        logging.info("Produce results")
+        return printer.print()
+
+
+PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
+
+BOEHM_TEST_TARGET   = "boehm_test"
+BOEHM_TEST_RUNNABLE = os.path.join("test", "boehm_test", "boehm_test")
+
 
 if __name__ == '__main__':
-    prj_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-    with Builder(prj_dir) as builder:
-        builder.build("boehm_test")
-        boehm_test_runnable = os.path.join("test", "boehm_test", "boehm_test")
-        run(boehm_test_runnable, builder.build_dir())
+    pass

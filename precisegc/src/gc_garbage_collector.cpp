@@ -135,20 +135,20 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
         phase phs = gc.m_phase.load();
 
         if (event == gc_event::START_MARKING && phs == phase::IDLE) {
-            long long start = nanotime();
+//            long long start = nanotime();
 
             gc_pause();
             gc.m_phase.store(phase::MARKING);
             gc.trace_roots();
             gc_resume();
 
-            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
+//            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
 
             mark();
             gc.m_phase.store(phase::MARKING_FINISHED);
         }
         if (event == gc_event::START_COMPACTING && (phs == phase::MARKING || phs == phase::MARKING_FINISHED)) {
-            long long start = nanotime();
+//            long long start = nanotime();
 
             gc_pause();
             gc.m_phase.store(phase::COMPACTING);
@@ -157,10 +157,10 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
             ++gc.m_gc_cycles_cnt;
             gc_resume();
 
-            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
+//            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
         }
         if (event == gc_event::START_COMPACTING && phs == phase::IDLE) {
-            long long start = nanotime();
+//            long long start = nanotime();
 
             gc_pause();
             gc.m_phase.store(phase::MARKING);
@@ -172,7 +172,7 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
             ++gc.m_gc_cycles_cnt;
             gc_resume();
 
-            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
+//            printf("stop-the-world time = %lld mcrs;\n", (nanotime() - start) / 1000);
         }
         if (event == gc_event::MOVE_TO_IDLE) {
             gc_pause();

@@ -109,17 +109,17 @@ class BoehmTestParser:
 
         def parse_trace_stw_time(match):
             self._context["trace_stw"] += [int(match.group("trace_stw"))]
-            self._context["stw_count"] += 1
+            self._context["stw_count"][self._i] += 1
 
         def parse_compact_stw_time(match):
             self._context["compact_stw"] += [int(match.group("compact_stw"))]
-            self._context["stw_count"] += 1
+            self._context["stw_count"][self._i] += 1
 
         def parse_full_time(match):
             self._context["full_time"] += [int(match.group("full_time"))]
 
         def parse_gc_count(match):
-            self._context["gc_count"] = int(match.group("gc_count"))
+            self._context["gc_count"] += [int(match.group("gc_count"))]
 
         token_spec = {
             "TREE_INFO": {"cmd": parse_tree_info, "re": "Creating (?P<tree_count>\d*) trees of depth (?P<tree_depth>\d*)"},
@@ -134,27 +134,32 @@ class BoehmTestParser:
         self._scanner = Scanner(token_spec)
 
     def parse(self, test_output):
+        self._context["stw_count"].append(0)
         self._scanner.scan(test_output)
+        self._i += 1
 
     def new_context(self, name):
         self._context = {}
         self._context["name"] = name
-        self._context["stw_count"] = []
         self._context["trace_stw"] = []
         self._context["compact_stw"] = []
         self._context["full_time"] = []
+        self._context["stw_count"] = []
         self._context["gc_count"] = []
+        self._i = 0
 
     def result(self):
         res = {}
 
         res["name"] = self._context["name"]
 
-        res["trace stw mean"] = np.mean(self._context["trace_stw"])
-        res["trace stw std"]  = np.std(self._context["trace_stw"])
+        res["trace stw mean"] = np.mean(self._context["trace_stw"]) / 1000.0
+        res["trace stw std"]  = np.std(self._context["trace_stw"]) / 1000.0
+        res["trace stw max"]  = np.max(self._context["trace_stw"]) / 1000.0
 
-        res["compact stw mean"] = np.mean(self._context["compact_stw"])
-        res["compact stw std"]  = np.std(self._context["compact_stw"])
+        res["compact stw mean"] = np.mean(self._context["compact_stw"]) / 1000.0
+        res["compact stw std"]  = np.std(self._context["compact_stw"]) / 1000.0
+        res["compact stw max"]  = np.max(self._context["compact_stw"]) / 1000.0
 
         res["full time mean"] = np.mean(self._context["full_time"])
         res["full time std"]  = np.std(self._context["full_time"])
@@ -232,7 +237,7 @@ class TestRunner:
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 BOEHM_TEST_TARGET   = "boehm_test"
 BOEHM_TEST_RUNNABLE = os.path.join("test", "boehm_test", "boehm_test")
-OUT_FILENAME = "boehm_test.tex"
+OUT_FILENAME = "boehm_test_new.tex"
 
 if __name__ == '__main__':
 
@@ -240,12 +245,16 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     build_ops = [
-        {"name": "T*", "cmake_options": "NO_GC"},
-        {"name": "BoehmGC", "cmake_options": "BDW_GC"},
-        {"name": "shared_ptr", "cmake_options": "SHARED_PTR"},
+        # {"name": "T*", "cmake_options": "NO_GC"},
+        # {"name": "BoehmGC", "cmake_options": "BDW_GC"},
+        # {"name": "shared_ptr", "cmake_options": "SHARED_PTR"},
         {"name": "gc_ptr", "cmake_options": "PRECISE_GC"}
     ]
-    cols = ["name", "full time mean", "full time std", "gc count"]
+    cols = ["name",
+            "full time mean", "full time std",
+            "trace stw mean", "trace stw std", "trace stw max",
+            "compact stw mean", "compact stw std", "compact stw max",
+            "stw count", "gc count"]
 
     runner  = TestRunner(PROJECT_DIR, BOEHM_TEST_TARGET, BOEHM_TEST_RUNNABLE, build_ops=build_ops)
     parser  = BoehmTestParser()

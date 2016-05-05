@@ -3,9 +3,11 @@
 
 #include <csignal>
 
+#include <libprecisegc/details/util.h>
+
 namespace precisegc { namespace details { namespace threads {
 
-class pending_call
+class pending_call : private noncopyable, private nonmovable
 {
 public:
     typedef void (*callable_type)(void);

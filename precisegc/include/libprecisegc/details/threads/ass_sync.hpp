@@ -1,0 +1,63 @@
+#ifndef DIPLOMA_ASS_SYNC_HPP
+#define DIPLOMA_ASS_SYNC_HPP
+
+#include <unistd.h>
+
+#include <libprecisegc/details/threads/posix_signal.hpp>
+#include <libprecisegc/details/util.h>
+
+namespace precisegc { namespace details { namespace threads {
+
+namespace internals {
+class unnamed_pipe : private noncopyable, private nonmovable
+{
+public:
+    unnamed_pipe();
+    ~unnamed_pipe();
+
+    int read_fd() const;
+    int write_fd() const;
+protected:
+    int m_pipefd[2];
+};
+}
+
+class ass_event : private noncopyable, private nonmovable
+{
+public:
+    ass_event() = default;
+
+    void wait();
+    void notify(size_t cnt);
+private:
+    internals::unnamed_pipe m_pipe;
+};
+
+class ass_barrier : public noncopyable, private nonmovable
+{
+public:
+    ass_barrier() = default;
+
+    void wait(size_t cnt);
+    void notify();
+private:
+    internals::unnamed_pipe m_pipe;
+};
+
+class ass_mutex : public noncopyable, public nonmovable
+{
+public:
+    ass_mutex() = default;
+
+    void lock();
+    bool try_lock();
+    void unlock();
+private:
+    static posix_signal& sig;
+
+//    mutex m_mutex;
+};
+
+}}}
+
+#endif //DIPLOMA_ASS_SYNC_HPP

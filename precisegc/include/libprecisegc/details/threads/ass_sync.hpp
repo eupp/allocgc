@@ -2,6 +2,7 @@
 #define DIPLOMA_ASS_SYNC_HPP
 
 #include <unistd.h>
+#include <mutex>
 
 #include <libprecisegc/details/threads/posix_signal.hpp>
 #include <libprecisegc/details/util.h>
@@ -55,7 +56,7 @@ public:
 private:
     static posix_signal& sig;
 
-//    mutex m_mutex;
+    std::mutex m_mutex;
 };
 
 }}}

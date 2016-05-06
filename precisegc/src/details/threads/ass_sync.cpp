@@ -91,5 +91,30 @@ void ass_barrier::notify()
     }
 }
 
+thread_local posix_signal& ass_mutex::sig = posix_signal::instance();
+
+void ass_mutex::lock()
+{
+    sig.lock();
+    m_mutex.lock();
+}
+
+void ass_mutex::unlock()
+{
+    sig.unlock();
+    m_mutex.unlock();
+}
+
+bool ass_mutex::try_lock()
+{
+    sig.lock();
+    if (m_mutex.try_lock()) {
+        return true;
+    } else {
+        sig.unlock();
+        return false;
+    }
+}
+
 }}}
 

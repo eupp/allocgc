@@ -193,6 +193,14 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
         }
         if (event == gc_event::START_COMPACTING && (phs == phase::MARKING || phs == phase::MARKING_FINISHED)) {
             logging::debug() << "Start compacting phase from marking (*)";
+
+            {
+                gc.m_markers_flag = false;
+                lock_guard<mutex_type> lock(gc.m_markers_mutex);
+                gc.m_markers_cond.wait(gc.m_markers_mutex, [&gc] { return gc.m_markers_cnt == 0; });
+                gc.m_markers_flag = true;
+            }
+
             stw_gc(false);
             continue;
         }

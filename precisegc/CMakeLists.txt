@@ -59,7 +59,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/reversed_range.h
         include/libprecisegc/thread.h
         include/libprecisegc/details/allocators/fixed_block_cache.h
-        )
+        include/libprecisegc/details/atomic_bitset.h)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -82,7 +82,7 @@ set(precisegc_LIB_SRCS
         src/details/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
         src/forwarding.cpp
-        )
+        src/details/atomic_bitset.cpp)
 
 
 find_package(Threads REQUIRED)

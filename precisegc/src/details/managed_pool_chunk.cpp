@@ -132,7 +132,7 @@ bool managed_pool_chunk::get_pin(byte* ptr)
 void managed_pool_chunk::set_mark(byte* ptr, bool mark)
 {
     size_t ind = calc_cell_ind(ptr);
-    m_mark_bits[ind] = mark;
+    m_mark_bits.set(ind, mark);
 }
 
 void managed_pool_chunk::set_pin(byte* ptr, bool pin)

@@ -51,7 +51,7 @@ bool gc_mark_queue::pop(void*& p)
 //    } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
 //        return;
 //    }
-    return m_queue.pop(p);
+//    return m_queue.pop(p);
 }
 
 void gc_mark_queue::clear()

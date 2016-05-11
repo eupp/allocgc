@@ -15,7 +15,7 @@ using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
 namespace {
-static const size_t OBJ_SIZE = 32;      // PAGE_SIZE / OBJECTS_PER_PAGE;
+static const size_t OBJ_SIZE = 64;      // PAGE_SIZE / OBJECTS_PER_PAGE;
 static const size_t OBJ_COUNT_1 = 5;    //
 static const size_t OBJ_COUNT_2 = 3 * managed_pool_chunk::CHUNK_MAXSIZE;
 

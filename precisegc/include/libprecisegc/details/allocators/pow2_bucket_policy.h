@@ -17,8 +17,8 @@ public:
     static size_t bucket(size_t size)
     {
         size_t i = (size == 1) ? 0 : msb(size - 1) + 1;
-        assert(MIN_SIZE_BITS <= i && i <= MAX_SIZE_BITS);
-        return i - MIN_SIZE_BITS;
+        assert(i <= MAX_SIZE_BITS);
+        return i < MIN_SIZE_BITS ? 0 : i - MIN_SIZE_BITS;
     }
 
     static size_t bucket_size(size_t i)

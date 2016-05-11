@@ -24,6 +24,8 @@ option(BDW_GC OFF)
 option(SHARED_PTR OFF)
 option(PRECISE_GC OFF)
 
+set(PRECISE_GC ON)
+
 if(NO_GC)
     add_definitions(-DNO_GC)
 endif()

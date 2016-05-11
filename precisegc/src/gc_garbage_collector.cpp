@@ -16,6 +16,8 @@ using namespace _GC_;
 
 namespace precisegc { namespace details {
 
+thread_local std::queue<void*> gc_garbage_collector::m_queue{};
+
 inline long long nanotime( void ) {
     timespec ts;
     clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -110,6 +112,9 @@ void gc_garbage_collector::start_compacting()
             m_event_cond.notify_all();
         }
     }
+//    if (phs == phase::MARKING) {
+//        mark();
+//    }
 }
 
 void* gc_garbage_collector::gc_routine(void* pVoid)
@@ -123,8 +128,7 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
         {
             lock_guard<mutex_type> lock(gc.m_event_mutex);
 
-            timespec timeout = abs_timeout();
-            gc.m_event_cond.wait(gc.m_event_mutex, [&gc] { return    gc.m_event == gc_event::START_MARKING
+            gc.m_event_cond.wait(gc.m_event_mutex, [&gc] { return     gc.m_event == gc_event::START_MARKING
                                                                    || gc.m_event == gc_event::START_COMPACTING
                                                                    || gc.m_event == gc_event::MOVE_TO_IDLE
                                                                    || gc.m_event == gc_event::GC_OFF; });
@@ -135,6 +139,8 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
         phase phs = gc.m_phase.load();
 
         if (event == gc_event::START_MARKING && phs == phase::IDLE) {
+            logging::debug() << "Start marking phase";
+
             long long start = nanotime();
 
             gc_pause();
@@ -144,45 +150,65 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
 
             printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
 
-            mark();
-            gc.m_phase.store(phase::MARKING_FINISHED);
+            while (true) {
+                mark();
+
+                gc.m_event_mutex.lock();
+                gc.m_event_cond.wait(gc.m_event_mutex, [&gc] { return    gc.m_event == gc_event::START_COMPACTING
+                                                                      || gc.m_event == gc_event::RESUME_MARKING
+                                                                      || gc.m_event == gc_event::GC_OFF; });
+                gc_event event1 = gc.m_event;
+                gc.m_event = gc_event::NO_EVENT;
+                gc.m_event_mutex.unlock();
+                if (event1 == gc_event::START_COMPACTING) {
+                    logging::debug() << "Start compacting phase from marking";
+                    stw_gc(false);
+                    break;
+                } else if (event1 == gc_event::GC_OFF) {
+                    return nullptr;
+                }
+            }
+            continue;
         }
         if (event == gc_event::START_COMPACTING && (phs == phase::MARKING || phs == phase::MARKING_FINISHED)) {
-            long long start = nanotime();
-
-            gc_pause();
-            gc.m_phase.store(phase::COMPACTING);
-            gc.compact();
-            gc.m_phase.store(phase::IDLE);
-            ++gc.m_gc_cycles_cnt;
-            gc_resume();
-
-            printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
+            logging::debug() << "Start compacting phase from marking (*)";
+            stw_gc(false);
+            continue;
         }
         if (event == gc_event::START_COMPACTING && phs == phase::IDLE) {
-            long long start = nanotime();
-
-            gc_pause();
-            gc.m_phase.store(phase::MARKING);
-            gc.trace_roots();
-            gc.mark();
-            gc.m_phase.store(phase::COMPACTING);
-            gc.compact();
-            gc.m_phase.store(phase::IDLE);
-            ++gc.m_gc_cycles_cnt;
-            gc_resume();
-
-            printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
+            logging::debug() << "Start compacting phase from idle";
+            stw_gc(true);
+            continue;
         }
         if (event == gc_event::MOVE_TO_IDLE) {
             gc_pause();
             gc.m_phase.store(phase::IDLE);
             gc_resume();
+            continue;
         }
         if (event == gc_event::GC_OFF) {
             return nullptr;
         }
     }
+}
+
+void gc_garbage_collector::stw_gc(bool mark)
+{
+    gc_garbage_collector& gc = gc_garbage_collector::instance();
+    long long start = nanotime();
+
+    gc_pause();
+    if (mark) {
+        gc.m_phase.store(phase::MARKING);
+        gc.trace_roots();
+    }
+    gc.m_phase.store(phase::COMPACTING);
+    gc.compact();
+    gc.m_phase.store(phase::IDLE);
+    ++gc.m_gc_cycles_cnt;
+    gc_resume();
+
+    printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 
 void gc_garbage_collector::trace_roots()
@@ -293,7 +319,11 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
     if (phs == phase::MARKING) {
         bool res = shade(p);
         while (!res && phs == phase::MARKING) {
-            logging::info() << "Queue overflow !!!";
+            lock_guard<mutex_type> lock(m_event_mutex);
+            if (m_event != gc_event::START_COMPACTING || m_event != gc_event::GC_OFF) {
+                m_event = gc_event::RESUME_MARKING;
+                m_event_cond.notify_all();
+            }
             pthread_yield();
             res = shade(p);
             phs = m_phase.load(std::memory_order_seq_cst);

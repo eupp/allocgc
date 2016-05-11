@@ -41,6 +41,7 @@ private:
     void compact();
 
     static void mark();
+    static void stw_gc(bool mark);
     static void traverse(precisegc::details::managed_cell_ptr root);
 
     void queue_push(void* p);
@@ -61,6 +62,7 @@ private:
         START_MARKING,
         START_COMPACTING,
         START_GC,
+        RESUME_MARKING,
         MOVE_TO_IDLE,
         GC_OFF,
         NO_EVENT
@@ -86,7 +88,7 @@ private:
     condition_variable m_event_cond;
 
     size_t m_gc_cycles_cnt;
-    std::queue<void*> m_queue;
+    static thread_local std::queue<void*> m_queue;
     pthread_t m_gc_thread;
 };
 

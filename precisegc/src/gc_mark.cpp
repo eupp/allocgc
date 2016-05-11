@@ -49,7 +49,11 @@ bool shade(void* ptr)
     if (!ptr) {
         return true;
     }
-    return queue->push(ptr);
+    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
+    if (!cell_ptr.get_mark()) {
+        return queue->push(ptr);
+    }
+    return true;
 
 //    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
 //    // this check will be failed only when ptr is pointed to non gc_heap memory,

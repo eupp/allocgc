@@ -16,22 +16,19 @@ class gc_mark_queue: public noncopyable, public nonmovable
 {
 public:
 
-//    static gc_mark_queue& instance();
-
-    gc_mark_queue();
+    static gc_mark_queue& instance();
 
     bool empty();
-    bool push(void* ptr);
 
+    bool push(void* ptr);
     bool pop(void*& p);
 
     void clear();
+
 private:
+    gc_mark_queue();
 
-    static const size_t MAX_SIZE = 65536;
-
-    boost::lockfree::allocator<std::allocator<void*>> m_alloc;
-    boost::lockfree::spsc_queue<void*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;
+    boost::lockfree::queue<void*, boost::lockfree::fixed_sized<false>> m_queue;
 };
 
 }}

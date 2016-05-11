@@ -7,14 +7,14 @@
 namespace precisegc { namespace details {
 
 gc_mark_queue::gc_mark_queue()
-    : m_queue(MAX_SIZE)
+    : m_queue(0)
 {}
 
-//gc_mark_queue& gc_mark_queue::instance()
-//{
-//    static gc_mark_queue queue;
-//    return queue;
-//}
+gc_mark_queue& gc_mark_queue::instance()
+{
+    static gc_mark_queue queue;
+    return queue;
+}
 
 bool gc_mark_queue::empty()
 {

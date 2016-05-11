@@ -44,14 +44,14 @@ bool get_object_mark(void* ptr)
 bool shade(void* ptr)
 {
 //    static gc_mark_queue& queue = gc_mark_queue::instance();
-    static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
+    static gc_mark_queue& queue = gc_mark_queue::instance();
 
     if (!ptr) {
         return true;
     }
     managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
     if (!cell_ptr.get_mark()) {
-        return queue->push(ptr);
+        return queue.push(ptr);
     }
     return true;
 

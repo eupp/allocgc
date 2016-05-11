@@ -62,6 +62,8 @@ gc_garbage_collector::gc_garbage_collector()
     : m_phase(phase::IDLE)
     , m_event(gc_event::NO_EVENT)
     , m_gc_cycles_cnt(0)
+    , m_markers_flag(true)
+    , m_markers_cnt(0)
 {
     int res = thread_create(&m_gc_thread, nullptr, gc_garbage_collector::gc_routine, nullptr);
     assert(res == 0);
@@ -112,9 +114,20 @@ void gc_garbage_collector::start_compacting()
             m_event_cond.notify_all();
         }
     }
-//    if (phs == phase::MARKING) {
-//        mark();
-//    }
+    if (phs == phase::MARKING) {
+        {
+            lock_guard<mutex_type> lock(m_markers_mutex);
+            ++m_markers_cnt;
+        }
+        while (m_markers_flag) {
+            mark();
+        }
+        {
+            lock_guard<mutex_type> lock(m_markers_mutex);
+            --m_markers_cnt;
+            m_markers_cond.notify_all();
+        }
+    }
 }
 
 void* gc_garbage_collector::gc_routine(void* pVoid)
@@ -162,6 +175,14 @@ void* gc_garbage_collector::gc_routine(void* pVoid)
                 gc.m_event_mutex.unlock();
                 if (event1 == gc_event::START_COMPACTING) {
                     logging::debug() << "Start compacting phase from marking";
+
+                    {
+                        gc.m_markers_flag = false;
+                        lock_guard<mutex_type> lock(gc.m_markers_mutex);
+                        gc.m_markers_cond.wait(gc.m_markers_mutex, [&gc] { return gc.m_markers_cnt == 0; });
+                        gc.m_markers_flag = true;
+                    }
+
                     stw_gc(false);
                     break;
                 } else if (event1 == gc_event::GC_OFF) {
@@ -376,17 +397,17 @@ void* gc_garbage_collector::queue_pop()
 bool gc_garbage_collector::queue_empty()
 {
     if (m_queue.empty()) {
-        lock_guard<mutex> lock(thread_list::instance_mutex);
-        thread_list& tl = thread_list::instance();
-        for (auto& thread: tl) {
+//        lock_guard<mutex> lock(thread_list::instance_mutex);
+//        thread_list& tl = thread_list::instance();
+//        for (auto& thread: tl) {
             void* p = nullptr;
-            bool res = thread.mark_queue->pop(p);
+            static gc_mark_queue& mark_queue = gc_mark_queue::instance();
+            bool res = mark_queue.pop(p);
             while (res) {
                 m_queue.push(p);
-                res = thread.mark_queue->pop(p);
+                res = mark_queue.pop(p);
             }
         }
-    }
     return m_queue.empty();
 }
 

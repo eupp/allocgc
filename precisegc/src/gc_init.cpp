@@ -21,7 +21,7 @@ static void create_first_thread()
     first_thread.arg = nullptr;
     first_thread.stack.reset(new StackMap());
     first_thread.pins.reset(new StackMap());
-    first_thread.mark_queue.reset(new details::gc_mark_queue());
+//    first_thread.mark_queue.reset(new details::gc_mark_queue());
     details::thread_list::instance().insert(first_thread);
 
     details::logging::info() << "Thread " << pthread_self() << " main";

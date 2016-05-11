@@ -87,6 +87,11 @@ private:
     mutex_type m_event_mutex;
     condition_variable m_event_cond;
 
+    std::atomic<bool> m_markers_flag;
+    size_t m_markers_cnt;
+    mutex m_markers_mutex;
+    condition_variable m_markers_cond;
+
     size_t m_gc_cycles_cnt;
     static thread_local std::queue<void*> m_queue;
     pthread_t m_gc_thread;

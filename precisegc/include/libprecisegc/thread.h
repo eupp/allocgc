@@ -16,7 +16,7 @@ struct thread_handler
     size_t flags;
     std::shared_ptr<StackMap> stack;
     std::shared_ptr<StackMap> pins;
-    std::shared_ptr<details::gc_mark_queue> mark_queue;
+//    std::shared_ptr<details::gc_mark_queue> mark_queue;
 };
 
 int thread_create(pthread_t* thread, const pthread_attr_t* attr,

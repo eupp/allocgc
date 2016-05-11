@@ -124,8 +124,10 @@ void gc_garbage_collector::run_compacting()
     m_phase.store(phase::COMPACTING);
     gc_heap::instance().compact();
     m_phase.store(phase::IDLE);
+    ++m_gc_cycles_cnt;
     thread_manager.start_the_world();
 
+    printf("heap size = %lld bytes \n", gc_heap::instance().size());
     printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 
@@ -142,8 +144,10 @@ void gc_garbage_collector::run_gc()
     m_phase.store(phase::COMPACTING);
     gc_heap::instance().compact();
     m_phase.store(phase::IDLE);
+    ++m_gc_cycles_cnt;
     thread_manager.start_the_world();
 
+    printf("heap size = %lld bytes \n", gc_heap::instance().size());
     printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 

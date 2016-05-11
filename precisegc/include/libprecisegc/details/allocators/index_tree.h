@@ -40,6 +40,7 @@ public:
     void index(byte* mem, size_t size, T* entry)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
+        assert(size % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
             index_page(it, entry);
@@ -49,6 +50,7 @@ public:
     void remove_index(byte* mem, size_t size)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
+        assert(size % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
             remove_page_index(it);

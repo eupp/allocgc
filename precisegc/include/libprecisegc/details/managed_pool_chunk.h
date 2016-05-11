@@ -13,16 +13,17 @@
 #include "iterator_facade.h"
 #include "iterator_access.h"
 #include "managed_memory_descriptor.h"
+#include "atomic_bitset.h"
 #include "managed_ptr.h"
 #include "mutex.h"
 #include "util.h"
 
 namespace precisegc { namespace details {
 
-class managed_pool_chunk : public managed_memory_descriptor, private noncopyable
+class managed_pool_chunk : public managed_memory_descriptor, private noncopyable, private nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
+    static const size_t CHUNK_MAXSIZE = atomic_bitset::SIZE;
     static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;
@@ -135,7 +136,7 @@ private:
     size_t m_log2_cell_size;
     uintptr m_mask;
     mutex_type m_mutex;
-    bitset_t m_mark_bits;
+    atomic_bitset m_mark_bits;
     bitset_t m_pin_bits;
 };
 

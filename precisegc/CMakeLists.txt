@@ -70,7 +70,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        )
+        include/libprecisegc/details/atomic_bitset.h)
+
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -94,6 +95,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
+        src/details/atomic_bitset.cpp
         src/marker.cpp)
 
 

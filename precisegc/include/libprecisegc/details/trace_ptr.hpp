@@ -38,8 +38,9 @@ void trace_ptr(void* p, Queue& q)
     size_t offsets_size = offsets.size();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
-            gc_untyped_ptr* child = (gc_untyped_ptr*) ((char *) obj + offsets[j]);
-            if (child->get() && !get_object_mark(child->get())) {
+            gc_untyped_ptr* pchild = (gc_untyped_ptr*) ((char *) obj + offsets[j]);
+            void* child = pchild->get();
+            if (child && !get_object_mark(child)) {
                 q.push(child);
             }
         }

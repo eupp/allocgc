@@ -320,6 +320,16 @@ void gc_garbage_collector::traverse(managed_cell_ptr root)
     }
 }
 
+void gc_garbage_collector::force_move_to_marking()
+{
+    {
+        lock_guard<mutex_type> lock(m_event_mutex);
+        m_event = gc_event::START_MARKING;
+        m_event_cond.notify_all();
+    }
+    while (m_phase.load() != phase::MARKING) {};
+}
+
 void gc_garbage_collector::force_move_to_no_gc()
 {
 //    logging::debug() << "Move to phase " << phase_str(phase::GC_OFF) << " from phase " << phase_str(m_phase);

@@ -85,29 +85,29 @@ void* merge_sort_routine(void* arg)
     return nullptr;
 }
 
-NONIUS_BENCHMARK("parallel_merge_sort", [](nonius::chronometer meter)
-{
-    gc_init();
-    threads_cnt = 1;
-    const size_t ARRAY_SIZE = 200;
-
-    gc_ptr<int[]> first = gc_new<int[]>(ARRAY_SIZE);
-    gc_ptr<int[]> last = first + ARRAY_SIZE;
-    gc_ptr<int[]> dest = gc_new<int[]>(ARRAY_SIZE);
-
-    gc_pin<int[]> p(first);
-    for (size_t i = 0; i < ARRAY_SIZE; ++i) {
-        p[i] = rand() % ARRAY_SIZE;
-    }
-
-    meter.measure([first, last, dest] {
-        merge_sort(first, last, dest);
-    });
-
-    gc_pin<int[]> sorted(dest);
-    for (size_t i = 0; i < ARRAY_SIZE - 1; ++i) {
-        assert(sorted[i] <= sorted[i+1]);
-//        std::cout << sorted[i] << " ";
-    }
-//    std::cout << std::endl << "Threads spawned: " << threads_cnt << std::endl;
-});
+//NONIUS_BENCHMARK("parallel_merge_sort", [](nonius::chronometer meter)
+//{
+//    gc_init();
+//    threads_cnt = 1;
+//    const size_t ARRAY_SIZE = 200;
+//
+//    gc_ptr<int[]> first = gc_new<int[]>(ARRAY_SIZE);
+//    gc_ptr<int[]> last = first + ARRAY_SIZE;
+//    gc_ptr<int[]> dest = gc_new<int[]>(ARRAY_SIZE);
+//
+//    gc_pin<int[]> p(first);
+//    for (size_t i = 0; i < ARRAY_SIZE; ++i) {
+//        p[i] = rand() % ARRAY_SIZE;
+//    }
+//
+//    meter.measure([first, last, dest] {
+//        merge_sort(first, last, dest);
+//    });
+//
+//    gc_pin<int[]> sorted(dest);
+//    for (size_t i = 0; i < ARRAY_SIZE - 1; ++i) {
+//        assert(sorted[i] <= sorted[i+1]);
+////        std::cout << sorted[i] << " ";
+//    }
+////    std::cout << std::endl << "Threads spawned: " << threads_cnt << std::endl;
+//});

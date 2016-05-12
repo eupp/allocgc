@@ -24,6 +24,7 @@ public:
     void start_compacting();
 
     // very bad design, just for testing purpose
+    void force_move_to_marking();
     void force_move_to_no_gc();
     void force_move_to_idle();
 

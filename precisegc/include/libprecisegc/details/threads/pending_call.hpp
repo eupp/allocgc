@@ -18,6 +18,8 @@ public:
 
     void lock();
     void unlock();
+
+    bool is_locked() const;
 private:
     static const sig_atomic_t PENDING = 1;
     static const sig_atomic_t NOT_PENDING = 0;

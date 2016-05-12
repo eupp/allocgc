@@ -6,17 +6,17 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-class managed_thread : private noncopyable
+class managed_thread : private noncopyable, private nonmovable
 {
 public:
-    managed_thread();
-    managed_thread(managed_thread&& other);
-
-    managed_thread& operator=(managed_thread&& other);
+    static managed_thread& this_thread();
 
     root_set& get_root_set();
     root_set& get_pin_set();
 private:
+    managed_thread();
+    ~managed_thread();
+
     root_set m_root_set;
     root_set m_pin_set;
 };

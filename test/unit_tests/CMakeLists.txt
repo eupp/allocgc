@@ -25,7 +25,7 @@ set(precisegc_TESTS
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
         include/page_ptr.h details/managed_pool_chunk_test.cpp include/rand_util.h details/allocators/join_range_test.cpp
-        gc_ptr_test.cpp details/threads/pending_call_test.cpp details/root_set_test.cpp details/threads/signal_test.cpp details/threads/ass_sync_test.cpp)
+        gc_ptr_test.cpp details/threads/pending_call_test.cpp details/root_set_test.cpp details/threads/signal_test.cpp details/threads/ass_sync_test.cpp details/threads/stw_manager_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

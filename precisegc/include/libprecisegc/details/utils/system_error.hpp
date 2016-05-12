@@ -10,7 +10,7 @@ namespace precisegc { namespace details { namespace utils {
 
 inline void throw_system_error(long long int rc, const char* errmsg)
 {
-    if (rc != 0) {
+    if (rc < 0) {
         auto exc = std::system_error(errno, std::system_category(), errmsg);
         logging::error() << exc.what();
         throw exc;
@@ -19,7 +19,7 @@ inline void throw_system_error(long long int rc, const char* errmsg)
 
 inline void log_system_error(long long int rc, const char* errmsg)
 {
-    if (rc != 0) {
+    if (rc < 0) {
         auto exc = std::system_error(errno, std::system_category(), errmsg);
         logging::error() << exc.what();
     }

@@ -32,7 +32,7 @@ public:
 
     friend void ::precisegc::details::threads::sighandler(int);
 private:
-    static const int SIGNUM = SIGUSR1;
+    static const int SIGNUM = SIGUSR2;
 
     static void call_signal_handler();
 

@@ -27,6 +27,7 @@ TEST(pending_call_test, test_pending_call)
         std::lock_guard<pending_call> lock(pcall);
         pcall();
         ASSERT_EQ(1, counter);
+        ASSERT_TRUE(pcall.is_locked());
     }
     ASSERT_EQ(2, counter);
 }

@@ -59,7 +59,12 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/reversed_range.h
         include/libprecisegc/thread.h
         include/libprecisegc/details/allocators/fixed_block_cache.h
-        include/libprecisegc/details/threads/pending_call.hpp include/libprecisegc/details/threads/posix_signal.hpp include/libprecisegc/details/threads/managed_thread.hpp include/libprecisegc/details/root_set.hpp include/libprecisegc/details/threads/posix_thread.hpp include/libprecisegc/details/threads/ass_sync.hpp include/libprecisegc/details/utils/gc_exception.hpp)
+        include/libprecisegc/details/threads/pending_call.hpp
+        include/libprecisegc/details/threads/posix_signal.hpp
+        include/libprecisegc/details/threads/managed_thread.hpp
+        include/libprecisegc/details/root_set.hpp
+        include/libprecisegc/details/threads/ass_sync.hpp
+        include/libprecisegc/details/utils/gc_exception.hpp include/libprecisegc/details/threads/thread_manager.hpp include/libprecisegc/details/threads/stw_manager.hpp include/libprecisegc/details/utils/scoped_thread.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -82,7 +87,7 @@ set(precisegc_LIB_SRCS
         src/details/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
         src/forwarding.cpp
-        src/details/threads/pending_call.cpp src/details/root_set.cpp src/details/threads/posix_signal.cpp src/details/threads/ass_sync.cpp include/libprecisegc/details/utils/system_error.hpp)
+        src/details/threads/pending_call.cpp src/details/root_set.cpp src/details/threads/posix_signal.cpp src/details/threads/ass_sync.cpp include/libprecisegc/details/utils/system_error.hpp src/details/threads/posix_stw_manager.cpp)
 
 
 find_package(Threads REQUIRED)

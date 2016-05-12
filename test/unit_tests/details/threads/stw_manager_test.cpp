@@ -2,11 +2,10 @@
 
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
+#include <libprecisegc/details/utils/scope_guard.hpp>
 
 #include <thread>
 #include <atomic>
-#include <chrono>
-#include <mutex>
 
 using namespace precisegc::details::utils;
 using namespace precisegc::details::threads;
@@ -14,6 +13,7 @@ using namespace precisegc::details::threads;
 TEST(stw_manager_test, test_stw)
 {
     std::atomic<bool> thread_exit(false);
+    auto guard = make_scope_guard([&thread_exit] { thread_exit = true; });
     auto routine = [&thread_exit] {
         while (!thread_exit) {};
     };
@@ -41,4 +41,5 @@ TEST(stw_manager_test, test_stw)
     EXPECT_EQ(0, stwm.threads_suspended());
 
     thread_exit = true;
+    guard.commit();
 }

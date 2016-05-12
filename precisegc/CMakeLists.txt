@@ -64,7 +64,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/managed_thread.hpp
         include/libprecisegc/details/root_set.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
-        include/libprecisegc/details/utils/gc_exception.hpp include/libprecisegc/details/threads/thread_manager.hpp include/libprecisegc/details/threads/stw_manager.hpp include/libprecisegc/details/utils/scoped_thread.hpp)
+        include/libprecisegc/details/utils/gc_exception.hpp include/libprecisegc/details/threads/thread_manager.hpp include/libprecisegc/details/threads/stw_manager.hpp include/libprecisegc/details/utils/scoped_thread.hpp include/libprecisegc/details/utils/scope_guard.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

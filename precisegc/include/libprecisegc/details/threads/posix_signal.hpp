@@ -30,6 +30,8 @@ public:
     void lock();
     void unlock();
 
+    bool is_locked() const;
+
     friend void ::precisegc::details::threads::sighandler(int);
 private:
     static const int SIGNUM = SIGUSR2;

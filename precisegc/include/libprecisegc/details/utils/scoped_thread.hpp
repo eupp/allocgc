@@ -16,13 +16,14 @@ public:
 
     scoped_thread& operator=(scoped_thread&&) = default;
 
-    explicit scoped_thread(std::thread& thread)
+    explicit scoped_thread(std::thread&& thread)
         : m_thread(std::move(thread))
     {}
 
     scoped_thread& operator=(std::thread&& thread)
     {
         m_thread = std::move(thread);
+        return *this;
     }
 
     ~scoped_thread()

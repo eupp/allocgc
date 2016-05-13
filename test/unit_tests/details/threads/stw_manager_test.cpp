@@ -12,9 +12,11 @@ using namespace precisegc::details::threads;
 
 TEST(stw_manager_test, test_stw)
 {
+    std::atomic<size_t> thread_started_cnt(0);
     std::atomic<bool> thread_exit(false);
     auto guard = make_scope_guard([&thread_exit] { thread_exit = true; });
-    auto routine = [&thread_exit] {
+    auto routine = [&thread_started_cnt, &thread_exit] {
+        ++thread_started_cnt;
         while (!thread_exit) {};
     };
 
@@ -22,6 +24,10 @@ TEST(stw_manager_test, test_stw)
     scoped_thread threads[THREADS_CNT];
     for (auto& thread: threads) {
         thread = std::thread(routine);
+    }
+
+    while (thread_started_cnt < THREADS_CNT) {
+        std::this_thread::yield();
     }
 
     stw_manager& stwm = stw_manager::instance();

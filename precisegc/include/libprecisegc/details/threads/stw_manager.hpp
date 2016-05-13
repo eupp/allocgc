@@ -14,6 +14,8 @@ class stw_manager : private noncopyable, private nonmovable
 public:
     static stw_manager& instance();
 
+    bool is_stop_the_world_disabled() const;
+
     void suspend_thread(std::thread::native_handle_type thread);
     void resume_thread(std::thread::native_handle_type thread);
 

@@ -62,12 +62,17 @@ void posix_signal::send(pthread_t thread)
 
 void posix_signal::lock()
 {
-    posix_signal::pcall.lock();
+    pcall.lock();
 }
 
 void posix_signal::unlock()
 {
-    posix_signal::pcall.unlock();
+    pcall.unlock();
+}
+
+bool posix_signal::is_locked() const
+{
+    return pcall.is_locked();
 }
 
 }}}

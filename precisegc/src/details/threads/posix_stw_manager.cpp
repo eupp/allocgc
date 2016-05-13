@@ -1,14 +1,10 @@
 #include <libprecisegc/details/threads/stw_manager.hpp>
 
-#include <type_traits>
-#include <pthread.h>
-
 #include <libprecisegc/details/logging.h>
 #include <libprecisegc/details/threads/posix_signal.hpp>
+#include <libprecisegc/details/threads/posix_thread.hpp>
 
 namespace precisegc { namespace details { namespace threads {
-
-static_assert(std::is_same<std::thread::native_handle_type, pthread_t>::value, "Only pthreads are supported");
 
 void stw_manager::sighandler()
 {
@@ -39,6 +35,11 @@ stw_manager::stw_manager()
     posix_signal::instance().set_handler(stw_manager::sighandler);
 }
 
+bool stw_manager::is_stop_the_world_disabled() const
+{
+    posix_signal::instance().is_locked();
+}
+
 void stw_manager::suspend_thread(std::thread::native_handle_type thread)
 {
     logging::debug() << "Sending stw signal to thread " << std::this_thread::get_id();
@@ -55,8 +56,6 @@ void stw_manager::resume_thread(std::thread::native_handle_type thread)
 void stw_manager::wait_for_world_stop()
 {
     m_barrier.wait(m_threads_cnt);
-
-    logging::debug() << "All threads are suspended";
 }
 
 void stw_manager::wait_for_world_start()
@@ -64,8 +63,6 @@ void stw_manager::wait_for_world_start()
     m_event.notify(m_threads_cnt);
     m_barrier.wait(m_threads_cnt);
     m_threads_cnt = 0;
-
-    logging::debug() << "All threads are resumed";
 }
 
 size_t stw_manager::threads_suspended() const

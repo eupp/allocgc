@@ -15,20 +15,20 @@ thread_manager& thread_manager::instance()
 void thread_manager::register_thread(managed_thread* thread_ptr)
 {
     logging::info() << "Register new managed thread " << thread_ptr->get_id();
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_lock);
     m_threads[thread_ptr->get_id()] = thread_ptr;
 }
 
 void thread_manager::deregister_thread(managed_thread* thread_ptr)
 {
     logging::info() << "Deregister managed thread " << thread_ptr->get_id();
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_lock);
     m_threads.erase(thread_ptr->get_id());
 }
 
 managed_thread* thread_manager::lookup_thread(std::thread::id thread_id) const
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_lock);
     auto it = m_threads.find(thread_id);
     return it != m_threads.end() ? it->second : nullptr;
 }
@@ -43,7 +43,7 @@ void thread_manager::stop_the_world()
         throw stop_the_world_disabled();
     }
 
-    m_mutex.lock();
+    m_lock.lock();
     for (auto thread: m_threads) {
         if (thread.second->native_handle() != managed_thread::this_thread().native_handle()) {
             stwm.suspend_thread(thread.second->native_handle());
@@ -52,6 +52,14 @@ void thread_manager::stop_the_world()
     stwm.wait_for_world_stop();
 
     logging::info() << "World stopped";
+}
+
+thread_manager::range_type thread_manager::get_managed_threads() const
+{
+    return range_type(
+            boost::make_iterator_range(m_threads.begin(), m_threads.end()) | boost::adaptors::map_values,
+            m_lock
+        );
 }
 
 void thread_manager::start_the_world()
@@ -66,7 +74,7 @@ void thread_manager::start_the_world()
         }
     }
     stwm.wait_for_world_start();
-    m_mutex.unlock();
+    m_lock.unlock();
 
     logging::info() << "World started";
 }

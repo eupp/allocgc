@@ -1,9 +1,11 @@
 #ifndef DIPLOMA_GC_MARK_H
 #define DIPLOMA_GC_MARK_H
 
+#include "gc_untyped_ptr.h"
+
 namespace precisegc { namespace details {
 
-bool shade(void* ptr);
+bool shade(const gc_untyped_ptr* ptr);
 
 bool get_object_mark(void* ptr);
 bool get_object_pin(void* ptr);

@@ -16,7 +16,7 @@ void trace_ptr(gc_untyped_ptr* p, Queue& q)
         return;
     }
 
-    managed_cell_ptr mp(managed_ptr(p->get()), 0);
+    managed_cell_ptr mp(managed_ptr((byte*) p->get()), 0);
 
     assert(mp.is_live());
     if (mp.get_mark()) {

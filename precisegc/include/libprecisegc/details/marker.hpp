@@ -19,11 +19,13 @@ public:
     marker();
 
     void trace_roots();
+    void trace_pins();
     void trace_barrier_buffers();
 
     void start_marking();
     void pause_marking();
 
+    void join_markers();
     void mark();
 
     void wait_for_marking();

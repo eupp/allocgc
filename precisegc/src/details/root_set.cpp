@@ -84,7 +84,7 @@ bool root_set::is_root(gc_untyped_ptr* ptr)
     return curr != nullptr;
 }
 
-element* root_set::head() const
+root_set::element* root_set::head() const
 {
     return m_head;
 }

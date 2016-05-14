@@ -1,7 +1,10 @@
 #include "gcmalloc.h"
+
 #include "gc_mark.h"
 
 #include <cassert>
+
+#include <libprecisegc/details/threads/managed_thread.hpp>
 
 #include "details/managed_ptr.h"
 #include "details/barrier_buffer.h"
@@ -41,29 +44,13 @@ bool get_object_mark(void* ptr)
     return cell_ptr.get_mark();
 }
 
-bool shade(void* ptr)
+bool shade(const gc_untyped_ptr* ptr)
 {
-//    static barrier_buffer& queue = barrier_buffer::instance();
-    static thread_local barrier_buffer* queue = get_thread_handler()->mark_queue.get();
-
+    static thread_local barrier_buffer& bb = threads::managed_thread::this_thread().get_barrier_buffer();
     if (!ptr) {
         return true;
     }
-    return queue->push(ptr);
-
-//    managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr)), 0);
-//    // this check will be failed only when ptr is pointed to non gc_heap memory,
-//    // that is not possible in correct program (i.e. when gc_new is used to create managed objects),
-//    // but could occur during testing.
-//    try {
-//        cell_ptr.lock_descriptor();
-//        if (!cell_ptr.get_mark()) {
-////            static barrier_buffer& queue = barrier_buffer::instance();
-//            queue->push(ptr);
-//        }
-//    } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
-//        return;
-//    }
+    return bb.push((gc_untyped_ptr*) ptr);
 }
 
 void* get_pointed_to(void* ptr)

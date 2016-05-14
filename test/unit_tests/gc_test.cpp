@@ -213,6 +213,8 @@ TEST_F(gc_test, test_marking)
     print_tree(root_raw);
     // travers tree and check marks of objects
     check_nodes(root_raw, 0);
+
+    collector.force_move_to_idle();
 }
 
 // This test doesn't check anything.
@@ -222,5 +224,5 @@ TEST_F(gc_test, test_gc)
     gc();
     gc_finished = true;
     auto& collector = gc_garbage_collector::instance();
-    collector.force_move_to_no_gc();
+    collector.force_move_to_idle();
 }

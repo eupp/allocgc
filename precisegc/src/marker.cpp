@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/root_set.hpp>
 
 namespace precisegc { namespace details {
@@ -99,6 +100,21 @@ void marker::trace_roots()
         root_set::element* it = thread->get_root_set().head();
         while (it != nullptr) {
             non_blocking_push(it->root);
+            it = it->next;
+        }
+    }
+}
+
+void marker::trace_pins()
+{
+    std::lock_guard<std::mutex> lock(m_queue_mutex);
+    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    for (auto thread: threads_rng) {
+        root_set::element* it = thread->get_pin_set().head();
+        while (it != nullptr) {
+            non_blocking_push(it->root);
+            set_object_pin(it->root->get(), true);
+            it = it->next;
         }
     }
 }
@@ -145,7 +161,7 @@ void marker::pause_marking()
     wait_for_marking();
 }
 
-void marker::mark()
+void marker::join_markers()
 {
     std::unique_lock<std::mutex> lock(m_markers_mutex);
     m_markers_cnt++;
@@ -154,25 +170,38 @@ void marker::mark()
     worker::routine(this);
 }
 
+void marker::mark()
+{
+    std::unique_lock<std::mutex> lock(m_markers_mutex);
+    m_markers_cnt++;
+    m_markers_cond.notify_all();
+    lock.unlock();
+
+    bool flag = m_mark_flag.load();
+    m_mark_flag.store(true);
+    worker::routine(this);
+    m_mark_flag.store(flag);
+}
+
 void marker::wait_for_marking()
 {
     std::unique_lock<std::mutex> lock(m_markers_mutex);
     m_markers_cond.wait(lock, [this] { return m_markers_cnt == 0; });
 }
 
-void marker::push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk)
+void marker::push_queue_chunk(std::unique_ptr<marker::queue_chunk>&& chunk)
 {
     std::lock_guard<std::mutex> lock(m_queue_mutex);
     m_queue.emplace_back(std::move(chunk));
 }
 
-std::unique_ptr<queue_chunk> marker::pop_queue_chunk()
+std::unique_ptr<marker::queue_chunk> marker::pop_queue_chunk()
 {
     std::lock_guard<std::mutex> lock(m_queue_mutex);
     if (m_queue.empty()) {
         non_blocking_trace_barrier_buffers();
         if (m_queue.empty()) {
-            return std::unique_ptr<queue_chunk>();
+            return std::unique_ptr<marker::queue_chunk>();
         }
     }
     auto chunk = std::move(m_queue.back());

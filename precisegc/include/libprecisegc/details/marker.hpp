@@ -16,13 +16,15 @@ namespace precisegc { namespace details {
 class marker
 {
 public:
-    marker() = default;
+    marker();
 
     void trace_roots();
     void trace_barrier_buffers();
 
     void start_marking();
     void pause_marking();
+
+    void mark();
 
     void wait_for_marking();
 private:
@@ -64,10 +66,12 @@ private:
         marker* m_marker;
     };
 
+    void non_blocking_trace_barrier_buffers();
+
     void push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk);
     std::unique_ptr<queue_chunk> pop_queue_chunk();
 
-
+    void non_blocking_push(gc_untyped_ptr* p);
 
     std::vector<std::unique_ptr<queue_chunk>> m_queue;
     std::mutex m_queue_mutex;

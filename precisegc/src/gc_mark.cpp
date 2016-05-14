@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include "details/managed_ptr.h"
-#include "details/gc_mark_queue.h"
+#include "details/barrier_buffer.h"
 #include "thread.h"
 
 namespace precisegc { namespace details {
@@ -43,8 +43,8 @@ bool get_object_mark(void* ptr)
 
 bool shade(void* ptr)
 {
-//    static gc_mark_queue& queue = gc_mark_queue::instance();
-    static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
+//    static barrier_buffer& queue = barrier_buffer::instance();
+    static thread_local barrier_buffer* queue = get_thread_handler()->mark_queue.get();
 
     if (!ptr) {
         return true;
@@ -58,7 +58,7 @@ bool shade(void* ptr)
 //    try {
 //        cell_ptr.lock_descriptor();
 //        if (!cell_ptr.get_mark()) {
-////            static gc_mark_queue& queue = gc_mark_queue::instance();
+////            static barrier_buffer& queue = barrier_buffer::instance();
 //            queue->push(ptr);
 //        }
 //    } catch (managed_cell_ptr::unindexed_memory_exception& exc) {

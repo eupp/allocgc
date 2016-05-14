@@ -44,7 +44,7 @@ int thread_create(pthread_t* thread, const pthread_attr_t* attr, void* (* routin
     handler.arg = arg;
     handler.stack.reset(new StackMap());
     handler.pins.reset(new StackMap());
-    handler.mark_queue.reset(new details::gc_mark_queue());
+    handler.mark_queue.reset(new details::barrier_buffer());
     auto it = threads.insert(handler);
     int res = pthread_create(thread, attr, start_routine, &(*it));
     it->pthread = *thread;

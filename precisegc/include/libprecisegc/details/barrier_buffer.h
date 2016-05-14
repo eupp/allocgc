@@ -12,18 +12,18 @@
 
 namespace precisegc { namespace details {
 
-class gc_mark_queue: public noncopyable, public nonmovable
+class barrier_buffer: public noncopyable, public nonmovable
 {
 public:
-    gc_mark_queue();
+    barrier_buffer();
 
-    bool push(void* ptr);
-    bool pop(void*& p);
+    bool push(gc_untyped_ptr* ptr);
+    bool pop(gc_untyped_ptr*& p);
 private:
     static const size_t MAX_SIZE = 65536;
 
     boost::lockfree::allocator<std::allocator<void*>> m_alloc;
-    boost::lockfree::spsc_queue<void*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;
+    boost::lockfree::spsc_queue<gc_untyped_ptr*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;
 };
 
 }}

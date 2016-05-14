@@ -7,6 +7,7 @@
 
 #include <libprecisegc/details/util.h>
 #include <libprecisegc/details/root_set.hpp>
+#include <libprecisegc/details/barrier_buffer.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 
@@ -50,6 +51,11 @@ public:
     {
         return m_pin_set;
     }
+
+    barrier_buffer& get_barrier_buffer()
+    {
+        return m_barrier_buf;
+    }
 private:
     template <typename Functor>
     static void start_routine(std::unique_ptr<Functor>&& bf)
@@ -71,6 +77,7 @@ private:
     std::thread::id m_id;
     root_set m_root_set;
     root_set m_pin_set;
+    barrier_buffer m_barrier_buf;
 };
 
 }}}

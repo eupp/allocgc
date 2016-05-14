@@ -12,6 +12,10 @@ namespace precisegc { namespace details {
 template <typename Queue>
 void trace_ptr(gc_untyped_ptr* p, Queue& q)
 {
+    if (!p) {
+        return;
+    }
+
     managed_cell_ptr mp(managed_ptr(p->get()), 0);
 
     assert(mp.is_live());
@@ -34,9 +38,9 @@ void trace_ptr(gc_untyped_ptr* p, Queue& q)
     size_t offsets_size = offsets.size();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
-            void* child = get_pointed_to((char *) obj + offsets[j]);
-            if (child && !get_object_mark(child)) {
-                q.push(p);
+            gc_untyped_ptr* child = (gc_untyped_ptr*) ((char *) obj + offsets[j]);
+            if (child->get() && !get_object_mark(child->get())) {
+                q.push(child);
             }
         }
         obj += obj_size;

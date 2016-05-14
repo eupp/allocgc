@@ -30,7 +30,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/sigmask_signal_lock.h
         include/libprecisegc/details/logging.h
         include/libprecisegc/gc_init.h
-        include/libprecisegc/details/gc_mark_queue.h
+        include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/gc_garbage_collector.h
         include/libprecisegc/details/write_barrier.h
@@ -80,7 +80,7 @@ set(precisegc_LIB_SRCS
         src/logging.cpp
         src/gc_init.cpp
         src/gc_garbage_collector.cpp
-        src/gc_mark_queue.cpp
+        src/barrier_buffer.cpp
         src/gc_initator.cpp
         src/details/allocators/memory.cpp
         src/details/allocators/plain_pool_chunk.cpp

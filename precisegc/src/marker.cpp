@@ -37,6 +37,9 @@ void marker::worker::routine(marker* m)
 {
     worker wrk(m);
     wrk.mark();
+    std::lock_guard<std::mutex> lock(m->m_markers_mutex);
+    --m->m_markers_cnt;
+    m->m_markers_cond.notify_all();
 }
 
 marker::worker::worker(marker* m)
@@ -83,6 +86,80 @@ bool marker::worker::pop(gc_untyped_ptr*& p)
     return true;
 }
 
+marker::marker()
+    : m_markers_cnt(0)
+    , m_mark_flag(false)
+{}
+
+void marker::trace_roots()
+{
+    std::lock_guard<std::mutex> lock(m_queue_mutex);
+    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    for (auto thread: threads_rng) {
+        root_set::element* it = thread->get_root_set().head();
+        while (it != nullptr) {
+            non_blocking_push(it->root);
+        }
+    }
+}
+
+void marker::trace_barrier_buffers()
+{
+    std::lock_guard<std::mutex> lock(m_queue_mutex);
+    non_blocking_trace_barrier_buffers();
+}
+
+void marker::non_blocking_trace_barrier_buffers()
+{
+    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    for (auto thread: threads_rng) {
+        auto& buf = thread->get_barrier_buffer();
+        gc_untyped_ptr* p = nullptr;
+        while (buf.pop(p)) {
+            if (p) {
+                non_blocking_push(p);
+            }
+        }
+    }
+}
+
+void marker::start_marking()
+{
+    static const size_t WORKERS_CNT = 1;
+
+    std::lock_guard<std::mutex> lock(m_markers_mutex);
+    assert(m_workers.empty());
+    assert(m_markers_cnt == 0);
+    m_mark_flag.store(true);
+    m_workers.resize(WORKERS_CNT);
+    for (size_t i = 0; i < WORKERS_CNT; ++i) {
+        m_workers[i] = std::thread(worker::routine, this);
+    }
+    m_markers_cnt = WORKERS_CNT;
+    m_markers_cond.notify_all();
+}
+
+void marker::pause_marking()
+{
+    m_mark_flag.store(false);
+    wait_for_marking();
+}
+
+void marker::mark()
+{
+    std::unique_lock<std::mutex> lock(m_markers_mutex);
+    m_markers_cnt++;
+    m_markers_cond.notify_all();
+    lock.unlock();
+    worker::routine(this);
+}
+
+void marker::wait_for_marking()
+{
+    std::unique_lock<std::mutex> lock(m_markers_mutex);
+    m_markers_cond.wait(lock, [this] { return m_markers_cnt == 0; });
+}
+
 void marker::push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk)
 {
     std::lock_guard<std::mutex> lock(m_queue_mutex);
@@ -93,7 +170,7 @@ std::unique_ptr<queue_chunk> marker::pop_queue_chunk()
 {
     std::lock_guard<std::mutex> lock(m_queue_mutex);
     if (m_queue.empty()) {
-        trace_barrier_buffers();
+        non_blocking_trace_barrier_buffers();
         if (m_queue.empty()) {
             return std::unique_ptr<queue_chunk>();
         }
@@ -103,15 +180,12 @@ std::unique_ptr<queue_chunk> marker::pop_queue_chunk()
     return chunk;
 }
 
-void marker::trace_roots()
+void marker::non_blocking_push(gc_untyped_ptr* p)
 {
-    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
-    for (auto thread: threads_rng) {
-        root_set::element* it = thread->get_root_set().head();
-        while (it != nullptr) {
-
-        }
+    if (m_queue.back()->is_full()) {
+        m_queue.emplace_back(new queue_chunk());
     }
+    m_queue.back()->push(p);
 }
 
 }}

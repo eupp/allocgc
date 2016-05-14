@@ -5,7 +5,7 @@
 
 #include "gc_ptr.h"
 #include "gc_mark.h"
-#include "gc_mark_queue.h"
+#include "barrier_buffer.h"
 #include "gcmalloc.h"
 #include "managed_ptr.h"
 #include "gc_heap.h"
@@ -302,7 +302,7 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
 
 void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
 {
-//    static thread_local gc_mark_queue* queue = get_thread_handler()->mark_queue.get();
+//    static thread_local barrier_buffer* queue = get_thread_handler()->mark_queue.get();
 //    queue->push(cell_ptr.get());
 //    cell_ptr.set_mark(true);
 

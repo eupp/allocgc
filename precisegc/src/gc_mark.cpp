@@ -5,10 +5,10 @@
 #include <cassert>
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/logging.h>
 
 #include "details/managed_ptr.h"
 #include "details/barrier_buffer.h"
-#include "thread.h"
 
 namespace precisegc { namespace details {
 
@@ -49,6 +49,9 @@ bool shade(const gc_untyped_ptr* ptr)
     static thread_local barrier_buffer& bb = threads::managed_thread::this_thread().get_barrier_buffer();
     if (!ptr) {
         return true;
+    }
+    if (ptr->get() == (void*) 0x7ffff55eeba0) {
+        logging::info() << "Ulllaala";
     }
     return bb.push((gc_untyped_ptr*) ptr);
 }

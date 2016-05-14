@@ -3,7 +3,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.h
         include/libprecisegc/gc_new.h
         include/libprecisegc/gcmalloc.h
-        include/libprecisegc/stack.h
 
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/object_meta.h
@@ -15,10 +14,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
         include/libprecisegc/details/condition_variable.h
-        include/libprecisegc/details/gc_pause.h
         include/libprecisegc/details/barrier.h
-        include/libprecisegc/details/thread_list.h
-        include/libprecisegc/details/signal_safe_sync.h
         include/libprecisegc/details/util.h
         include/libprecisegc/details/gc_compact.h
         include/libprecisegc/details/gc_new_stack.h
@@ -57,23 +53,28 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/lockable_range.h
         include/libprecisegc/details/allocators/joined_range.h
         include/libprecisegc/details/allocators/reversed_range.h
-        include/libprecisegc/thread.h
         include/libprecisegc/details/allocators/fixed_block_cache.h
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
         include/libprecisegc/details/threads/managed_thread.hpp
         include/libprecisegc/details/root_set.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
-        include/libprecisegc/details/utils/gc_exception.hpp include/libprecisegc/details/threads/thread_manager.hpp include/libprecisegc/details/threads/stw_manager.hpp include/libprecisegc/details/utils/scoped_thread.hpp include/libprecisegc/details/utils/scope_guard.hpp include/libprecisegc/details/threads/posix_thread.hpp include/libprecisegc/details/gc_hooks.hpp include/libprecisegc/details/marker.hpp include/libprecisegc/details/utils/locked_range.hpp include/libprecisegc/details/trace_ptr.hpp)
+        include/libprecisegc/details/utils/gc_exception.hpp
+        include/libprecisegc/details/threads/thread_manager.hpp
+        include/libprecisegc/details/threads/stw_manager.hpp
+        include/libprecisegc/details/utils/scoped_thread.hpp
+        include/libprecisegc/details/utils/scope_guard.hpp
+        include/libprecisegc/details/threads/posix_thread.hpp
+        include/libprecisegc/details/gc_hooks.hpp
+        include/libprecisegc/details/marker.hpp
+        include/libprecisegc/details/utils/locked_range.hpp
+        include/libprecisegc/details/trace_ptr.hpp
+        include/libprecisegc/details/utils/system_error.hpp
+        )
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
-        src/stack.cpp
-        src/thread.cpp
         src/gc_heap.cpp
-        src/gc_pause.cpp
-        src/thread_list.cpp
-        src/signal_safe_sync.cpp
         src/gc_new_stack.cpp
         src/gc_untyped_ptr.cpp
         src/gc_untyped_pin.cpp
@@ -87,7 +88,13 @@ set(precisegc_LIB_SRCS
         src/details/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
         src/forwarding.cpp
-        src/details/threads/pending_call.cpp src/details/root_set.cpp src/details/threads/posix_signal.cpp src/details/threads/ass_sync.cpp include/libprecisegc/details/utils/system_error.hpp src/details/threads/posix_stw_manager.cpp src/details/threads/thread_manager.cpp src/marker.cpp)
+        src/details/threads/pending_call.cpp
+        src/details/root_set.cpp
+        src/details/threads/posix_signal.cpp
+        src/details/threads/ass_sync.cpp
+        src/details/threads/posix_stw_manager.cpp
+        src/details/threads/thread_manager.cpp
+        src/marker.cpp)
 
 
 find_package(Threads REQUIRED)

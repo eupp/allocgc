@@ -9,7 +9,6 @@
 #include "gcmalloc.h"
 #include "managed_ptr.h"
 #include "gc_heap.h"
-#include "gc_pause.h"
 #include "logging.h"
 
 using namespace _GC_;
@@ -75,9 +74,8 @@ size_t gc_garbage_collector::get_gc_cycles_count() const
 
 void gc_garbage_collector::start_marking()
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load();
-
     if (phs == phase::IDLE) {
         run_marking();
     }
@@ -85,9 +83,8 @@ void gc_garbage_collector::start_marking()
 
 void gc_garbage_collector::start_compacting()
 {
-    gc_unsafe_scope unsafe_scope;
+//    gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load();
-
     if (phs == phase::IDLE) {
         run_gc();
     } else if (phs == phase::MARKING) {

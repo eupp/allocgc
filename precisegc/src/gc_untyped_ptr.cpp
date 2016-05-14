@@ -3,7 +3,10 @@
 #include <cstdint>
 #include <cassert>
 #include <utility>
-#include <details/logging.h>
+
+
+#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/threads/managed_thread.hpp>
 
 #include "gc_new_stack.h"
 #include "gc_unsafe_scope.h"
@@ -118,14 +121,14 @@ bool gc_untyped_ptr::is_root() const noexcept
 
 void gc_untyped_ptr::register_root() noexcept
 {
-    static thread_local StackMap* root_set = get_thread_handler()->stack.get();
-    root_set->register_stack_root(this);
+    static thread_local root_set& rt_set = threads::managed_thread::this_thread().get_root_set();
+    rt_set.add(this);
 }
 
 void gc_untyped_ptr::delete_root() noexcept
 {
-    static thread_local StackMap* root_set = get_thread_handler()->stack.get();
-    root_set->delete_stack_root(this);
+    static thread_local root_set& rt_set = threads::managed_thread::this_thread().get_root_set();
+    rt_set.remove(this);
 }
 
 void swap(gc_untyped_ptr& a, gc_untyped_ptr& b) noexcept

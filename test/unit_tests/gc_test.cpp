@@ -7,6 +7,8 @@
 #include <queue>
 #include <pthread.h>
 
+#include <libprecisegc/details/threads/managed_thread.hpp>
+
 #include "libprecisegc/gc_ptr.h"
 #include "libprecisegc/gc_new.h"
 #include "libprecisegc/gc.h"
@@ -155,8 +157,7 @@ struct gc_test: public ::testing::Test
         print_tree(root);
 
         for (auto& thread: threads) {
-            int res = thread_create(&thread, nullptr, thread_routine, (void*) &root);
-            assert(res == 0);
+            thread = threads::managed_thread::create(thread_routine, (void*) &root);
         }
         threads_ready.wait();
 
@@ -169,13 +170,12 @@ struct gc_test: public ::testing::Test
     ~gc_test()
     {
         for (auto& thread: threads) {
-            void* ret = nullptr;
-            thread_join(thread, &ret);
+            thread.join();
         }
     }
 
     gc_ptr<node> root;
-    pthread_t threads[THREADS_COUNT];
+    std::thread threads[THREADS_COUNT];
     node* root_raw;
 };
 

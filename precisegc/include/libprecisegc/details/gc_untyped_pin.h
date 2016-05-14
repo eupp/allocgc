@@ -16,7 +16,7 @@ public:
 
     void* get() const noexcept;
 protected:
-    void* m_raw_ptr;
+    const gc_untyped_ptr* m_ptr;
 };
 
 }}

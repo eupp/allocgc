@@ -4,8 +4,8 @@
 #include <iostream>
 #include <memory>
 
-#include "signal_safe_sync.h"
-#include "util.h"
+#include <libprecisegc/details/threads/ass_sync.hpp>
+#include <libprecisegc/details/util.h>
 
 namespace precisegc { namespace details {
 
@@ -71,7 +71,7 @@ private:
     // to do: switch to optional<logger>
     static std::unique_ptr<logger> logger_;
     // to do: switch to optional<gc_signal_safe_mutex>
-    static std::unique_ptr<gc_signal_safe_mutex> mutex_;
+    static std::unique_ptr<threads::ass_mutex> mutex_;
     static loglevel loglevel_;
 };
 

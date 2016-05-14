@@ -4,12 +4,16 @@
 #include <iterator>
 #include <algorithm>
 
+#include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/thread_manager.hpp>
+
 #include "forwarding.h"
-#include "thread_list.h"
 #include "object_meta.h"
 #include "gc_mark.h"
 #include "../gc_ptr.h"
 #include "managed_ptr.h"
+
+#include "root_set.hpp"
 
 namespace precisegc { namespace details {
 
@@ -83,12 +87,12 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
 template <typename Forwarding>
 void fix_roots(const Forwarding& frwd)
 {
-    thread_list& tl = thread_list::instance();
-    for (auto& handler: tl) {
-        thread_handler* p_handler = &handler;
-        auto stack_ptr = p_handler->stack;
-        for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
-            frwd.forward(root->addr);
+    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    for (auto thread: threads_rng) {
+        root_set::element* it = thread->get_root_set().head();
+        while (it != nullptr) {
+            frwd.forward(it->root);
+            it = it->next;
         }
     }
 }

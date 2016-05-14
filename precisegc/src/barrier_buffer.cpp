@@ -20,9 +20,12 @@ bool barrier_buffer::pop(gc_untyped_ptr*& p)
     p = nullptr;
     gc_untyped_ptr* ptr = nullptr;
     if (m_queue.pop(ptr)) {
-        managed_cell_ptr cell_ptr(managed_ptr(reinterpret_cast<byte*>(ptr->get())), 0);
-        if (!cell_ptr.get_mark()) {
-            p = ptr;
+        void* obj = ptr->get();
+        if (obj) {
+            managed_cell_ptr cell_ptr(managed_ptr((byte*) obj), 0);
+            if (!cell_ptr.get_mark()) {
+                p = ptr;
+            }
         }
         return true;
     }

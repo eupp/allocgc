@@ -211,7 +211,7 @@ std::unique_ptr<marker::queue_chunk> marker::pop_queue_chunk()
 
 void marker::non_blocking_push(gc_untyped_ptr* p)
 {
-    if (m_queue.back()->is_full()) {
+    if (m_queue.empty() || m_queue.back()->is_full()) {
         m_queue.emplace_back(new queue_chunk());
     }
     m_queue.back()->push(p);

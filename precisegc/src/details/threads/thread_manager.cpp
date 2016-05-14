@@ -12,23 +12,32 @@ thread_manager& thread_manager::instance()
     return tm;
 }
 
+void thread_manager::register_main_thread()
+{
+    managed_thread& main_thread = managed_thread::this_thread();
+
+    logging::info() << "Register main thread " << main_thread.get_id();
+    std::lock_guard<lock_type> lock(m_lock);
+    m_threads[main_thread.get_id()] = &main_thread;
+}
+
 void thread_manager::register_thread(managed_thread* thread_ptr)
 {
     logging::info() << "Register new managed thread " << thread_ptr->get_id();
-    std::lock_guard<std::mutex> lock(m_lock);
+    std::lock_guard<lock_type> lock(m_lock);
     m_threads[thread_ptr->get_id()] = thread_ptr;
 }
 
 void thread_manager::deregister_thread(managed_thread* thread_ptr)
 {
     logging::info() << "Deregister managed thread " << thread_ptr->get_id();
-    std::lock_guard<std::mutex> lock(m_lock);
+    std::lock_guard<lock_type> lock(m_lock);
     m_threads.erase(thread_ptr->get_id());
 }
 
 managed_thread* thread_manager::lookup_thread(std::thread::id thread_id) const
 {
-    std::lock_guard<std::mutex> lock(m_lock);
+    std::lock_guard<lock_type> lock(m_lock);
     auto it = m_threads.find(thread_id);
     return it != m_threads.end() ? it->second : nullptr;
 }

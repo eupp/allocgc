@@ -63,6 +63,7 @@ TEST_F(thread_manager_test, test_get_managed_threads)
     for (auto& thread: threads) {
         all_threads.insert(thread.get_id());
     }
+    all_threads.insert(std::this_thread::get_id());
 
     EXPECT_EQ(all_threads, managed_threads);
 }

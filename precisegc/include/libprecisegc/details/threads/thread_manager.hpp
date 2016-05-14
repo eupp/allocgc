@@ -19,7 +19,7 @@ class managed_thread;
 class thread_manager : private noncopyable, private nonmovable
 {
     typedef std::map<std::thread::id, managed_thread*> map_type;
-    typedef std::mutex lock_type;
+    typedef std::recursive_mutex lock_type;
 public:
     typedef utils::locked_range<
             boost::select_second_const_range<
@@ -37,6 +37,7 @@ public:
 
     static thread_manager& instance();
 
+    void register_main_thread();
     void register_thread(managed_thread* thread_ptr);
     void deregister_thread(managed_thread* thread_ptr);
 

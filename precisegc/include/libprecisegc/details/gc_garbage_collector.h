@@ -31,7 +31,6 @@ public:
 
     void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr);
     void new_cell(managed_cell_ptr& cell_ptr);
-
 private:
     gc_garbage_collector();
 

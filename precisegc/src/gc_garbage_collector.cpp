@@ -293,7 +293,6 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
     if (phs == phase::MARKING) {
         bool res = shade(p);
         while (!res && phs == phase::MARKING) {
-            logging::info() << "Queue overflow !!!";
             pthread_yield();
             res = shade(p);
             phs = m_phase.load(std::memory_order_seq_cst);

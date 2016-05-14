@@ -15,19 +15,11 @@ namespace precisegc { namespace details {
 class gc_mark_queue: public noncopyable, public nonmovable
 {
 public:
-
-//    static gc_mark_queue& instance();
-
     gc_mark_queue();
 
-    bool empty();
     bool push(void* ptr);
-
     bool pop(void*& p);
-
-    void clear();
 private:
-
     static const size_t MAX_SIZE = 65536;
 
     boost::lockfree::allocator<std::allocator<void*>> m_alloc;

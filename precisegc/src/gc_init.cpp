@@ -14,7 +14,7 @@ static bool init_flag = false;
 int gc_init()
 {
     if (!init_flag) {
-        details::logging::init(std::clog, details::logging::loglevel::DEBUG);
+        details::logging::init(std::clog, details::logging::loglevel::INFO);
 
         details::threads::thread_manager::instance().register_main_thread();
 

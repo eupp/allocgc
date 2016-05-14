@@ -2,6 +2,7 @@
 #define DIPLOMA_MARKER_HPP
 
 #include <vector>
+#include <stack>
 #include <mutex>
 #include <memory>
 #include <condition_variable>
@@ -58,25 +59,26 @@ private:
 
         void mark();
 
-        void push(gc_untyped_ptr* p);
-        bool pop(gc_untyped_ptr*& p);
+        void push(void* p);
+        bool pop(void*& p);
     private:
         static const size_t LOCAL_QUEUE_SIZE = 2;
 
-        std::unique_ptr<queue_chunk> m_local_queue[LOCAL_QUEUE_SIZE];
-        size_t m_curr_queue;
+//        std::unique_ptr<queue_chunk> m_local_queue[LOCAL_QUEUE_SIZE];
+//        size_t m_curr_queue;
+        std::vector<void*> m_local_stack;
         marker* m_marker;
     };
 
     void non_blocking_trace_barrier_buffers();
 
-    void push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk);
-    std::unique_ptr<queue_chunk> pop_queue_chunk();
+//    void push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk);
+//    std::unique_ptr<queue_chunk> pop_queue_chunk();
 
-    void non_blocking_push(gc_untyped_ptr* p);
+    void non_blocking_push(void* p);
 
-    std::vector<std::unique_ptr<queue_chunk>> m_queue;
-    std::mutex m_queue_mutex;
+    std::vector<void*> m_stack;
+    std::mutex m_stack_mutex;
 
     size_t m_markers_cnt;
     std::mutex m_markers_mutex;

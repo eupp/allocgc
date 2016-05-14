@@ -10,13 +10,13 @@
 namespace precisegc { namespace details {
 
 template <typename Queue>
-void trace_ptr(gc_untyped_ptr* p, Queue& q)
+void trace_ptr(void* p, Queue& q)
 {
     if (!p) {
         return;
     }
 
-    managed_cell_ptr mp(managed_ptr((byte*) p->get()), 0);
+    managed_cell_ptr mp(managed_ptr((byte*) p), 0);
 
     assert(mp.is_live());
     if (mp.get_mark()) {

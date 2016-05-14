@@ -50,10 +50,7 @@ bool shade(const gc_untyped_ptr* ptr)
     if (!ptr) {
         return true;
     }
-    if (ptr->get() == (void*) 0x7ffff55eeba0) {
-        logging::info() << "Ulllaala";
-    }
-    return bb.push((gc_untyped_ptr*) ptr);
+    return bb.push(ptr->get());
 }
 
 void* get_pointed_to(void* ptr)

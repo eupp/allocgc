@@ -17,13 +17,13 @@ class barrier_buffer: public noncopyable, public nonmovable
 public:
     barrier_buffer();
 
-    bool push(gc_untyped_ptr* ptr);
-    bool pop(gc_untyped_ptr*& p);
+    bool push(void* ptr);
+    bool pop(void*& p);
 private:
     static const size_t MAX_SIZE = 65536;
 
     boost::lockfree::allocator<std::allocator<void*>> m_alloc;
-    boost::lockfree::spsc_queue<gc_untyped_ptr*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;
+    boost::lockfree::spsc_queue<void*, boost::lockfree::allocator<std::allocator<void*>>> m_queue;
 };
 
 }}

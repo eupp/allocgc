@@ -107,6 +107,7 @@ void gc_garbage_collector::run_marking()
     m_phase.store(phase::MARKING);
     m_marker.trace_roots();
     thread_manager.start_the_world();
+    m_marker.start_marking();
 
     printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }

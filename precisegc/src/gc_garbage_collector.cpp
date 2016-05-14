@@ -107,9 +107,10 @@ void gc_garbage_collector::run_marking()
     m_phase.store(phase::MARKING);
     m_marker.trace_roots();
     thread_manager.start_the_world();
-    m_marker.start_marking();
 
     printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
+
+    m_marker.start_marking();
 }
 
 void gc_garbage_collector::run_compacting()
@@ -125,7 +126,7 @@ void gc_garbage_collector::run_compacting()
     m_phase.store(phase::IDLE);
     thread_manager.start_the_world();
 
-    printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
+    printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 
 void gc_garbage_collector::run_gc()
@@ -143,7 +144,7 @@ void gc_garbage_collector::run_gc()
     m_phase.store(phase::IDLE);
     thread_manager.start_the_world();
 
-    printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
+    printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 
 void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
@@ -155,7 +156,7 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
         bool res = shade(&src_ptr);
         while (!res && phs == phase::MARKING) {
             m_marker.trace_barrier_buffers();
-            pthread_yield();
+            std::this_thread::yield();
             res = shade(&src_ptr);
             phs = m_phase.load(std::memory_order_seq_cst);
         }
@@ -166,7 +167,7 @@ void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
 {
     // do not call unsafe scope here
     // because new_cell is always called in the context of gc_new which is already marked as unsafe_scope
-//    gc_unsafe_scope unsafe_scope;
+    gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load(std::memory_order_seq_cst);
     if (phs == phase::MARKING) {
         // allocate black objects

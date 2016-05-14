@@ -64,6 +64,9 @@ bool marker::worker::pop(void*& p)
 {
     if (m_local_stack.empty()) {
         std::lock_guard<std::mutex> lock(m_marker->m_stack_mutex);
+        if (m_marker->m_stack.empty()) {
+            m_marker->non_blocking_trace_barrier_buffers();
+        }
         if (!m_marker->m_stack.empty()) {
             static const size_t CHUNK_MAXCOUNT = 2048;
             size_t chunk_count = std::min(m_marker->m_stack.size(), CHUNK_MAXCOUNT);
@@ -178,6 +181,10 @@ void marker::wait_for_marking()
 {
     std::unique_lock<std::mutex> lock(m_markers_mutex);
     m_markers_cond.wait(lock, [this] { return m_markers_cnt == 0; });
+    for (auto& thread: m_workers) {
+        thread.join();
+    }
+    m_workers.resize(0);
 }
 
 //void marker::push_queue_chunk(std::unique_ptr<marker::queue_chunk>&& chunk)

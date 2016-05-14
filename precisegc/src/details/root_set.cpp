@@ -3,6 +3,7 @@
 #include <cassert>
 #include <utility>
 #include <sys/mman.h>
+#include <libprecisegc/details/gc_unsafe_scope.h>
 
 namespace precisegc { namespace details {
 
@@ -36,6 +37,8 @@ void root_set::swap(root_set& other)
 
 void root_set::add(gc_untyped_ptr* root)
 {
+    gc_unsafe_scope unsafe_scope;
+
     static const size_t PAGE_SIZE = 4096;
     static const size_t ELEM_PER_PAGE = PAGE_SIZE / sizeof(root_set::element);
 
@@ -57,6 +60,8 @@ void root_set::add(gc_untyped_ptr* root)
 
 void root_set::remove(gc_untyped_ptr* root)
 {
+    gc_unsafe_scope unsafe_scope;
+
     element* prev = nullptr;
     element* curr = m_head;
     while (curr && root != curr->root) {

@@ -1,5 +1,3 @@
-#include "gcmalloc.h"
-
 #include "gc_mark.h"
 
 #include <cassert>

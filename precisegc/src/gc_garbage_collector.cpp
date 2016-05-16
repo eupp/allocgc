@@ -6,7 +6,6 @@
 #include "gc_ptr.h"
 #include "gc_mark.h"
 #include "barrier_buffer.h"
-#include "gcmalloc.h"
 #include "managed_ptr.h"
 #include "gc_heap.h"
 #include "logging.h"

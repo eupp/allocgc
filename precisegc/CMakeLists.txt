@@ -2,7 +2,6 @@
 set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.h
         include/libprecisegc/gc_new.h
-        include/libprecisegc/gcmalloc.h
 
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/object_meta.h
@@ -70,7 +69,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/atomic_bitset.h)
+        include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp)
 
 
 set(precisegc_LIB_SRCS
@@ -96,7 +95,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
         src/details/atomic_bitset.cpp
-        src/marker.cpp)
+        src/details/marker.cpp src/details/gc_hooks.cpp)
 
 
 find_package(Threads REQUIRED)

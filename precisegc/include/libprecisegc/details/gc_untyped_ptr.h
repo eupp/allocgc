@@ -37,7 +37,7 @@ public:
     void atomic_store(const gc_untyped_ptr& value);
     friend class gc_untyped_pin;
 protected:
-    std::atomic<byte*> m_ptr;
+    atomic_byte_ptr m_ptr;
 private:
     static thread_local gc_new_stack& gcnew_stack;
 

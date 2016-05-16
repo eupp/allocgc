@@ -4,16 +4,25 @@
 #include <libprecisegc/details/managed_ptr.h>
 #include <libprecisegc/details/gc_untyped_ptr.h>
 
+
 namespace precisegc { namespace details {
 
-
-
-class gc_hooks
-{
-public:
-    virtual managed_ptr allocate(size_t size) = 0;
-    virtual void write_barrier(gc_untyped_ptr* dst, gc_untyped_ptr* src) = 0;
+enum class gc_phase {
+    IDLE,
+    MARKING,
+    COMPACTING
 };
+
+void gc_init();
+
+gc_phase gc_get_phase();
+
+managed_ptr gc_allocate(size_t size);
+
+void gc_write_barrier(gc_untyped_ptr& dst, const gc_untyped_ptr& src);
+
+byte* gc_load(const atomic_byte_ptr& p);
+void  gc_store(atomic_byte_ptr& p, byte* value);
 
 }}
 

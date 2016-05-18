@@ -42,7 +42,7 @@ public:
 TEST_F(managed_pool_chunk_test, test_construct)
 {
     EXPECT_TRUE(m_chunk.memory_available());
-    EXPECT_TRUE(m_chunk.empty(CELL_SIZE));
+    EXPECT_TRUE(m_chunk.empty());
     EXPECT_NE(nullptr, m_chunk.get_descriptor());
 }
 

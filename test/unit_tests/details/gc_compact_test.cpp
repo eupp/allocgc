@@ -40,7 +40,7 @@ public:
     ~gc_compact_test()
     {
         for (auto ptr: m_allocated) {
-            m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr), 0), OBJ_SIZE);
+            m_alloc.deallocate(managed_ptr(ptr), OBJ_SIZE);
         }
         m_paged_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
     }
@@ -72,7 +72,7 @@ public:
 TEST_F(gc_compact_test, test_two_finger_compact_1)
 {
     for (int i = 0; i < OBJ_COUNT_1; ++i) {
-        managed_cell_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         cell_ptr.set_mark(false);
     }
@@ -160,7 +160,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
     size_t exp_pin_cnt = 0;
     std::unordered_set<byte*> pinned;
     for (int i = 0; i < OBJ_COUNT_2; ++i) {
-        managed_cell_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         bool mark = mark_gen();
         bool pin = pin_gen();
@@ -236,7 +236,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 
 TEST_F(gc_compact_test, test_fix_pointers)
 {
-    managed_cell_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
+    managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
     byte* ptr = cell_ptr.get();
 
     test_type val1;

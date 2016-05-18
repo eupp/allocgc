@@ -55,9 +55,14 @@ bool managed_pool_chunk::memory_available() const noexcept
     return m_chunk.memory_available();
 }
 
-bool managed_pool_chunk::empty(size_t cell_size) const noexcept
+bool managed_pool_chunk::empty() const noexcept
 {
     return m_mark_bits.none() && m_pin_bits.none();
+}
+
+bool managed_pool_chunk::empty(size_t cell_size) const noexcept
+{
+    return empty();
 }
 
 byte* managed_pool_chunk::get_mem() const
@@ -215,7 +220,7 @@ void managed_pool_chunk::iterator::advance(ptrdiff_t n)
     m_ptr.advance(n * cell_size());
 }
 
-ptrdiff_t managed_pool_chunk::iterator::distance_to(const iterator& other)
+ptrdiff_t managed_pool_chunk::iterator::distance_to(const iterator& other) const
 {
     return m_ptr.get() - other.m_ptr.get();
 }

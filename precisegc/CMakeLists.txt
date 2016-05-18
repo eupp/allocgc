@@ -49,7 +49,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/managed_ptr.hpp
         include/libprecisegc/details/allocators/iterator_range.h
         include/libprecisegc/details/allocators/lockable_range.h
-        include/libprecisegc/details/allocators/joined_range.h
+        include/libprecisegc/details/utils/flattened_range.hpp
         include/libprecisegc/details/allocators/reversed_range.h
         include/libprecisegc/details/allocators/fixed_block_cache.h
         include/libprecisegc/details/threads/pending_call.hpp
@@ -68,7 +68,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp)
+        include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp)
 
 
 set(precisegc_LIB_SRCS

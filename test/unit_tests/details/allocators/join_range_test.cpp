@@ -6,7 +6,7 @@
 #include <limits>
 
 #include "libprecisegc/details/allocators/types.h"
-#include "libprecisegc/details/allocators/joined_range.h"
+#include "libprecisegc/details/utils/flattened_range.hpp"
 #include "libprecisegc/details/allocators/iterator_range.h"
 #include "libprecisegc/details/allocators/reversed_range.h"
 

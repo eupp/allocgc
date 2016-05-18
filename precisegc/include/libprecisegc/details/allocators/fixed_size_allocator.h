@@ -7,8 +7,10 @@
 #include <memory>
 #include <list>
 
+#include <boost/range/iterator_range.hpp>
+
 #include "stl_adapter.h"
-#include "joined_range.h"
+#include "libprecisegc/details/utils/flattened_range.hpp"
 #include "constants.h"
 #include "../util.h"
 
@@ -20,7 +22,8 @@ class fixed_size_allocator : private ebo<Alloc>, private noncopyable
     typedef std::list<Chunk, std::allocator<Chunk>> list_t;
 public:
     typedef typename Chunk::pointer_type pointer_type;
-    typedef joined_range<list_t> range_type;
+    typedef boost::iterator_range<typename Chunk::iterator> range_type; // temp
+//    typedef boost::range::combined_range<Chunk::iterator> range_type;
 
     fixed_size_allocator()
     {
@@ -65,7 +68,7 @@ public:
     {
         size_t size = 0;
         for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
-            if (it->is_dead()) {
+            if (it->empty()) {
                 size += it->get_mem_size();
                 it = destroy_chunk(it, it->get_cell_size());
             } else {
@@ -80,7 +83,7 @@ public:
     void reset_bits()
     {
         for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ++it) {
-            it->reset_bits();
+            it->unmark();
         }
     }
 
@@ -91,7 +94,7 @@ public:
 
     range_type range()
     {
-        return range_type(m_chunks);
+        return m_chunks.begin()->get_range();
     }
 
     const Alloc& get_allocator() const

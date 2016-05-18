@@ -7,6 +7,7 @@
 #include <mutex>
 
 #include <boost/iterator/iterator_facade.hpp>
+#include <boost/range/iterator_range.hpp>
 
 #include "allocators/plain_pool_chunk.h"
 #include "allocators/iterator_range.h"
@@ -55,7 +56,7 @@ public:
         bool equal(const iterator& other) const noexcept;
 
         void advance(ptrdiff_t n);
-        ptrdiff_t distance_to(const iterator& other);
+        ptrdiff_t distance_to(const iterator& other) const;
 
         size_t cell_size() const;
 
@@ -63,7 +64,7 @@ public:
     };
 
     typedef managed_ptr pointer_type;
-    typedef allocators::iterator_range<iterator> range_type;
+    typedef boost::iterator_range<iterator> range_type;
 
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
     ~managed_pool_chunk();
@@ -73,6 +74,7 @@ public:
 
     bool contains(const managed_ptr& ptr) const noexcept;
     bool memory_available() const noexcept;
+    bool empty() const noexcept;
     bool empty(size_t cell_size) const noexcept;
 
     byte* get_mem() const;

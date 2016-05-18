@@ -25,7 +25,6 @@ set(precisegc_TESTS
         include/page_ptr.h
         details/managed_pool_chunk_test.cpp
         include/rand_util.h
-        details/allocators/join_range_test.cpp
         gc_ptr_test.cpp
         details/threads/pending_call_test.cpp
         details/root_set_test.cpp
@@ -33,7 +32,9 @@ set(precisegc_TESTS
         details/threads/ass_sync_test.cpp
         details/threads/stw_manager_test.cpp
         details/threads/managed_thread_test.cpp
-        details/threads/thread_manager_test.cpp)
+        details/threads/thread_manager_test.cpp
+
+        details/utils/flattened_range_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

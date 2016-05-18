@@ -7,13 +7,17 @@
 
 namespace precisegc { namespace details {
 
+enum class gc_strategy {
+    INCREMENTAL
+};
+
 enum class gc_phase {
     IDLE,
     MARKING,
     COMPACTING
 };
 
-void gc_init();
+void gc_init(gc_strategy strategy);
 
 gc_phase gc_get_phase();
 

@@ -16,7 +16,7 @@ void trace_ptr(void* p, Queue& q)
         return;
     }
 
-    managed_ptr mp((byte*) p, 0);
+    managed_ptr mp((byte*) p);
 
     assert(mp.is_live());
     if (mp.get_mark()) {

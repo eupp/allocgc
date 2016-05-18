@@ -13,7 +13,7 @@ managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_siz
     , m_log2_cell_size(log_2(cell_size))
     , m_mask(calc_mask(chunk, size, cell_size))
 {
-    managed_ptr::add_to_index(chunk, size, this);
+    managed_ptr::add_to_index(chunk, size, get_descriptor());
 }
 
 managed_pool_chunk::~managed_pool_chunk()
@@ -96,7 +96,7 @@ managed_pool_chunk::range_type managed_pool_chunk::get_range()
     assert(get_mem());
     byte* b = get_mem();
     byte* e = b + get_mem_size();
-    return range_type(iterator(b, this), iterator(e, this));
+    return range_type(iterator(b, get_descriptor()), iterator(e, get_descriptor()));
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t log2_cell_size, byte* base_ptr, size_t size)
@@ -191,7 +191,7 @@ size_t managed_pool_chunk::get_log2_cell_size() const
 managed_pool_chunk::iterator::iterator() noexcept
 {}
 
-managed_pool_chunk::iterator::iterator(byte* ptr, managed_pool_chunk* descr) noexcept
+managed_pool_chunk::iterator::iterator(byte* ptr, managed_memory_descriptor* descr) noexcept
     : m_ptr(ptr, descr)
 {}
 

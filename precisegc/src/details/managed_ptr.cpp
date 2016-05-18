@@ -25,7 +25,7 @@ managed_ptr::managed_ptr(byte* ptr, managed_memory_descriptor* descriptor)
     : m_ptr(ptr)
     , m_descr(descriptor)
 {
-    assert(indexer.get_entry(ptr) == descriptor);
+    assert(indexer.get_entry(ptr) == descriptor || indexer.get_entry(ptr - PAGE_SIZE) == descriptor);
 }
 
 bool managed_ptr::get_mark() const
@@ -86,7 +86,7 @@ managed_memory_descriptor* managed_ptr::get_descriptor() const
 void managed_ptr::advance(ptrdiff_t n)
 {
     m_ptr += n;
-    assert(get_cell_begin() <= m_ptr && m_ptr <= get_cell_begin() + get_meta()->size());
+//    assert(get_cell_begin() <= m_ptr && m_ptr <= get_cell_begin() + get_meta()->size());
 }
 
 void managed_ptr::swap(managed_ptr& other)

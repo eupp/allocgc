@@ -46,7 +46,7 @@ public:
         friend class managed_pool_chunk;
         friend class boost::iterator_core_access;
 
-        iterator(byte* ptr, managed_pool_chunk* descr) noexcept;
+        iterator(byte* ptr, managed_memory_descriptor* descr) noexcept;
 
         const managed_ptr& dereference() const;
 

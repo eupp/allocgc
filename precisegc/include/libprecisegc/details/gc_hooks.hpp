@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_GC_HOOKS_HPP
 #define DIPLOMA_GC_HOOKS_HPP
 
-#include <libprecisegc/details/managed_ptr.h>
+#include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_untyped_ptr.h>
 
 

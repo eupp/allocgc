@@ -3,7 +3,7 @@
 #include <libprecisegc/details/threads/managed_thread.hpp>
 
 #include "gc_unsafe_scope.h"
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
 
 namespace precisegc { namespace details {
 

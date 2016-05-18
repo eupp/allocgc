@@ -12,11 +12,11 @@ gc_heap::gc_heap()
     : m_size(0)
 {}
 
-managed_cell_ptr gc_heap::allocate(size_t size)
+std::pair<managed_ptr, size_t> gc_heap::allocate(size_t size)
 {
-    managed_cell_ptr cell_ptr = m_alloc.allocate(size);
-    m_size.fetch_add(cell_ptr.cell_size());
-    return std::move(cell_ptr);
+    auto res = m_alloc.allocate(size);
+    m_size.fetch_add(res.second);
+    return res;
 }
 
 size_t gc_heap::size() noexcept

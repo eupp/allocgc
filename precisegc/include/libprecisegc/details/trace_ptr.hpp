@@ -4,7 +4,7 @@
 #include <cassert>
 
 #include <libprecisegc/details/gc_untyped_ptr.h>
-#include <libprecisegc/details/managed_ptr.h>
+#include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_mark.h>
 
 namespace precisegc { namespace details {
@@ -16,7 +16,7 @@ void trace_ptr(void* p, Queue& q)
         return;
     }
 
-    managed_cell_ptr mp(managed_ptr((byte*) p), 0);
+    managed_ptr mp((byte*) p, 0);
 
     assert(mp.is_live());
     if (mp.get_mark()) {

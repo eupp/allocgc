@@ -26,7 +26,7 @@ NONIUS_BENCHMARK("index", [](nonius::chronometer meter)
     });
 });
 
-NONIUS_BENCHMARK("remove_index", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("remove_from_index", [](nonius::chronometer meter)
 {
     index_tree_type itree;
     std::vector<entry_type> entries(meter.runs());

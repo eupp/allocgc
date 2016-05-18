@@ -1,6 +1,6 @@
 #include "barrier_buffer.h"
 
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
 
 #include "logging.h"
 
@@ -13,7 +13,7 @@ barrier_buffer::barrier_buffer()
 bool barrier_buffer::push(void* ptr)
 {
     if (ptr) {
-        managed_cell_ptr cell_ptr(managed_ptr((byte*) ptr), 0);
+        managed_ptr cell_ptr((byte*) ptr);
         if (!cell_ptr.get_mark()) {
             return m_queue.push(ptr);
         }

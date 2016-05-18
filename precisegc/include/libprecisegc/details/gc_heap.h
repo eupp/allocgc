@@ -40,7 +40,7 @@ public:
         return h;
     }
 
-    managed_cell_ptr allocate(size_t size);
+    std::pair<managed_ptr, size_t> allocate(size_t size);
 
     void compact();
 

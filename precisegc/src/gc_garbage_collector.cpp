@@ -6,11 +6,9 @@
 #include "gc_ptr.h"
 #include "gc_mark.h"
 #include "barrier_buffer.h"
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
 #include "gc_heap.h"
 #include "logging.h"
-
-using namespace _GC_;
 
 namespace precisegc { namespace details {
 
@@ -166,7 +164,7 @@ void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyp
     }
 }
 
-void gc_garbage_collector::new_cell(managed_cell_ptr& cell_ptr)
+void gc_garbage_collector::new_cell(managed_ptr& cell_ptr)
 {
     // do not call unsafe scope here
     // because new_cell is always called in the context of gc_new which is already marked as unsafe_scope

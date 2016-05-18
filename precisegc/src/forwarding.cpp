@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "gc_untyped_ptr.h"
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
 #include "object_meta.h"
 
 #include "logging.h"
@@ -70,10 +70,10 @@ void intrusive_forwarding::forward(void* ptr) const
             object_meta* meta = nullptr;
             if (m_cache.count(page)) {
                 managed_memory_descriptor* descr = m_cache[page];
-                auto cell_ptr = managed_cell_ptr(managed_ptr(reinterpret_cast<byte*>(from)), 0, descr);
+                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from), descr);
                 meta = cell_ptr.get_meta();
             } else {
-                auto cell_ptr = managed_cell_ptr(managed_ptr(reinterpret_cast<byte*>(from)), 0);
+                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from));
                 meta = cell_ptr.get_meta();
                 if (m_cache.size() < CACHE_SIZE) {
                     m_cache[page] = cell_ptr.get_descriptor();
@@ -86,7 +86,7 @@ void intrusive_forwarding::forward(void* ptr) const
                     gcptr->set(to);
                 }
             }
-        } catch (managed_cell_ptr::unindexed_memory_exception& exc) {
+        } catch (unindexed_memory_exception& exc) {
             logging::error() << "Unindexed memory discovered: " << from;
             throw;
         }

@@ -11,7 +11,7 @@
 #include "object_meta.h"
 #include "gc_mark.h"
 #include "../gc_ptr.h"
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
 
 #include "root_set.hpp"
 
@@ -24,14 +24,14 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
     auto to = rng.begin();
     auto from = rng.end();
     while (from != to) {
-        to = std::find_if(to, from, [](managed_cell_ptr cell_ptr) {
-                return !cell_ptr.get_mark() && !cell_ptr.get_pin() && cell_ptr.is_live();
+        to = std::find_if(to, from, [](const managed_ptr& cell_ptr) {
+                return !cell_ptr.get_mark() && !cell_ptr.get_pin();
         });
 
         auto rev_from = std::find_if(reverse_iterator(from),
                                      reverse_iterator(to),
-                                     [](managed_cell_ptr cell_ptr) {
-                                         return cell_ptr.get_mark() && !cell_ptr.get_pin() && cell_ptr.is_live();
+                                     [](const managed_ptr& cell_ptr) {
+                                         return cell_ptr.get_mark() && !cell_ptr.get_pin();
         });
 
         from = rev_from.base();
@@ -48,10 +48,10 @@ template <typename Range>
 size_t sweep(Range& rng)
 {
     size_t sweep_cnt = 0;
-    for (managed_cell_ptr cell_ptr: rng) {
+    for (managed_ptr cell_ptr: rng) {
         if (cell_ptr.get_mark()) {
             cell_ptr.set_mark(false);
-        } else if (cell_ptr.is_live() && !cell_ptr.get_pin()) {
+        } else if (!cell_ptr.get_pin()) {
             cell_ptr.sweep();
             sweep_cnt++;
         }

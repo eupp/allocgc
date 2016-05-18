@@ -42,10 +42,11 @@ void* gc_new_impl(size_t n, Args&&... args)
     gc_new_stack::activation_entry activation_entry;
 
     size_t size = n * sizeof(T) + sizeof(object_meta);
-    managed_cell_ptr cell_ptr = gc_heap::instance().allocate(size);
-    assert(cell_ptr.is_live());
+    auto alloc_res= gc_heap::instance().allocate(size);
+//    assert(cell_ptr.is_live());
+    managed_ptr cell_ptr = alloc_res.first;
     byte* ptr = cell_ptr.get();
-    size_t aligned_size = cell_ptr.cell_size();
+    size_t aligned_size = alloc_res.second;
     assert(ptr);
 
     void* begin = ptr;

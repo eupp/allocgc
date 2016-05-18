@@ -12,7 +12,7 @@
 #include "mutex.h"
 #include "condition_variable.h"
 #include "util.h"
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
 
 namespace precisegc { namespace details {
 
@@ -32,7 +32,7 @@ public:
     size_t get_gc_cycles_count() const;
 
     void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr);
-    void new_cell(managed_cell_ptr& cell_ptr);
+    void new_cell(managed_ptr& cell_ptr);
 private:
     static threads::thread_manager& thread_manager;
 

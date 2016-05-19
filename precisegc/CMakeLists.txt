@@ -5,14 +5,12 @@ set(precisegc_LIB_HDRS
 
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/object_meta.h
-        include/libprecisegc/details/mutex.h
         include/libprecisegc/details/gc_heap.h
         include/libprecisegc/details/allocators/constants.h
         include/libprecisegc/details/math_util.h
         include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
-        include/libprecisegc/details/condition_variable.h
         include/libprecisegc/details/barrier.h
         include/libprecisegc/details/util.h
         include/libprecisegc/details/gc_compact.h
@@ -47,10 +45,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/managed_pool_chunk.h
         include/libprecisegc/details/managed_memory_descriptor.h
         include/libprecisegc/details/managed_ptr.hpp
-        include/libprecisegc/details/allocators/iterator_range.h
-        include/libprecisegc/details/allocators/lockable_range.h
         include/libprecisegc/details/utils/flattened_range.hpp
-        include/libprecisegc/details/allocators/reversed_range.h
         include/libprecisegc/details/allocators/fixed_block_cache.h
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp

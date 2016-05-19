@@ -2,7 +2,6 @@
 #include <gmock/gmock.h>
 
 #include "libprecisegc/details/managed_ptr.hpp"
-#include "libprecisegc/details/mutex.h"
 
 #include "memory_descriptor_mock.h"
 #include "page_ptr.h"

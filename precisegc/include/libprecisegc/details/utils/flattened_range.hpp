@@ -8,7 +8,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/utils/make_reverse_iterator.hpp>
-#include "libprecisegc/details/allocators/iterator_range.h"
 
 namespace precisegc { namespace details { namespace utils {
 

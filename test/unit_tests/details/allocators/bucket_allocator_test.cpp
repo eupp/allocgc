@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <cassert>
+#include <mutex>
 
 #include "libprecisegc/details/allocators/bucket_allocator.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
 #include "libprecisegc/details/allocators/types.h"
-#include "libprecisegc/details/mutex.h"
 
 #include "test_chunk.h"
 
@@ -49,7 +49,7 @@ class bucket_allocator_test : public ::testing::Test
 {
 public:
     typedef debug_layer<paged_allocator> allocator_t;
-    typedef bucket_allocator<test_chunk, allocator_t, allocator_t, test_bucket_policy, mutex> bucket_allocator_t;
+    typedef bucket_allocator<test_chunk, allocator_t, allocator_t, test_bucket_policy, std::mutex> bucket_allocator_t;
 
     bucket_allocator_t m_alloc;
 };

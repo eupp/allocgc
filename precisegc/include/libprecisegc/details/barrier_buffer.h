@@ -7,7 +7,6 @@
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include "gc_untyped_ptr.h"
-#include "mutex.h"
 #include "util.h"
 
 namespace precisegc { namespace details {

@@ -4,11 +4,11 @@
 #include <cstddef>
 #include <array>
 #include <utility>
+#include <mutex>
 
 #include "fixed_size_allocator.h"
 #include "types.h"
 #include "../util.h"
-#include "../mutex.h"
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -32,7 +32,7 @@ public:
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
-        lock_guard<Lock> lock(m_locks[ind]);
+        std::lock_guard<Lock> lock(m_locks[ind]);
         pointer_type p = m_buckets[ind].allocate(aligned_size);
         return std::make_pair(p, aligned_size);
     }
@@ -42,7 +42,7 @@ public:
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
-        lock_guard<Lock> lock(m_locks[ind]);
+        std::lock_guard<Lock> lock(m_locks[ind]);
         m_buckets[ind].deallocate(ptr, aligned_size);
     }
 

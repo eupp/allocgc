@@ -4,10 +4,10 @@
 #include <utility>
 #include <atomic>
 #include <cstddef>
+#include <mutex>
 
 #include "forwarding.h"
 #include "object_meta.h"
-#include "mutex.h"
 #include "allocators/bucket_allocator.h"
 #include "allocators/pow2_bucket_policy.h"
 #include "allocators/paged_allocator.h"
@@ -29,7 +29,7 @@ class gc_heap : public noncopyable, public nonmovable
             allocators::paged_allocator,
             allocators::paged_allocator,
             allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
-            mutex
+            std::mutex
         > alloc_t;
 
     typedef intrusive_forwarding forwarding;

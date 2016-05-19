@@ -5,7 +5,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include "libprecisegc/details/allocators/types.h"
-#include "libprecisegc/details/allocators/iterator_range.h"
 #include "libprecisegc/details/iterator_facade.h"
 #include "libprecisegc/details/iterator_access.h"
 

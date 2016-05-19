@@ -5,14 +5,13 @@
 
 #include "allocators/types.h"
 #include "object_meta.h"
-#include "mutex.h"
 
 namespace precisegc { namespace details {
 
 class managed_memory_descriptor
 {
 public:
-    typedef recursive_mutex mutex_type;
+    typedef std::recursive_mutex mutex_type;
     typedef std::unique_lock<mutex_type> lock_type;
 
     virtual ~managed_memory_descriptor() {}

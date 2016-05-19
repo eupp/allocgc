@@ -8,11 +8,11 @@
 #include <type_traits>
 #include <vector>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 
 #include "constants.h"
 #include "types.h"
-#include "../mutex.h"
 
 #include "any_ptr.h"
 #include "../util.h"
@@ -89,7 +89,7 @@ private:
     static const size_t LEVEL_SIZE = 1 << LEVEL_BITS_CNT;
     static const size_t FIRST_LEVEL_SIZE = 1 << FIRST_LEVEL_BITS_CNT;
 
-    typedef mutex mutex_type;
+    typedef std::mutex mutex_type;
 
     struct tree_third_level
     {
@@ -134,11 +134,11 @@ private:
 
         level_indices ind;
         ind = get_indicies(page);
-        lock_guard<mutex_type> lock(m_mutex);
+        std::lock_guard<mutex_type> lock(m_mutex);
 
         tree_second_level* second_level = nullptr;
         {
-//            lock_guard<mutex_type> lock(m_first_level.m_mutex);
+//            std::lock_guard<mutex_type> lock(m_first_level.m_mutex);
             ++m_first_level.m_cnts[ind[0]];
             if (!m_first_level.m_data[ind[0]]) {
                 m_first_level.m_data[ind[0]] = allocate<tree_second_level>();
@@ -148,7 +148,7 @@ private:
 
         tree_third_level* third_level = nullptr;
         {
-//            lock_guard<mutex_type> lock(second_level->m_mutex);
+//            std::lock_guard<mutex_type> lock(second_level->m_mutex);
             ++second_level->m_cnts[ind[1]];
             if (!second_level->m_data[ind[1]]) {
                 second_level->m_data[ind[1]] = allocate<tree_third_level>();
@@ -157,7 +157,7 @@ private:
         }
 
         {
-//            lock_guard<mutex_type> lock(third_level->m_mutex);
+//            std::lock_guard<mutex_type> lock(third_level->m_mutex);
             third_level->m_data[ind[2]] = entry;
         }
     }
@@ -168,12 +168,12 @@ private:
 
         level_indices ind;
         ind = get_indicies(page);
-        lock_guard<mutex_type> lock(m_mutex);
+        std::lock_guard<mutex_type> lock(m_mutex);
 
         tree_second_level* second_level = nullptr;
         size_t second_cnt = 0;
         {
-//            lock_guard<mutex_type> lock(m_first_level.m_mutex);
+//            std::lock_guard<mutex_type> lock(m_first_level.m_mutex);
             second_level = m_first_level.m_data[ind[0]];
             second_cnt = --m_first_level.m_cnts[ind[0]];
             if (second_cnt == 0) {
@@ -185,7 +185,7 @@ private:
         tree_third_level* third_level = nullptr;
         size_t third_cnt = 0;
         {
-//            lock_guard<mutex_type> lock(second_level->m_mutex);
+//            std::lock_guard<mutex_type> lock(second_level->m_mutex);
             third_level = second_level->m_data[ind[1]];
             third_cnt = --second_level->m_cnts[ind[1]];
             if (third_cnt == 0) {
@@ -195,7 +195,7 @@ private:
         assert(third_level);
 
         {
-//            lock_guard<mutex_type> lock(third_level->m_mutex);
+//            std::lock_guard<mutex_type> lock(third_level->m_mutex);
             third_level->m_data[ind[2]] = nullptr;
         }
 
@@ -217,11 +217,11 @@ private:
 
         level_indices ind;
         ind = get_indicies(page);
-        lock_guard<mutex_type> lock(m_mutex);
+        std::lock_guard<mutex_type> lock(m_mutex);
 
         tree_second_level* second_level = nullptr;
         {
-//            lock_guard<mutex_type> lock(m_first_level.m_mutex);
+//            std::lock_guard<mutex_type> lock(m_first_level.m_mutex);
             second_level = m_first_level.m_data[ind[0]];
         }
         if (!second_level) {
@@ -230,7 +230,7 @@ private:
 
         tree_third_level* third_level = nullptr;
         {
-//            lock_guard<mutex_type> lock(second_level->m_mutex);
+//            std::lock_guard<mutex_type> lock(second_level->m_mutex);
             third_level = second_level->m_data[ind[1]];
         }
         if (!third_level) {
@@ -238,7 +238,7 @@ private:
         }
 
         {
-//            lock_guard<mutex_type> lock(third_level->m_mutex);
+//            std::lock_guard<mutex_type> lock(third_level->m_mutex);
             T* entry = third_level->m_data[ind[2]];
 //            if (m_cache.size() < CACHE_SIZE) {
 //                cached_entry = entry;

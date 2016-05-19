@@ -9,8 +9,6 @@
 
 #include "marker.hpp"
 #include "gc_untyped_ptr.h"
-#include "mutex.h"
-#include "condition_variable.h"
 #include "util.h"
 #include "managed_ptr.hpp"
 

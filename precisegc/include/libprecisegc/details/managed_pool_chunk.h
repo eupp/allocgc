@@ -10,15 +10,12 @@
 #include <boost/range/iterator_range.hpp>
 
 #include "allocators/plain_pool_chunk.h"
-#include "allocators/iterator_range.h"
-#include "allocators/lockable_range.h"
 #include "allocators/constants.h"
 #include "iterator_facade.h"
 #include "iterator_access.h"
 #include "managed_memory_descriptor.h"
 #include "atomic_bitset.h"
 #include "managed_ptr.hpp"
-#include "mutex.h"
 #include "util.h"
 
 namespace precisegc { namespace details {

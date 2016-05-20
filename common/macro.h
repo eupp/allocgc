@@ -22,6 +22,7 @@
     #define new_array_(T, size) precisegc::gc_new<T[]>(size)
     #define delete_(ptr)
     #define set_null(ptr) ptr.reset()
+    #define null_ptr(T) precisegc::gc_ptr<T>()
 #elif defined(BDW_GC)
     #define ptr_t(T) T*
     #define ptr_in(T) T*
@@ -31,6 +32,7 @@
     #define new_array_(T, size) (T*) GC_MALLOC_ATOMIC(sizeof(T) * size);
     #define delete_(ptr)
     #define set_null(ptr) ptr = nullptr
+    #define null_ptr(T) nullptr
 #elif defined(SHARED_PTR)
     #define ptr_t(T) std::shared_ptr<T>
     #define ptr_in(T) const std::shared_ptr<T>&
@@ -40,6 +42,7 @@
     #define new_array_(T, size) std::shared_ptr<T>(new T[size], std::default_delete<T[]>())
     #define delete_(ptr)
     #define set_null(ptr) ptr.reset()
+    #define null_ptr(T) std::shared_ptr<T>()
 #elif defined(NO_GC)
     #define ptr_t(T) T*
     #define ptr_in(T) T*
@@ -49,6 +52,7 @@
     #define new_array_(T, size) new T[kArraySize]
     #define delete_(ptr) if (ptr) delete ptr
     #define set_null(ptr) ptr = nullptr
+    #define null_ptr(T) nullptr
 #endif
 
 #endif //DIPLOMA_MACRO_HPP

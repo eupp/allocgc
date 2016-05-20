@@ -6,7 +6,7 @@
 #include "libprecisegc/details/allocators/fixed_size_allocator.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
-#include "libprecisegc/details/allocators/types.h"
+#include "libprecisegc/details/types.h"
 
 #include "test_chunk.h"
 
@@ -68,7 +68,7 @@ TEST_F(fixed_size_allocator_test, test_range)
     byte* ptr1 = m_alloc.allocate(OBJ_SIZE);
     byte* ptr2 = m_alloc.allocate(OBJ_SIZE);
 
-    auto rng = m_alloc.range();
+    auto rng = m_alloc.memory_range();
     auto first = rng.begin();
     auto last = rng.end();
 

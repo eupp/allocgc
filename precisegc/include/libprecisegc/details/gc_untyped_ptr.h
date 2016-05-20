@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include "gc_untyped_pin.h"
-#include "allocators/types.h"
+#include "types.h"
 #include "gc_new_stack.h"
 
 namespace precisegc { namespace details {

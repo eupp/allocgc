@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "libprecisegc/details/allocators/memory.h"
-#include "libprecisegc/details/allocators/types.h"
-#include "libprecisegc/details/allocators/constants.h"
+#include "libprecisegc/details/types.h"
+#include "libprecisegc/details/constants.h"
 
 struct page_ptr_deleter
 {

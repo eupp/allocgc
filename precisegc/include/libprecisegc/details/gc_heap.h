@@ -12,7 +12,7 @@
 #include "allocators/pow2_bucket_policy.h"
 #include "allocators/paged_allocator.h"
 #include "allocators/fixed_block_cache.h"
-#include "allocators/constants.h"
+#include "constants.h"
 #include "managed_pool_chunk.h"
 #include "util.h"
 

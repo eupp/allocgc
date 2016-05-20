@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/types.h>
-#include <libprecisegc/details/utils/flattened_range.hpp>
+#include <libprecisegc/details/types.h>
+#include <libprecisegc/details/utils/flatten_range.hpp>
 
 #include <memory>
 #include <iostream>

@@ -1,7 +1,8 @@
 #ifndef DIPLOMA_INDEXED_POINTER_H
 #define DIPLOMA_INDEXED_POINTER_H
 
-#include "types.h"
+#include <libprecisegc/details/types.h>
+
 #include "pointer_decorator.h"
 #include "../iterator_access.h"
 

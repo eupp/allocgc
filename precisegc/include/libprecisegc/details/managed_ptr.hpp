@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_MANAGED_PTR_H
 #define DIPLOMA_MANAGED_PTR_H
 
-#include <libprecisegc/details/allocators/types.h>
+#include <libprecisegc/details/types.h>
 #include <libprecisegc/details/allocators/index_tree.h>
 #include <libprecisegc/details/allocators/indexed_ptr.h>
 #include <libprecisegc/details/utils/gc_exception.hpp>

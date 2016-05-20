@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include "types.h"
+#include "libprecisegc/details/types.h"
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -14,6 +14,7 @@ class debug_layer
                   "debug_layer should be used with raw memory allocator");
 public:
     typedef byte* pointer_type;
+    typedef typename Alloc::alloc_tag alloc_tag;
 
     debug_layer()
         : m_allocated_mem(0)

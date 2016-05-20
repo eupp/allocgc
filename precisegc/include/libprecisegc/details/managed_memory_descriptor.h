@@ -3,7 +3,7 @@
 
 #include <mutex>
 
-#include "allocators/types.h"
+#include "types.h"
 #include "object_meta.h"
 
 namespace precisegc { namespace details {

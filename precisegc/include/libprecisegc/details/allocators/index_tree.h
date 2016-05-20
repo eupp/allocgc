@@ -11,8 +11,8 @@
 #include <mutex>
 #include <unordered_map>
 
-#include "constants.h"
-#include "types.h"
+#include <libprecisegc/details/constants.h>
+#include <libprecisegc/details/types.h>
 
 #include "any_ptr.h"
 #include "../util.h"

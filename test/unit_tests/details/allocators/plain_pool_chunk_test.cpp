@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "libprecisegc/details/allocators/types.h"
+#include "libprecisegc/details/types.h"
 #include "libprecisegc/details/allocators/plain_pool_chunk.h"
 
 using namespace precisegc::details;

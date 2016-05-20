@@ -10,7 +10,7 @@
 #include <boost/range/iterator_range.hpp>
 
 #include "allocators/plain_pool_chunk.h"
-#include "allocators/constants.h"
+#include "constants.h"
 #include "iterator_facade.h"
 #include "iterator_access.h"
 #include "managed_memory_descriptor.h"
@@ -30,7 +30,11 @@ private:
     typedef allocators::plain_pool_chunk plain_pool_chunk;
     typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
 public:
-    class iterator: public boost::iterator_facade<iterator, const managed_ptr, boost::random_access_traversal_tag>
+    class iterator: public boost::iterator_facade<
+              iterator
+            , const managed_ptr
+            , boost::random_access_traversal_tag>
+            , managed_ptr
     {
     public:
         iterator() noexcept;
@@ -45,7 +49,7 @@ public:
 
         iterator(byte* ptr, managed_memory_descriptor* descr) noexcept;
 
-        const managed_ptr& dereference() const;
+        managed_ptr dereference() const;
 
         void increment() noexcept;
         void decrement() noexcept;
@@ -82,6 +86,8 @@ public:
 
     void unmark();
 
+    iterator begin();
+    iterator end();
     range_type get_range();
 
     virtual bool get_mark(byte* ptr) const override;

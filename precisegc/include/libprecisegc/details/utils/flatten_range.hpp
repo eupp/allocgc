@@ -2,6 +2,7 @@
 #define DIPLOMA_JOIN_RANGE_H
 
 #include <iterator>
+#include <utility>
 #include <cassert>
 
 #include <boost/iterator/iterator_facade.hpp>
@@ -16,13 +17,13 @@ namespace internals {
 template<typename OuterIterator>
 class flattening_iterator : public boost::iterator_facade<
           flattening_iterator<OuterIterator>
-        , typename std::iterator_traits<typename OuterIterator::value_type::iterator>::value_type
+        , decltype(*std::declval<typename OuterIterator::value_type::iterator>())
         , boost::bidirectional_traversal_tag
     >
 {
     typedef boost::iterator_facade<
               flattening_iterator<OuterIterator>
-            , typename std::iterator_traits<typename OuterIterator::value_type::iterator>::value_type
+            , decltype(*std::declval<typename OuterIterator::value_type::iterator>())
             , boost::bidirectional_traversal_tag
     > base;
 
@@ -59,7 +60,8 @@ public:
 private:
     friend class boost::iterator_core_access;
 
-    reference dereference() const
+    auto dereference() const
+        -> decltype(*std::declval<inner_iterator>())
     {
         return *m_inner_it;
     }
@@ -130,7 +132,9 @@ flattening_iterator<OuterIterator> make_flattening_iterator(const OuterIterator&
 }
 
 template <typename OuterRange>
-using flattened_range = boost::iterator_range<internals::flattening_iterator<decltype(std::declval<OuterRange>().begin())>>;
+using flattened_range = boost::iterator_range<
+        internals::flattening_iterator<decltype(std::declval<OuterRange>().begin())>
+    >;
 
 template <typename OuterRange>
 flattened_range<OuterRange> flatten_range(OuterRange& rng)

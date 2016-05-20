@@ -4,7 +4,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include "libprecisegc/details/allocators/types.h"
+#include "libprecisegc/details/types.h"
 #include "libprecisegc/details/iterator_facade.h"
 #include "libprecisegc/details/iterator_access.h"
 
@@ -125,9 +125,19 @@ public:
         return m_obj_size;
     }
 
+    iterator begin()
+    {
+        return iterator(m_mem, m_obj_size);
+    }
+
+    iterator end()
+    {
+        return iterator(m_mem + m_obj_size, m_obj_size);
+    }
+
     range_type get_range()
     {
-        return range_type(iterator(m_mem, m_obj_size), iterator(m_mem + m_obj_size, m_obj_size));
+        return range_type(begin(), end());
     }
 private:
     byte* m_mem;

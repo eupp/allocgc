@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <unordered_set>
 
 #include "libprecisegc/details/gc_compact.h"
@@ -77,20 +78,24 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
         cell_ptr.set_mark(false);
     }
 
-    auto rng = m_alloc.range();
+    auto rng = m_alloc.memory_range();
     auto it0 = std::next(rng.begin(), 0);
     auto it1 = std::next(rng.begin(), 1);
     auto it2 = std::next(rng.begin(), 2);
     auto it3 = std::next(rng.begin(), 3);
     auto it4 = std::next(rng.begin(), 4);
 
+
     // mark & pin some objects
     it0->set_mark(true);
-
     it3->set_mark(true);
     it3->set_pin(true);
-
     it4->set_mark(true);
+
+    for (auto& p: rng) {
+        std::cout << (void*) p.get() << " " << p.get_mark() << " " << p.get_pin() << std::endl;
+    }
+    std::cout << std::distance(rng.begin(), rng.end()) << std::endl;
 
     byte* exp_to = it1->get();
     byte* exp_from = it4->get();
@@ -175,7 +180,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
         }
     }
 
-    auto rng = m_alloc.range();
+    auto rng = m_alloc.memory_range();
     list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
 

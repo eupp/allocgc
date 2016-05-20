@@ -91,12 +91,21 @@ void managed_pool_chunk::unmark()
     m_pin_bits.reset();
 }
 
-managed_pool_chunk::range_type managed_pool_chunk::get_range()
+managed_pool_chunk::iterator managed_pool_chunk::begin()
 {
     assert(get_mem());
-    byte* b = get_mem();
-    byte* e = b + get_mem_size();
-    return range_type(iterator(b, get_descriptor()), iterator(e, get_descriptor()));
+    return iterator(get_mem(), get_descriptor());
+}
+
+managed_pool_chunk::iterator managed_pool_chunk::end()
+{
+    assert(get_mem());
+    return iterator(get_mem() + get_mem_size(), get_descriptor());
+}
+
+managed_pool_chunk::range_type managed_pool_chunk::get_range()
+{
+    return range_type(begin(), end());
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t log2_cell_size, byte* base_ptr, size_t size)
@@ -195,7 +204,7 @@ managed_pool_chunk::iterator::iterator(byte* ptr, managed_memory_descriptor* des
     : m_ptr(ptr, descr)
 {}
 
-const managed_ptr& managed_pool_chunk::iterator::dereference() const
+managed_ptr managed_pool_chunk::iterator::dereference() const
 {
     return m_ptr;
 }

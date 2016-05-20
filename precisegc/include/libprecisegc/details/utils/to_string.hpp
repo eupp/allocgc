@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include <libprecisegc/details/allocators/types.h>
+#include <libprecisegc/details/types.h>
 
 namespace precisegc { namespace details { namespace utils {
 

@@ -73,7 +73,7 @@ void gc_heap::sweep()
     size_t sweep_size = 0;
     auto& bp = m_alloc.get_bucket_policy();
 //    for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-//        auto rng = m_alloc.range(i);
+//        auto rng = m_alloc.memory_range(i);
 //        size_t sweep_cnt = ::precisegc::details::sweep(rng);
 //        sweep_size += sweep_cnt * bp.bucket_size(i);
 //    }

@@ -6,7 +6,7 @@
 #include <limits>
 #include <vector>
 
-#include "types.h"
+#include <libprecisegc/details/types.h>
 #include "../util.h"
 
 namespace precisegc { namespace details { namespace allocators {

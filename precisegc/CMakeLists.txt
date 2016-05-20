@@ -6,7 +6,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/object_meta.h
         include/libprecisegc/details/gc_heap.h
-        include/libprecisegc/details/allocators/constants.h
+        include/libprecisegc/details/constants.h
         include/libprecisegc/details/math_util.h
         include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/iterator_facade.h
@@ -31,7 +31,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_initator.h
         include/libprecisegc/details/allocators/paged_allocator.h
         include/libprecisegc/details/allocators/index_tree.h
-        include/libprecisegc/details/allocators/types.h
+        include/libprecisegc/details/types.h
         include/libprecisegc/details/allocators/any_ptr.h
         include/libprecisegc/details/allocators/memory.h
         include/libprecisegc/details/allocators/debug_layer.h
@@ -45,7 +45,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/managed_pool_chunk.h
         include/libprecisegc/details/managed_memory_descriptor.h
         include/libprecisegc/details/managed_ptr.hpp
-        include/libprecisegc/details/utils/flattened_range.hpp
+        include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/allocators/fixed_block_cache.h
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
@@ -63,7 +63,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp)
+        include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp)
 
 
 set(precisegc_LIB_SRCS

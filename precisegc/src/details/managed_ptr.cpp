@@ -12,6 +12,11 @@ managed_ptr::managed_ptr()
     , m_descr(nullptr)
 {}
 
+managed_ptr::managed_ptr(nullptr_t)
+    : m_ptr(nullptr)
+    , m_descr(nullptr)
+{}
+
 managed_ptr::managed_ptr(byte* ptr)
     : m_ptr(ptr)
     , m_descr(indexer.get_entry(ptr))

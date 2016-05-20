@@ -33,8 +33,8 @@ public:
     class iterator: public boost::iterator_facade<
               iterator
             , const managed_ptr
-            , boost::random_access_traversal_tag>
-            , managed_ptr
+            , boost::random_access_traversal_tag
+            , managed_ptr>
     {
     public:
         iterator() noexcept;

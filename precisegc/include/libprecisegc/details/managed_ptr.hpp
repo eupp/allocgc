@@ -24,6 +24,7 @@ class managed_ptr
 {
 public:
     managed_ptr();
+    managed_ptr(nullptr_t);
     managed_ptr(byte* ptr);
     managed_ptr(byte* ptr, managed_memory_descriptor* descriptor);
 

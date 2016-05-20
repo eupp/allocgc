@@ -92,10 +92,10 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
     it3->set_pin(true);
     it4->set_mark(true);
 
-    for (auto& p: rng) {
-        std::cout << (void*) p.get() << " " << p.get_mark() << " " << p.get_pin() << std::endl;
-    }
-    std::cout << std::distance(rng.begin(), rng.end()) << std::endl;
+//    for (auto p: rng) {
+//        std::cout << (void*) p.get() << " " << p.get_mark() << " " << p.get_pin() << std::endl;
+//    }
+//    std::cout << std::distance(rng.begin(), rng.end()) << std::endl;
 
     byte* exp_to = it1->get();
     byte* exp_from = it4->get();

@@ -19,12 +19,16 @@ class flattening_iterator : public boost::iterator_facade<
           flattening_iterator<OuterIterator>
         , decltype(*std::declval<typename OuterIterator::value_type::iterator>())
         , boost::bidirectional_traversal_tag
+        , typename std::iterator_traits<typename OuterIterator::value_type::iterator>::reference
+        , typename std::iterator_traits<typename OuterIterator::value_type::iterator>::difference_type
     >
 {
     typedef boost::iterator_facade<
               flattening_iterator<OuterIterator>
             , decltype(*std::declval<typename OuterIterator::value_type::iterator>())
             , boost::bidirectional_traversal_tag
+            , typename std::iterator_traits<typename OuterIterator::value_type::iterator>::reference
+            , typename std::iterator_traits<typename OuterIterator::value_type::iterator>::difference_type
     > base;
 
     typedef OuterIterator outer_iterator;

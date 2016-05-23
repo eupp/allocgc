@@ -6,7 +6,7 @@
 #include "libprecisegc/details/gc_compact.h"
 #include "libprecisegc/details/forwarding.h"
 
-#include "libprecisegc/details/allocators/fixed_size_allocator.h"
+#include "libprecisegc/details/allocators/list_allocator.hpp"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/managed_pool_chunk.h"
 
@@ -25,7 +25,7 @@ struct test_type
     byte data[OBJ_SIZE];
 };
 
-typedef fixed_size_allocator<managed_pool_chunk,
+typedef list_allocator<managed_pool_chunk,
                              paged_allocator,
                              paged_allocator
                             > allocator_t;

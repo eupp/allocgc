@@ -37,8 +37,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/debug_layer.h
         include/libprecisegc/details/allocators/bucket_allocator.h
         include/libprecisegc/details/allocators/plain_pool_chunk.h
-        include/libprecisegc/details/allocators/fixed_size_allocator.h
-        include/libprecisegc/details/allocators/stl_adapter.h
+        include/libprecisegc/details/allocators/list_allocator.hpp
+        include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pointer_decorator.h
         include/libprecisegc/details/allocators/indexed_ptr.h
         include/libprecisegc/details/allocators/pow2_bucket_policy.h

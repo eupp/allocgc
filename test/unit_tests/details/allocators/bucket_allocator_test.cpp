@@ -100,5 +100,5 @@ TEST_F(bucket_allocator_test, test_allocate_3)
 //    m_alloc.deallocate(ptr1, OBJ_SIZE_1);
 //    m_alloc.deallocate(ptr2, OBJ_SIZE_2);
 //
-//    ASSERT_EQ(0, m_alloc.get_const_allocator().get_allocated_mem_size());
+//    ASSERT_EQ(0, m_alloc.const_upstream_allocator().get_allocated_mem_size());
 //}

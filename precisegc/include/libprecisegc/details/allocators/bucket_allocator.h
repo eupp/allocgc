@@ -6,7 +6,7 @@
 #include <utility>
 #include <mutex>
 
-#include "fixed_size_allocator.h"
+#include "list_allocator.hpp"
 #include "libprecisegc/details/types.h"
 #include "../util.h"
 
@@ -17,7 +17,7 @@ class bucket_allocator : private ebo<BucketPolicy>, private noncopyable
 {
     static const size_t BUCKET_COUNT = BucketPolicy::BUCKET_COUNT;
 
-    typedef fixed_size_allocator<Chunk, Alloc, InternalAlloc> fixed_size_allocator_t;
+    typedef list_allocator<Chunk, Alloc, InternalAlloc> fixed_size_allocator_t;
     typedef std::array<fixed_size_allocator_t, BUCKET_COUNT> array_t;
     typedef std::array<Lock, BUCKET_COUNT> lock_array_t;
 public:

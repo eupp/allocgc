@@ -10,7 +10,7 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/allocators/stl_adapter.h>
+#include <libprecisegc/details/allocators/stl_adapter.hpp>
 #include <libprecisegc/details/utils/flatten_range.hpp>
 #include <libprecisegc/details/util.h>
 #include <libprecisegc/details/constants.h>
@@ -18,7 +18,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename Chunk, typename UpstreamAlloc, typename InternalAlloc>
-class fixed_size_allocator : private ebo<UpstreamAlloc>, private noncopyable
+class list_allocator : private ebo<UpstreamAlloc>, private noncopyable
 {
     typedef std::list<Chunk, stl_adapter<Chunk, InternalAlloc>> list_t;
 public:
@@ -26,12 +26,19 @@ public:
     typedef stateful_alloc_tag alloc_tag;
     typedef utils::flattened_range<boost::iterator_range<typename list_t::iterator>> memory_range_type;
 
-    fixed_size_allocator()
+    list_allocator()
     {
         m_alloc_chunk = m_chunks.begin();
     }
 
-    fixed_size_allocator(fixed_size_allocator&&) = default;
+    list_allocator(list_allocator&&) = default;
+
+    ~list_allocator()
+    {
+        for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
+            it = destroy_chunk(it);
+        }
+    }
 
     pointer_type allocate(size_t size)
     {
@@ -74,9 +81,20 @@ public:
         return shrunk;
     }
 
-    void reset_cache()
+    template <typename Functor>
+    void apply_to_chunks(Functor& f)
     {
-        m_alloc_chunk = m_chunks.begin();
+        for (auto& chunk: m_chunks) {
+            f(chunk);
+        }
+    }
+
+    template <typename Functor>
+    void apply_to_chunks(const Functor& f)
+    {
+        for (auto& chunk: m_chunks) {
+            f(chunk);
+        }
     }
 
     memory_range_type memory_range()
@@ -84,12 +102,12 @@ public:
         return utils::flatten_range(m_chunks);
     }
 
-    const UpstreamAlloc& get_allocator() const
+    const UpstreamAlloc& upstream_allocator() const
     {
         return this->template get_base<UpstreamAlloc>();
     }
 
-    const UpstreamAlloc& get_const_allocator() const
+    const UpstreamAlloc& const_upstream_allocator() const
     {
         return this->template get_base<UpstreamAlloc>();
     }
@@ -105,13 +123,13 @@ private:
         assert(chunk_cnt <= Chunk::CHUNK_MAXSIZE);
         size_t chunk_size = chunk_cnt * cell_size;
         assert(chunk_size <= PAGE_SIZE);
-        return std::make_pair(get_allocator().allocate(chunk_size), chunk_size);
+        return std::make_pair(upstream_allocator().allocate(chunk_size), chunk_size);
     }
 
     void deallocate_block(internal_pointer_type p, size_t size)
     {
         assert(p);
-        get_allocator().deallocate(p, size);
+        upstream_allocator().deallocate(p, size);
     }
 
     typename list_t::iterator create_chunk(size_t cell_size)
@@ -130,7 +148,7 @@ private:
         return m_chunks.erase(chk);
     }
 
-    UpstreamAlloc& get_allocator()
+    UpstreamAlloc& upstream_allocator()
     {
         return this->template get_base<UpstreamAlloc>();
     }

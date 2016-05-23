@@ -10,7 +10,7 @@ namespace precisegc { namespace details {
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
     : m_chunk(chunk, size, cell_size)
     , m_cell_size(cell_size)
-    , m_log2_cell_size(log_2(cell_size))
+    , m_log2_cell_size(log2(cell_size))
     , m_mask(calc_mask(chunk, size, cell_size))
 {
     managed_ptr::add_to_index(chunk, size, get_descriptor());
@@ -111,7 +111,7 @@ managed_pool_chunk::range_type managed_pool_chunk::get_range()
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t log2_cell_size, byte* base_ptr, size_t size)
 {
     assert(base_ptr <= ptr && ptr < base_ptr + size);
-    assert((ptr - base_ptr) % pow_2(log2_cell_size) == 0);
+    assert((ptr - base_ptr) % pow2(log2_cell_size) == 0);
     return (ptr - base_ptr) >> log2_cell_size;
 }
 
@@ -177,8 +177,8 @@ managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
                                                           size_t chunk_size,
                                                           size_t cell_size)
 {
-    size_t chunk_size_bits = log_2(chunk_size);
-    size_t cell_size_bits = log_2(cell_size);
+    size_t chunk_size_bits = log2(chunk_size);
+    size_t cell_size_bits = log2(cell_size);
     size_t bit_diff = chunk_size_bits - cell_size_bits;
     uintptr ptr = reinterpret_cast<uintptr>(chunk);
     return (ptr | (((1 << bit_diff) - 1) << cell_size_bits));

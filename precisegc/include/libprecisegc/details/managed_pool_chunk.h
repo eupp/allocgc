@@ -78,7 +78,7 @@ public:
     bool empty() const noexcept;
     bool empty(size_t cell_size) const noexcept;
 
-    byte* get_mem() const;
+    byte*  get_mem() const;
     size_t get_mem_size() const;
     size_t get_cell_size() const;
 

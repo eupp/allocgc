@@ -16,7 +16,7 @@ public:
 
     scoped_thread& operator=(scoped_thread&&) = default;
 
-    explicit scoped_thread(std::thread&& thread)
+    scoped_thread(std::thread&& thread)
         : m_thread(std::move(thread))
     {}
 

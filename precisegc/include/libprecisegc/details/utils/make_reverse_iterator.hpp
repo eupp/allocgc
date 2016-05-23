@@ -3,6 +3,8 @@
 
 #include <iterator>
 
+#include <boost/dynamic_bitset/dynamic_bitset.hpp>
+
 namespace precisegc { namespace details { namespace utils {
 
 template <typename Iterator>

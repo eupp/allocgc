@@ -6,22 +6,33 @@
 
 namespace precisegc { namespace details {
 
-/* returns log_2 if argument is a power of 2 */
-inline size_t log_2(size_t n)
+constexpr bool check_pow2(size_t n)
 {
-    assert((n & (n - 1)) == 0 && n != 0);
+    return (n != 0) && !(n & (n - 1));
+}
+
+constexpr size_t pow2(size_t n)
+{
+    return ((size_t) 1) << n;
+}
+
+// returns log2 if argument is a power of 2
+inline size_t log2(size_t n)
+{
+    assert(check_pow2(n));
     size_t l = sizeof(size_t) * CHAR_BIT, r = 0;
     while (true) {
         size_t m = ((l - r) >> 1) + r;
-        if (l == m || r == m) { return m; }
-        if (((((size_t)1 << m) - 1) & n) == 0) { r = m; }
-        else { l = m; }
+        if (l == m || r == m) {
+            return m;
+        }
+        if (((((size_t)1 << m) - 1) & n) == 0) {
+            r = m;
+        }
+        else {
+            l = m;
+        }
     }
-}
-
-inline size_t pow_2(size_t n)
-{
-    return ((size_t) 1) << n;
 }
 
 inline size_t msb(size_t n)

@@ -106,7 +106,7 @@ std::atomic<bool> gc_finished(false);
 
 static const int TREE_DEPTH = 2;
 static const int THREADS_COUNT = 4; // must be power of 2 and <= 2^(TREE_DEPTH)
-const size_t LIVE_LEVEL = log_2(THREADS_COUNT);
+const size_t LIVE_LEVEL = ::log2(THREADS_COUNT);
 
 static barrier threads_ready(THREADS_COUNT + 1);
 
@@ -116,7 +116,7 @@ static void* thread_routine(void* arg)
     int num = thread_num++;
     // assign to each thread a leaf in the tree
     gc_ptr<node> ptr = root;
-    for (int i = 0; i < log_2(THREADS_COUNT); ++i, num /= 2) {
+    for (int i = 0; i < ::log2(THREADS_COUNT); ++i, num /= 2) {
         ptr = num % 2 ? ptr->m_left : ptr->m_right;
     }
     threads_ready.wait();

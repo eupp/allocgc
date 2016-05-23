@@ -8,7 +8,7 @@
 using namespace precisegc::details::utils;
 
 namespace {
-static const size_t ULL_SIZE = sizeof(unsigned long long);
+static const size_t ULL_SIZE = CHAR_BIT * sizeof(unsigned long long);
 }
 
 TEST(bitset_test, test_get_set)
@@ -107,13 +107,16 @@ TEST(sync_bitset_test, test_consistency)
 
     scoped_thread threads[SIZE];
     for (size_t i = 0; i < SIZE; ++i) {
-        threads[i] = std::thread([i, &bits] { bits.set(i, true); });
+        threads[i] = std::thread([i, &bits] {
+            bits.set(i, true);
+        });
     }
 
     for (size_t i = 0; i < SIZE; ++i) {
         threads[i].join();
     }
 
+    ASSERT_EQ(SIZE, bits.count());
     ASSERT_TRUE(bits.all());
 }
 
@@ -125,12 +128,12 @@ TEST(sync_bitset_test, test_synchronization)
     size_t i = 0;
     size_t j = 1;
 
-    scoped_thread write_x_then_y = std::thread([i, j, &bits] {
+    scoped_thread write_i_then_j = std::thread([i, j, &bits] {
         bits.set(i, true);
         bits.set(j, true);
     });
 
-    scoped_thread read_y_then_x = std::thread([i, j, &bits] {
+    scoped_thread read_j_then_i = std::thread([i, j, &bits] {
         while (!bits.get(j));
         ASSERT_TRUE(bits.get(i));
     });

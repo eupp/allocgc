@@ -10,6 +10,7 @@
 #include <boost/integer/static_log2.hpp>
 
 #include <libprecisegc/details/math_util.h>
+#include <iostream>
 
 namespace precisegc { namespace details { namespace utils {
 
@@ -95,7 +96,7 @@ private:
 template <size_t N, typename Block>
 class bitset
 {
-    static const size_t BLOCK_SIZE = sizeof(Block);
+    static const size_t BLOCK_SIZE = CHAR_BIT * sizeof(Block);
     static const size_t LOG2_BLOCK_SIZE = boost::static_log2<BLOCK_SIZE>::value;
     static const size_t BLOCK_CNT = N / BLOCK_SIZE;
 
@@ -147,8 +148,9 @@ public:
     {
         bool b = true;
         for (auto& block: m_blocks) {
-            b &= !(~block.load());
+            b &= (block.load() == MAX);
         }
+        return b;
     }
 
     bool any() const
@@ -157,6 +159,7 @@ public:
         for (auto& block: m_blocks) {
             b |= (block.load() != 0);
         }
+        return b;
     }
 
     bool none() const
@@ -213,7 +216,7 @@ public:
         if (blk_shift < BLOCK_CNT) {
             m_blocks[BLOCK_CNT - blk_shift - 1].store(m_blocks[BLOCK_CNT - 1].load() >> bits_shift);
             for (size_t i = 0; i < BLOCK_CNT - blk_shift - 1; ++i) {
-                ull v = (m_blocks[i + blk_shift].load() >> bits_shift) | (m_blocks[i + blk_shift].load() << bits_carry);
+                ull v = (m_blocks[i + blk_shift].load() >> bits_shift) | (m_blocks[i + blk_shift + 1].load() << bits_carry);
                 m_blocks[i].store(v);
             }
         }

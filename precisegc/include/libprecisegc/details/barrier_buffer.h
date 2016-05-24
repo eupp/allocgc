@@ -11,7 +11,7 @@
 
 namespace precisegc { namespace details {
 
-class barrier_buffer: public noncopyable, public nonmovable
+class barrier_buffer: public utils::noncopyable, public utils::nonmovable
 {
 public:
     barrier_buffer();

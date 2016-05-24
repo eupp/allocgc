@@ -13,7 +13,7 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-class managed_thread : private noncopyable, private nonmovable
+class managed_thread : private utils::noncopyable, private utils::nonmovable
 {
 public:
     static managed_thread& this_thread()

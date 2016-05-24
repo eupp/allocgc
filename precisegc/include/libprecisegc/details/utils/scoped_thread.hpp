@@ -8,7 +8,7 @@
 
 namespace precisegc { namespace details { namespace utils {
 
-class scoped_thread : private noncopyable
+class scoped_thread : private utils::noncopyable
 {
 public:
     scoped_thread() = default;

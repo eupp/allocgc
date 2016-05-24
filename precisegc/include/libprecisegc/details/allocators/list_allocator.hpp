@@ -18,7 +18,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename Chunk, typename UpstreamAlloc, typename InternalAlloc>
-class list_allocator : private ebo<UpstreamAlloc>, private noncopyable
+class list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable
 {
     typedef std::list<Chunk, stl_adapter<Chunk, InternalAlloc>> list_t;
 public:

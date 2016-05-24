@@ -7,7 +7,7 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-class pending_call : private noncopyable, private nonmovable
+class pending_call : private utils::noncopyable, private utils::nonmovable
 {
 public:
     typedef void (*callable_type)(void);

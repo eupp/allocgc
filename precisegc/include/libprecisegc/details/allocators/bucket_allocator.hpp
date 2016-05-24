@@ -15,7 +15,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename Chunk, typename Alloc, typename InternalAlloc, typename BucketPolicy, typename Lock>
-class bucket_allocator : private ebo<BucketPolicy>, private noncopyable
+class bucket_allocator : private utils::ebo<BucketPolicy>, private utils::noncopyable
 {
     static const size_t BUCKET_COUNT = BucketPolicy::BUCKET_COUNT;
 

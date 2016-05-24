@@ -10,7 +10,7 @@
 namespace precisegc { namespace details { namespace threads {
 
 namespace internals {
-class unnamed_pipe : private noncopyable, private nonmovable
+class unnamed_pipe : private utils::noncopyable, private utils::nonmovable
 {
 public:
     unnamed_pipe();
@@ -23,7 +23,7 @@ protected:
 };
 }
 
-class ass_event : private noncopyable, private nonmovable
+class ass_event : private utils::noncopyable, private utils::nonmovable
 {
 public:
     ass_event() = default;
@@ -34,7 +34,7 @@ private:
     internals::unnamed_pipe m_pipe;
 };
 
-class ass_barrier : public noncopyable, private nonmovable
+class ass_barrier : public utils::noncopyable, private utils::nonmovable
 {
 public:
     ass_barrier() = default;
@@ -45,7 +45,7 @@ private:
     internals::unnamed_pipe m_pipe;
 };
 
-class ass_mutex : public noncopyable, public nonmovable
+class ass_mutex : public utils::noncopyable, public utils::nonmovable
 {
 public:
     ass_mutex() = default;

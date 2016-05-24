@@ -20,7 +20,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename T, typename Alloc>
-class index_tree : private ebo<Alloc>, private noncopyable, private nonmovable
+class index_tree : private utils::ebo<Alloc>, private utils::noncopyable, private utils::nonmovable
 {
     static const size_t CACHE_SIZE = 128;
     typedef std::unordered_map<byte*, T*> cache_t;

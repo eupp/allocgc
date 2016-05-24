@@ -9,7 +9,7 @@
 namespace precisegc { namespace details { namespace utils {
 
 template <typename Callable>
-class scope_guard : private noncopyable
+class scope_guard : private utils::noncopyable
 {
 public:
     template<typename C>

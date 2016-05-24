@@ -14,7 +14,7 @@
 
 namespace precisegc { namespace details {
 
-class gc_garbage_collector: public noncopyable, public nonmovable
+class gc_garbage_collector: public utils::noncopyable, public utils::nonmovable
 {
 public:
     static gc_garbage_collector& instance();

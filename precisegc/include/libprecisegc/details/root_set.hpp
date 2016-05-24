@@ -6,7 +6,7 @@
 
 namespace precisegc { namespace details {
 
-class root_set : private noncopyable
+class root_set : private utils::noncopyable
 {
 public:
     struct element

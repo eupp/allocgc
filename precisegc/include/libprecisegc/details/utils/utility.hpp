@@ -3,7 +3,7 @@
 
 #include <type_traits>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace utils {
 
 template <typename... >
 using void_t = void;
@@ -51,15 +51,6 @@ public:
     }
 };
 
-template <bool Cond, typename T>
-struct conditional_member {};
-
-template <typename T>
-struct conditional_member<true, T>
-{
-    T member;
-};
-
-}}
+}}}
 
 #endif //DIPLOMA_UTILITY_H

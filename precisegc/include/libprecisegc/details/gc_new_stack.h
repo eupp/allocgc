@@ -9,7 +9,7 @@
 
 namespace precisegc { namespace details {
 
-class gc_new_stack : public noncopyable, public nonmovable
+class gc_new_stack : public utils::noncopyable, public utils::nonmovable
 {
 public:
     class activation_entry

@@ -15,7 +15,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class plain_pool_chunk: private noncopyable
+class plain_pool_chunk: private utils::noncopyable
 {
 public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;

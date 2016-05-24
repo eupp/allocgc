@@ -16,7 +16,7 @@ namespace precisegc { namespace details { namespace threads {
 
 class managed_thread;
 
-class thread_manager : private noncopyable, private nonmovable
+class thread_manager : private utils::noncopyable, private utils::nonmovable
 {
     typedef std::map<std::thread::id, managed_thread*> map_type;
     typedef std::recursive_mutex lock_type;

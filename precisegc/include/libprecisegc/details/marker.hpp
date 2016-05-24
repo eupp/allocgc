@@ -31,7 +31,7 @@ public:
 
     void wait_for_marking();
 private:
-    class queue_chunk : private noncopyable, private nonmovable
+    class queue_chunk : private utils::noncopyable, private utils::nonmovable
     {
     public:
         queue_chunk();
@@ -47,7 +47,7 @@ private:
         size_t m_size;
     };
 
-    class worker : private noncopyable
+    class worker : private utils::noncopyable
     {
     public:
         static void routine(marker* m);

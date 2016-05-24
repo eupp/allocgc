@@ -13,7 +13,6 @@ class logging
 {
     class log_line;
 public:
-
     enum class loglevel {
         DEBUG,
         INFO,
@@ -29,7 +28,7 @@ public:
     static log_line error();
 
 private:
-    class logger: public noncopyable, public nonmovable
+    class logger: public utils::noncopyable, public utils::nonmovable
     {
     public:
         explicit logger(std::ostream& stream);
@@ -44,7 +43,7 @@ private:
         std::ostream m_stream;
     };
 
-    class log_line: public noncopyable
+    class log_line: public utils::noncopyable
     {
     public:
         explicit log_line(loglevel lv);

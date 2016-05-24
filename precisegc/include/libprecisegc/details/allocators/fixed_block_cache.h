@@ -13,7 +13,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename Alloc, size_t BlockSize, size_t Size>
-class fixed_block_cache : private ebo<Alloc>, private noncopyable, private nonmovable
+class fixed_block_cache : private utils::ebo<Alloc>, private utils::noncopyable, private utils::nonmovable
 {
     static const size_t CacheSize = Size / BlockSize;
     typedef std::vector<byte*> cache_t;

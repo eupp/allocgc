@@ -9,7 +9,7 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-class stw_manager : private noncopyable, private nonmovable
+class stw_manager : private utils::noncopyable, private utils::nonmovable
 {
 public:
     static stw_manager& instance();

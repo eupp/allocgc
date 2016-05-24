@@ -62,7 +62,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/lock_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp)
+        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp)
 
 
 set(precisegc_LIB_SRCS
@@ -87,7 +87,6 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/atomic_bitset.cpp
         src/details/marker.cpp src/details/gc_hooks.cpp)
 
 

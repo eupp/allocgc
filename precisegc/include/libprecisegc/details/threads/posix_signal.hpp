@@ -15,7 +15,7 @@ extern "C" {
 void sighandler(int signum);
 }
 
-class posix_signal : private noncopyable, private nonmovable
+class posix_signal : private utils::noncopyable, private utils::nonmovable
 {
 public:
     typedef pending_call::callable_type handler_type;

@@ -9,7 +9,7 @@ namespace precisegc { namespace details {
 
 static std::unique_ptr<gc_interface> gc = nullptr;
 
-void gc_init(gc_strategy strategy)
+void gc_init(gc_options opts)
 {
 
 }

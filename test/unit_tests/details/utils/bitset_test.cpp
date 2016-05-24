@@ -99,6 +99,25 @@ TEST(bitset_test, test_right_shift)
     ASSERT_TRUE(bits.none());
 }
 
+TEST(bitset_test, test_msb)
+{
+    static const size_t SIZE = 4 * ULL_SIZE;
+    bitset<SIZE> bits;
+
+    size_t bit_idx = ULL_SIZE / 2 + 1;
+
+    bits.set(bit_idx);
+    ASSERT_EQ(bit_idx, *bits.most_significant_bit());
+
+    bits.reset(bit_idx);
+    bit_idx = 0;
+    bits.set(bit_idx);
+    ASSERT_EQ(bit_idx, *bits.most_significant_bit());
+
+    bits.reset(bit_idx);
+    ASSERT_FALSE(bits.most_significant_bit().is_initialized());
+}
+
 
 TEST(sync_bitset_test, test_consistency)
 {

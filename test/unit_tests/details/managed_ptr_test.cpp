@@ -85,6 +85,16 @@ TEST_F(managed_ptr_test, test_set_pin)
     ptr.set_pin(true);
 }
 
+TEST_F(managed_ptr_test, test_set_live)
+{
+    managed_ptr ptr(m_mem.get(), &m_mock);
+
+    EXPECT_CALL(m_mock, set_live(m_mem.get(), true))
+            .Times(Exactly(1));
+
+    ptr.set_live(true);
+}
+
 TEST_F(managed_ptr_test, test_is_live)
 {
     managed_ptr ptr(m_mem.get(), &m_mock);

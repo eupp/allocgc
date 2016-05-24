@@ -15,6 +15,7 @@ public:
     MOCK_METHOD2(set_pin, void(byte* ptr, bool pin));
 
     MOCK_CONST_METHOD1(is_live, bool(byte*));
+    MOCK_METHOD2(set_live, void(byte*, bool));
 
     MOCK_METHOD1(sweep, void (byte* ptr));
 

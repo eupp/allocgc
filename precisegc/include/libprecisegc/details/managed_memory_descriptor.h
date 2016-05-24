@@ -23,6 +23,7 @@ public:
     virtual void set_pin(byte* ptr, bool pin) = 0;
 
     virtual bool is_live(byte* ptr) const = 0;
+    virtual void set_live(byte* ptr, bool live) = 0;
 
     virtual void sweep(byte* ptr) = 0;
 

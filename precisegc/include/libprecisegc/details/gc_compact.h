@@ -24,13 +24,13 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
     auto to = rng.begin();
     auto from = rng.end();
     while (from != to) {
-        to = std::find_if(to, from, [](const managed_ptr& cell_ptr) {
-                return !cell_ptr.get_mark() && !cell_ptr.get_pin();
+        to = std::find_if(to, from, [](managed_ptr cell_ptr) {
+                return !cell_ptr.get_mark();
         });
 
         auto rev_from = std::find_if(reverse_iterator(from),
                                      reverse_iterator(to),
-                                     [](const managed_ptr& cell_ptr) {
+                                     [](managed_ptr cell_ptr) {
                                          return cell_ptr.get_mark() && !cell_ptr.get_pin();
         });
 
@@ -40,9 +40,12 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
             frwd.create(from->get(), to->get(), obj_size);
             from->set_mark(false);
             to->set_mark(true);
+            to->set_live(true);
         }
     }
 }
+
+#include <iostream>
 
 template <typename Range>
 size_t sweep(Range& rng)
@@ -51,7 +54,7 @@ size_t sweep(Range& rng)
     for (managed_ptr cell_ptr: rng) {
         if (cell_ptr.get_mark()) {
             cell_ptr.set_mark(false);
-        } else if (!cell_ptr.get_pin()) {
+        } else if (cell_ptr.is_live() && !cell_ptr.get_pin()) {
             cell_ptr.sweep();
             sweep_cnt++;
         }

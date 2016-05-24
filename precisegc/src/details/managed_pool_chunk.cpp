@@ -25,8 +25,6 @@ managed_ptr managed_pool_chunk::allocate(size_t cell_size)
 {
     assert(cell_size == get_cell_size());
     byte* raw_ptr = m_chunk.allocate(cell_size);
-    size_t ind = calc_cell_ind(raw_ptr, get_log2_cell_size(), get_mem(), get_mem_size());
-    m_alloc_bits[ind] = true;
     return managed_ptr(raw_ptr, get_descriptor());
 }
 
@@ -38,11 +36,7 @@ void managed_pool_chunk::deallocate(const managed_ptr& ptr, size_t cell_size)
 void managed_pool_chunk::deallocate(byte* ptr, size_t cell_size)
 {
     assert(cell_size == get_cell_size());
-    size_t ind = calc_cell_ind(ptr, get_log2_cell_size(), get_mem(), get_mem_size());
-    if (m_alloc_bits[ind]) {
-        m_alloc_bits[ind] = false;
-        m_chunk.deallocate(ptr, cell_size);
-    }
+    m_chunk.deallocate(ptr, cell_size);
 }
 
 bool managed_pool_chunk::contains(const managed_ptr& ptr) const noexcept
@@ -139,10 +133,14 @@ void managed_pool_chunk::set_pin(byte* ptr, bool pin)
     m_pin_bits[ind] = pin;
 }
 
+void managed_pool_chunk::set_live(byte* ptr, bool live)
+{
+    m_chunk.set_live(ptr, m_cell_size, live);
+}
+
 bool managed_pool_chunk::is_live(byte* ptr) const
 {
-    size_t ind = calc_cell_ind(ptr);
-    return m_alloc_bits[ind];
+    return m_chunk.is_live(ptr, m_cell_size);
 }
 
 void managed_pool_chunk::sweep(byte* ptr)

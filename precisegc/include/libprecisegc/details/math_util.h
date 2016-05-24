@@ -35,14 +35,45 @@ inline size_t log2(size_t n)
     }
 }
 
-inline size_t msb(size_t n)
+
+// implementation is taken from http://stackoverflow.com/a/7767592/4676150
+inline size_t msb(unsigned long long n)
 {
-    size_t i = 0;
-    while (n > 1) {
-        n >>= 1;
-        ++i;
-    }
-    return i;
+    static const unsigned long long maskv[] = {
+            0x000000007FFFFFFF,
+            0x000000000000FFFF,
+            0x00000000000000FF,
+            0x000000000000000F,
+            0x0000000000000003,
+            0x0000000000000001
+    };
+    const unsigned long long *mask = maskv;
+
+    assert(n != 0);
+
+    size_t hi = 64;
+    size_t lo = 0;
+
+    do {
+        size_t m = lo + (hi - lo) / 2;
+        if ((n >> m) != 0) {
+            lo = m;
+        }
+        else if ((n & (*mask << lo)) != 0) {
+            hi = m;
+        }
+
+        mask++;
+    } while (lo < hi - 1);
+
+    return lo;
+}
+
+// not a best solution
+inline size_t lsb(unsigned long long n)
+{
+    assert(n != 0);
+    return msb(n & -n);
 }
 
 }}

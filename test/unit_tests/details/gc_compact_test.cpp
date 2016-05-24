@@ -223,6 +223,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 
     list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
+
     size_t sweep_cnt = sweep(rng);
 
     for (auto it = rng.begin(); it != rng.end(); ++it) {

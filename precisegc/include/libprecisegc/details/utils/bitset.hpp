@@ -6,8 +6,10 @@
 #include <atomic>
 #include <array>
 #include <limits>
+#include <stdexcept>
 
 #include <boost/integer/static_log2.hpp>
+#include <boost/optional.hpp>
 
 #include <libprecisegc/details/math_util.h>
 #include <iostream>
@@ -120,7 +122,7 @@ public:
     void reset(size_t i)
     {
         ull mask = ONE << bit_offset(i);
-        m_blocks[block_idx(i)].fetch_xor(mask);
+        m_blocks[block_idx(i)].fetch_and(~mask);
     }
 
     void set(size_t i, bool val)
@@ -184,6 +186,30 @@ public:
         return cnt;
     }
 
+    boost::optional<size_t> most_significant_bit() const
+    {
+        for (size_t i = BLOCK_CNT - 1; i > 0; --i) {
+            ull val = m_blocks[i].load();
+            if (val != 0) {
+                return boost::make_optional(msb(val) + i * BLOCK_SIZE);
+            }
+        }
+        ull val = m_blocks[0].load();
+        return val != 0 ? boost::make_optional(msb(val)) : boost::optional<size_t>();
+    }
+
+    boost::optional<size_t> least_significant_bit() const
+    {
+        for (size_t i = 0; i < BLOCK_CNT - 1; ++i) {
+            ull val = m_blocks[i].load();
+            if (val != 0) {
+                return boost::make_optional(lsb(val) + i * BLOCK_SIZE);
+            }
+        }
+        ull val = m_blocks[BLOCK_CNT - 1].load();
+        return val != 0 ? boost::make_optional(lsb(val) + (BLOCK_CNT - 1) * BLOCK_SIZE) : boost::optional<size_t>();
+    }
+
     bitset& operator<<=(size_t pos)
     {
         size_t blk_shift  = block_idx(pos);
@@ -204,7 +230,7 @@ public:
 
     bitset operator<<(size_t pos) const
     {
-
+        return bitset(*this) <<= pos;
     }
 
     bitset& operator>>=(size_t pos)
@@ -228,8 +254,23 @@ public:
     }
 
     bitset operator>>(size_t pos) const
-    {}
+    {
+        return bitset(*this) >>= pos;
+    }
 
+    void swap(bitset& other)
+    {
+        for (size_t i = 0; i < BLOCK_CNT; ++i) {
+            ull tmp = m_blocks[i].load();
+            m_blocks[i].store(other.m_blocks[i].load());
+            other.m_blocks[i].store(tmp);
+        }
+    }
+
+    friend void swap(bitset& a, bitset& b)
+    {
+        a.swap(b);
+    }
 private:
     static const ull ZERO = 0;
     static const ull ONE  = 1;

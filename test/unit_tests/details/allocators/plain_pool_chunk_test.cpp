@@ -53,11 +53,11 @@ TEST_F(plain_pool_chunk_test, test_contains)
 
 TEST_F(plain_pool_chunk_test, test_empty)
 {
-    ASSERT_TRUE(m_chk.empty(OBJ_SIZE));
+    ASSERT_TRUE(m_chk.empty());
 
     for (int i = 0; i < CHUNK_SIZE; ++i) {
         size_t* ptr = (size_t*) m_chk.allocate(OBJ_SIZE);
-        ASSERT_FALSE(m_chk.empty(OBJ_SIZE));
+        ASSERT_FALSE(m_chk.empty());
     }
 }
 

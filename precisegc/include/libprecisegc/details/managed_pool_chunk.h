@@ -36,6 +36,20 @@ public:
             , boost::random_access_traversal_tag
             , managed_ptr>
     {
+        class proxy
+        {
+        public:
+            proxy(const managed_ptr& ptr)
+                : m_ptr(ptr)
+            {}
+
+            managed_ptr* operator->()
+            {
+                return &m_ptr;
+            }
+        private:
+            managed_ptr m_ptr;
+        };
     public:
         iterator() noexcept;
         iterator(const iterator&) noexcept = default;
@@ -43,6 +57,11 @@ public:
 
         iterator& operator=(const iterator&) noexcept = default;
         iterator& operator=(iterator&&) noexcept = default;
+
+        proxy operator->()
+        {
+            return proxy(m_ptr);
+        }
     private:
         friend class managed_pool_chunk;
         friend class boost::iterator_core_access;
@@ -97,6 +116,7 @@ public:
     virtual void set_pin(byte* ptr, bool pin) override;
 
     virtual bool is_live(byte* ptr) const override;
+    virtual void set_live(byte* ptr, bool live) override;
 
     virtual void sweep(byte* ptr) override;
 
@@ -113,7 +133,6 @@ private:
     size_t get_log2_cell_size() const;
 
     plain_pool_chunk m_chunk;
-    bitset_t m_alloc_bits;
     size_t m_cell_size;
     size_t m_log2_cell_size;
     uintptr m_mask;

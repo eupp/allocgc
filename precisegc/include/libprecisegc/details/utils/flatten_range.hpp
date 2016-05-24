@@ -84,7 +84,7 @@ private:
 
     void decrement()
     {
-        assert(!(m_outer_it == m_outer_begin && m_inner_it == m_outer_it->begin()));
+        assert(m_outer_it == m_outer_end || !(m_outer_it == m_outer_begin && m_inner_it == m_outer_it->begin()));
         if (m_outer_it == m_outer_end || m_inner_it == m_outer_it->begin()) {
             m_outer_it = skip_empty_ranges(utils::make_reverse_iterator(m_outer_it),
                                            utils::make_reverse_iterator(m_outer_begin)).base();

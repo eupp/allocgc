@@ -41,8 +41,11 @@ void gc_heap::compact()
 //    logging::info() << "Fixing roots...";
     fix_roots(frwd);
 //    logging::info() << "Sweeping...";
-    sweep();
-    m_alloc.reset_bits();
+//    sweep();
+
+    m_alloc.apply_to_chunks([] (managed_pool_chunk& chunk) {
+        chunk.unmark();
+    });
 }
 
 gc_heap::forwarding gc_heap::compact_memory()
@@ -50,7 +53,7 @@ gc_heap::forwarding gc_heap::compact_memory()
     forwarding frwd;
     auto& bp = m_alloc.get_bucket_policy();
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        auto rng = m_alloc.range(i);
+        auto rng = m_alloc.memory_range(i);
         two_finger_compact(rng, bp.bucket_size(i), frwd);
     }
     return frwd;
@@ -60,7 +63,7 @@ void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
 {
     auto& bp = m_alloc.get_bucket_policy();
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        auto rng = m_alloc.range(i);
+        auto rng = m_alloc.memory_range(i);
         ::precisegc::details::fix_pointers(rng.begin(), rng.end(), bp.bucket_size(i), frwd);
     }
 }

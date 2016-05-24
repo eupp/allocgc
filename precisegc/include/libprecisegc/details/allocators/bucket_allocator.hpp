@@ -6,9 +6,11 @@
 #include <utility>
 #include <mutex>
 
-#include "list_allocator.hpp"
-#include "libprecisegc/details/types.h"
-#include "../util.h"
+#include <libprecisegc/details/allocators/list_allocator.hpp>
+#include <libprecisegc/details/utils/lock_range.hpp>
+#include <libprecisegc/details/types.h>
+#include <libprecisegc/details/util.h>
+
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -22,7 +24,7 @@ class bucket_allocator : private ebo<BucketPolicy>, private noncopyable
     typedef std::array<Lock, BUCKET_COUNT> lock_array_t;
 public:
     typedef typename Chunk::pointer_type pointer_type;
-    typedef typename fixed_size_allocator_t::memory_range_type range_type;
+    typedef utils::locked_range<typename fixed_size_allocator_t::memory_range_type, Lock> range_type;
 
     bucket_allocator() = default;
     bucket_allocator(bucket_allocator&&) = default;
@@ -48,31 +50,41 @@ public:
 
     size_t shrink()
     {
-        size_t size = 0;
+        size_t shrunk = 0;
         auto& bp = get_bucket_policy();
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            size += m_buckets[i].shrink(bp.bucket_size(i));
+            shrunk += m_buckets[i].shrink(bp.bucket_size(i));
         }
-        return size;
+        return shrunk;
     }
 
-    void reset_bits()
+    template <typename Functor>
+    void apply_to_chunks(Functor& f)
     {
-//        for (auto& alloc: m_buckets) {
-//            alloc.reset_bits();
-//        }
+        for (size_t i = 0; i < BUCKET_COUNT; ++i) {
+            std::lock_guard<Lock> lock(m_locks[i]);
+            m_buckets[i].apply_to_chunks(f);
+        }
     }
 
-    range_type range(size_t bucket_ind)
+    template <typename Functor>
+    void apply_to_chunks(const Functor& f)
     {
-        return m_buckets[bucket_ind].memory_range();
+        for (size_t i = 0; i < BUCKET_COUNT; ++i) {
+            std::lock_guard<Lock> lock(m_locks[i]);
+            m_buckets[i].apply_to_chunks(f);
+        }
+    }
+
+    range_type memory_range(size_t bucket_ind)
+    {
+        return utils::lock_range(m_buckets[bucket_ind].memory_range(), m_locks[bucket_ind]);
     }
 
     BucketPolicy& get_bucket_policy()
     {
         return this->template get_base<BucketPolicy>();
     }
-
 private:
     array_t m_buckets;
     lock_array_t m_locks;

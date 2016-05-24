@@ -45,8 +45,6 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
     }
 }
 
-#include <iostream>
-
 template <typename Range>
 size_t sweep(Range& rng)
 {

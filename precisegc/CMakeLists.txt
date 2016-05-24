@@ -35,7 +35,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/any_ptr.h
         include/libprecisegc/details/allocators/memory.h
         include/libprecisegc/details/allocators/debug_layer.h
-        include/libprecisegc/details/allocators/bucket_allocator.h
+        include/libprecisegc/details/allocators/bucket_allocator.hpp
         include/libprecisegc/details/allocators/plain_pool_chunk.h
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
@@ -60,7 +60,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/posix_thread.hpp
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/marker.hpp
-        include/libprecisegc/details/utils/locked_range.hpp
+        include/libprecisegc/details/utils/lock_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
         include/libprecisegc/details/atomic_bitset.h include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp)

@@ -8,7 +8,7 @@
 
 #include "forwarding.h"
 #include "object_meta.h"
-#include "allocators/bucket_allocator.h"
+#include "allocators/bucket_allocator.hpp"
 #include "allocators/pow2_bucket_policy.h"
 #include "allocators/paged_allocator.h"
 #include "allocators/fixed_block_cache.h"

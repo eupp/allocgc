@@ -10,7 +10,7 @@
 
 #include <libprecisegc/details/util.h>
 #include <libprecisegc/details/utils/gc_exception.hpp>
-#include <libprecisegc/details/utils/locked_range.hpp>
+#include <libprecisegc/details/utils/lock_range.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

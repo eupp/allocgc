@@ -11,7 +11,7 @@ namespace precisegc { namespace details { namespace utils {
 inline std::string to_string(byte* address)
 {
     std::stringstream ss;
-    ss << address;
+    ss << (void*) address;
     return ss.str();
 }
 

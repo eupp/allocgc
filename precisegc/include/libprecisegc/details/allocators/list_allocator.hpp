@@ -111,7 +111,6 @@ public:
     {
         return this->template get_base<UpstreamAlloc>();
     }
-
 private:
     typedef typename UpstreamAlloc::pointer_type internal_pointer_type;
 

@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include "gc_untyped_pin.h"
-#include "types.h"
+#include "types.hpp"
 #include "gc_new_stack.h"
 
 namespace precisegc { namespace details {

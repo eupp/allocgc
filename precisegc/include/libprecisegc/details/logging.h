@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <libprecisegc/details/threads/ass_sync.hpp>
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
 

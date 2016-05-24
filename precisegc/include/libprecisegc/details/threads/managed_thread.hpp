@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/root_set.hpp>
 #include <libprecisegc/details/barrier_buffer.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>

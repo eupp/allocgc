@@ -6,9 +6,9 @@
 #include <limits>
 #include <bitset>
 
-#include <libprecisegc/details/types.h>
-#include <libprecisegc/details/util.h>
-#include <libprecisegc/details/constants.h>
+#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 
 #include <boost/dynamic_bitset.hpp>

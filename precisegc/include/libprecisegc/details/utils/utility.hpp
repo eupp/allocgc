@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_NONCOPYABLE_H
-#define DIPLOMA_NONCOPYABLE_H
+#ifndef DIPLOMA_UTILITY_H
+#define DIPLOMA_UTILITY_H
 
 #include <type_traits>
 
@@ -62,4 +62,4 @@ struct conditional_member<true, T>
 
 }}
 
-#endif //DIPLOMA_NONCOPYABLE_H
+#endif //DIPLOMA_UTILITY_H

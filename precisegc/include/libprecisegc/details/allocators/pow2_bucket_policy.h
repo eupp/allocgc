@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <cassert>
 
-#include "../math_util.h"
+#include "libprecisegc/details/utils/math.h"
 
 namespace precisegc { namespace details { namespace allocators {
 

@@ -2,7 +2,7 @@
 #define DIPLOMA_ROOT_SET_HPP
 
 #include <libprecisegc/details/gc_untyped_ptr.h>
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
 

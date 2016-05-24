@@ -12,9 +12,9 @@
 #include "allocators/pow2_bucket_policy.h"
 #include "allocators/paged_allocator.h"
 #include "allocators/fixed_block_cache.h"
-#include "constants.h"
-#include "managed_pool_chunk.h"
-#include "util.h"
+#include "constants.hpp"
+#include "managed_pool_chunk.hpp"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details {
 

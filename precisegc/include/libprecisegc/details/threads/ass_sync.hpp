@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include <libprecisegc/details/threads/posix_signal.hpp>
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

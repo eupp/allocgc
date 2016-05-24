@@ -6,7 +6,7 @@
 #include <boost/optional.hpp>
 #include <signal.h>
 
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/threads/pending_call.hpp>
 
 namespace precisegc { namespace details { namespace threads {

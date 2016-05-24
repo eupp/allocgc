@@ -11,7 +11,7 @@
 #include <boost/integer/static_log2.hpp>
 #include <boost/optional.hpp>
 
-#include <libprecisegc/details/math_util.h>
+#include <libprecisegc/details/utils/math.h>
 #include <iostream>
 
 namespace precisegc { namespace details { namespace utils {

@@ -4,7 +4,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include "libprecisegc/details/types.h"
+#include "libprecisegc/details/types.hpp"
 #include "libprecisegc/details/iterator_facade.h"
 #include "libprecisegc/details/iterator_access.h"
 

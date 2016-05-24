@@ -4,7 +4,7 @@
 #include <thread>
 #include <atomic>
 
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/threads/ass_sync.hpp>
 
 namespace precisegc { namespace details { namespace threads {

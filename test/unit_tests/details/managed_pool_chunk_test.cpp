@@ -3,7 +3,7 @@
 #include <memory>
 #include <utility>
 
-#include "libprecisegc/details/managed_pool_chunk.h"
+#include "libprecisegc/details/managed_pool_chunk.hpp"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
 

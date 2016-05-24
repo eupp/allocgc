@@ -1,8 +1,8 @@
-#include "managed_pool_chunk.h"
+#include "managed_pool_chunk.hpp"
 
 #include <utility>
 
-#include "math_util.h"
+#include "libprecisegc/details/utils/math.h"
 #include "logging.h"
 
 namespace precisegc { namespace details {
@@ -81,8 +81,8 @@ managed_memory_descriptor* managed_pool_chunk::get_descriptor()
 
 void managed_pool_chunk::unmark()
 {
-    m_mark_bits.reset();
-    m_pin_bits.reset();
+    m_mark_bits.reset_all();
+    m_pin_bits.reset_all();
 }
 
 managed_pool_chunk::iterator managed_pool_chunk::begin()
@@ -112,13 +112,13 @@ size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t log2_cell_size, byte*
 bool managed_pool_chunk::get_mark(byte* ptr) const
 {
     size_t ind = calc_cell_ind(ptr);
-    return m_mark_bits[ind];
+    return m_mark_bits.get(ind);
 }
 
 bool managed_pool_chunk::get_pin(byte* ptr) const
 {
     size_t ind = calc_cell_ind(ptr);
-    return m_pin_bits[ind];
+    return m_pin_bits.get(ind);
 }
 
 void managed_pool_chunk::set_mark(byte* ptr, bool mark)
@@ -130,7 +130,7 @@ void managed_pool_chunk::set_mark(byte* ptr, bool mark)
 void managed_pool_chunk::set_pin(byte* ptr, bool pin)
 {
     size_t ind = calc_cell_ind(ptr);
-    m_pin_bits[ind] = pin;
+    m_pin_bits.set(ind, pin);
 }
 
 void managed_pool_chunk::set_live(byte* ptr, bool live)

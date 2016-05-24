@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include "libprecisegc/details/types.h"
+#include "libprecisegc/details/types.hpp"
 
 namespace precisegc { namespace details { namespace allocators {
 

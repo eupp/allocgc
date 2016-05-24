@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/types.h>
+#include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/flatten_range.hpp>
 
 #include <memory>

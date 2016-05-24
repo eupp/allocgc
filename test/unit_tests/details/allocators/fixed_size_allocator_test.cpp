@@ -6,7 +6,7 @@
 #include "libprecisegc/details/allocators/list_allocator.hpp"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
-#include "libprecisegc/details/types.h"
+#include "libprecisegc/details/types.hpp"
 
 #include "test_chunk.h"
 

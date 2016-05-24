@@ -2,7 +2,7 @@
 #define DIPLOMA_GC_UNTYPED_PIN_H
 
 #include "gc_untyped_ptr.h"
-#include "managed_memory_descriptor.h"
+#include "managed_memory_descriptor.hpp"
 
 namespace precisegc { namespace details {
 

@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 
-#include "util.h"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details {
 

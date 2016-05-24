@@ -5,7 +5,7 @@
 #include <atomic>
 #include <limits>
 
-#include "util.h"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details {
 

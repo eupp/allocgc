@@ -1,12 +1,12 @@
 #ifndef DIPLOMA_MANAGED_PTR_H
 #define DIPLOMA_MANAGED_PTR_H
 
-#include <libprecisegc/details/types.h>
+#include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/allocators/index_tree.h>
 #include <libprecisegc/details/allocators/indexed_ptr.h>
 #include <libprecisegc/details/utils/gc_exception.hpp>
 #include <libprecisegc/details/utils/to_string.hpp>
-#include <libprecisegc/details/managed_memory_descriptor.h>
+#include <libprecisegc/details/managed_memory_descriptor.hpp>
 
 namespace precisegc { namespace details {
 

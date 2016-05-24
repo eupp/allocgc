@@ -11,11 +11,11 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <libprecisegc/details/constants.h>
-#include <libprecisegc/details/types.h>
+#include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/types.hpp>
 
 #include "any_ptr.h"
-#include "../util.h"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details { namespace allocators {
 

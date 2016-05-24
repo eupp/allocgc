@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <mutex>
 
-#include "../util.h"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details { namespace allocators {
 

@@ -6,7 +6,7 @@
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 
-#include "libprecisegc/details/types.h"
+#include "libprecisegc/details/types.hpp"
 #include "memory.h"
 
 namespace precisegc { namespace details { namespace allocators {

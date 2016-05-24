@@ -7,7 +7,7 @@
 #include <boost/lockfree/spsc_queue.hpp>
 
 #include "gc_untyped_ptr.h"
-#include "util.h"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details {
 

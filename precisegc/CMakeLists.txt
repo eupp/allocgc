@@ -6,13 +6,13 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/class_meta.h
         include/libprecisegc/details/object_meta.h
         include/libprecisegc/details/gc_heap.h
-        include/libprecisegc/details/constants.h
-        include/libprecisegc/details/math_util.h
+        include/libprecisegc/details/constants.hpp
+        include/libprecisegc/details/utils/math.h
         include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
         include/libprecisegc/details/barrier.h
-        include/libprecisegc/details/util.h
+        include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h
         include/libprecisegc/details/gc_new_stack.h
         include/libprecisegc/details/gc_new_impl.h
@@ -20,7 +20,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_untyped_ptr.h
         include/libprecisegc/details/gc_untyped_pin.h
         include/libprecisegc/details/gc_ptr_access.h
-        include/libprecisegc/details/sigmask_signal_lock.h
         include/libprecisegc/details/logging.h
         include/libprecisegc/gc_init.h
         include/libprecisegc/details/barrier_buffer.h
@@ -31,7 +30,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_initator.h
         include/libprecisegc/details/allocators/paged_allocator.h
         include/libprecisegc/details/allocators/index_tree.h
-        include/libprecisegc/details/types.h
+        include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/any_ptr.h
         include/libprecisegc/details/allocators/memory.h
         include/libprecisegc/details/allocators/debug_layer.h
@@ -42,8 +41,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/pointer_decorator.h
         include/libprecisegc/details/allocators/indexed_ptr.h
         include/libprecisegc/details/allocators/pow2_bucket_policy.h
-        include/libprecisegc/details/managed_pool_chunk.h
-        include/libprecisegc/details/managed_memory_descriptor.h
+        include/libprecisegc/details/managed_pool_chunk.hpp
+        include/libprecisegc/details/managed_memory_descriptor.hpp
         include/libprecisegc/details/managed_ptr.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/allocators/fixed_block_cache.h

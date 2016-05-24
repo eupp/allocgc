@@ -9,26 +9,25 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include "allocators/plain_pool_chunk.h"
-#include "constants.h"
-#include "iterator_facade.h"
-#include "iterator_access.h"
-#include "managed_memory_descriptor.h"
-#include "atomic_bitset.h"
-#include "managed_ptr.hpp"
-#include "util.h"
+#include <libprecisegc/details/allocators/plain_pool_chunk.h>
+#include <libprecisegc/details/utils/bitset.hpp>
+#include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/details/managed_memory_descriptor.hpp>
+#include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
 
 class managed_pool_chunk : public managed_memory_descriptor, private noncopyable, private nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = atomic_bitset::SIZE;
+    static const size_t CHUNK_MAXSIZE = allocators::plain_pool_chunk::CHUNK_MAXSIZE;
     static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;
     typedef allocators::plain_pool_chunk plain_pool_chunk;
-    typedef std::bitset<CHUNK_MAXSIZE> bitset_t;
+    typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
+    typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:
     class iterator: public boost::iterator_facade<
               iterator
@@ -136,7 +135,7 @@ private:
     size_t m_cell_size;
     size_t m_log2_cell_size;
     uintptr m_mask;
-    atomic_bitset m_mark_bits;
+    sync_bitset_t m_mark_bits;
     bitset_t m_pin_bits;
 };
 

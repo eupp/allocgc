@@ -8,7 +8,7 @@
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/adaptor/map.hpp>
 
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/gc_exception.hpp>
 #include <libprecisegc/details/utils/lock_range.hpp>
 

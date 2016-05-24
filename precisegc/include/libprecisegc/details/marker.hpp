@@ -7,7 +7,7 @@
 #include <memory>
 #include <condition_variable>
 
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_untyped_ptr.h>
 #include <libprecisegc/details/trace_ptr.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>

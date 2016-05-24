@@ -14,7 +14,7 @@
 #include "libprecisegc/gc.h"
 #include "libprecisegc/details/gc_mark.h"
 #include "libprecisegc/details/barrier.h"
-#include "libprecisegc/details/math_util.h"
+#include "libprecisegc/details/utils/math.h"
 
 using namespace precisegc;
 using namespace precisegc::details;

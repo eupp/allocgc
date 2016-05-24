@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <utility>
 
-#include <libprecisegc/details/util.h>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace utils {
 

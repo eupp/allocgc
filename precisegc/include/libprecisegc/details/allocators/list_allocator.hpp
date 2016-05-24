@@ -12,8 +12,8 @@
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/stl_adapter.hpp>
 #include <libprecisegc/details/utils/flatten_range.hpp>
-#include <libprecisegc/details/util.h>
-#include <libprecisegc/details/constants.h>
+#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 

@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/threads/thread_manager.hpp>
 
-#include "details/gc_initator.h"
+#include "details/initator.hpp"
 #include "details/logging.h"
 
 namespace precisegc {

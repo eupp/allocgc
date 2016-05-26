@@ -11,22 +11,23 @@
 
 namespace precisegc { namespace details {
 
-namespace internals {
-
-class gc_negotiator : private utils::noncopyable, private utils::nonmovable
+class initator
 {
-public:
-    gc_negotiator(gc_interface* gc);
-
-    void request_marking();
-    void request_compacting();
-    void request_idle();
-private:
-    gc_interface* m_gc;
-    std::mutex m_mutex;
+    virtual void initation_point() = 0;
+protected:
+    virtual void initate_gc() = 0;
 };
 
-}
+class space_based_initator : public initator
+{
+public:
+    space_based_initator(gc_interface* gc)
+        : m_gc(gc)
+    {}
+
+private:
+    gc_interface* m_gc;
+};
 
 void init_initator(size_t lower_bound, size_t upper_bound);
 void initate_gc();

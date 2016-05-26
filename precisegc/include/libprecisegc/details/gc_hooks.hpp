@@ -17,12 +17,6 @@ enum class gc_compacting {
     , DISABLED
 };
 
-enum class gc_phase {
-    IDLE,
-    MARKING,
-    COMPACTING
-};
-
 class gc_options
 {
 public:
@@ -69,8 +63,6 @@ void gc_init(const gc_options& opts);
 managed_ptr gc_allocate(size_t size);
 
 void gc_write_barrier(gc_untyped_ptr& dst, const gc_untyped_ptr& src);
-
-gc_phase gc_get_phase();
 
 byte* gc_load(const atomic_byte_ptr& p);
 void  gc_store(atomic_byte_ptr& p, byte* value);

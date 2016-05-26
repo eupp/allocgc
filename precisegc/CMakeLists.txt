@@ -27,7 +27,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_garbage_collector.h
         include/libprecisegc/details/write_barrier.h
         include/libprecisegc/gc.h
-        include/libprecisegc/details/gc_initator.h
+        include/libprecisegc/details/initator.hpp
         include/libprecisegc/details/allocators/paged_allocator.h
         include/libprecisegc/details/allocators/index_tree.h
         include/libprecisegc/details/types.hpp

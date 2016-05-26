@@ -13,7 +13,7 @@
 #include "details/gc_unsafe_scope.h"
 #include "details/gc_ptr_access.h"
 #include "details/gc_new_impl.h"
-#include "details/gc_initator.h"
+#include "libprecisegc/details/initator.hpp"
 
 namespace precisegc {
 

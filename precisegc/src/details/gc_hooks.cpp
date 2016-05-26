@@ -14,12 +14,6 @@ void gc_init(gc_options opts)
 
 }
 
-gc_phase gc_get_phase()
-{
-    assert(gc);
-    return gc->get_phase();
-}
-
 managed_ptr gc_allocate(size_t size)
 {
     assert(gc);

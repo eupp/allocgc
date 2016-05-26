@@ -31,6 +31,11 @@ void initator::initation_point(initation_point_type ipoint)
     }
 }
 
+initation_policy* initator::get_policy() const
+{
+    return m_policy.get();
+}
+
 incremental_initator::incremental_initator(incremental_gc_interface* gc,
                                            std::unique_ptr<incremental_initation_policy>&& policy)
     : m_gc(gc)

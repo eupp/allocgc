@@ -22,6 +22,8 @@ public:
     initator(serial_gc_interface* gc, std::unique_ptr<initation_policy>&& policy);
 
     void initation_point(initation_point_type ipoint);
+
+    initation_policy* get_policy() const;
 private:
     serial_gc_interface* m_gc;
     std::unique_ptr<initation_policy> m_policy;

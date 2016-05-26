@@ -46,6 +46,8 @@ public:
 class gc_interface
 {
 public:
+    virtual ~gc_interface() {}
+
     virtual managed_ptr allocate(size_t size) = 0;
 
     virtual byte* rbarrier(const atomic_byte_ptr& p) = 0;

@@ -17,55 +17,19 @@ enum class gc_compacting {
     , DISABLED
 };
 
-class gc_options
+struct gc_options
 {
-public:
-    gc_options() = default;
-
-    gc_strategy strategy() const
-    {
-        return m_strategy;
-    }
-
-    gc_compacting compacting() const
-    {
-        return m_compacting;
-    }
-
-    logging::loglevel loglevel() const
-    {
-        return m_loglevel;
-    }
-
-    gc_options& set_strategy(gc_strategy s)
-    {
-        m_strategy = s;
-        return *this;
-    }
-
-    gc_options& set_compacting(gc_compacting cmpct)
-    {
-        m_compacting = cmpct;
-    }
-
-    gc_options& set_loglevel(logging::loglevel lv)
-    {
-        m_loglevel = lv;
-    }
-private:
-    gc_strategy m_strategy;
-    gc_compacting m_compacting;
-    logging::loglevel m_loglevel;
+    gc_strategy         strategy;
+    gc_compacting       compacting;
+    logging::loglevel   loglevel;
 };
 
 void gc_init(const gc_options& opts);
 
 managed_ptr gc_allocate(size_t size);
 
-void gc_write_barrier(gc_untyped_ptr& dst, const gc_untyped_ptr& src);
-
-byte* gc_load(const atomic_byte_ptr& p);
-void  gc_store(atomic_byte_ptr& p, byte* value);
+byte* gc_rbarrier(const atomic_byte_ptr& p);
+void  gc_wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src);
 
 }}
 

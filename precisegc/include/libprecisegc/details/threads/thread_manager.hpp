@@ -9,7 +9,7 @@
 #include <boost/range/adaptor/map.hpp>
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/utils/gc_exception.hpp>
+#include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/lock_range.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -27,7 +27,7 @@ public:
                     >
             , lock_type> range_type;
 
-    class stop_the_world_disabled : public utils::gc_exception
+    class stop_the_world_disabled : public gc_exception
     {
     public:
         stop_the_world_disabled()

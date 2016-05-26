@@ -20,22 +20,16 @@ managed_ptr gc_allocate(size_t size)
     return gc->allocate(size);
 }
 
-void gc_write_barrier(gc_untyped_ptr& dst, const gc_untyped_ptr& src)
+byte* gc_rbarrier(const atomic_byte_ptr& p)
 {
     assert(gc);
-    gc->write_barrier(dst, src);
+    return gc->rbarrier(p);
 }
 
-byte* gc_load(const atomic_byte_ptr& p)
+void gc_wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
     assert(gc);
-    return gc->load_ptr(p);
-}
-
-void gc_store(atomic_byte_ptr& p, byte* value)
-{
-    assert(gc);
-    gc->store_ptr(p, value);
+    gc->wbarrier(dst, src);
 }
 
 }}

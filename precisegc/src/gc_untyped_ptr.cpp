@@ -33,7 +33,6 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
         register_root();
     } else {
         if (gcnew_stack.is_meta_requsted()) {
-            void
             assert((void*) this >= gcnew_stack.get_top_pointer());
             uintptr_t this_uintptr = reinterpret_cast<uintptr_t>(this);
             uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(gcnew_stack.get_top_pointer());

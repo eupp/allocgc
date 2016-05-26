@@ -4,7 +4,7 @@
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/allocators/index_tree.h>
 #include <libprecisegc/details/allocators/indexed_ptr.h>
-#include <libprecisegc/details/utils/gc_exception.hpp>
+#include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/to_string.hpp>
 #include <libprecisegc/details/managed_memory_descriptor.hpp>
 
@@ -12,11 +12,11 @@ namespace precisegc { namespace details {
 
 typedef allocators::index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
 
-class unindexed_memory_exception : public utils::gc_exception
+class unindexed_memory_exception : public gc_exception
 {
 public:
     unindexed_memory_exception(byte* ptr)
-        : utils::gc_exception(("Inappropriate access to unindexed memory by address " + utils::to_string(ptr)).c_str())
+        : gc_exception(("Inappropriate access to unindexed memory by address " + utils::to_string(ptr)).c_str())
     {}
 };
 

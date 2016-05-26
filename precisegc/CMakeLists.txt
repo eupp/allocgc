@@ -51,7 +51,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/managed_thread.hpp
         include/libprecisegc/details/root_set.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
-        include/libprecisegc/details/utils/gc_exception.hpp
+        include/libprecisegc/details/gc_exception.hpp
         include/libprecisegc/details/threads/thread_manager.hpp
         include/libprecisegc/details/threads/stw_manager.hpp
         include/libprecisegc/details/utils/scoped_thread.hpp
@@ -62,7 +62,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/lock_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp)
+        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp include/libprecisegc/details/initation_policy.hpp)
 
 
 set(precisegc_LIB_SRCS
@@ -75,7 +75,7 @@ set(precisegc_LIB_SRCS
         src/gc_init.cpp
         src/gc_garbage_collector.cpp
         src/barrier_buffer.cpp
-        src/gc_initator.cpp
+        src/details/initator.cpp
         src/details/allocators/memory.cpp
         src/details/allocators/plain_pool_chunk.cpp
         src/details/managed_pool_chunk.cpp
@@ -87,7 +87,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/marker.cpp src/details/gc_hooks.cpp)
+        src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp)
 
 
 find_package(Threads REQUIRED)

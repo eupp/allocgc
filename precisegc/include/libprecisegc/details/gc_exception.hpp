@@ -4,13 +4,17 @@
 #include <exception>
 #include <string>
 
-namespace precisegc { namespace details { namespace utils {
+namespace precisegc { namespace details {
 
 class gc_exception : public std::exception
 {
 public:
     gc_exception(const char* msg)
         : m_msg(std::string("GC exception: ") + msg)
+    {}
+
+    gc_exception(const std::string& msg)
+        : m_msg("GC exception: " + msg)
     {}
 
     const char* what() const noexcept override
@@ -21,6 +25,6 @@ private:
     std::string m_msg;
 };
 
-}}}
+}}
 
 #endif //DIPLOMA_GC_EXCEPTION_HPP

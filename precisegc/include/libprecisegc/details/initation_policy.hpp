@@ -19,7 +19,7 @@ public:
 class incremental_initation_policy
 {
 public:
-    virtual ~initation_policy() {}
+    virtual ~incremental_initation_policy() {}
 
     virtual gc_phase check(const gc_stat& stat, initation_point_type ipoint) const = 0;
     virtual void update(const gc_stat& stat, initation_point_type ipoint) = 0;

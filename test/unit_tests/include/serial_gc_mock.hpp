@@ -10,6 +10,7 @@ class serial_gc_mock : public precisegc::details::serial_gc_interface
     typedef precisegc::details::byte byte;
     typedef precisegc::details::atomic_byte_ptr atomic_byte_ptr;
     typedef precisegc::details::managed_ptr managed_ptr;
+    typedef precisegc::details::gc_stat gc_stat;
 public:
     MOCK_METHOD1(allocate, managed_ptr(size_t));
     MOCK_METHOD1(rbarrier, byte*(const atomic_byte_ptr&));

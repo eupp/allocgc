@@ -66,4 +66,3 @@ TEST_F(incremental_space_base_policy_test, test_check)
     stat.heap_size = policy.heap_size() * policy.sweeping_threshold() + 1;
     ASSERT_EQ(gc_phase::SWEEPING, policy.check(stat, initation_point_type::AFTER_ALLOC));
 }
-

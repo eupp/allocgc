@@ -19,7 +19,7 @@ std::pair<managed_ptr, size_t> gc_heap::allocate(size_t size)
     return res;
 }
 
-size_t gc_heap::size() noexcept
+size_t gc_heap::size() const noexcept
 {
     return m_size.load();
 }

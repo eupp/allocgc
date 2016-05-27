@@ -63,6 +63,8 @@ public:
     virtual byte* rbarrier(const atomic_byte_ptr& p) = 0;
     virtual void  wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src) = 0;
 
+    virtual void initation_point(initation_point_type ipoint) = 0;
+
     virtual gc_stat stat() const = 0;
 };
 

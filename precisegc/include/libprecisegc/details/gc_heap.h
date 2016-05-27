@@ -44,7 +44,7 @@ public:
 
     void compact();
 
-    size_t size() noexcept;
+    size_t size() const noexcept;
 private:
     static size_t align_size(size_t size);
 

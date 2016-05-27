@@ -15,26 +15,25 @@
 namespace precisegc { namespace details { namespace threads {
 
 class managed_thread;
+class world_state;
+
+namespace internals {
+struct thread_manager_access;
+}
 
 class thread_manager : private utils::noncopyable, private utils::nonmovable
 {
     typedef std::map<std::thread::id, managed_thread*> map_type;
     typedef std::recursive_mutex lock_type;
-public:
+
     typedef utils::locked_range<
-            boost::select_second_const_range<
-                    boost::iterator_range<map_type::const_iterator>
-                    >
-            , lock_type> range_type;
+    boost::select_second_const_range<
+            boost::iterator_range<map_type::const_iterator>
+        >
+        , lock_type> range_type;
 
-    class stop_the_world_disabled : public gc_exception
-    {
-    public:
-        stop_the_world_disabled()
-            : gc_exception("stop-the-world is disabled by current thread")
-        {}
-    };
-
+    friend class internals::thread_manager_access;
+public:
     static thread_manager& instance();
 
     void register_main_thread();
@@ -43,16 +42,24 @@ public:
 
     managed_thread* lookup_thread(std::thread::id thread_id) const;
 
-    range_type get_managed_threads() const;
-
-    void stop_the_world();
-    void start_the_world();
+    world_state stop_the_world();
 private:
     thread_manager() = default;
+
+    range_type get_managed_threads() const;
 
     map_type m_threads;
     mutable lock_type m_lock;
 };
+
+namespace internals {
+struct thread_manager_access
+{
+    typedef thread_manager::range_type range_type;
+
+    static range_type get_managed_threads(const thread_manager& manager);
+};
+}
 
 }}}
 

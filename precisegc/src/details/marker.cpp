@@ -91,7 +91,7 @@ marker::marker()
 void marker::trace_roots()
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
     for (auto thread: threads_rng) {
         root_set::element* it = thread->get_root_set().head();
         while (it != nullptr) {
@@ -104,7 +104,7 @@ void marker::trace_roots()
 void marker::trace_pins()
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
     for (auto thread: threads_rng) {
         root_set::element* it = thread->get_pin_set().head();
         while (it != nullptr) {
@@ -123,7 +123,7 @@ void marker::trace_barrier_buffers()
 
 void marker::non_blocking_trace_barrier_buffers()
 {
-    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
     for (auto thread: threads_rng) {
         auto& buf = thread->get_barrier_buffer();
         void* p = nullptr;

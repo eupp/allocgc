@@ -2,6 +2,7 @@
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/world_state.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 
@@ -46,14 +47,16 @@ TEST_F(thread_manager_test, test_stop_the_world)
 {
     stw_manager& stwm = stw_manager::instance();
 
-    thread_manager::instance().stop_the_world();
-    EXPECT_EQ((size_t) THREADS_CNT, stwm.threads_suspended());
-    thread_manager::instance().start_the_world();
+    {
+        world_state wstate = thread_manager::instance().stop_the_world();
+        EXPECT_EQ((size_t) THREADS_CNT, stwm.threads_suspended());
+    }
+    EXPECT_EQ(0, stwm.threads_suspended());
 }
 
 TEST_F(thread_manager_test, test_get_managed_threads)
 {
-    auto rng = thread_manager::instance().get_managed_threads();
+    auto rng = internals::thread_manager_access::get_managed_threads(thread_manager::instance());
     std::unordered_set<std::thread::id> managed_threads;
     for (auto& mthread: rng) {
         managed_threads.insert((*mthread).get_id());

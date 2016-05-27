@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <unistd.h>
 
+#include <libprecisegc/details/threads/world_state.hpp>
+
 #include "gc_ptr.h"
 #include "gc_mark.h"
 #include "barrier_buffer.h"
@@ -91,21 +93,23 @@ void gc_garbage_collector::start_compacting()
 
 void gc_garbage_collector::force_move_to_idle()
 {
-    thread_manager.stop_the_world();
+    auto wstate = thread_manager.stop_the_world();
     m_phase.store(phase::IDLE);
-    thread_manager.start_the_world();
 }
 
 void gc_garbage_collector::run_marking()
 {
     long long start = nanotime();
 
-    thread_manager.stop_the_world();
-    m_phase.store(phase::MARKING);
-    m_marker.trace_roots();
-    thread_manager.start_the_world();
+    {
+        auto wstate = thread_manager.stop_the_world();
+        thread_manager.stop_the_world();
+        m_phase.store(phase::MARKING);
+        m_marker.trace_roots();
 
-    printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
+        printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
+    }
+
 
     m_marker.start_marking();
 }
@@ -115,14 +119,13 @@ void gc_garbage_collector::run_compacting()
     long long start = nanotime();
 
     m_marker.pause_marking();
-    thread_manager.stop_the_world();
+    auto wstate = thread_manager.stop_the_world();
     m_marker.trace_pins();
     m_marker.mark();
     m_phase.store(phase::COMPACTING);
     gc_heap::instance().compact();
     m_phase.store(phase::IDLE);
     ++m_gc_cycles_cnt;
-    thread_manager.start_the_world();
 
     printf("heap size = %lld bytes \n", gc_heap::instance().size());
     printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
@@ -133,7 +136,7 @@ void gc_garbage_collector::run_gc()
     long long start = nanotime();
 
     m_marker.pause_marking();
-    thread_manager.stop_the_world();
+    auto wstate = thread_manager.stop_the_world();
     m_phase.store(phase::MARKING);
     m_marker.trace_roots();
     m_marker.trace_pins();
@@ -142,7 +145,6 @@ void gc_garbage_collector::run_gc()
     gc_heap::instance().compact();
     m_phase.store(phase::IDLE);
     ++m_gc_cycles_cnt;
-    thread_manager.start_the_world();
 
     printf("heap size = %lld bytes \n", gc_heap::instance().size());
     printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);

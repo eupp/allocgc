@@ -3,6 +3,7 @@
 #include <libprecisegc/details/logging.h>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/world_state.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -42,25 +43,9 @@ managed_thread* thread_manager::lookup_thread(std::thread::id thread_id) const
     return it != m_threads.end() ? it->second : nullptr;
 }
 
-void thread_manager::stop_the_world()
+world_state thread_manager::stop_the_world()
 {
-    static stw_manager& stwm = stw_manager::instance();
-
-    logging::info() << "Thread " << std::this_thread::get_id() << " is requesting stop-the-world";
-
-    if (stwm.is_stop_the_world_disabled()) {
-        throw stop_the_world_disabled();
-    }
-
-    m_lock.lock();
-    for (auto thread: m_threads) {
-        if (thread.second->native_handle() != managed_thread::this_thread().native_handle()) {
-            stwm.suspend_thread(thread.second->native_handle());
-        }
-    }
-    stwm.wait_for_world_stop();
-
-    logging::info() << "World stopped";
+    return world_state(get_managed_threads());
 }
 
 thread_manager::range_type thread_manager::get_managed_threads() const
@@ -71,21 +56,9 @@ thread_manager::range_type thread_manager::get_managed_threads() const
         );
 }
 
-void thread_manager::start_the_world()
+internals::thread_manager_access::range_type internals::thread_manager_access::get_managed_threads(const thread_manager& manager)
 {
-    static stw_manager& stwm = stw_manager::instance();
-
-    logging::info() << "Thread " << std::this_thread::get_id() << " is requesting start-the-world";
-
-    for (auto thread: m_threads) {
-        if (thread.second->native_handle() != managed_thread::this_thread().native_handle()) {
-            stwm.resume_thread(thread.second->native_handle());
-        }
-    }
-    stwm.wait_for_world_start();
-    m_lock.unlock();
-
-    logging::info() << "World started";
+    return manager.get_managed_threads();
 }
 
 }}}

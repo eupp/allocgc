@@ -36,6 +36,8 @@ public:
     incremental_initator(incremental_gc_interface* gc, std::unique_ptr<incremental_initation_policy>&& policy);
 
     void initation_point(initation_point_type ipoint);
+
+    incremental_initation_policy* get_policy() const;
 private:
     incremental_gc_interface* m_gc;
     std::unique_ptr<incremental_initation_policy> m_policy;

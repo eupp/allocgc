@@ -31,6 +31,16 @@ struct incremental_gc_ops
     size_t      threads_num;
 };
 
+inline bool operator==(const incremental_gc_ops& a, const incremental_gc_ops& b)
+{
+    return a.phase == b.phase && a.concurrent_flag == b.concurrent_flag && a.threads_num == b.threads_num;
+}
+
+inline bool operator!=(const incremental_gc_ops& a, const incremental_gc_ops& b)
+{
+    return !(a == b);
+}
+
 class gc_bad_alloc : public gc_exception
 {
 public:

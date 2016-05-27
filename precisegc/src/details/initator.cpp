@@ -70,6 +70,11 @@ void incremental_initator::initation_point(initation_point_type ipoint)
     }
 }
 
+incremental_initation_policy* incremental_initator::get_policy() const
+{
+    return m_policy.get();
+}
+
 
 static size_t mem_lower_bound = 0;
 static size_t mem_upper_bound = 0;

@@ -34,7 +34,7 @@ public:
                        size_t max_heap_size = std::numeric_limits<size_t>::max());
 
     bool check(const gc_stat& stat, initation_point_type ipoint) const override;
-    void update(const gc_stat& stat, initation_point_type ipoint) override ;
+    void update(const gc_stat& stat, initation_point_type ipoint) override;
 
     size_t heap_size() const;
     size_t max_heap_size() const;

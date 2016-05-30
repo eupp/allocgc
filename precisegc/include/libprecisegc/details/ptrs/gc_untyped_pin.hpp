@@ -1,10 +1,10 @@
 #ifndef DIPLOMA_GC_UNTYPED_PIN_H
 #define DIPLOMA_GC_UNTYPED_PIN_H
 
-#include "gc_untyped_ptr.h"
-#include "managed_memory_descriptor.hpp"
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/managed_memory_descriptor.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
 class gc_untyped_ptr;
 
@@ -19,6 +19,6 @@ protected:
     const gc_untyped_ptr* m_ptr;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_GC_UNTYPED_PIN_H

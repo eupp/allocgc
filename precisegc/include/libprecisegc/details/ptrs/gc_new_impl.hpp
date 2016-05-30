@@ -4,19 +4,18 @@
 #include <cassert>
 #include <utility>
 
-#include "gc_heap.h"
-#include "class_meta.h"
-#include "object_meta.h"
-#include "gc_garbage_collector.h"
-#include "gc_new_stack.h"
-#include "../gc_ptr.h"
+#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/class_meta.h>
+#include <libprecisegc/details/object_meta.h>
+#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+
 
 namespace precisegc {
 
 template <typename T>
 class gc_ptr;
 
-namespace details {
+namespace details { namespace ptrs {
 
 template<typename T>
 struct gc_new_if
@@ -42,7 +41,7 @@ void* gc_new_impl(size_t n, Args&&... args)
     gc_new_stack::activation_entry activation_entry;
 
     size_t size = n * sizeof(T) + sizeof(object_meta);
-    managed_ptr cell_ptr = gc_heap::instance().allocate(size);
+    managed_ptr cell_ptr = gc_allocate(size);
 //    assert(cell_ptr.is_live());
     byte* ptr = cell_ptr.get();
     size_t aligned_size = cell_ptr.cell_size();
@@ -71,12 +70,9 @@ void* gc_new_impl(size_t n, Args&&... args)
         new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(class_meta_provider<T>::get_meta_ptr(), n, ptr);
     }
 
-    static auto& collector = gc_garbage_collector::instance();
-    collector.new_cell(cell_ptr);
-
     return ptr;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_GC_NEW_IMPL_H

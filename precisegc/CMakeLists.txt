@@ -14,12 +14,12 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/barrier.h
         include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h
-        include/libprecisegc/details/gc_new_stack.h
-        include/libprecisegc/details/gc_new_impl.h
+        include/libprecisegc/details/ptrs/gc_new_stack.hpp
+        include/libprecisegc/details/ptrs/gc_new_impl.hpp
         include/libprecisegc/details/gc_unsafe_scope.h
-        include/libprecisegc/details/gc_untyped_ptr.h
-        include/libprecisegc/details/gc_untyped_pin.h
-        include/libprecisegc/details/gc_ptr_access.h
+        include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
+        include/libprecisegc/details/ptrs/gc_untyped_pin.hpp
+        include/libprecisegc/details/ptrs/gc_ptr_access.hpp
         include/libprecisegc/details/logging.h
         include/libprecisegc/gc_init.h
         include/libprecisegc/details/barrier_buffer.h
@@ -62,15 +62,15 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/lock_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp include/libprecisegc/details/initation_policy.hpp include/libprecisegc/details/serial_gc.hpp include/libprecisegc/details/threads/world_state.hpp)
+        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp include/libprecisegc/details/initation_policy.hpp include/libprecisegc/details/serial_gc.hpp include/libprecisegc/details/threads/world_state.hpp include/libprecisegc/gc_options.hpp include/libprecisegc/details/utils/make_unique.hpp)
 
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
         src/gc_heap.cpp
-        src/gc_new_stack.cpp
-        src/gc_untyped_ptr.cpp
-        src/gc_untyped_pin.cpp
+        src/details/ptrs/gc_new_stack.cpp
+        src/details/ptrs/gc_untyped_ptr.cpp
+        src/details/ptrs/gc_untyped_pin.cpp
         src/logging.cpp
         src/gc_init.cpp
         src/gc_garbage_collector.cpp

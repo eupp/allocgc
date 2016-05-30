@@ -42,7 +42,7 @@ bool get_object_mark(void* ptr)
     return cell_ptr.get_mark();
 }
 
-bool shade(const gc_untyped_ptr* ptr)
+bool shade(const ptrs::gc_untyped_ptr* ptr)
 {
     static thread_local barrier_buffer& bb = threads::managed_thread::this_thread().get_barrier_buffer();
     if (!ptr) {
@@ -53,7 +53,7 @@ bool shade(const gc_untyped_ptr* ptr)
 
 void* get_pointed_to(void* ptr)
 {
-    gc_untyped_ptr* gcptr = reinterpret_cast<gc_untyped_ptr*>(ptr);
+    ptrs::gc_untyped_ptr* gcptr = reinterpret_cast<ptrs::gc_untyped_ptr*>(ptr);
     void* res = gcptr->get();
     return res;
 }

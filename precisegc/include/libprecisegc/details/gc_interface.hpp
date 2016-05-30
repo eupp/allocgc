@@ -1,7 +1,8 @@
 #ifndef DIPLOMA_GC_INTERFACE_HPP
 #define DIPLOMA_GC_INTERFACE_HPP
 
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/gc_options.hpp>
+#include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
 
 namespace precisegc { namespace details {

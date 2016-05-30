@@ -5,9 +5,9 @@
 #include <vector>
 #include <memory>
 
-#include "libprecisegc/details/utils/utility.hpp"
+#include <libprecisegc/details/utils/utility.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
 class gc_new_stack : public utils::noncopyable, public utils::nonmovable
 {
@@ -18,7 +18,6 @@ public:
         activation_entry();
         ~activation_entry();
     };
-
 
     class stack_entry
     {
@@ -52,6 +51,6 @@ private:
     bool m_is_meta_requested;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_GC_NEW_STATE_H

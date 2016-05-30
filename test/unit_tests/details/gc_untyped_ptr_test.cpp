@@ -3,10 +3,13 @@
 #include <memory>
 #include <utility>
 
-#include "libprecisegc/details/gc_untyped_ptr.h"
-#include "libprecisegc/details/gc_new_stack.h"
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
 
-using namespace precisegc::details;
+#include "serial_gc_mock.hpp"
+
+using namespace precisegc::details::ptrs;
 
 TEST(gc_untyped_ptr_test, test_default_construct)
 {

@@ -8,7 +8,7 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 
 #include "marker.hpp"
-#include "gc_untyped_ptr.h"
+#include "libprecisegc/details/ptrs/gc_untyped_ptr.hpp"
 #include "libprecisegc/details/utils/utility.hpp"
 #include "managed_ptr.hpp"
 
@@ -29,7 +29,7 @@ public:
 
     size_t get_gc_cycles_count() const;
 
-    void write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr);
+    void write_barrier(ptrs::gc_untyped_ptr& dst_ptr, const ptrs::gc_untyped_ptr& src_ptr);
     void new_cell(managed_ptr& cell_ptr);
 private:
     static threads::thread_manager& thread_manager;

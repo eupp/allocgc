@@ -1,19 +1,15 @@
-#include "gc_untyped_ptr.h"
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 
 #include <cstdint>
 #include <cassert>
 #include <utility>
 
 
-#include <libprecisegc/details/logging.h>
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/logging.h>
 
-#include "gc_new_stack.h"
-#include "gc_unsafe_scope.h"
-#include "write_barrier.h"
-#include "logging.h"
-
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
 thread_local gc_new_stack& gc_untyped_ptr::gcnew_stack = gc_new_stack::instance();
 
@@ -46,15 +42,13 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr) noexcept
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other) noexcept
     : gc_untyped_ptr()
 {
-//    gc_unsafe_scope unsafe_scope;
-    write_barrier(*this, other);
+    gc_wbarrier(m_ptr, other.m_ptr);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other) noexcept
     : gc_untyped_ptr()
 {
-//    gc_unsafe_scope unsafe_scope;
-    write_barrier(*this, other);
+    gc_wbarrier(m_ptr, other.m_ptr);
 }
 
 gc_untyped_ptr::~gc_untyped_ptr() noexcept
@@ -72,21 +66,18 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t) noexcept
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other) noexcept
 {
-//    gc_unsafe_scope unsafe_scope;
-    write_barrier(*this, other);
+    gc_wbarrier(m_ptr, other.m_ptr);
     return *this;
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other) noexcept
 {
-//    gc_unsafe_scope unsafe_scope;
-    write_barrier(*this, other);
+    gc_wbarrier(m_ptr, other.m_ptr);
     return *this;
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other) noexcept
 {
-//    gc_unsafe_scope unsafe_scope;
     gc_untyped_ptr tmp = (*this);
     (*this) = other;
     other = tmp;
@@ -94,18 +85,12 @@ void gc_untyped_ptr::swap(gc_untyped_ptr& other) noexcept
 
 void* gc_untyped_ptr::get() const noexcept
 {
-    return m_ptr.load(std::memory_order_acquire);
+    return gc_rbarrier(m_ptr);
 }
 
 void gc_untyped_ptr::set(void* ptr) noexcept
 {
-    m_ptr.store(reinterpret_cast<byte*>(ptr), std::memory_order_release);
-}
-
-void gc_untyped_ptr::atomic_store(const gc_untyped_ptr& value)
-{
-//    gc_unsafe_scope unsafe_scope;
-    m_ptr.store(reinterpret_cast<byte*>(value.get()), std::memory_order_release);
+    gc_wbarrier(m_ptr, atomic_byte_ptr((byte*) ptr));
 }
 
 gc_untyped_ptr::operator bool() const noexcept
@@ -135,4 +120,4 @@ void swap(gc_untyped_ptr& a, gc_untyped_ptr& b) noexcept
     a.swap(b);
 }
 
-}}
+}}}

@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include <libprecisegc/details/gc_untyped_ptr.h>
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_mark.h>
 
@@ -38,7 +38,7 @@ void trace_ptr(void* p, Queue& q)
     size_t offsets_size = offsets.size();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
-            gc_untyped_ptr* pchild = (gc_untyped_ptr*) ((char *) obj + offsets[j]);
+            ptrs::gc_untyped_ptr* pchild = (ptrs::gc_untyped_ptr*) ((char *) obj + offsets[j]);
             void* child = pchild->get();
             if (child && !get_object_mark(child)) {
                 q.push(child);

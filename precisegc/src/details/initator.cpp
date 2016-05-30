@@ -94,22 +94,22 @@ void init_initator(size_t lower_bound, size_t upper_bound)
 void initate_gc()
 {
 //    return;
-    ++alloc_ticks;
-    if (alloc_ticks < 3000) {
-        return;
-    }
-    gc_heap& heap = gc_heap::instance();
-    gc_garbage_collector& garbage_collector = gc_garbage_collector::instance();
-    size_t mem = heap.size();
-    if (mem > mem_lower_bound ) {
-        logging::debug() << "Heap size exceeded " << b_to_mb(mem_lower_bound);
-        garbage_collector.start_marking();
-    }
-    if (mem > mem_upper_bound) {
-        logging::debug() << "Heap size exceeded " << b_to_mb(mem_upper_bound);
-        alloc_ticks.store(0);
-        garbage_collector.start_compacting();
-    }
+//    ++alloc_ticks;
+//    if (alloc_ticks < 3000) {
+//        return;
+//    }
+////    gc_heap& heap = gc_heap::instance();
+//    gc_garbage_collector& garbage_collector = gc_garbage_collector::instance();
+//    size_t mem = heap.size();
+//    if (mem > mem_lower_bound ) {
+//        logging::debug() << "Heap size exceeded " << b_to_mb(mem_lower_bound);
+//        garbage_collector.start_marking();
+//    }
+//    if (mem > mem_upper_bound) {
+//        logging::debug() << "Heap size exceeded " << b_to_mb(mem_upper_bound);
+//        alloc_ticks.store(0);
+//        garbage_collector.start_compacting();
+//    }
 }
 
 }}

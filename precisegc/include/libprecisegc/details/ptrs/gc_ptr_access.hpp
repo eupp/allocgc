@@ -3,14 +3,14 @@
 
 #include <type_traits>
 
-#include "../gc_ptr.h"
+#include "libprecisegc/gc_ptr.h"
 
 namespace precisegc {
 
 template <typename T>
 class gc_ptr;
 
-namespace details {
+namespace details { namespace ptrs {
 
 template <typename T>
 class gc_ptr_access
@@ -23,6 +23,6 @@ public:
     }
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_GC_PTR_ACCESS_H

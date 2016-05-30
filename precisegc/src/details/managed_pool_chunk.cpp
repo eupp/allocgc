@@ -21,10 +21,10 @@ managed_pool_chunk::~managed_pool_chunk()
     managed_ptr::remove_from_index(get_mem(), get_mem_size());
 }
 
-managed_ptr managed_pool_chunk::allocate(size_t cell_size)
+managed_ptr managed_pool_chunk::allocate(size_t size)
 {
-    assert(cell_size == cell_size());
-    byte* raw_ptr = m_chunk.allocate(cell_size);
+    assert(size == cell_size());
+    byte* raw_ptr = m_chunk.allocate(size);
     return managed_ptr(raw_ptr, get_descriptor());
 }
 
@@ -33,10 +33,10 @@ void managed_pool_chunk::deallocate(const managed_ptr& ptr, size_t cell_size)
     deallocate(ptr.get(), cell_size);
 }
 
-void managed_pool_chunk::deallocate(byte* ptr, size_t cell_size)
+void managed_pool_chunk::deallocate(byte* ptr, size_t size)
 {
-    assert(cell_size == cell_size());
-    m_chunk.deallocate(ptr, cell_size);
+    assert(size == cell_size());
+    m_chunk.deallocate(ptr, size);
 }
 
 bool managed_pool_chunk::contains(const managed_ptr& ptr) const noexcept

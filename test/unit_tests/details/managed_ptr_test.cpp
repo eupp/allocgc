@@ -105,7 +105,7 @@ TEST_F(managed_ptr_test, test_is_live)
     ptr.is_live();
 }
 
-TEST_F(managed_ptr_test, test_is_live)
+TEST_F(managed_ptr_test, test_cell_size)
 {
     managed_ptr ptr(m_mem.get(), &m_mock);
 

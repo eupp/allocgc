@@ -88,7 +88,7 @@ public:
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
     ~managed_pool_chunk();
 
-    managed_ptr allocate(size_t cell_size);
+    managed_ptr allocate(size_t size);
     void deallocate(const managed_ptr& ptr, size_t cell_size);
 
     bool contains(const managed_ptr& ptr) const noexcept;
@@ -127,7 +127,7 @@ private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
     static size_t calc_cell_ind(byte* ptr, size_t obj_size, byte* base_ptr, size_t size);
 
-    void deallocate(byte* ptr, size_t cell_size);
+    void deallocate(byte* ptr, size_t size);
 
     size_t calc_cell_ind(byte* ptr) const;
     size_t get_log2_cell_size() const;

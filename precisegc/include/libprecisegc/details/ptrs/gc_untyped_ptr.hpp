@@ -5,11 +5,10 @@
 #include <cstdint>
 #include <atomic>
 
-#include "gc_untyped_pin.h"
-#include "types.hpp"
-#include "gc_new_stack.h"
+#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/types.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
 class gc_untyped_ptr
 {
@@ -33,9 +32,6 @@ public:
 
     void set(void* ptr) noexcept;
     void* get() const noexcept;
-
-    void atomic_store(const gc_untyped_ptr& value);
-    friend class gc_untyped_pin;
 protected:
     atomic_byte_ptr m_ptr;
 private:
@@ -49,6 +45,6 @@ private:
 
 void swap(gc_untyped_ptr& a, gc_untyped_ptr& b) noexcept;
 
-}}
+}}}
 
 #endif //DIPLOMA_GC_PTR_BASE_H

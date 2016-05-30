@@ -35,7 +35,7 @@ void root_set::swap(root_set& other)
     std::swap(m_free_list, other.m_free_list);
 }
 
-void root_set::add(gc_untyped_ptr* root)
+void root_set::add(ptrs::gc_untyped_ptr* root)
 {
     gc_unsafe_scope unsafe_scope;
 
@@ -58,7 +58,7 @@ void root_set::add(gc_untyped_ptr* root)
     m_head = result;
 }
 
-void root_set::remove(gc_untyped_ptr* root)
+void root_set::remove(ptrs::gc_untyped_ptr* root)
 {
     gc_unsafe_scope unsafe_scope;
 
@@ -80,7 +80,7 @@ void root_set::remove(gc_untyped_ptr* root)
     }
 }
 
-bool root_set::is_root(gc_untyped_ptr* ptr)
+bool root_set::is_root(ptrs::gc_untyped_ptr* ptr)
 {
     element* curr = m_head;
     while (curr && ptr != curr->root) {

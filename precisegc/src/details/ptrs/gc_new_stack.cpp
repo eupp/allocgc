@@ -1,8 +1,8 @@
-#include "gc_new_stack.h"
+#include "libprecisegc/details/ptrs/gc_new_stack.hpp"
 
 #include <cassert>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
 thread_local std::unique_ptr<gc_new_stack> gc_new_stack::state_ptr = nullptr;
 
@@ -78,4 +78,5 @@ gc_new_stack::activation_entry::~activation_entry()
     static thread_local gc_new_stack& stack = gc_new_stack::instance();
     stack.m_nesting_level--;
 }
-}}
+
+}}}

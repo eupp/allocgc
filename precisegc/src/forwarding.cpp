@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "gc_untyped_ptr.h"
+#include "libprecisegc/details/ptrs/gc_untyped_ptr.hpp"
 #include "managed_ptr.hpp"
 #include "object_meta.h"
 
@@ -61,7 +61,7 @@ void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 
 void intrusive_forwarding::forward(void* ptr) const
 {
-    gc_untyped_ptr* gcptr = reinterpret_cast<gc_untyped_ptr*>(ptr);
+    ptrs::gc_untyped_ptr* gcptr = reinterpret_cast<ptrs::gc_untyped_ptr*>(ptr);
     void* from = gcptr->get();
     if (from) {
         try {

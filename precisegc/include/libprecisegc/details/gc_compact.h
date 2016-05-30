@@ -88,7 +88,7 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
 template <typename Forwarding>
 void fix_roots(const Forwarding& frwd)
 {
-    auto threads_rng = threads::thread_manager::instance().get_managed_threads();
+    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
     for (auto thread: threads_rng) {
         root_set::element* it = thread->get_root_set().head();
         while (it != nullptr) {

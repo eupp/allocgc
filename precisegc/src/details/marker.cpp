@@ -12,13 +12,13 @@ marker::queue_chunk::queue_chunk()
     : m_size(0)
 {}
 
-void marker::queue_chunk::push(gc_untyped_ptr* p)
+void marker::queue_chunk::push(ptrs::gc_untyped_ptr* p)
 {
     assert(!is_full());
     m_data[m_size++] = p;
 }
 
-gc_untyped_ptr* marker::queue_chunk::pop()
+ptrs::gc_untyped_ptr* marker::queue_chunk::pop()
 {
     assert(m_size > 0);
     return m_data[--m_size];

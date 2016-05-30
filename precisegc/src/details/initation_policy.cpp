@@ -25,6 +25,7 @@ bool space_based_policy::check(const gc_stat& stat, initation_point_type ipoint)
     if (ipoint == initation_point_type::AFTER_ALLOC) {
         return stat.heap_size > m_threshold * heap_size();
     }
+    return false;
 }
 
 void space_based_policy::update(const gc_stat& stat, initation_point_type ipoint)

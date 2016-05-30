@@ -3,6 +3,7 @@
 #include <libprecisegc/details/root_set.hpp>
 
 using namespace precisegc::details;
+using namespace precisegc::details::ptrs;
 
 TEST(root_set_test, test_add)
 {

@@ -5,20 +5,10 @@
 
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/gc_untyped_ptr.h>
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/logging.h>
 
 namespace precisegc { namespace details {
-
-enum class gc_strategy {
-      SERIAL
-    , INCREMENTAL
-};
-
-enum class gc_compacting {
-      ENABLED
-    , DISABLED
-};
 
 void gc_set(std::unique_ptr<gc_interface>&& gc);
 std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc);

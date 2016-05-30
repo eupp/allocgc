@@ -9,7 +9,7 @@
 
 #include <libprecisegc/details/threads/world_state.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_untyped_ptr.h>
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/trace_ptr.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 
@@ -37,14 +37,14 @@ private:
     public:
         queue_chunk();
 
-        void push(gc_untyped_ptr* p);
-        gc_untyped_ptr* pop();
+        void push(ptrs::gc_untyped_ptr* p);
+        ptrs::gc_untyped_ptr* pop();
 
         bool is_full() const;
         bool empty() const;
     private:
         static const size_t SIZE = 4096;
-        gc_untyped_ptr* m_data[SIZE];
+        ptrs::gc_untyped_ptr* m_data[SIZE];
         size_t m_size;
     };
 

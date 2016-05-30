@@ -1,11 +1,11 @@
-#include "gc_untyped_pin.h"
+#include "libprecisegc/details/ptrs/gc_untyped_pin.hpp"
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
 
 #include "gc_unsafe_scope.h"
 #include "managed_ptr.hpp"
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
 gc_untyped_pin::gc_untyped_pin(const gc_untyped_ptr& ptr)
 {
@@ -29,4 +29,4 @@ void* gc_untyped_pin::get() const noexcept
     return m_ptr->get();
 }
 
-}}
+}}}

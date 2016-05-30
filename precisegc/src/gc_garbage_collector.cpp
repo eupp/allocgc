@@ -122,11 +122,11 @@ void gc_garbage_collector::run_compacting()
     m_marker.trace_pins(wstate);
     m_marker.mark();
     m_phase.store(phase::COMPACTING);
-    gc_heap::instance().compact();
+//    gc_heap::instance().compact();
     m_phase.store(phase::IDLE);
     ++m_gc_cycles_cnt;
 
-    printf("heap size = %lld bytes \n", gc_heap::instance().size());
+//    printf("heap size = %lld bytes \n", gc_heap::instance().size());
     printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 
@@ -141,15 +141,15 @@ void gc_garbage_collector::run_gc()
     m_marker.trace_pins(wstate);
     m_marker.mark();
     m_phase.store(phase::COMPACTING);
-    gc_heap::instance().compact();
+//    gc_heap::instance().compact();
     m_phase.store(phase::IDLE);
     ++m_gc_cycles_cnt;
 
-    printf("heap size = %lld bytes \n", gc_heap::instance().size());
+//    printf("heap size = %lld bytes \n", gc_heap::instance().size());
     printf("compact stw time = %lld microsec \n", (nanotime() - start) / 1000);
 }
 
-void gc_garbage_collector::write_barrier(gc_untyped_ptr& dst_ptr, const gc_untyped_ptr& src_ptr)
+void gc_garbage_collector::write_barrier(ptrs::gc_untyped_ptr& dst_ptr, const ptrs::gc_untyped_ptr& src_ptr)
 {
     gc_unsafe_scope unsafe_scope;
     phase phs = m_phase.load(std::memory_order_seq_cst);

@@ -1,17 +1,21 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 
 #include <cassert>
-#include <memory>
-
-#include <libprecisegc/details/gc_interface.hpp>
 
 namespace precisegc { namespace details {
 
 static std::unique_ptr<gc_interface> gc = nullptr;
 
-void gc_init(gc_options opts)
+void gc_set(std::unique_ptr<gc_interface>&& gc_)
 {
+    gc = std::move(gc_);
+}
 
+std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc_)
+{
+    std::unique_ptr<gc_interface> old = std::move(gc);
+    gc = std::move(gc_);
+    return old;
 }
 
 managed_ptr gc_allocate(size_t size)

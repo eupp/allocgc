@@ -10,12 +10,12 @@ namespace precisegc { namespace details {
 
 serial_gc::serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy>&& init_policy)
     : m_initator(this, std::move(init_policy))
+    , m_heap(compacting)
 {}
 
 managed_ptr serial_gc::allocate(size_t size)
 {
-//    return m_heap.allocate(size).first;
-    return managed_ptr();
+    return m_heap.allocate(size);
 }
 
 byte* serial_gc::rbarrier(const atomic_byte_ptr& p)
@@ -52,7 +52,7 @@ void serial_gc::gc()
     m_marker.trace_roots(wstate);
     m_marker.trace_pins(wstate);
     m_marker.mark();
-
+    m_heap.sweep();
 }
 
 }}

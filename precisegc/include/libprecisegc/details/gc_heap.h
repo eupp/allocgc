@@ -15,6 +15,7 @@
 #include "constants.hpp"
 #include "managed_pool_chunk.hpp"
 #include "libprecisegc/details/utils/utility.hpp"
+#include "gc_hooks.hpp"
 
 namespace precisegc { namespace details {
 
@@ -34,32 +35,23 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 
     typedef intrusive_forwarding forwarding;
 public:
-    static gc_heap& instance()
-    {
-        static gc_heap h;
-        return h;
-    }
-
-    managed_ptr allocate(size_t size);
-
-    void compact();
-
-    size_t size() const noexcept;
-private:
-    static size_t align_size(size_t size);
-
-    gc_heap();
+    gc_heap(gc_compacting compacting);
     gc_heap(const gc_heap&&) = delete;
     gc_heap& operator=(const gc_heap&&) = delete;
 
-    forwarding compact_memory();
-    void fix_pointers(const forwarding& frwd);
+
+    managed_ptr allocate(size_t size);
+
     void sweep();
 
-    //void fix_pointers(const forwarding_list& forwarding);
+    size_t size() const noexcept;
+private:
+    forwarding compact_memory();
+    void fix_pointers(const forwarding& frwd);
 
     alloc_t m_alloc;
     std::atomic<size_t> m_size;
+    gc_compacting m_compacting;
 };
 
 }}

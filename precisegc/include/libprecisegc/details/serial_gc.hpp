@@ -28,9 +28,8 @@ public:
     void gc();
 private:
     initator m_initator;
-//    gc_heap m_heap;
+    gc_heap m_heap;
     marker m_marker;
-    gc_compacting m_compacting;
 };
 
 }}

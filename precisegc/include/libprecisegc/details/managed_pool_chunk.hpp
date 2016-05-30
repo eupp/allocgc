@@ -98,7 +98,6 @@ public:
 
     byte*  get_mem() const;
     size_t get_mem_size() const;
-    size_t get_cell_size() const;
 
     managed_memory_descriptor* get_descriptor();
 
@@ -118,6 +117,8 @@ public:
     virtual void set_live(byte* ptr, bool live) override;
 
     virtual void sweep(byte* ptr) override;
+
+    virtual size_t cell_size() const override;
 
     virtual object_meta* get_cell_meta(byte* ptr) const override;
     virtual byte* get_obj_begin(byte* ptr) const override;

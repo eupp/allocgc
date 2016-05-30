@@ -45,6 +45,8 @@ public:
 
     void sweep() const;
 
+    size_t cell_size() const;
+
     object_meta* get_meta() const;
     byte* get_cell_begin() const;
     byte* get_obj_begin() const;

@@ -68,6 +68,11 @@ void managed_ptr::sweep() const
     m_descr->sweep(get());
 }
 
+size_t managed_ptr::cell_size() const
+{
+    return m_descr->cell_size();
+}
+
 object_meta* managed_ptr::get_meta() const
 {
     return m_descr->get_cell_meta(get());

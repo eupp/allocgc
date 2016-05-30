@@ -105,6 +105,16 @@ TEST_F(managed_ptr_test, test_is_live)
     ptr.is_live();
 }
 
+TEST_F(managed_ptr_test, test_is_live)
+{
+    managed_ptr ptr(m_mem.get(), &m_mock);
+
+    EXPECT_CALL(m_mock, cell_size())
+            .Times(Exactly(1));
+
+    ptr.cell_size();
+}
+
 TEST_F(managed_ptr_test, test_get_meta)
 {
     managed_ptr ptr(m_mem.get(), &m_mock);

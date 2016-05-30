@@ -23,7 +23,7 @@ managed_pool_chunk::~managed_pool_chunk()
 
 managed_ptr managed_pool_chunk::allocate(size_t cell_size)
 {
-    assert(cell_size == get_cell_size());
+    assert(cell_size == cell_size());
     byte* raw_ptr = m_chunk.allocate(cell_size);
     return managed_ptr(raw_ptr, get_descriptor());
 }
@@ -35,7 +35,7 @@ void managed_pool_chunk::deallocate(const managed_ptr& ptr, size_t cell_size)
 
 void managed_pool_chunk::deallocate(byte* ptr, size_t cell_size)
 {
-    assert(cell_size == get_cell_size());
+    assert(cell_size == cell_size());
     m_chunk.deallocate(ptr, cell_size);
 }
 
@@ -67,11 +67,6 @@ byte* managed_pool_chunk::get_mem() const
 size_t managed_pool_chunk::get_mem_size() const
 {
     return m_chunk.get_mem_size();
-}
-
-size_t managed_pool_chunk::get_cell_size() const
-{
-    return m_cell_size;
 }
 
 managed_memory_descriptor* managed_pool_chunk::get_descriptor()
@@ -146,6 +141,11 @@ bool managed_pool_chunk::is_live(byte* ptr) const
 void managed_pool_chunk::sweep(byte* ptr)
 {
     deallocate(managed_ptr(get_cell_begin(ptr), this), m_cell_size);
+}
+
+size_t managed_pool_chunk::cell_size() const
+{
+    return m_cell_size;
 }
 
 object_meta* managed_pool_chunk::get_cell_meta(byte* ptr) const
@@ -235,7 +235,7 @@ ptrdiff_t managed_pool_chunk::iterator::distance_to(const iterator& other) const
 size_t managed_pool_chunk::iterator::cell_size() const
 {
     managed_pool_chunk* chunk = static_cast<managed_pool_chunk*>(m_ptr.get_descriptor());
-    return chunk->get_cell_size();
+    return chunk->cell_size();
 }
 
 }}

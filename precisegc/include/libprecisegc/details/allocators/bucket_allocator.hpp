@@ -29,14 +29,13 @@ public:
     bucket_allocator() = default;
     bucket_allocator(bucket_allocator&&) = default;
 
-    std::pair<pointer_type, size_t> allocate(size_t size)
+    pointer_type allocate(size_t size)
     {
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
         std::lock_guard<Lock> lock(m_locks[ind]);
-        pointer_type p = m_buckets[ind].allocate(aligned_size);
-        return std::make_pair(p, aligned_size);
+        return m_buckets[ind].allocate(aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)

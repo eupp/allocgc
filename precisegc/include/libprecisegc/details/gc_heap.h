@@ -40,7 +40,7 @@ public:
         return h;
     }
 
-    std::pair<managed_ptr, size_t> allocate(size_t size);
+    managed_ptr allocate(size_t size);
 
     void compact();
 

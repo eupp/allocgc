@@ -88,31 +88,21 @@ marker::marker()
     , m_mark_flag(false)
 {}
 
-void marker::trace_roots()
+void marker::trace_roots(const threads::world_state& wstate)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
-    for (auto thread: threads_rng) {
-        root_set::element* it = thread->get_root_set().head();
-        while (it != nullptr) {
-            non_blocking_push(it->root->get());
-            it = it->next;
-        }
-    }
+    wstate.trace_roots([this] (void* p) {
+        non_blocking_push(p);
+    });
 }
 
-void marker::trace_pins()
+void marker::trace_pins(const threads::world_state& wstate)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
-    for (auto thread: threads_rng) {
-        root_set::element* it = thread->get_pin_set().head();
-        while (it != nullptr) {
-            non_blocking_push(it->root->get());
-            set_object_pin(it->root->get(), true);
-            it = it->next;
-        }
-    }
+    wstate.trace_pins([this] (void* p) {
+        set_object_pin(p, true);
+        non_blocking_push(p);
+    });
 }
 
 void marker::trace_barrier_buffers()

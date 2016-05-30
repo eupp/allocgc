@@ -103,9 +103,8 @@ void gc_garbage_collector::run_marking()
 
     {
         auto wstate = thread_manager.stop_the_world();
-        thread_manager.stop_the_world();
         m_phase.store(phase::MARKING);
-        m_marker.trace_roots();
+        m_marker.trace_roots(wstate);
 
         printf("trace roots stw time = %lld microsec \n", (nanotime() - start) / 1000);
     }
@@ -120,7 +119,7 @@ void gc_garbage_collector::run_compacting()
 
     m_marker.pause_marking();
     auto wstate = thread_manager.stop_the_world();
-    m_marker.trace_pins();
+    m_marker.trace_pins(wstate);
     m_marker.mark();
     m_phase.store(phase::COMPACTING);
     gc_heap::instance().compact();
@@ -138,8 +137,8 @@ void gc_garbage_collector::run_gc()
     m_marker.pause_marking();
     auto wstate = thread_manager.stop_the_world();
     m_phase.store(phase::MARKING);
-    m_marker.trace_roots();
-    m_marker.trace_pins();
+    m_marker.trace_roots(wstate);
+    m_marker.trace_pins(wstate);
     m_marker.mark();
     m_phase.store(phase::COMPACTING);
     gc_heap::instance().compact();

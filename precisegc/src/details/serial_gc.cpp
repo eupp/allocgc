@@ -3,6 +3,8 @@
 #include <utility>
 
 #include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/world_state.hpp>
 
 namespace precisegc { namespace details {
 
@@ -45,6 +47,11 @@ gc_stat serial_gc::stat() const
 
 void serial_gc::gc()
 {
+    using namespace threads;
+    world_state wstate = thread_manager::instance().stop_the_world();
+    m_marker.trace_roots(wstate);
+    m_marker.trace_pins(wstate);
+    m_marker.mark();
 
 }
 

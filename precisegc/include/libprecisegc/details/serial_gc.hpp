@@ -6,6 +6,7 @@
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_heap.h>
 #include <libprecisegc/details/initator.hpp>
+#include <libprecisegc/details/marker.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
@@ -28,6 +29,7 @@ public:
 private:
     initator m_initator;
 //    gc_heap m_heap;
+    marker m_marker;
     gc_compacting m_compacting;
 };
 

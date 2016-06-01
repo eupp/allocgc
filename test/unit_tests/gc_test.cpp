@@ -192,6 +192,8 @@ struct gc_test: public ::testing::Test
         root_raw = pin.get();
         root.reset();
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
         guard.commit();
     }
 

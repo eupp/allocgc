@@ -5,16 +5,9 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-pending_call::pending_call(callable_type callable)
-    : m_callable(callable)
-    , m_depth(0)
-    , m_pending_flag(NOT_PENDING)
-{
-    assert(m_callable);
-}
-
 void pending_call::operator()()
 {
+    assert(m_callable);
     std::atomic_signal_fence(std::memory_order_seq_cst);
     if (m_depth > 0) {
         m_pending_flag = PENDING;

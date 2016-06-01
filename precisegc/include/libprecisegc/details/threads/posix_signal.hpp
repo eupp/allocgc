@@ -32,13 +32,14 @@ public:
 
     bool is_locked() const;
 
+    friend void call_signal_handler();
     friend void ::precisegc::details::threads::sighandler(int);
 private:
     static const int SIGNUM = SIGUSR2;
 
-    static void call_signal_handler();
+//    static void call_signal_handler();
 
-    static thread_local pending_call pcall;
+//    static thread_local pending_call pcall;
 
     posix_signal();
 

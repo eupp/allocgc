@@ -12,7 +12,11 @@ class pending_call : private utils::noncopyable, private utils::nonmovable
 public:
     typedef void (*callable_type)(void);
 
-    pending_call(callable_type callable);
+    constexpr pending_call(callable_type callable)
+        : m_callable(callable)
+        , m_depth(0)
+        , m_pending_flag(NOT_PENDING)
+    {}
 
     void operator()();
 

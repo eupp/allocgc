@@ -5,7 +5,7 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-void posix_signal::call_signal_handler()
+void call_signal_handler()
 {
     posix_signal& sig = posix_signal::instance();
     if (sig.m_handler) {
@@ -13,13 +13,13 @@ void posix_signal::call_signal_handler()
     }
 }
 
-thread_local pending_call posix_signal::pcall(posix_signal::call_signal_handler);
+static thread_local pending_call pcall{call_signal_handler};
 
 extern "C" {
 void sighandler(int signum)
 {
     assert(signum == posix_signal::SIGNUM);
-    posix_signal::pcall();
+    pcall();
 }
 }
 

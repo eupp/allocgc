@@ -13,6 +13,8 @@ namespace precisegc { namespace details {
 void gc_set(std::unique_ptr<gc_interface>&& gc);
 std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc);
 
+void gc();
+
 managed_ptr gc_allocate(size_t size);
 
 byte* gc_rbarrier(const atomic_byte_ptr& p);

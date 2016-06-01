@@ -8,7 +8,8 @@
 namespace precisegc { namespace details {
 
 enum class initation_point_type {
-    AFTER_ALLOC
+      USER_REQUEST
+    , AFTER_ALLOC
 };
 
 enum class gc_phase {

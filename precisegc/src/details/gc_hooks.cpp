@@ -4,36 +4,42 @@
 
 namespace precisegc { namespace details {
 
-static std::unique_ptr<gc_interface> gc = nullptr;
+static std::unique_ptr<gc_interface> garbage_collector = nullptr;
 
-void gc_set(std::unique_ptr<gc_interface>&& gc_)
+void gc_set(std::unique_ptr<gc_interface>&& gc)
 {
-    gc = std::move(gc_);
+    garbage_collector = std::move(gc);
 }
 
-std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc_)
+std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc)
 {
-    std::unique_ptr<gc_interface> old = std::move(gc);
-    gc = std::move(gc_);
+    std::unique_ptr<gc_interface> old = std::move(garbage_collector);
+    garbage_collector = std::move(gc);
     return old;
 }
 
+void gc()
+{
+    assert(garbage_collector);
+    garbage_collector->initation_point(initation_point_type::USER_REQUEST);
+};
+
 managed_ptr gc_allocate(size_t size)
 {
-    assert(gc);
-    return gc->allocate(size);
+    assert(garbage_collector);
+    return garbage_collector->allocate(size);
 }
 
 byte* gc_rbarrier(const atomic_byte_ptr& p)
 {
-    assert(gc);
-    return gc->rbarrier(p);
+    assert(garbage_collector);
+    return garbage_collector->rbarrier(p);
 }
 
 void gc_wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
-    assert(gc);
-    gc->wbarrier(dst, src);
+    assert(garbage_collector);
+    garbage_collector->wbarrier(dst, src);
 }
 
 }}

@@ -37,7 +37,7 @@ void serial_gc::initation_point(initation_point_type ipoint)
 gc_stat serial_gc::stat() const
 {
     gc_stat stat;
-//    stat.heap_size                  = m_heap.size();
+    stat.heap_size                  = m_heap.size();
     stat.heap_size                  = 0;
     stat.incremental                = false;
     stat.support_concurrent_mark    = false;

@@ -21,8 +21,8 @@ struct gc_untyped_ptr_barriers_test : public ::testing::Test
 {
     gc_untyped_ptr_barriers_test()
     {
-        std::unique_ptr<gc_interface> gc_mock_owner = utils::make_unique<serial_gc_mock>();
-        gc_mock = static_cast<serial_gc_mock*>(gc_mock_owner.get());
+        auto gc_mock_owner = utils::make_unique<serial_gc_mock>();
+        gc_mock = gc_mock_owner.get();
         old_gc  = gc_reset(std::move(gc_mock_owner));
     }
 

@@ -11,7 +11,8 @@
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/details/serial_garbage_collector.hpp>
+#include <libprecisegc/details/incremental_garbage_collector.hpp>
 #include <libprecisegc/gc_ptr.h>
 #include <libprecisegc/gc_new.h>
 #include <libprecisegc/gc.h>
@@ -216,17 +217,69 @@ struct gc_test: public ::testing::Test
 struct serial_gc_test : public gc_test
 {
     serial_gc_test()
-        : gc_test(utils::make_unique<serial_gc>(gc_compacting::DISABLED, utils::make_unique<empty_policy>()))
-    {}
+        : gc_test(utils::make_unique<serial_garbage_collector>(gc_compacting::DISABLED, utils::make_unique<empty_policy>()))
+    {
+        garbage_collector = static_cast<serial_garbage_collector*>(gc_get());
+    }
+
+    serial_garbage_collector* garbage_collector;
+};
+
+struct incremental_gc_test : public gc_test
+{
+    incremental_gc_test()
+        : gc_test(utils::make_unique<incremental_garbage_collector>(gc_compacting::DISABLED, utils::make_unique<incremental_empty_policy>()))
+    {
+        garbage_collector = static_cast<incremental_garbage_collector*>(gc_get());
+    }
+
+    incremental_garbage_collector* garbage_collector;
 };
 
 // This test doesn't check anything.
 // Consider it is passed if nothing will crash or hang.
 TEST_F(serial_gc_test, test_serial_gc)
 {
-    precisegc::gc();
-    print_tree(root_raw);
+    garbage_collector->gc();
     gc_finished = true;
+    print_tree(root_raw);
+}
+
+TEST_F(incremental_gc_test, test_marking)
+{
+    incremental_gc_ops ops;
+
+    ops.phase           = gc_phase::MARKING;
+    ops.concurrent_flag = true;
+    ops.threads_num     = 1;
+
+    garbage_collector->incremental_gc(ops);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    ops.phase           = gc_phase::IDLING;
+    ops.concurrent_flag = false;
+    ops.threads_num     = 0;
+
+    garbage_collector->incremental_gc(ops);
+
+    gc_finished = true;
+    print_tree(root_raw);
+    check_nodes(root_raw, 0);
+}
+
+TEST_F(incremental_gc_test, test_sweeping)
+{
+    incremental_gc_ops ops;
+
+    ops.phase           = gc_phase::SWEEPING;
+    ops.concurrent_flag = false;
+    ops.threads_num     = 1;
+
+    garbage_collector->incremental_gc(ops);
+
+    gc_finished = true;
+    print_tree(root_raw);
 }
 
 //TEST_F(gc_test, test_marking)

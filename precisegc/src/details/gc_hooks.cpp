@@ -7,6 +7,11 @@ namespace precisegc { namespace details {
 
 static std::unique_ptr<gc_interface> garbage_collector = nullptr;
 
+gc_interface* gc_get()
+{
+    return garbage_collector.get();
+}
+
 void gc_set(std::unique_ptr<gc_interface> gc)
 {
     garbage_collector = std::move(gc);

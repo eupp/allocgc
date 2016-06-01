@@ -11,10 +11,10 @@
 
 namespace precisegc { namespace details {
 
-class serial_gc : public serial_gc_interface, private utils::noncopyable, private utils::nonmovable
+class serial_garbage_collector : public serial_gc_interface, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy>&& init_policy);
+    serial_garbage_collector(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
 
     managed_ptr allocate(size_t size);
 

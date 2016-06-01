@@ -7,7 +7,7 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/initation_policy.hpp>
-#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/details/serial_garbage_collector.hpp>
 #include <libprecisegc/details/logging.h>
 
 namespace precisegc {
@@ -32,7 +32,7 @@ int gc_init(gc_options ops)
         if (ops.strategy == gc_strategy::SERIAL) {
             std::unique_ptr<initation_policy> policy =
                     utils::make_unique<space_based_policy>(HEAP_STARTSIZE, THRESHOLD, INCREASE_FACTOR, HEAP_MAXSIZE);
-            std::unique_ptr<gc_interface> gc = utils::make_unique<serial_gc>(ops.compacting, std::move(policy));
+            std::unique_ptr<gc_interface> gc = utils::make_unique<serial_garbage_collector>(ops.compacting, std::move(policy));
             gc_set(std::move(gc));
         }
 

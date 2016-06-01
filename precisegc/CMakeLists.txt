@@ -25,7 +25,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/gc_garbage_collector.h
-        include/libprecisegc/details/write_barrier.h
         include/libprecisegc/gc.h
         include/libprecisegc/details/initator.hpp
         include/libprecisegc/details/allocators/paged_allocator.h
@@ -62,7 +61,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/lock_range.hpp
         include/libprecisegc/details/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp include/libprecisegc/details/initation_policy.hpp include/libprecisegc/details/serial_gc.hpp include/libprecisegc/details/threads/world_state.hpp include/libprecisegc/gc_options.hpp include/libprecisegc/details/utils/make_unique.hpp)
+        include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/utils/to_string.hpp include/libprecisegc/details/utils/make_reverse_iterator.hpp include/libprecisegc/details/allocators/allocator_tag.hpp include/libprecisegc/details/utils/bitset.hpp include/libprecisegc/details/initation_policy.hpp include/libprecisegc/details/serial_garbage_collector.hpp include/libprecisegc/details/threads/world_state.hpp include/libprecisegc/gc_options.hpp include/libprecisegc/details/utils/make_unique.hpp include/libprecisegc/details/incremental_garbage_collector.hpp)
 
 
 set(precisegc_LIB_SRCS
@@ -87,7 +86,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp src/details/serial_gc.cpp)
+        src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp src/details/serial_garbage_collector.cpp src/details/incremental_garbage_collector.cpp)
 
 
 find_package(Threads REQUIRED)

@@ -30,7 +30,7 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
 
         auto rev_from = std::find_if(reverse_iterator(from),
                                      reverse_iterator(to),
-                                     [](managed_ptr cell_ptr) {
+                                     [] (managed_ptr cell_ptr) {
                                          return cell_ptr.get_mark() && !cell_ptr.get_pin();
         });
 

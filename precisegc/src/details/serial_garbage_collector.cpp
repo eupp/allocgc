@@ -1,4 +1,4 @@
-#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/details/serial_garbage_collector.hpp>
 
 #include <utility>
 
@@ -8,44 +8,44 @@
 
 namespace precisegc { namespace details {
 
-serial_gc::serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy>&& init_policy)
+serial_garbage_collector::serial_garbage_collector(gc_compacting compacting,
+                                                   std::unique_ptr<initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
 {}
 
-managed_ptr serial_gc::allocate(size_t size)
+managed_ptr serial_garbage_collector::allocate(size_t size)
 {
     return m_heap.allocate(size);
 }
 
-byte* serial_gc::rbarrier(const atomic_byte_ptr& p)
+byte* serial_garbage_collector::rbarrier(const atomic_byte_ptr& p)
 {
     return p.load(std::memory_order_relaxed);
 }
 
-void serial_gc::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
+void serial_garbage_collector::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
     gc_unsafe_scope unsafe_scope;
     dst.store(src.load(std::memory_order_relaxed), std::memory_order_relaxed);
 }
 
-void serial_gc::initation_point(initation_point_type ipoint)
+void serial_garbage_collector::initation_point(initation_point_type ipoint)
 {
     m_initator.initation_point(ipoint);
 }
 
-gc_stat serial_gc::stat() const
+gc_stat serial_garbage_collector::stat() const
 {
     gc_stat stat;
     stat.heap_size                  = m_heap.size();
-    stat.heap_size                  = 0;
     stat.incremental                = false;
     stat.support_concurrent_mark    = false;
     stat.support_concurrent_sweep   = false;
     return stat;
 }
 
-void serial_gc::gc()
+void serial_garbage_collector::gc()
 {
     using namespace threads;
     world_state wstate = thread_manager::instance().stop_the_world();

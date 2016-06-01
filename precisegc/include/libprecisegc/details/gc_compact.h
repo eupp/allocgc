@@ -65,7 +65,7 @@ template <typename Iterator, typename Forwarding>
 void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, const Forwarding& frwd)
 {
     for (auto it = first; it != last; ++it) {
-        if (!it->is_live()) {
+        if (!it->get_mark()) {
             continue;
         }
         byte* ptr = it->get();

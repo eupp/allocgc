@@ -12,7 +12,6 @@
 #include <libprecisegc/details/utils/utility.hpp>
 
 #include "gc_heap.h"
-#include "gc_garbage_collector.h"
 
 namespace precisegc { namespace details {
 
@@ -43,9 +42,6 @@ private:
     std::unique_ptr<incremental_initation_policy> m_policy;
     std::mutex m_mutex;
 };
-
-void init_initator(size_t lower_bound, size_t upper_bound);
-void initate_gc();
 
 
 }}

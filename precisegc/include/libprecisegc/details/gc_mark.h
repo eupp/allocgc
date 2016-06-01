@@ -6,7 +6,7 @@
 
 namespace precisegc { namespace details {
 
-bool shade(const ptrs::gc_untyped_ptr* ptr);
+bool shade(byte* ptr);
 
 bool get_object_mark(void* ptr);
 bool get_object_pin(void* ptr);

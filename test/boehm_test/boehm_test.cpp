@@ -62,7 +62,6 @@
 
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.h"
-    #include "libprecisegc/details/gc_garbage_collector.h"
     #include "libprecisegc/details/gc_heap.h"
     using namespace precisegc;
 #endif
@@ -254,15 +253,18 @@ struct GCBench {
             cout << "Completed " << GC_gc_no << " collections" <<endl;
             cout << "Heap size is " << GC_get_heap_size() << endl;
         #elif defined(PRECISE_GC)
-            cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
-            cout << "Heap size is " << details::gc_heap::instance().size() << endl;
+//            cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
+//            cout << "Heap size is " << details::gc_heap::instance().size() << endl;
         #endif
     }
 };
 
 int main () {
     #if defined(PRECISE_GC)
-        gc_init();
+        gc_options ops;
+        ops.strategy    = gc_strategy::INCREMENTAL;
+        ops.compacting  = gc_compacting::ENABLED;
+        gc_init(ops);
     #elif defined(BDW_GC)
 //        GC_full_freq = 30;
         GC_enable_incremental();

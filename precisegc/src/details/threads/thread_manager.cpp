@@ -13,6 +13,12 @@ thread_manager& thread_manager::instance()
     return tm;
 }
 
+thread_manager::~thread_manager()
+{
+    std::lock_guard<lock_type> lock(m_lock);
+    m_threads.clear();
+}
+
 void thread_manager::register_main_thread()
 {
     managed_thread& main_thread = managed_thread::this_thread();

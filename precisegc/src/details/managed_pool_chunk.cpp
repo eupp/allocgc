@@ -18,6 +18,9 @@ managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_siz
 
 managed_pool_chunk::~managed_pool_chunk()
 {
+    if (/*get_mem() == (void*) 0x7ffff2e3e000 || */get_mem() == (void*) 0x7ffff2e40000) {
+        logging::debug() << "auha";
+    }
     managed_ptr::remove_from_index(get_mem(), get_mem_size());
 }
 

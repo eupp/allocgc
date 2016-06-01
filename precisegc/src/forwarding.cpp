@@ -53,6 +53,8 @@ intrusive_forwarding::intrusive_forwarding()
 
 void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 {
+    logging::debug() << "create forwarding: from " << from << " to " << to;
+
     object_meta* meta = object_meta::get_meta_ptr(from, obj_size);
     meta->set_object_ptr(to);
     move_cell(from, to, obj_size);
@@ -65,26 +67,35 @@ void intrusive_forwarding::forward(void* ptr) const
     void* from = gcptr->get();
     if (from) {
         try {
-            static const uintptr_t mask = ~(((uintptr_t)1 << PAGE_BITS_CNT) - 1);
-            void* page = (void*) ((uintptr_t) from & mask);
-            object_meta* meta = nullptr;
-            if (m_cache.count(page)) {
-                managed_memory_descriptor* descr = m_cache[page];
-                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from), descr);
-                meta = cell_ptr.get_meta();
-            } else {
-                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from));
-                meta = cell_ptr.get_meta();
-                if (m_cache.size() < CACHE_SIZE) {
-                    m_cache[page] = cell_ptr.get_descriptor();
-                }
-            }
-            if (meta) {
-                void* to = meta->get_object_ptr();
-                if (from != to) {
-                    logging::debug() << "fix ptr: from " << from << " to " << to;
-                    gcptr->set(to);
-                }
+            auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from));
+            object_meta* meta = cell_ptr.get_meta();
+
+//            static const uintptr_t mask = ~(((uintptr_t)1 << PAGE_BITS_CNT) - 1);
+//            void* page = (void*) ((uintptr_t) from & mask);
+//            object_meta* meta = nullptr;
+//            if (m_cache.count(page)) {
+//                managed_memory_descriptor* descr = m_cache[page];
+//                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from), descr);
+//                meta = cell_ptr.get_meta();
+//            } else {
+//                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from));
+//                meta = cell_ptr.get_meta();
+//                if (m_cache.size() < CACHE_SIZE) {
+//                    m_cache[page] = cell_ptr.get_descriptor();
+//                }
+//            }
+//            if (meta) {
+//                void* to = meta->get_object_ptr();
+//                if (from != to) {
+//                    logging::debug() << "fix ptr: from " << from << " to " << to;
+//                    gcptr->set(to);
+//                }
+//            }
+
+            void* to = meta->get_object_ptr();
+            if (from != to) {
+                logging::debug() << "fix ptr: from " << from << " to " << to;
+                gcptr->set(to);
             }
         } catch (unindexed_memory_exception& exc) {
             logging::error() << "Unindexed memory discovered: " << from;

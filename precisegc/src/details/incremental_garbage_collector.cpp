@@ -19,7 +19,12 @@ incremental_garbage_collector::incremental_garbage_collector(gc_compacting compa
 
 managed_ptr incremental_garbage_collector::allocate(size_t size)
 {
-    return m_heap.allocate(size);
+    gc_unsafe_scope unsafe_scope;
+    managed_ptr mp = m_heap.allocate(size);
+    if (phase() == gc_phase::MARKING) {
+        mp.set_mark(true);
+    }
+    return mp;
 }
 
 byte* incremental_garbage_collector::rbarrier(const atomic_byte_ptr& p)
@@ -30,7 +35,16 @@ byte* incremental_garbage_collector::rbarrier(const atomic_byte_ptr& p)
 void incremental_garbage_collector::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
     gc_unsafe_scope unsafe_scope;
-    dst.store(src.load(std::memory_order_acquire), std::memory_order_release);
+    byte* p = src.load(std::memory_order_acquire);
+    dst.store(p, std::memory_order_release);
+    if (phase() == gc_phase::MARKING) {
+        bool res = shade(p);
+        while (!res) {
+            m_marker.trace_barrier_buffers();
+            std::this_thread::yield();
+            res = shade(p);
+        }
+    }
 }
 
 void incremental_garbage_collector::initation_point(initation_point_type ipoint)

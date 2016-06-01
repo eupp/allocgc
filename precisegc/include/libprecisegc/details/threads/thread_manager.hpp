@@ -36,6 +36,8 @@ class thread_manager : private utils::noncopyable, private utils::nonmovable
 public:
     static thread_manager& instance();
 
+    ~thread_manager();
+
     void register_main_thread();
     void register_thread(managed_thread* thread_ptr);
     void deregister_thread(managed_thread* thread_ptr);

@@ -48,4 +48,10 @@ void gc_wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
     garbage_collector->wbarrier(dst, src);
 }
 
+void initation_point(initation_point_type ipoint)
+{
+    assert(garbage_collector);
+    garbage_collector->initation_point(ipoint);
+}
+
 }}

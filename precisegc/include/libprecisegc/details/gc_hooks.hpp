@@ -10,8 +10,8 @@
 
 namespace precisegc { namespace details {
 
-void gc_set(std::unique_ptr<gc_interface>&& gc);
-std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc);
+void gc_set(std::unique_ptr<gc_interface> gc);
+std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface> gc);
 
 void gc();
 

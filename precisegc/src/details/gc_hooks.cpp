@@ -1,18 +1,23 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 
 #include <cassert>
+#include <memory>
 
 namespace precisegc { namespace details {
 
 static std::unique_ptr<gc_interface> garbage_collector = nullptr;
 
-void gc_set(std::unique_ptr<gc_interface>&& gc)
+static std::mutex mutex{};
+
+void gc_set(std::unique_ptr<gc_interface> gc)
 {
+    std::lock_guard<std::mutex> lock(mutex);
     garbage_collector = std::move(gc);
 }
 
-std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface>&& gc)
+std::unique_ptr<gc_interface> gc_reset(std::unique_ptr<gc_interface> gc)
 {
+    std::lock_guard<std::mutex> lock(mutex);
     std::unique_ptr<gc_interface> old = std::move(garbage_collector);
     garbage_collector = std::move(gc);
     return old;

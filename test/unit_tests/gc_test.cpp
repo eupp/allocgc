@@ -7,14 +7,17 @@
 #include <queue>
 #include <pthread.h>
 
+#include <libprecisegc/details/utils/make_unique.hpp>
+#include <libprecisegc/details/utils/scoped_thread.hpp>
+#include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
-
-#include "libprecisegc/gc_ptr.h"
-#include "libprecisegc/gc_new.h"
-#include "libprecisegc/gc.h"
-#include "libprecisegc/details/gc_mark.h"
-#include "libprecisegc/details/barrier.h"
-#include "libprecisegc/details/utils/math.h"
+#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/gc_ptr.h>
+#include <libprecisegc/gc_new.h>
+#include <libprecisegc/gc.h>
+#include <libprecisegc/details/gc_mark.h>
+#include <libprecisegc/details/barrier.h>
+#include <libprecisegc/details/utils/math.h>
 
 using namespace precisegc;
 using namespace precisegc::details;
@@ -22,6 +25,10 @@ using namespace precisegc::details;
 #define DEBUG_PRINT_TREE
 
 namespace {
+
+const int TREE_DEPTH = 2;
+const int THREADS_COUNT = 4; // must be power of 2 and <= 2^(TREE_DEPTH)
+const size_t LIVE_LEVEL = ::log2(THREADS_COUNT);
 
 struct node
 {
@@ -64,27 +71,27 @@ void unmark_tree(const gc_ptr<node>& ptr)
 
 void print_tree(const gc_ptr<node>& root, const std::string& offset = "")
 {
-    #ifdef DEBUG_PRINT_TREE
-        if (!root) {
-            std::cout << offset << "nullptr" << std::endl;
-            return;
-        }
-        gc_pin<node> pin(root);
-        std::cout << offset << & root << " (" << pin.get() << ") [" << get_object_mark(pin.get()) << "]" << std::endl;
-        auto new_offset = offset + "    ";
-        print_tree(root->m_left, new_offset);
-        print_tree(root->m_right, new_offset);
-    #endif
+#ifdef DEBUG_PRINT_TREE
+    if (!root) {
+        std::cout << offset << "nullptr" << std::endl;
+        return;
+    }
+    gc_pin<node> pin(root);
+    std::cout << offset << &root << " (" << pin.get() << ") [" << get_object_mark(pin.get()) << "]" << std::endl;
+    auto new_offset = offset + "    ";
+    print_tree(root->m_left, new_offset);
+    print_tree(root->m_right, new_offset);
+#endif
 }
 
 void print_tree(node* root, const std::string& offset = "")
 {
-    #ifdef DEBUG_PRINT_TREE
-        std::cout << offset << "nullptr" << " (" << root << ") [" << get_object_mark(root) << "]" << std::endl;
-        auto new_offset = offset + "    ";
-        print_tree(root->m_left, new_offset);
-        print_tree(root->m_right, new_offset);
-    #endif
+#ifdef DEBUG_PRINT_TREE
+    std::cout << offset << "nullptr" << " (" << root << ") [" << get_object_mark(root) << "]" << std::endl;
+    auto new_offset = offset + "    ";
+    print_tree(root->m_left, new_offset);
+    print_tree(root->m_right, new_offset);
+#endif
 }
 
 void generate_random_child(gc_ptr<node> ptr)
@@ -98,21 +105,33 @@ void generate_random_child(gc_ptr<node> ptr)
             ptr = new_ptr;
         }
     }
+}
 
+void check_nodes(node* ptr, size_t depth)
+{
+    if (depth < LIVE_LEVEL) {
+        EXPECT_FALSE(get_object_mark(ptr)) << "ptr=" << ptr;
+    } else if (depth == LIVE_LEVEL) {
+        EXPECT_TRUE(get_object_mark(ptr)) << "ptr=" << ptr;
+    }
+    if (ptr->m_left) {
+        gc_pin<node> pin(ptr->m_left);
+        check_nodes(pin.get(), depth + 1);
+    }
+    if (ptr->m_right) {
+        gc_pin<node> pin(ptr->m_right);
+        check_nodes(pin.get(), depth + 1);
+    }
 }
 
 std::atomic<int> thread_num(0);
 std::atomic<bool> gc_finished(false);
 
-static const int TREE_DEPTH = 2;
-static const int THREADS_COUNT = 4; // must be power of 2 and <= 2^(TREE_DEPTH)
-const size_t LIVE_LEVEL = ::log2(THREADS_COUNT);
-
-static barrier threads_ready(THREADS_COUNT + 1);
+barrier threads_ready(THREADS_COUNT + 1);
 
 static void* thread_routine(void* arg)
 {
-    gc_ptr<node>& root = * ((gc_ptr<node>*) arg);
+    gc_ptr<node>& root = *((gc_ptr<node>*) arg);
     int num = thread_num++;
     // assign to each thread a leaf in the tree
     gc_ptr<node> ptr = root;
@@ -124,6 +143,8 @@ static void* thread_routine(void* arg)
         generate_random_child(ptr);
 //        sleep(1);
     }
+}
+
 }
 
 /**
@@ -144,8 +165,13 @@ static void* thread_routine(void* arg)
 
 struct gc_test: public ::testing::Test
 {
-    gc_test()
+    gc_test(std::unique_ptr<gc_interface> new_gc)
     {
+        old_gc = gc_reset(std::move(new_gc));
+        auto guard = utils::make_scope_guard([this] {
+            gc_set(std::move(old_gc));
+        });
+
         srand(time(nullptr));
 
         gc_finished = false;
@@ -165,37 +191,40 @@ struct gc_test: public ::testing::Test
         gc_pin<node> pin(root);
         root_raw = pin.get();
         root.reset();
+
+        guard.commit();
     }
 
     ~gc_test()
     {
+        auto guard = utils::make_scope_guard([this] {
+            gc_set(std::move(old_gc));
+        });
         for (auto& thread: threads) {
             thread.join();
         }
     }
 
     gc_ptr<node> root;
-    std::thread threads[THREADS_COUNT];
+    utils::scoped_thread threads[THREADS_COUNT];
     node* root_raw;
+    std::unique_ptr<gc_interface> old_gc;
 };
 
-void check_nodes(node* ptr, size_t depth)
+struct serial_gc_test : public gc_test
 {
-    if (depth < LIVE_LEVEL) {
-        EXPECT_FALSE(get_object_mark(ptr)) << "ptr=" << ptr;
-    } else if (depth == LIVE_LEVEL) {
-        EXPECT_TRUE(get_object_mark(ptr))  << "ptr=" << ptr;
-    }
-    if (ptr->m_left) {
-        gc_pin<node> pin(ptr->m_left);
-        check_nodes(pin.get(), depth + 1);
-    }
-    if (ptr->m_right) {
-        gc_pin<node> pin(ptr->m_right);
-        check_nodes(pin.get(), depth + 1);
-    }
-}
+    serial_gc_test()
+        : gc_test(utils::make_unique<serial_gc>(gc_compacting::DISABLED, utils::make_unique<empty_policy>()))
+    {}
+};
 
+// This test doesn't check anything.
+// Consider it is passed if nothing will crash or hang.
+TEST_F(serial_gc_test, test_serial_gc)
+{
+    precisegc::gc();
+    print_tree(root_raw);
+    gc_finished = true;
 }
 
 //TEST_F(gc_test, test_marking)
@@ -216,15 +245,3 @@ void check_nodes(node* ptr, size_t depth)
 //
 //    collector.force_move_to_idle();
 //}
-
-
-// This test doesn't check anything.
-// Consider it is passed if nothing will crash or hang.
-TEST_F(gc_test, test_serial_gc)
-{
-
-    precisegc::gc();
-    gc_finished = true;
-    auto& collector = gc_garbage_collector::instance();
-    collector.force_move_to_idle();
-}

@@ -25,6 +25,34 @@ public:
     virtual void update(const gc_stat& stat, initation_point_type ipoint) = 0;
 };
 
+class empty_policy : public initation_policy
+{
+public:
+    bool check(const gc_stat& stat, initation_point_type ipoint) const override
+    {
+        return false;
+    }
+
+    void update(const gc_stat& stat, initation_point_type ipoint) override
+    {
+        return;
+    }
+};
+
+class incremental_empty_policy : public incremental_initation_policy
+{
+public:
+    gc_phase check(const gc_stat& stat, initation_point_type ipoint) const override
+    {
+        return gc_phase::IDLING;
+    }
+
+    void update(const gc_stat& stat, initation_point_type ipoint) override
+    {
+        return;
+    }
+};
+
 class space_based_policy : public initation_policy
 {
 public:

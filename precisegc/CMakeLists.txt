@@ -68,10 +68,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/allocator_tag.hpp
         include/libprecisegc/details/utils/bitset.hpp
         include/libprecisegc/details/initation_policy.hpp
-        include/libprecisegc/details/serial_garbage_collector.hpp
+        include/libprecisegc/details/serial_gc_strategy.hpp
         include/libprecisegc/details/threads/world_state.hpp
         include/libprecisegc/details/utils/make_unique.hpp
-        include/libprecisegc/details/incremental_garbage_collector.hpp)
+        include/libprecisegc/details/incremental_gc_strategy.hpp include/libprecisegc/details/recorder.hpp include/libprecisegc/details/printer.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -95,8 +95,8 @@ set(precisegc_LIB_SRCS
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
         src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp
-        src/details/serial_garbage_collector.cpp
-        src/details/incremental_garbage_collector.cpp)
+        src/details/serial_gc_strategy.cpp
+        src/details/incremental_gc_strategy.cpp src/details/printer.cpp)
 
 
 find_package(Threads REQUIRED)

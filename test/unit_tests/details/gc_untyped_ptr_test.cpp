@@ -23,12 +23,12 @@ struct gc_untyped_ptr_barriers_test : public ::testing::Test
     {
         auto gc_mock_owner = utils::make_unique<serial_gc_mock>();
         gc_mock = gc_mock_owner.get();
-        old_gc  = gc_reset(std::move(gc_mock_owner));
+        old_gc  = gc_reset_strategy(std::move(gc_mock_owner));
     }
 
     ~gc_untyped_ptr_barriers_test()
     {
-        gc_set(std::move(old_gc));
+        gc_set_strategy(std::move(old_gc));
     }
 
     serial_gc_mock* gc_mock;

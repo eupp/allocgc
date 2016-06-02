@@ -11,11 +11,11 @@
 
 namespace precisegc { namespace details {
 
-class incremental_garbage_collector : public incremental_gc_interface
-                                    , private utils::noncopyable, private utils::nonmovable
+class incremental_gc_strategy : public incremental_gc_interface
+                              , private utils::noncopyable, private utils::nonmovable
 {
 public:
-    incremental_garbage_collector(gc_compacting compacting, std::unique_ptr<incremental_initation_policy> init_policy);
+    incremental_gc_strategy(gc_compacting compacting, std::unique_ptr<incremental_initation_policy> init_policy);
 
     managed_ptr allocate(size_t size) override;
 
@@ -24,7 +24,7 @@ public:
 
     void initation_point(initation_point_type ipoint) override;
 
-    gc_stat stat() const override;
+    gc_info info() const override;
 
     gc_phase phase() const override;
 

@@ -6,6 +6,7 @@
 
 #include <libprecisegc/details/threads/ass_sync.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/gc_options.hpp>
 
 namespace precisegc { namespace details {
 
@@ -13,20 +14,11 @@ class logging
 {
     class log_line;
 public:
-    enum class loglevel {
-        DEBUG,
-        INFO,
-        WARNING,
-        ERROR,
-        OFF
-    };
-
-    static void init(std::ostream& stream, loglevel lv);
+    static void init(std::ostream& stream, gc_loglevel lv);
     static log_line debug();
     static log_line info();
     static log_line warning();
     static log_line error();
-
 private:
     class logger: public utils::noncopyable, public utils::nonmovable
     {
@@ -46,7 +38,7 @@ private:
     class log_line: public utils::noncopyable
     {
     public:
-        explicit log_line(loglevel lv);
+        explicit log_line(gc_loglevel lv);
         ~log_line();
 
         log_line(log_line&&);
@@ -64,14 +56,14 @@ private:
         bool m_active;
     };
 
-    static log_line log(loglevel lv);
+    static log_line log(gc_loglevel lv);
 
     static const char* prefix;
     // to do: switch to optional<logger>
     static std::unique_ptr<logger> logger_;
     // to do: switch to optional<gc_signal_safe_mutex>
     static std::unique_ptr<threads::ass_mutex> mutex_;
-    static loglevel loglevel_;
+    static gc_loglevel loglevel_;
 };
 
 }}

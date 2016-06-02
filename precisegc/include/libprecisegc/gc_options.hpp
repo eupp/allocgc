@@ -15,10 +15,20 @@ enum class gc_compacting
     , DISABLED
 };
 
+enum class gc_loglevel {
+      DEBUG
+    , INFO
+    , WARNING
+    , ERROR
+    , OFF
+};
+
 struct gc_options
 {
     gc_strategy     strategy;
     gc_compacting   compacting;
+    gc_loglevel     loglevel;
+    bool            print_stat;
 };
 
 }

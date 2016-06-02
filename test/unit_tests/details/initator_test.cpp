@@ -39,7 +39,7 @@ TEST_F(initator_test, test_user_request)
     EXPECT_CALL(*policy_mock, update(_, initation_point_type::USER_REQUEST))
             .Times(Exactly(1));
 
-    initor.initation_point(initation_point_type::USER_REQUEST);
+    initor.gc_initation_point(initation_point_type::USER_REQUEST);
 }
 
 // check gc is not called when policy returns false
@@ -51,7 +51,7 @@ TEST_F(initator_test, test_initation_point_1)
     EXPECT_CALL(*policy_mock, check(_, initation_point_type::AFTER_ALLOC))
             .WillRepeatedly(Return(false));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 // check gc is called when policy returns true
@@ -66,7 +66,7 @@ TEST_F(initator_test, test_initation_point_2)
     EXPECT_CALL(*policy_mock, update(_, initation_point_type::AFTER_ALLOC))
             .Times(Exactly(1));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 struct incremental_initator_test : public ::testing::Test
@@ -93,7 +93,7 @@ TEST_F(incremental_initator_test, test_user_request)
     EXPECT_CALL(*policy_mock, update(_, initation_point_type::USER_REQUEST))
             .Times(Exactly(1));
 
-    initor.initation_point(initation_point_type::USER_REQUEST);
+    initor.gc_initation_point(initation_point_type::USER_REQUEST);
 }
 
 // check IDLING -> IDLING transition
@@ -108,7 +108,7 @@ TEST_F(incremental_initator_test, test_initation_point_1)
     EXPECT_CALL(*policy_mock, check(_, initation_point_type::AFTER_ALLOC))
             .WillRepeatedly(Return(gc_phase::IDLING));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 // check IDLING -> MARKING transition
@@ -126,7 +126,7 @@ TEST_F(incremental_initator_test, test_initation_point_2)
     EXPECT_CALL(*policy_mock, update(_, initation_point_type::AFTER_ALLOC))
             .Times(Exactly(1));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 // check IDLING -> SWEEPING transition
@@ -144,7 +144,7 @@ TEST_F(incremental_initator_test, test_initation_point_3)
     EXPECT_CALL(*policy_mock, update(_, initation_point_type::AFTER_ALLOC))
             .Times(Exactly(1));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 // check MARKING -> SWEEPING transition
@@ -162,7 +162,7 @@ TEST_F(incremental_initator_test, test_initation_point_4)
     EXPECT_CALL(*policy_mock, update(_, initation_point_type::AFTER_ALLOC))
             .Times(Exactly(1));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 // check MARKING -> MARKING transition
@@ -177,7 +177,7 @@ TEST_F(incremental_initator_test, test_initation_point_5)
     EXPECT_CALL(*policy_mock, check(_, initation_point_type::AFTER_ALLOC))
             .WillRepeatedly(Return(gc_phase::MARKING));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }
 
 // check SWEEPING -> SWEEPING transition
@@ -192,5 +192,5 @@ TEST_F(incremental_initator_test, test_initation_point_6)
     EXPECT_CALL(*policy_mock, check(_, initation_point_type::AFTER_ALLOC))
             .WillRepeatedly(Return(gc_phase::SWEEPING));
 
-    initor.initation_point(initation_point_type::AFTER_ALLOC);
+    initor.gc_initation_point(initation_point_type::AFTER_ALLOC);
 }

@@ -17,7 +17,7 @@ initator::initator(serial_gc_interface* gc, std::unique_ptr<initation_policy>&& 
     assert(m_policy);
 }
 
-void initator::initation_point(initation_point_type ipoint)
+void initator::gc_initation_point(initation_point_type ipoint)
 {
     if (ipoint == initation_point_type::USER_REQUEST) {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -48,7 +48,7 @@ incremental_initator::incremental_initator(incremental_gc_interface* gc,
     assert(m_policy);
 }
 
-void incremental_initator::initation_point(initation_point_type ipoint)
+void incremental_initator::gc_initation_point(initation_point_type ipoint)
 {
     if (ipoint == initation_point_type::USER_REQUEST) {
         std::lock_guard<std::mutex> lock(m_mutex);

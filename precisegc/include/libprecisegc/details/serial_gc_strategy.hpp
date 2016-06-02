@@ -11,19 +11,19 @@
 
 namespace precisegc { namespace details {
 
-class serial_garbage_collector : public serial_gc_interface, private utils::noncopyable, private utils::nonmovable
+class serial_gc_strategy : public serial_gc_interface, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    serial_garbage_collector(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+    serial_gc_strategy(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
 
-    managed_ptr allocate(size_t size);
+    managed_ptr allocate(size_t size) override;
 
-    byte* rbarrier(const atomic_byte_ptr& p);
-    void  wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src);
+    byte* rbarrier(const atomic_byte_ptr& p) override;
+    void  wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src) override;
 
-    void initation_point(initation_point_type ipoint);
+    void initation_point(initation_point_type ipoint) override;
 
-    gc_stat stat() const;
+    gc_info info() const override;
 
     void gc();
 private:

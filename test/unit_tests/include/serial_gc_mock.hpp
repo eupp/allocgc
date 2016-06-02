@@ -17,7 +17,7 @@ public:
     MOCK_METHOD1(rbarrier, byte*(const atomic_byte_ptr&));
     MOCK_METHOD2(wbarrier, void(atomic_byte_ptr&, const atomic_byte_ptr&));
     MOCK_METHOD1(initation_point, void(initation_point_type));
-    MOCK_CONST_METHOD0(stat, gc_stat(void));
+    MOCK_CONST_METHOD0(info, gc_info(void));
     MOCK_METHOD0(gc, void(void));
 };
 

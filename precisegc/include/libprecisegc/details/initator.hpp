@@ -20,7 +20,7 @@ class initator : private utils::noncopyable, private utils::nonmovable
 public:
     initator(serial_gc_interface* gc, std::unique_ptr<initation_policy>&& policy);
 
-    void initation_point(initation_point_type ipoint);
+    void gc_initation_point(initation_point_type ipoint);
 
     initation_policy* get_policy() const;
 private:
@@ -34,7 +34,7 @@ class incremental_initator : private utils::noncopyable, private utils::nonmovab
 public:
     incremental_initator(incremental_gc_interface* gc, std::unique_ptr<incremental_initation_policy>&& policy);
 
-    void initation_point(initation_point_type ipoint);
+    void gc_initation_point(initation_point_type ipoint);
 
     incremental_initation_policy* get_policy() const;
 private:

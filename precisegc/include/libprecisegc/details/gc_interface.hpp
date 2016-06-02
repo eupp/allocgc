@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_GC_INTERFACE_HPP
 #define DIPLOMA_GC_INTERFACE_HPP
 
+#include <chrono>
+
 #include <libprecisegc/gc_options.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
@@ -12,18 +14,46 @@ enum class initation_point_type {
     , AFTER_ALLOC
 };
 
+enum class gc_pause_type {
+      TRACE_ROOTS
+    , SWEEP_HEAP
+};
+
 enum class gc_phase {
       IDLING
     , MARKING
     , SWEEPING
 };
 
-struct gc_stat
+struct gc_info
 {
-    size_t  heap_size;
     bool    incremental;
     bool    support_concurrent_mark;
     bool    support_concurrent_sweep;
+};
+
+typedef std::chrono::steady_clock::time_point gc_time_point;
+typedef std::chrono::steady_clock::duration gc_duration;
+
+struct gc_stat
+{
+    size_t          heap_size;
+    size_t          heap_gain;
+    gc_duration     last_alloc_timediff;
+    gc_duration     last_gc_timediff;
+    gc_duration     last_pause_time;
+};
+
+struct gc_pause_stat
+{
+    gc_pause_type   type;
+    gc_duration     duration;
+};
+
+struct gc_sweep_stat
+{
+    size_t      shrunk;
+    size_t      swept;
 };
 
 struct incremental_gc_ops
@@ -67,7 +97,7 @@ public:
 
     virtual void initation_point(initation_point_type ipoint) = 0;
 
-    virtual gc_stat stat() const = 0;
+    virtual gc_info info() const = 0;
 };
 
 class serial_gc_interface : public gc_interface

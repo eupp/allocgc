@@ -1,4 +1,4 @@
-#include <libprecisegc/details/incremental_garbage_collector.hpp>
+#include <libprecisegc/details/incremental_gc_strategy.hpp>
 
 #include <cassert>
 
@@ -8,7 +8,7 @@
 
 namespace precisegc { namespace details {
 
-incremental_garbage_collector::incremental_garbage_collector(gc_compacting compacting,
+incremental_gc_strategy::incremental_gc_strategy(gc_compacting compacting,
                                                              std::unique_ptr<incremental_initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
@@ -17,7 +17,7 @@ incremental_garbage_collector::incremental_garbage_collector(gc_compacting compa
     assert(m_phase.is_lock_free());
 }
 
-managed_ptr incremental_garbage_collector::allocate(size_t size)
+managed_ptr incremental_gc_strategy::allocate(size_t size)
 {
     gc_unsafe_scope unsafe_scope;
     managed_ptr mp = m_heap.allocate(size);
@@ -27,12 +27,12 @@ managed_ptr incremental_garbage_collector::allocate(size_t size)
     return mp;
 }
 
-byte* incremental_garbage_collector::rbarrier(const atomic_byte_ptr& p)
+byte* incremental_gc_strategy::rbarrier(const atomic_byte_ptr& p)
 {
     return p.load(std::memory_order_acquire);
 }
 
-void incremental_garbage_collector::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
+void incremental_gc_strategy::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
     gc_unsafe_scope unsafe_scope;
     byte* p = src.load(std::memory_order_acquire);
@@ -47,37 +47,38 @@ void incremental_garbage_collector::wbarrier(atomic_byte_ptr& dst, const atomic_
     }
 }
 
-void incremental_garbage_collector::initation_point(initation_point_type ipoint)
+void incremental_gc_strategy::initation_point(initation_point_type ipoint)
 {
-    m_initator.initation_point(ipoint);
+    m_initator.gc_initation_point(ipoint);
 }
 
-gc_stat incremental_garbage_collector::stat() const
+gc_info incremental_gc_strategy::info() const
 {
-    gc_stat stat;
-    stat.heap_size                  = m_heap.size();
-    stat.incremental                = true;
-    stat.support_concurrent_mark    = true;
-    stat.support_concurrent_sweep   = false;
-    return stat;
+    static gc_info inf = {
+        .incremental                = true,
+        .support_concurrent_mark    = true,
+        .support_concurrent_sweep   = false
+    };
+
+    return inf;
 }
 
-gc_phase incremental_garbage_collector::phase() const
+gc_phase incremental_gc_strategy::phase() const
 {
     return m_phase.load(std::memory_order_acquire);
 }
 
-void incremental_garbage_collector::set_phase(gc_phase phase)
+void incremental_gc_strategy::set_phase(gc_phase phase)
 {
     m_phase.store(phase, std::memory_order_release);
 }
 
-void incremental_garbage_collector::gc()
+void incremental_gc_strategy::gc()
 {
     sweep();
 }
 
-void incremental_garbage_collector::incremental_gc(const incremental_gc_ops& ops)
+void incremental_gc_strategy::incremental_gc(const incremental_gc_ops& ops)
 {
     if (ops.phase == gc_phase::IDLING) {
         assert(phase() == gc_phase::MARKING);
@@ -91,7 +92,7 @@ void incremental_garbage_collector::incremental_gc(const incremental_gc_ops& ops
     }
 }
 
-void incremental_garbage_collector::start_marking()
+void incremental_gc_strategy::start_marking()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING);
@@ -101,7 +102,7 @@ void incremental_garbage_collector::start_marking()
     m_marker.start_marking();
 }
 
-void incremental_garbage_collector::sweep()
+void incremental_gc_strategy::sweep()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);

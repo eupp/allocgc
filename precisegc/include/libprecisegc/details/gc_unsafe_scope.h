@@ -1,30 +1,26 @@
 #ifndef DIPLOMA_GC_CONSISTENCY_H
 #define DIPLOMA_GC_CONSISTENCY_H
 
-#include "gc_pause.h"
-#include "mutex.h"
-#include "logging.h"
+#include <libprecisegc/details/threads/posix_signal.hpp>
 
 namespace precisegc { namespace details {
 
 class gc_unsafe_scope
 {
-    typedef gc_pause_lock::siglock siglock;
 public:
     gc_unsafe_scope()
     {
-//        logging::debug() << "Thread " << pthread_self() << " enters unsafe scope (gc signal is disabled)";
-        siglock::lock();
+        static threads::posix_signal& sig = threads::posix_signal::instance();
+        sig.lock();
     }
 
     ~gc_unsafe_scope()
     {
-//        logging::debug() << "Thread " << pthread_self() << " leaves unsafe scope (gc signal is enabled)";
-        siglock::unlock();
+        static threads::posix_signal& sig = threads::posix_signal::instance();
+        sig.unlock();
     }
 };
 
-}
-}
+}}
 
 #endif //DIPLOMA_GC_CONSISTENCY_H

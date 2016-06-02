@@ -2,10 +2,9 @@
 #define DIPLOMA_CLASS_META_H
 
 #include <memory>
+#include <mutex>
 #include <vector>
 #include <pthread.h>
-
-#include "mutex.h"
 
 namespace precisegc { namespace details {
 
@@ -44,13 +43,13 @@ public:
 
     static bool is_created()
     {
-        lock_guard<recursive_mutex> lock(meta_mutex);
+        std::lock_guard<std::recursive_mutex> lock(meta_mutex);
         return meta_inf != nullptr;
     }
 
     static void create_meta(const std::vector<size_t>& offsets)
     {
-        lock_guard<recursive_mutex> lock(meta_mutex);
+        std::lock_guard<std::recursive_mutex> lock(meta_mutex);
         if (is_created()) {
             return;
         }
@@ -72,12 +71,12 @@ public:
     }
 
 private:
-    static recursive_mutex meta_mutex;
+    static std::recursive_mutex meta_mutex;
     static std::unique_ptr<class_meta> meta_inf;
 };
 
 template <typename T>
-recursive_mutex class_meta_provider<T>::meta_mutex;
+std::recursive_mutex class_meta_provider<T>::meta_mutex;
 
 template <typename T>
 std::unique_ptr<class_meta> class_meta_provider<T>::meta_inf = nullptr;

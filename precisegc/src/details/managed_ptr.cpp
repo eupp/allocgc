@@ -1,131 +1,141 @@
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
+
+#include <cassert>
+#include <utility>
 
 namespace precisegc { namespace details {
 
-managed_cell_ptr::managed_cell_ptr()
-    : managed_cell_ptr(nullptr)
-{}
+index_type managed_ptr::indexer{};
 
-managed_cell_ptr::managed_cell_ptr(nullptr_t)
+managed_ptr::managed_ptr()
     : m_ptr(nullptr)
-    , m_cell_size(0)
     , m_descr(nullptr)
 {}
 
-managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size)
-    : m_ptr(idx_ptr)
-    , m_cell_size(cell_size)
+managed_ptr::managed_ptr(nullptr_t)
+    : m_ptr(nullptr)
     , m_descr(nullptr)
 {}
 
-managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size, managed_memory_descriptor* descriptor)
-    : m_ptr(idx_ptr)
-    , m_cell_size(cell_size)
-    , m_descr(descriptor)
-{}
-
-managed_cell_ptr::managed_cell_ptr(managed_ptr idx_ptr, size_t cell_size, managed_memory_descriptor* descriptor, lock_type&& lock)
-    : m_ptr(idx_ptr)
-    , m_cell_size(cell_size)
-    , m_descr(descriptor)
-    , m_lock(std::move(lock))
-{}
-
-bool managed_cell_ptr::get_mark() const
+managed_ptr::managed_ptr(byte* ptr)
+    : m_ptr(ptr)
+    , m_descr(indexer.get_entry(ptr))
 {
-    descriptor_lazy_init();
+    if (!m_descr) {
+        throw unindexed_memory_exception(ptr);
+    }
+}
+
+managed_ptr::managed_ptr(byte* ptr, managed_memory_descriptor* descriptor)
+    : m_ptr(ptr)
+    , m_descr(descriptor)
+{
+    assert(indexer.get_entry(ptr) == descriptor || indexer.get_entry(ptr - PAGE_SIZE) == descriptor);
+}
+
+bool managed_ptr::get_mark() const
+{
     return m_descr->get_mark(get());
 }
 
-bool managed_cell_ptr::get_pin() const
+bool managed_ptr::get_pin() const
 {
-    descriptor_lazy_init();
     return m_descr->get_pin(get());
 }
 
-void managed_cell_ptr::set_mark(bool mark)
+void managed_ptr::set_mark(bool mark) const
 {
-    descriptor_lazy_init();
     return m_descr->set_mark(get(), mark);
 }
 
-void managed_cell_ptr::set_pin(bool pin)
+void managed_ptr::set_pin(bool pin) const
 {
-    descriptor_lazy_init();
     return m_descr->set_pin(get(), pin);
 }
 
-void managed_cell_ptr::sweep()
+void managed_ptr::set_live(bool live)
 {
-    descriptor_lazy_init();
-    m_descr->sweep(get());
+    m_descr->set_live(m_ptr, live);
 }
 
-bool managed_cell_ptr::is_live() const
+bool managed_ptr::is_live() const
 {
-    descriptor_lazy_init();
     return m_descr->is_live(get());
 }
 
-object_meta* managed_cell_ptr::get_meta() const
+void managed_ptr::sweep() const
 {
-    descriptor_lazy_init();
+    m_descr->sweep(get());
+}
+
+size_t managed_ptr::cell_size() const
+{
+    return m_descr->cell_size();
+}
+
+object_meta* managed_ptr::get_meta() const
+{
     return m_descr->get_cell_meta(get());
 }
 
-byte* managed_cell_ptr::get_cell_begin() const
+byte* managed_ptr::get_cell_begin() const
 {
-    descriptor_lazy_init();
     return m_descr->get_cell_begin(get());
 }
 
-managed_memory_descriptor* managed_cell_ptr::get_descriptor() const
+byte* managed_ptr::get_obj_begin() const
 {
-    descriptor_lazy_init();
+    return m_descr->get_obj_begin(get());
+}
+
+byte* managed_ptr::get() const
+{
+    return m_ptr;
+}
+
+managed_memory_descriptor* managed_ptr::get_descriptor() const
+{
     return m_descr;
 }
 
-byte* managed_cell_ptr::get() const
+void managed_ptr::advance(ptrdiff_t n)
 {
-    return m_ptr.get();
+    m_ptr += n;
+//    assert(get_cell_begin() <= m_ptr && m_ptr <= get_cell_begin() + get_meta()->size());
 }
 
-size_t managed_cell_ptr::cell_size() const
+void managed_ptr::swap(managed_ptr& other)
 {
-    assert(m_cell_size != 0);
-    return m_cell_size;
+    using std::swap;
+    swap(m_ptr, other.m_ptr);
+    swap(m_descr, other.m_descr);
 }
 
-void managed_cell_ptr::lock_descriptor()
+void swap(managed_ptr& a, managed_ptr& b)
 {
-    descriptor_lazy_init();
-    m_lock = m_descr->lock();
+    a.swap(b);
 }
 
-void managed_cell_ptr::unlock_descriptor()
+managed_ptr managed_ptr::add_to_index(byte* ptr, size_t size, managed_memory_descriptor* descr)
 {
-    if (m_lock.owns_lock()) {
-        m_lock.unlock();
-    }
+    indexer.index(ptr, size, descr);
+    return managed_ptr(ptr);
 }
 
-bool managed_cell_ptr::owns_descriptor_lock() const
+void managed_ptr::remove_from_index(byte* ptr, size_t size)
 {
-    return m_lock.owns_lock();
+    indexer.remove_index(ptr, size);
 }
 
-void managed_cell_ptr::descriptor_lazy_init() const
+void managed_ptr::remove_from_index(managed_ptr& ptr, size_t size)
 {
-    if (!m_descr) {
-        m_descr = m_ptr.get_indexed_entry();
-    }
-    if (!m_descr) {
-        throw unindexed_memory_exception();
-    }
+    indexer.remove_index(ptr.get(), size);
+    managed_ptr().swap(ptr);
 }
 
-const char* managed_cell_ptr::unindexed_memory_exception::what() const noexcept
+managed_memory_descriptor* managed_ptr::index(byte* ptr)
 {
-    return "Inappropriate access to unindexed memory";
+    return indexer.get_entry(ptr);
 }
+
 }}

@@ -4,7 +4,9 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "types.h"
+#include <libprecisegc/details/allocators/allocator_tag.hpp>
+
+#include "libprecisegc/details/types.hpp"
 #include "memory.h"
 
 namespace precisegc { namespace details { namespace allocators {
@@ -13,6 +15,7 @@ class paged_allocator
 {
 public:
     typedef byte* pointer_type;
+    typedef stateless_alloc_tag alloc_tag;
 
     paged_allocator() = default;
     paged_allocator(const paged_allocator&) = default;

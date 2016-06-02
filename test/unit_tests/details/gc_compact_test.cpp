@@ -1,13 +1,14 @@
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <unordered_set>
 
 #include "libprecisegc/details/gc_compact.h"
 #include "libprecisegc/details/forwarding.h"
 
-#include "libprecisegc/details/allocators/fixed_size_allocator.h"
+#include "libprecisegc/details/allocators/list_allocator.hpp"
 #include "libprecisegc/details/allocators/paged_allocator.h"
-#include "libprecisegc/details/managed_pool_chunk.h"
+#include "libprecisegc/details/managed_pool_chunk.hpp"
 
 #include "rand_util.h"
 
@@ -24,7 +25,7 @@ struct test_type
     byte data[OBJ_SIZE];
 };
 
-typedef fixed_size_allocator<managed_pool_chunk,
+typedef list_allocator<managed_pool_chunk,
                              paged_allocator,
                              paged_allocator
                             > allocator_t;
@@ -40,7 +41,7 @@ public:
     ~gc_compact_test()
     {
         for (auto ptr: m_allocated) {
-            m_alloc.deallocate(managed_cell_ptr(managed_ptr(ptr), 0), OBJ_SIZE);
+            m_alloc.deallocate(managed_ptr(ptr), OBJ_SIZE);
         }
         m_paged_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
     }
@@ -72,25 +73,29 @@ public:
 TEST_F(gc_compact_test, test_two_finger_compact_1)
 {
     for (int i = 0; i < OBJ_COUNT_1; ++i) {
-        managed_cell_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         cell_ptr.set_mark(false);
     }
 
-    auto rng = m_alloc.range();
+    auto rng = m_alloc.memory_range();
     auto it0 = std::next(rng.begin(), 0);
     auto it1 = std::next(rng.begin(), 1);
     auto it2 = std::next(rng.begin(), 2);
     auto it3 = std::next(rng.begin(), 3);
     auto it4 = std::next(rng.begin(), 4);
 
+
     // mark & pin some objects
     it0->set_mark(true);
-
     it3->set_mark(true);
     it3->set_pin(true);
-
     it4->set_mark(true);
+
+//    for (auto p: rng) {
+//        std::cout << (void*) p.get() << " " << p.get_mark() << " " << p.get_pin() << std::endl;
+//    }
+//    std::cout << std::distance(rng.begin(), rng.end()) << std::endl;
 
     byte* exp_to = it1->get();
     byte* exp_from = it4->get();
@@ -160,7 +165,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
     size_t exp_pin_cnt = 0;
     std::unordered_set<byte*> pinned;
     for (int i = 0; i < OBJ_COUNT_2; ++i) {
-        managed_cell_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         bool mark = mark_gen();
         bool pin = pin_gen();
@@ -175,7 +180,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
         }
     }
 
-    auto rng = m_alloc.range();
+    auto rng = m_alloc.memory_range();
     list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
 
@@ -218,6 +223,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 
     list_forwarding frwd;
     two_finger_compact(rng, OBJ_SIZE, frwd);
+
     size_t sweep_cnt = sweep(rng);
 
     for (auto it = rng.begin(); it != rng.end(); ++it) {
@@ -236,7 +242,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 
 TEST_F(gc_compact_test, test_fix_pointers)
 {
-    managed_cell_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
+    managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
     byte* ptr = cell_ptr.get();
 
     test_type val1;

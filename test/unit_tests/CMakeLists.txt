@@ -10,8 +10,6 @@ set(precisegc_TESTS
         gc_test.cpp
         gc_inside_method_test.cpp
         details/class_meta_test.cpp
-        details/gc_pause_test.cpp
-        details/signal_safe_sync_test.cpp
         details/gc_heap_test.cpp
         details/gc_compact_test.cpp
         gc_new_test.cpp
@@ -24,9 +22,26 @@ set(precisegc_TESTS
         details/allocators/indexed_ptr_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
-        include/page_ptr.h details/managed_pool_chunk_test.cpp
-        include/rand_util.h details/allocators/join_range_test.cpp
-        gc_ptr_test.cpp)
+        include/page_ptr.h
+        details/managed_pool_chunk_test.cpp
+        include/rand_util.h
+        gc_ptr_test.cpp
+        details/threads/pending_call_test.cpp
+        details/root_set_test.cpp
+        details/threads/signal_test.cpp
+        details/threads/ass_sync_test.cpp
+        details/threads/stw_manager_test.cpp
+        details/threads/managed_thread_test.cpp
+        details/threads/thread_manager_test.cpp
+
+        details/utils/flattened_range_test.cpp
+        details/utils/bitset_test.cpp
+        details/initator_test.cpp
+        include/serial_gc_mock.hpp
+        include/initation_policy_mock.hpp
+        include/incremental_initation_policy_mock.hpp
+        include/incremental_gc_mock.hpp
+        details/space_based_policy_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

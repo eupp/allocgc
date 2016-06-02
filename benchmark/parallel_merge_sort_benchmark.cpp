@@ -29,7 +29,6 @@
 #include "../../common/macro.h"
 
 #include "libprecisegc/libprecisegc.h"
-#include "libprecisegc/details/gc_garbage_collector.h"
 #include "libprecisegc/details/gc_heap.h"
 
 using namespace precisegc;

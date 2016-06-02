@@ -6,18 +6,18 @@
 #include <array>
 #include <stack>
 #include <algorithm>
+#include <mutex>
 
-#include "../mutex.h"
-#include "../util.h"
+#include "libprecisegc/details/utils/utility.hpp"
 
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename Alloc, size_t BlockSize, size_t Size>
-class fixed_block_cache : private ebo<Alloc>, private noncopyable, private nonmovable
+class fixed_block_cache : private utils::ebo<Alloc>, private utils::noncopyable, private utils::nonmovable
 {
     static const size_t CacheSize = Size / BlockSize;
     typedef std::vector<byte*> cache_t;
-    typedef mutex mutex_type;
+    typedef std::mutex mutex_type;
 public:
     typedef byte* pointer_type;
 
@@ -36,7 +36,7 @@ public:
     pointer_type allocate(size_t size)
     {
         if (size == BlockSize && !m_cache.empty()) {
-            lock_guard<mutex_type> lock(m_mutex);
+            std::lock_guard<mutex_type> lock(m_mutex);
             byte* p = m_cache.back();
             m_cache.pop_back();
             return p;
@@ -47,7 +47,7 @@ public:
     void deallocate(pointer_type ptr, size_t size)
     {
         if (size == BlockSize && m_cache.size() < CacheSize) {
-            lock_guard<mutex_type> lock(m_mutex);
+            std::lock_guard<mutex_type> lock(m_mutex);
             m_cache.push_back(ptr);
             return;
         }

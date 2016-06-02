@@ -6,7 +6,7 @@
 #include <unordered_map>
 
 #include "object_meta.h"
-#include "managed_memory_descriptor.h"
+#include "managed_memory_descriptor.hpp"
 
 namespace precisegc { namespace details {
 

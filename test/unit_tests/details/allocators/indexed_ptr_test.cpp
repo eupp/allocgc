@@ -5,7 +5,7 @@
 #include "libprecisegc/details/allocators/indexed_ptr.h"
 #include "libprecisegc/details/allocators/index_tree.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
-#include "libprecisegc/details/allocators/constants.h"
+#include "libprecisegc/details/constants.hpp"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;

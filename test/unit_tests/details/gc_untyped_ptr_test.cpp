@@ -3,10 +3,79 @@
 #include <memory>
 #include <utility>
 
-#include "libprecisegc/details/gc_untyped_ptr.h"
-#include "libprecisegc/details/gc_new_stack.h"
+#include <libprecisegc/details/utils/scope_guard.hpp>
+#include <libprecisegc/details/utils/make_unique.hpp>
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
+
+#include "serial_gc_mock.hpp"
 
 using namespace precisegc::details;
+using namespace precisegc::details::ptrs;
+
+using ::testing::_;
+using ::testing::Exactly;
+
+struct gc_untyped_ptr_barriers_test : public ::testing::Test
+{
+    gc_untyped_ptr_barriers_test()
+    {
+        auto gc_mock_owner = utils::make_unique<serial_gc_mock>();
+        gc_mock = gc_mock_owner.get();
+        old_gc  = gc_reset(std::move(gc_mock_owner));
+    }
+
+    ~gc_untyped_ptr_barriers_test()
+    {
+        gc_set(std::move(old_gc));
+    }
+
+    serial_gc_mock* gc_mock;
+    std::unique_ptr<gc_interface> old_gc;
+};
+
+TEST_F(gc_untyped_ptr_barriers_test, test_rbarrier)
+{
+    EXPECT_CALL(*gc_mock, rbarrier(_))
+            .Times(Exactly(1));
+
+    gc_untyped_ptr ptr;
+    ptr.get();
+}
+
+TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_1)
+{
+    EXPECT_CALL(*gc_mock, wbarrier(_, _))
+            .Times(Exactly(1));
+
+    int val = 0;
+    gc_untyped_ptr ptr;
+    ptr.set((void*) &val);
+}
+
+TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_2)
+{
+    EXPECT_CALL(*gc_mock, wbarrier(_, _))
+            .Times(Exactly(1));
+
+    int val = 0;
+    gc_untyped_ptr src((void*) &val);
+    gc_untyped_ptr dst(src);
+}
+
+TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_3)
+{
+    EXPECT_CALL(*gc_mock, wbarrier(_, _))
+            .Times(Exactly(1));
+
+    int val = 0;
+    gc_untyped_ptr src((void*) &val);
+    gc_untyped_ptr dst;
+
+    dst = src;
+}
+
 
 TEST(gc_untyped_ptr_test, test_default_construct)
 {

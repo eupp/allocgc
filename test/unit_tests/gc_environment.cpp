@@ -4,6 +4,8 @@
 
 #include "libprecisegc/libprecisegc.h"
 
+using namespace precisegc;
+
 class gc_environment: public ::testing::Environment
 {
 public:
@@ -11,7 +13,10 @@ public:
 
     virtual void SetUp()
     {
-        int res = precisegc::gc_init();
+        gc_options gc_ops;
+        gc_ops.strategy   = gc_strategy::SERIAL;
+        gc_ops.compacting = gc_compacting::ENABLED;
+        int res = gc_init(gc_ops);
         assert(res == 0);
     }
 

@@ -1,14 +1,13 @@
 #ifndef DIPLOMA_GC_H
 #define DIPLOMA_GC_H
 
-#include "details/gc_garbage_collector.h"
+#include <libprecisegc/details/gc_hooks.hpp>
 
 namespace precisegc {
 
 inline void gc()
 {
-    auto& collector = details::gc_garbage_collector::instance();
-    collector.start_compacting();
+    details::initation_point(details::initation_point_type::USER_REQUEST);
 }
 
 }

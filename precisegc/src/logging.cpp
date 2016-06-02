@@ -6,13 +6,13 @@ namespace precisegc { namespace details {
 
 const char* logging::prefix = "precisegc-";
 std::unique_ptr<logging::logger> logging::logger_ = nullptr;
-std::unique_ptr<gc_signal_safe_mutex> logging::mutex_ = nullptr;
+std::unique_ptr<threads::ass_mutex> logging::mutex_ = nullptr;
 logging::loglevel logging::loglevel_ = logging::loglevel::OFF;
 
 void logging::init(std::ostream& stream, loglevel lv)
 {
     logger_.reset(new logger(stream));
-    mutex_.reset(new gc_signal_safe_mutex());
+    mutex_.reset(new threads::ass_mutex());
     loglevel_ = lv;
 }
 

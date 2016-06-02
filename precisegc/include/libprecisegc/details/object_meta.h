@@ -21,6 +21,11 @@ public:
         , m_obj_ptr(obj_ptr)
     {}
 
+    size_t size() const noexcept
+    {
+        return m_count * m_cls_meta->get_type_size();
+    }
+
     const class_meta* get_class_meta() const noexcept
     {
         return m_cls_meta;

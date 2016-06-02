@@ -4,12 +4,16 @@
 #include <iterator>
 #include <algorithm>
 
+#include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/thread_manager.hpp>
+
 #include "forwarding.h"
-#include "thread_list.h"
 #include "object_meta.h"
 #include "gc_mark.h"
 #include "../gc_ptr.h"
-#include "managed_ptr.h"
+#include "managed_ptr.hpp"
+
+#include "root_set.hpp"
 
 namespace precisegc { namespace details {
 
@@ -20,14 +24,14 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
     auto to = rng.begin();
     auto from = rng.end();
     while (from != to) {
-        to = std::find_if(to, from, [](managed_cell_ptr cell_ptr) {
-                return !cell_ptr.get_mark() && !cell_ptr.get_pin() && cell_ptr.is_live();
+        to = std::find_if(to, from, [](managed_ptr cell_ptr) {
+                return !cell_ptr.get_mark();
         });
 
         auto rev_from = std::find_if(reverse_iterator(from),
                                      reverse_iterator(to),
-                                     [](managed_cell_ptr cell_ptr) {
-                                         return cell_ptr.get_mark() && !cell_ptr.get_pin() && cell_ptr.is_live();
+                                     [] (managed_ptr cell_ptr) {
+                                         return cell_ptr.get_mark() && !cell_ptr.get_pin();
         });
 
         from = rev_from.base();
@@ -36,6 +40,7 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
             frwd.create(from->get(), to->get(), obj_size);
             from->set_mark(false);
             to->set_mark(true);
+            to->set_live(true);
         }
     }
 }
@@ -44,7 +49,7 @@ template <typename Range>
 size_t sweep(Range& rng)
 {
     size_t sweep_cnt = 0;
-    for (managed_cell_ptr cell_ptr: rng) {
+    for (managed_ptr cell_ptr: rng) {
         if (cell_ptr.get_mark()) {
             cell_ptr.set_mark(false);
         } else if (cell_ptr.is_live() && !cell_ptr.get_pin()) {
@@ -60,7 +65,7 @@ template <typename Iterator, typename Forwarding>
 void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, const Forwarding& frwd)
 {
     for (auto it = first; it != last; ++it) {
-        if (!it->is_live()) {
+        if (!it->get_mark()) {
             continue;
         }
         byte* ptr = it->get();
@@ -83,12 +88,12 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
 template <typename Forwarding>
 void fix_roots(const Forwarding& frwd)
 {
-    thread_list& tl = thread_list::instance();
-    for (auto& handler: tl) {
-        thread_handler* p_handler = &handler;
-        auto stack_ptr = p_handler->stack;
-        for (StackElement* root = stack_ptr->begin(); root != NULL; root = root->next) {
-            frwd.forward(root->addr);
+    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
+    for (auto thread: threads_rng) {
+        root_set::element* it = thread->get_root_set().head();
+        while (it != nullptr) {
+            frwd.forward(it->root);
+            it = it->next;
         }
     }
 }

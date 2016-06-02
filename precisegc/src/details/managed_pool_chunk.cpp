@@ -1,8 +1,8 @@
-#include "managed_pool_chunk.h"
+#include "managed_pool_chunk.hpp"
 
 #include <utility>
 
-#include "math_util.h"
+#include "libprecisegc/details/utils/math.h"
 #include "logging.h"
 
 namespace precisegc { namespace details {
@@ -10,39 +10,39 @@ namespace precisegc { namespace details {
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
     : m_chunk(chunk, size, cell_size)
     , m_cell_size(cell_size)
-    , m_log2_cell_size(log_2(cell_size))
+    , m_log2_cell_size(log2(cell_size))
     , m_mask(calc_mask(chunk, size, cell_size))
 {
-    managed_ptr::index(chunk, size, this);
+    managed_ptr::add_to_index(chunk, size, get_descriptor());
 }
 
 managed_pool_chunk::~managed_pool_chunk()
 {
-    managed_ptr::remove_index(managed_ptr(m_chunk.get_mem()), m_chunk.get_mem_size());
-}
-
-managed_cell_ptr managed_pool_chunk::allocate(size_t cell_size)
-{
-    assert(cell_size == get_cell_size());
-    lock_type lk = lock(std::defer_lock_t());
-    byte* raw_ptr = m_chunk.allocate(cell_size);
-    size_t ind = calc_cell_ind(raw_ptr, get_log2_cell_size(), get_mem(), get_mem_size());
-    m_alloc_bits[ind] = true;
-    return managed_cell_ptr(managed_ptr(raw_ptr), cell_size, get_descriptor(), std::move(lk));
-}
-
-void managed_pool_chunk::deallocate(const managed_cell_ptr& ptr, size_t cell_size)
-{
-    assert(cell_size == get_cell_size());
-    byte* raw_ptr = ptr.get();
-    size_t ind = calc_cell_ind(raw_ptr, get_log2_cell_size(), get_mem(), get_mem_size());
-    if (m_alloc_bits[ind]) {
-        m_alloc_bits[ind] = false;
-        m_chunk.deallocate(raw_ptr, cell_size);
+    if (/*get_mem() == (void*) 0x7ffff2e3e000 || */get_mem() == (void*) 0x7ffff2e40000) {
+        logging::debug() << "auha";
     }
+    managed_ptr::remove_from_index(get_mem(), get_mem_size());
 }
 
-bool managed_pool_chunk::contains(const managed_cell_ptr& ptr) const noexcept
+managed_ptr managed_pool_chunk::allocate(size_t size)
+{
+    assert(size == cell_size());
+    byte* raw_ptr = m_chunk.allocate(size);
+    return managed_ptr(raw_ptr, get_descriptor());
+}
+
+void managed_pool_chunk::deallocate(const managed_ptr& ptr, size_t cell_size)
+{
+    deallocate(ptr.get(), cell_size);
+}
+
+void managed_pool_chunk::deallocate(byte* ptr, size_t size)
+{
+    assert(size == cell_size());
+    m_chunk.deallocate(ptr, size);
+}
+
+bool managed_pool_chunk::contains(const managed_ptr& ptr) const noexcept
 {
     return m_chunk.contains(ptr.get());
 }
@@ -52,20 +52,14 @@ bool managed_pool_chunk::memory_available() const noexcept
     return m_chunk.memory_available();
 }
 
-bool managed_pool_chunk::empty(size_t cell_size) const noexcept
-{
-    return m_chunk.empty(cell_size);
-}
-
-bool managed_pool_chunk::is_dead() const noexcept
+bool managed_pool_chunk::empty() const noexcept
 {
     return m_mark_bits.none() && m_pin_bits.none();
 }
 
-void managed_pool_chunk::reset_bits()
+bool managed_pool_chunk::empty(size_t cell_size) const noexcept
 {
-    m_mark_bits.reset();
-    m_pin_bits.reset();
+    return empty();
 }
 
 byte* managed_pool_chunk::get_mem() const
@@ -78,55 +72,51 @@ size_t managed_pool_chunk::get_mem_size() const
     return m_chunk.get_mem_size();
 }
 
-size_t managed_pool_chunk::get_cell_size() const
-{
-    return m_cell_size;
-}
-
 managed_memory_descriptor* managed_pool_chunk::get_descriptor()
 {
     return this;
 }
 
-managed_pool_chunk::range_type managed_pool_chunk::get_range()
+void managed_pool_chunk::unmark()
+{
+    m_mark_bits.reset_all();
+    m_pin_bits.reset_all();
+}
+
+managed_pool_chunk::iterator managed_pool_chunk::begin()
 {
     assert(get_mem());
-    byte* b = get_mem();
-    byte* e = b + get_mem_size();
-    return range_type(iterator(b, this), iterator(e, this));
+    return iterator(get_mem(), get_descriptor());
 }
 
-void managed_pool_chunk::swap(managed_pool_chunk& other)
+managed_pool_chunk::iterator managed_pool_chunk::end()
 {
-    using std::swap;
-    lock_type lock1 = lock();
-    lock_type lock2 = other.lock();
-    swap(m_chunk, other.m_chunk);
-    swap(m_alloc_bits, other.m_alloc_bits);
+    assert(get_mem());
+    return iterator(get_mem() + get_mem_size(), get_descriptor());
 }
 
-void swap(managed_pool_chunk& a, managed_pool_chunk& b)
+managed_pool_chunk::range_type managed_pool_chunk::get_range()
 {
-    a.swap(b);
+    return range_type(begin(), end());
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t log2_cell_size, byte* base_ptr, size_t size)
 {
     assert(base_ptr <= ptr && ptr < base_ptr + size);
-    assert((ptr - base_ptr) % pow_2(log2_cell_size) == 0);
+    assert((ptr - base_ptr) % pow2(log2_cell_size) == 0);
     return (ptr - base_ptr) >> log2_cell_size;
 }
 
-bool managed_pool_chunk::get_mark(byte* ptr)
+bool managed_pool_chunk::get_mark(byte* ptr) const
 {
     size_t ind = calc_cell_ind(ptr);
-    return m_mark_bits[ind];
+    return m_mark_bits.get(ind);
 }
 
-bool managed_pool_chunk::get_pin(byte* ptr)
+bool managed_pool_chunk::get_pin(byte* ptr) const
 {
     size_t ind = calc_cell_ind(ptr);
-    return m_pin_bits[ind];
+    return m_pin_bits.get(ind);
 }
 
 void managed_pool_chunk::set_mark(byte* ptr, bool mark)
@@ -138,27 +128,44 @@ void managed_pool_chunk::set_mark(byte* ptr, bool mark)
 void managed_pool_chunk::set_pin(byte* ptr, bool pin)
 {
     size_t ind = calc_cell_ind(ptr);
-    m_pin_bits[ind] = pin;
+    m_pin_bits.set(ind, pin);
+}
+
+void managed_pool_chunk::set_live(byte* ptr, bool live)
+{
+    m_chunk.set_live(ptr, m_cell_size, live);
+}
+
+bool managed_pool_chunk::is_live(byte* ptr) const
+{
+    return m_chunk.is_live(ptr, m_cell_size);
 }
 
 void managed_pool_chunk::sweep(byte* ptr)
 {
-    deallocate(managed_cell_ptr(managed_ptr(get_cell_begin(ptr)), 0), m_cell_size);
+    deallocate(managed_ptr(get_cell_begin(ptr), this), m_cell_size);
 }
 
-bool managed_pool_chunk::is_live(byte* ptr)
+size_t managed_pool_chunk::cell_size() const
 {
-    size_t ind = calc_cell_ind(ptr);
-    return  m_alloc_bits[ind];
+    return m_cell_size;
 }
 
-object_meta* managed_pool_chunk::get_cell_meta(byte* ptr)
+object_meta* managed_pool_chunk::get_cell_meta(byte* ptr) const
 {
     byte* cell_ptr = get_cell_begin(ptr);
     return object_meta::get_meta_ptr((void*) cell_ptr, m_cell_size);
 }
 
-byte* managed_pool_chunk::get_object_begin(byte* ptr)
+byte* managed_pool_chunk::get_cell_begin(byte* ptr) const
+{
+    uintptr uiptr = reinterpret_cast<uintptr>(ptr);
+    uintptr res = (uiptr & m_mask);
+    assert(res % m_cell_size == 0);
+    return reinterpret_cast<byte*>(res);
+}
+
+byte* managed_pool_chunk::get_obj_begin(byte* ptr) const
 {
     object_meta* meta = get_cell_meta(ptr);
     byte* cell_ptr = get_cell_begin(ptr);
@@ -167,51 +174,23 @@ byte* managed_pool_chunk::get_object_begin(byte* ptr)
     return cell_ptr + obj_ind * obj_size;
 }
 
-managed_pool_chunk::lock_type managed_pool_chunk::lock()
-{
-    return std::unique_lock<mutex_type>(m_mutex);
-}
-
-managed_pool_chunk::lock_type managed_pool_chunk::lock(std::defer_lock_t t)
-{
-    return std::unique_lock<mutex_type>(m_mutex, t);
-}
-
-managed_pool_chunk::lock_type managed_pool_chunk::lock(std::try_to_lock_t t)
-{
-    return std::unique_lock<mutex_type>(m_mutex);
-}
-
-managed_pool_chunk::lock_type managed_pool_chunk::lock(std::adopt_lock_t t)
-{
-    return std::unique_lock<mutex_type>(m_mutex, t);
-}
-
 managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
                                                           size_t chunk_size,
                                                           size_t cell_size)
 {
-    size_t chunk_size_bits = log_2(chunk_size);
-    size_t cell_size_bits = log_2(cell_size);
+    size_t chunk_size_bits = log2(chunk_size);
+    size_t cell_size_bits = log2(cell_size);
     size_t bit_diff = chunk_size_bits - cell_size_bits;
     uintptr ptr = reinterpret_cast<uintptr>(chunk);
     return (ptr | (((1 << bit_diff) - 1) << cell_size_bits));
 }
 
-size_t managed_pool_chunk::calc_cell_ind(byte* ptr)
+size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 {
     return managed_pool_chunk::calc_cell_ind(get_cell_begin(ptr),
                                              m_log2_cell_size,
                                              get_mem(),
                                              get_mem_size());
-}
-
-byte* managed_pool_chunk::get_cell_begin(byte* ptr)
-{
-    uintptr uiptr = reinterpret_cast<uintptr>(ptr);
-    uintptr res = (uiptr & m_mask);
-    assert(res % m_cell_size == 0);
-    return reinterpret_cast<byte*>(res);
 }
 
 size_t managed_pool_chunk::get_log2_cell_size() const
@@ -220,38 +199,46 @@ size_t managed_pool_chunk::get_log2_cell_size() const
 }
 
 managed_pool_chunk::iterator::iterator() noexcept
-    : m_ptr(nullptr)
-    , m_chunk(nullptr)
 {}
 
-managed_pool_chunk::iterator::iterator(byte* ptr, managed_pool_chunk* descr) noexcept
-    : m_ptr(ptr)
-    , m_chunk(descr)
+managed_pool_chunk::iterator::iterator(byte* ptr, managed_memory_descriptor* descr) noexcept
+    : m_ptr(ptr, descr)
 {}
+
+managed_ptr managed_pool_chunk::iterator::dereference() const
+{
+    return m_ptr;
+}
 
 bool managed_pool_chunk::iterator::equal(const managed_pool_chunk::iterator& other) const noexcept
 {
-    return m_ptr == other.m_ptr;
+    return m_ptr.get() == other.m_ptr.get();
 }
 
 void managed_pool_chunk::iterator::increment() noexcept
 {
-    m_ptr += m_chunk->get_cell_size();
+    m_ptr.advance(cell_size());
 }
 
 void managed_pool_chunk::iterator::decrement() noexcept
 {
-    m_ptr -= m_chunk->get_cell_size();
+    m_ptr.advance(-cell_size());
 }
 
-managed_cell_ptr managed_pool_chunk::iterator::operator*() const noexcept
+void managed_pool_chunk::iterator::advance(ptrdiff_t n)
 {
-    return managed_cell_ptr(managed_ptr(m_ptr), 0, m_chunk->get_descriptor());
+    m_ptr.advance(n * cell_size());
 }
 
-managed_pool_chunk::iterator::proxy managed_pool_chunk::iterator::operator->() const noexcept
+ptrdiff_t managed_pool_chunk::iterator::distance_to(const iterator& other) const
 {
-    return proxy(managed_cell_ptr(managed_ptr(m_ptr), 0, m_chunk->get_descriptor()));
+    return m_ptr.get() - other.m_ptr.get();
+}
+
+size_t managed_pool_chunk::iterator::cell_size() const
+{
+    managed_pool_chunk* chunk = static_cast<managed_pool_chunk*>(m_ptr.get_descriptor());
+    return chunk->cell_size();
 }
 
 }}

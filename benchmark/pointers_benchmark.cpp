@@ -6,7 +6,7 @@
 
 #include "libprecisegc/libprecisegc.h"
 #include "libprecisegc/details/allocators/index_tree.h"
-#include "libprecisegc/details/gc_new_stack.h"
+#include "libprecisegc/details/ptrs/gc_new_stack.hpp"
 
 using namespace precisegc;
 using namespace precisegc::details;

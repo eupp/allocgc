@@ -262,7 +262,7 @@ struct GCBench {
 int main () {
     #if defined(PRECISE_GC)
         gc_options ops;
-        ops.strategy    = gc_strategy::INCREMENTAL;
+        ops.strategy    = gc_strategy::SERIAL;
         ops.compacting  = gc_compacting::DISABLED;
         gc_init(ops);
     #elif defined(BDW_GC)

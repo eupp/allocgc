@@ -6,10 +6,9 @@
 #include "libprecisegc/details/index_tree.h"
 
 using namespace precisegc::details;
-using namespace precisegc::details::allocators;
 
 typedef int entry_type;
-typedef index_tree<entry_type, std::allocator<byte>> index_tree_type;
+typedef index_tree<entry_type> index_tree_type;
 
 NONIUS_BENCHMARK("index", [](nonius::chronometer meter)
 {

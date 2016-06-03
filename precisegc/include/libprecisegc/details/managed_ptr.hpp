@@ -61,7 +61,7 @@ public:
     static void remove_from_index(managed_ptr& ptr, size_t size);
     static managed_memory_descriptor* index(byte* ptr);
 private:
-    typedef index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
+    typedef index_tree<managed_memory_descriptor> index_type;
 
     static index_type indexer;
 

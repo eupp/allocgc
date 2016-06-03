@@ -21,7 +21,7 @@ namespace precisegc { namespace details {
 
 class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
-    static const size_t SEGREGATED_STORAGE_SIZE = (POINTER_BITS_CNT - RESERVED_BITS_CNT - 1);
+    static const size_t SEGREGATED_STORAGE_SIZE = (POINTER_BITS_CNT - ALIGN_BITS_CNT - 1);
     static const size_t MIN_ALLOC_SIZE_BITS = 6;
     static const size_t MAX_ALLOC_SIZE_BITS = MIN_ALLOC_SIZE_BITS + SEGREGATED_STORAGE_SIZE;
 

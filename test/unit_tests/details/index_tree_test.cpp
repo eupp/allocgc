@@ -2,6 +2,7 @@
 
 #include <random>
 #include <limits>
+#include <libprecisegc/details/index_tree.h>
 
 #include "libprecisegc/details/index_tree.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
@@ -9,6 +10,29 @@
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
+
+TEST(index_tree_level_test, test_level)
+{
+    typedef internals::index_tree_access::internal_level<
+                  int
+                , internals::index_tree_access::last_level<int>
+            > level_t;
+
+    typedef internals::index_tree_access::idxs_t idxs_t;
+
+    level_t level;
+    idxs_t idxs;
+
+    ASSERT_LE(2, idxs.size());
+
+    idxs[0] = 0;
+    idxs[1] = 0;
+    int entry = 0;
+    level.index(idxs.begin(), &entry);
+
+    ASSERT_EQ(&entry, level.get(idxs.begin()));
+    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(level, idxs[0]));
+}
 
 struct index_tree_test : public ::testing::Test
 {
@@ -22,8 +46,7 @@ struct index_tree_test : public ::testing::Test
         }
     }
 
-    typedef debug_layer<paged_allocator> allocator_t;
-    typedef index_tree<int, allocator_t> tree_t;
+    typedef index_tree<int> tree_t;
 
     static const size_t SIZE = 2;
     std::uintptr_t m_ptrs[SIZE];
@@ -33,10 +56,10 @@ struct index_tree_test : public ::testing::Test
 TEST_F(index_tree_test, test_index_1)
 {
     byte* mem = (byte*) m_ptrs[0];
-    int expected = 0;
-    m_tree.index(mem, PAGE_SIZE, &expected);
+    int entry = 0;
+    m_tree.index(mem, PAGE_SIZE, &entry);
 
-    ASSERT_EQ(&expected, m_tree.get_entry(mem));
+    ASSERT_EQ(&entry, m_tree.get_entry(mem));
 }
 
 TEST_F(index_tree_test, test_index_2)
@@ -65,31 +88,4 @@ TEST_F(index_tree_test, test_remove_index)
 
     ASSERT_EQ(nullptr, m_tree.get_entry(mem1));
     ASSERT_EQ(&val2, m_tree.get_entry(mem2));
-}
-
-TEST_F(index_tree_test, test_mem_1)
-{
-    byte* mem = (byte*) m_ptrs[0];
-    int expected = 0;
-    m_tree.index(mem, PAGE_SIZE, &expected);
-    m_tree.remove_index(mem, PAGE_SIZE);
-
-    ASSERT_EQ(0, m_tree.get_const_allocator().get_allocated_mem_size());
-}
-
-TEST_F(index_tree_test, test_mem_2)
-{
-    {
-        tree_t tree;
-
-        byte* mem1 = (byte*) m_ptrs[0];
-        byte* mem2 = (byte*) m_ptrs[1];
-
-        int val1 = 0;
-        int val2 = 0;
-        tree.index(mem1, PAGE_SIZE, &val1);
-        tree.index(mem2, PAGE_SIZE, &val2);
-    }
-
-    ASSERT_EQ(0, m_tree.get_const_allocator().get_allocated_mem_size());
 }

@@ -29,7 +29,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/initator.hpp
         include/libprecisegc/details/allocators/paged_allocator.h
-        include/libprecisegc/details/allocators/index_tree.h
+        include/libprecisegc/details/index_tree.h
         include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/any_ptr.h
         include/libprecisegc/details/allocators/memory.h
@@ -38,8 +38,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/plain_pool_chunk.h
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
-        include/libprecisegc/details/allocators/pointer_decorator.h
-        include/libprecisegc/details/allocators/indexed_ptr.h
         include/libprecisegc/details/allocators/pow2_bucket_policy.h
         include/libprecisegc/details/managed_pool_chunk.hpp
         include/libprecisegc/details/managed_memory_descriptor.hpp

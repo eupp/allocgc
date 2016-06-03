@@ -19,7 +19,6 @@ set(precisegc_TESTS
         details/allocators/plain_pool_chunk_test.cpp
         details/allocators/fixed_size_allocator_test.cpp
         details/allocators/bucket_allocator_test.cpp
-        details/allocators/indexed_ptr_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
         include/page_ptr.h

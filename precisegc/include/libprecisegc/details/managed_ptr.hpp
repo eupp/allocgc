@@ -2,15 +2,12 @@
 #define DIPLOMA_MANAGED_PTR_H
 
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/allocators/index_tree.h>
-#include <libprecisegc/details/allocators/indexed_ptr.h>
+#include <libprecisegc/details/index_tree.h>
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/to_string.hpp>
 #include <libprecisegc/details/managed_memory_descriptor.hpp>
 
 namespace precisegc { namespace details {
-
-typedef allocators::index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
 
 class unindexed_memory_exception : public gc_exception
 {
@@ -64,7 +61,7 @@ public:
     static void remove_from_index(managed_ptr& ptr, size_t size);
     static managed_memory_descriptor* index(byte* ptr);
 private:
-    typedef allocators::index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
+    typedef index_tree<managed_memory_descriptor, std::allocator<byte>> index_type;
 
     static index_type indexer;
 

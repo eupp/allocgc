@@ -3,7 +3,7 @@
 #include <random>
 #include <limits>
 
-#include "libprecisegc/details/allocators/index_tree.h"
+#include "libprecisegc/details/index_tree.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
 #include "libprecisegc/details/allocators/paged_allocator.h"
 

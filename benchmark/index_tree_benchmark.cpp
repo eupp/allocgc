@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdlib>
 
-#include "libprecisegc/details/allocators/index_tree.h"
+#include "libprecisegc/details/index_tree.h"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;

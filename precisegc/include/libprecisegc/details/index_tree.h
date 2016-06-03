@@ -14,10 +14,10 @@
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/types.hpp>
 
-#include "any_ptr.h"
+#include "libprecisegc/details/allocators/any_ptr.h"
 #include "libprecisegc/details/utils/utility.hpp"
 
-namespace precisegc { namespace details { namespace allocators {
+namespace precisegc { namespace details {
 
 template <typename T, typename Alloc>
 class index_tree : private utils::ebo<Alloc>, private utils::noncopyable, private utils::nonmovable
@@ -281,6 +281,6 @@ private:
     mutex_type m_mutex;
 };
 
-}}}
+}}
 
 #endif //DIPLOMA_INDEX_TREE_H

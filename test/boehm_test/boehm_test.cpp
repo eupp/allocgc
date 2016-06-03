@@ -263,7 +263,7 @@ int main () {
     #if defined(PRECISE_GC)
         gc_options ops;
         ops.strategy    = gc_strategy::INCREMENTAL;
-        ops.compacting  = gc_compacting::ENABLED;
+        ops.compacting  = gc_compacting::DISABLED;
         gc_init(ops);
     #elif defined(BDW_GC)
 //        GC_full_freq = 30;

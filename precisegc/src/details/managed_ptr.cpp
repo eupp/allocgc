@@ -5,7 +5,7 @@
 
 namespace precisegc { namespace details {
 
-managed_ptr::index_type managed_ptr::indexer{};
+managed_ptr::index_type managed_ptr::indexer;
 
 managed_ptr::managed_ptr()
     : m_ptr(nullptr)

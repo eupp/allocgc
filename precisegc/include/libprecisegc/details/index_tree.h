@@ -20,6 +20,7 @@
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include "logging.h"
 
 namespace precisegc { namespace details {
 
@@ -47,19 +48,27 @@ struct splitter
     static idxs_t split(byte* ptr)
     {
         std::uintptr_t x = reinterpret_cast<std::uintptr_t>(ptr);
-        size_t shift = POINTER_BITS_USED - LEVEL_SIZE;
+//        auto tmp = ((std::uintptr_t) 1 << (POINTER_BITS_USED)) - 1;
+        x &= ((std::uintptr_t) 1 << (POINTER_BITS_USED)) - 1;
+
+        size_t shift = POINTER_BITS_USED - LEVEL_BITS_CNT;
         idxs_t idxs;
         idxs[0] = x >> shift;
+
         for (size_t i = 1; i < LEVEL_CNT; ++i) {
             shift -= LEVEL_BITS_CNT;
             idxs[i] = (x >> shift) & (((std::uintptr_t) 1 << (LEVEL_BITS_CNT)) - 1);
         }
+
+        for (int i = 0; i < idxs.size() - 1; ++i) {
+            assert(idxs[i] < LEVEL_SIZE);
+        }
+        assert(idxs.back() < LAST_LEVEL_SIZE);
+
         return idxs;
     }
 };
 }
-
-
 
 template <typename T>
 class index_tree : private utils::noncopyable, private utils::nonmovable
@@ -67,7 +76,8 @@ class index_tree : private utils::noncopyable, private utils::nonmovable
 public:
     typedef T entry_type;
 
-    index_tree() = default;
+    index_tree()
+    {}
 
     ~index_tree()
     {
@@ -111,7 +121,7 @@ private:
         internal_level()
         {
             for (auto& hdl: m_data) {
-                hdl.m_ptr.store(Level::null.get(), std::memory_order_release);
+                hdl.m_ptr.store(&null, std::memory_order_release);
                 hdl.m_cnt.store(0, std::memory_order_release);
             }
         }
@@ -123,7 +133,7 @@ private:
             m_data[*idx].m_cnt.fetch_add(1, std::memory_order_relaxed);
 
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
-            if (next_level == Level::null.get()) {
+            if (next_level == &null) {
                 auto new_level = utils::make_unique<Level>();
                 new_level->index(next_idx, entry);
                 if (m_data[*idx].m_ptr.compare_exchange_strong(next_level, new_level.get(), std::memory_order_acq_rel)) {
@@ -143,7 +153,7 @@ private:
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             next_level->remove_index(next_idx);
             if (m_data[*idx].m_cnt.fetch_sub(1, std::memory_order_relaxed) == 1) {
-                m_data[*idx].m_ptr.store(Level::null.get(), std::memory_order_release);
+                m_data[*idx].m_ptr.store(&null, std::memory_order_release);
                 delete next_level;
             }
         }
@@ -158,19 +168,19 @@ private:
         {
             for (auto& hdl: m_data) {
                 Level* level = hdl.m_ptr.load(std::memory_order_acquire);
-                if (level != Level::null.get()) {
+                if (level != &null) {
                     level->clear();
                     delete level;
                 }
             }
         }
 
-        static std::unique_ptr<internal_level> null;
-
         static const size_t LEVEL_SIZE = internals::splitter::LEVEL_SIZE;
 
         friend class internals::index_tree_access;
     private:
+        static Level null;
+
         struct handle
         {
             std::atomic<Level*> m_ptr;
@@ -225,8 +235,6 @@ private:
         {
             return;
         }
-
-        static std::unique_ptr<last_level> null;
 
         static const size_t LEVEL_SIZE = internals::splitter::LAST_LEVEL_SIZE;
     private:
@@ -291,12 +299,7 @@ struct index_tree_access
 
 template<typename T>
 template<typename Level>
-std::unique_ptr<internals::index_tree_access::internal_level<T, Level>> index_tree<T>::internal_level<Level>::null =
-        utils::make_unique<internals::index_tree_access::internal_level<T, Level>>();
-
-template<typename T>
-std::unique_ptr<internals::index_tree_access::last_level<T>> index_tree<T>::last_level::null =
-        utils::make_unique<internals::index_tree_access::last_level<T>>();
+Level index_tree<T>::internal_level<Level>::null;
 
 }}
 

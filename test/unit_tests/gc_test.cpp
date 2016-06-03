@@ -27,7 +27,7 @@ using namespace precisegc::details;
 
 namespace {
 
-const int TREE_DEPTH = 2;
+const int TREE_DEPTH    = 2;
 const int THREADS_COUNT = 4; // must be power of 2 and <= 2^(TREE_DEPTH)
 const size_t LIVE_LEVEL = ::log2(THREADS_COUNT);
 

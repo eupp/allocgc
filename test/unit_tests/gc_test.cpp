@@ -98,7 +98,8 @@ void print_tree(node* root, const std::string& offset = "")
 void generate_random_child(gc_ptr<node> ptr)
 {
     while (true) {
-        gc_ptr<node>& new_ptr = rand() % 2 ? ptr->m_left : ptr->m_right;
+        gc_pin<node> pin(ptr);
+        gc_ptr<node> new_ptr = rand() % 2 ? pin->m_left : pin->m_right;
         if (!new_ptr || rand() % 4 == 0) {
             new_ptr = create_gc_node();
             return;

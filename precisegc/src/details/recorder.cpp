@@ -14,12 +14,12 @@ recorder::recorder()
 
 void recorder::register_alloc_request()
 {
-    m_last_alloc_time.store(gc_clock::now().time_since_epoch(), std::memory_order_release);
+//    m_last_alloc_time.store(gc_clock::now().time_since_epoch(), std::memory_order_release);
 }
 
 void recorder::register_allocation(size_t size)
 {
-//    m_heap_size.fetch_add(size, std::memory_order_acq_rel);
+    m_heap_size.fetch_add(size, std::memory_order_acq_rel);
 }
 
 void recorder::register_pause(const gc_pause_stat& pause_stat)

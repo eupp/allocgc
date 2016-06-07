@@ -19,7 +19,7 @@ public:
 private:
     static std::string str(size_t n);
     static std::string size_str(size_t size);
-    static std::string duration_str(gc_duration duration);
+    static std::string duration_str(gc_clock::duration duration);
     static const char* pause_type_str(gc_pause_type pause_type);
 
     std::ostream m_stream;

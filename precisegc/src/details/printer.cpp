@@ -79,7 +79,7 @@ std::string printer::size_str(size_t size)
     }
 }
 
-std::string printer::duration_str(gc_duration duration)
+std::string printer::duration_str(gc_clock::duration duration)
 {
     static const size_t ms = 1000;
     static const size_t s = 1000 * ms;

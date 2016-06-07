@@ -11,7 +11,7 @@ class incremental_gc_mock : public precisegc::details::incremental_gc_strategy
     typedef precisegc::details::atomic_byte_ptr atomic_byte_ptr;
     typedef precisegc::details::managed_ptr managed_ptr;
     typedef precisegc::details::initation_point_type initation_point_type;
-    typedef precisegc::details::gc_stat gc_stat;
+    typedef precisegc::details::gc_info gc_info;
     typedef precisegc::details::gc_phase gc_phase;
     typedef precisegc::details::incremental_gc_ops incremental_gc_ops;
 public:

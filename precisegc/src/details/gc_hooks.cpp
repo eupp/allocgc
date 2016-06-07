@@ -71,18 +71,19 @@ public:
         m_printer_enabled = enabled;
     }
 
+    void register_pause(const gc_pause_stat& pause_stat)
+    {
+        m_recorder.register_pause(pause_stat);
+        if (m_printer_enabled) {
+            m_printer.print_pause_stat(pause_stat);
+        }
+    }
+
     void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
     {
         m_recorder.register_sweep(sweep_stat, pause_stat);
         if (m_printer_enabled) {
             m_printer.print_sweep_stat(sweep_stat, pause_stat);
-        }
-    }
-
-    void register_pause(const gc_pause_stat& pause_stat)
-    {
-        if (m_printer_enabled) {
-            m_printer.print_pause_stat(pause_stat);
         }
     }
 
@@ -165,14 +166,14 @@ void gc_disable_print_stats()
     gc_instance.set_printer_enabled(false);
 }
 
-void gc_register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
-{
-    gc_instance.register_sweep(sweep_stat, pause_stat);
-}
-
 void gc_register_pause(const gc_pause_stat& pause_stat)
 {
     gc_instance.register_pause(pause_stat);
+}
+
+void gc_register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
+{
+    gc_instance.register_sweep(sweep_stat, pause_stat);
 }
 
 }}

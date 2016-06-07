@@ -253,7 +253,7 @@ TEST_F(incremental_gc_test, test_marking)
     ops.concurrent_flag = true;
     ops.threads_num     = 1;
 
-    garbage_collector->incremental_gc(ops);
+    garbage_collector->gc_increment(ops);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
@@ -261,7 +261,7 @@ TEST_F(incremental_gc_test, test_marking)
     ops.concurrent_flag = false;
     ops.threads_num     = 0;
 
-    garbage_collector->incremental_gc(ops);
+    garbage_collector->gc_increment(ops);
 
     gc_finished = true;
     print_tree(root_raw);
@@ -276,27 +276,8 @@ TEST_F(incremental_gc_test, test_sweeping)
     ops.concurrent_flag = false;
     ops.threads_num     = 1;
 
-    garbage_collector->incremental_gc(ops);
+    garbage_collector->gc_increment(ops);
 
     gc_finished = true;
     print_tree(root_raw);
 }
-
-//TEST_F(gc_test, test_marking)
-//{
-//    auto& collector = gc_garbage_collector::instance();
-//    std::cout << "Start marking" << std::endl;
-//    collector.start_marking();
-//    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//    std::cout << "Pause marking" << std::endl;
-//
-//    gc_finished = true;
-//    collector.force_move_to_idle();
-//
-//    std::cout << std::endl;
-//    print_tree(root_raw);
-//    // travers tree and check marks of objects
-//    check_nodes(root_raw, 0);
-//
-//    collector.force_move_to_idle();
-//}

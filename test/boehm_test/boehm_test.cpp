@@ -262,8 +262,10 @@ struct GCBench {
 int main () {
     #if defined(PRECISE_GC)
         gc_options ops;
-        ops.type    = gc_type::INCREMENTAL;
+        ops.type        = gc_type::INCREMENTAL;
         ops.compacting  = gc_compacting::ENABLED;
+        ops.loglevel    = gc_loglevel::OFF;
+        ops.print_stat  = true;
         gc_init(ops);
     #elif defined(BDW_GC)
 //        GC_full_freq = 30;

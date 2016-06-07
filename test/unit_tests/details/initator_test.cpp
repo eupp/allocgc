@@ -84,7 +84,7 @@ struct incremental_initator_test : public ::testing::Test
 
 TEST_F(incremental_initator_test, test_user_request)
 {
-    EXPECT_CALL(gc_mock, gc_increment(Field(&incremental_gc_ops::phase, gc_phase::SWEEPING)))
+    EXPECT_CALL(gc_mock, gc())
             .Times(Exactly(1));
 
     EXPECT_CALL(gc_mock, phase())

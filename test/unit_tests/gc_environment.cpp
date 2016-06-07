@@ -14,8 +14,11 @@ public:
     virtual void SetUp()
     {
         gc_options gc_ops;
-        gc_ops.type   = gc_type::SERIAL;
-        gc_ops.compacting = gc_compacting::ENABLED;
+        gc_ops.type         = gc_type::SERIAL;
+        gc_ops.compacting   = gc_compacting::ENABLED;
+        gc_ops.loglevel     = gc_loglevel::DEBUG;
+        gc_ops.print_stat   = true;
+
         int res = gc_init(gc_ops);
         assert(res == 0);
     }

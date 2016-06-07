@@ -7,11 +7,13 @@
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/logging.h>
 
 namespace precisegc { namespace details { namespace threads {
 
-class world_state
+class world_snapshot : private utils::noncopyable
 {
     typedef internals::thread_manager_access::range_type range_type;
 public:
@@ -23,7 +25,7 @@ public:
         {}
     };
 
-    world_state(range_type&& threads)
+    world_snapshot(range_type&& threads)
         : m_threads(std::move(threads))
     {
         static stw_manager& stwm = stw_manager::instance();
@@ -41,14 +43,16 @@ public:
         }
         stwm.wait_for_world_stop();
 
+        m_time_point = gc_clock::now();
+
         logging::info() << "World stopped";
     }
 
-    world_state(world_state&& other)
+    world_snapshot(world_snapshot&& other)
         : m_threads(std::move(other.m_threads))
     {}
 
-    ~world_state()
+    ~world_snapshot()
     {
         static stw_manager& stwm = stw_manager::instance();
 
@@ -111,8 +115,19 @@ public:
             }
         }
     }
+
+    gc_clock::time_point time_point() const
+    {
+        return m_time_point;
+    }
+
+    gc_clock::duration time_since_stop_the_world() const
+    {
+        return gc_clock::now() - m_time_point;
+    }
 private:
     range_type m_threads;
+    gc_clock::time_point m_time_point;
 };
 
 }}}

@@ -2,7 +2,7 @@
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
-#include <libprecisegc/details/threads/world_state.hpp>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 
@@ -48,7 +48,7 @@ TEST_F(thread_manager_test, test_stop_the_world)
     stw_manager& stwm = stw_manager::instance();
 
     {
-        world_state wstate = thread_manager::instance().stop_the_world();
+        world_snapshot snapshot = thread_manager::instance().stop_the_world();
         EXPECT_EQ((size_t) THREADS_CNT, stwm.threads_suspended());
     }
     EXPECT_EQ(0, stwm.threads_suspended());

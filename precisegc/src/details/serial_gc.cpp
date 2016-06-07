@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/gc_unsafe_scope.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
-#include <libprecisegc/details/threads/world_state.hpp>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 
 namespace precisegc { namespace details {
 
@@ -49,11 +49,17 @@ gc_info serial_gc::info() const
 void serial_gc::gc()
 {
     using namespace threads;
-    world_state wstate = thread_manager::instance().stop_the_world();
-    m_marker.trace_roots(wstate);
-    m_marker.trace_pins(wstate);
+    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    m_marker.trace_roots(snapshot);
+    m_marker.trace_pins(snapshot);
     m_marker.mark();
-    m_heap.sweep();
+
+    gc_sweep_stat sweep_stat = m_heap.sweep();
+    gc_pause_stat pause_stat = {
+            .type       = gc_pause_type::GC,
+            .duration   = snapshot.time_since_stop_the_world()};
+
+    gc_register_sweep(sweep_stat, pause_stat);
 }
 
 }}

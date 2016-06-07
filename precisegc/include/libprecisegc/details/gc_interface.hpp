@@ -12,7 +12,8 @@ enum class initation_point_type {
 };
 
 enum class gc_pause_type {
-      TRACE_ROOTS
+      GC
+    , TRACE_ROOTS
     , SWEEP_HEAP
     , NO_PAUSE
 };

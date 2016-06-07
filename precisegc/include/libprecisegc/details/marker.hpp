@@ -7,7 +7,7 @@
 #include <memory>
 #include <condition_variable>
 
-#include <libprecisegc/details/threads/world_state.hpp>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/trace_ptr.hpp>
@@ -20,8 +20,8 @@ class marker
 public:
     marker();
 
-    void trace_roots(const threads::world_state& wstate);
-    void trace_pins(const threads::world_state& wstate);
+    void trace_roots(const threads::world_snapshot& snapshot);
+    void trace_pins(const threads::world_snapshot& snapshot);
     void trace_barrier_buffers();
 
     void start_marking();

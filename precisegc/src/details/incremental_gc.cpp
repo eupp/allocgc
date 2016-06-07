@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/gc_unsafe_scope.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
-#include <libprecisegc/details/threads/world_state.hpp>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 
 namespace precisegc { namespace details {
 
@@ -96,30 +96,49 @@ void incremental_gc::start_marking()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING);
-    world_state wstate = thread_manager::instance().stop_the_world();
-    m_marker.trace_roots(wstate);
+
+    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    m_marker.trace_roots(snapshot);
     set_phase(gc_phase::MARKING);
     m_marker.start_marking();
+
+    gc_pause_stat pause_stat = {
+            .type       = gc_pause_type::TRACE_ROOTS,
+            .duration   = snapshot.time_since_stop_the_world()
+    };
+    gc_register_pause(pause_stat);
 }
 
 void incremental_gc::sweep()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);
+
+    gc_pause_type pause_type = gc_pause_type::NO_PAUSE;
+    if (phase() == gc_phase::MARKING) {
+        m_marker.pause_marking();
+    }
+    world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (phase() == gc_phase::IDLING) {
-        world_state wstate = thread_manager::instance().stop_the_world();
-        m_marker.trace_roots(wstate);
-        m_marker.trace_pins(wstate);
+        pause_type = gc_pause_type::GC;
+        m_marker.trace_roots(snapshot);
+        m_marker.trace_pins(snapshot);
         set_phase(gc_phase::MARKING);
         m_marker.mark();
     } else if (phase() == gc_phase::MARKING) {
-        m_marker.pause_marking();
-        world_state wstate = thread_manager::instance().stop_the_world();
-        m_marker.trace_pins(wstate);
+        pause_type = gc_pause_type::SWEEP_HEAP;
+        m_marker.trace_pins(snapshot);
         m_marker.mark();
     }
     set_phase(gc_phase::SWEEPING);
-    m_heap.sweep();
+
+    gc_sweep_stat sweep_stat = m_heap.sweep();
+    gc_pause_stat pause_stat = {
+            .type       = pause_type,
+            .duration   = snapshot.time_since_stop_the_world()
+    };
+
+    gc_register_sweep(sweep_stat, pause_stat);
     set_phase(gc_phase::IDLING);
 }
 

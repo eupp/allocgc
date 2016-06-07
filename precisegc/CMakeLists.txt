@@ -69,7 +69,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/bitset.hpp
         include/libprecisegc/details/initation_policy.hpp
         include/libprecisegc/details/serial_gc.hpp
-        include/libprecisegc/details/threads/world_state.hpp
+        include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
         include/libprecisegc/details/incremental_gc.hpp include/libprecisegc/details/recorder.hpp include/libprecisegc/details/printer.hpp include/libprecisegc/details/gc_clock.hpp include/libprecisegc/details/gc_interface.hpp)
 

@@ -15,7 +15,7 @@
 namespace precisegc { namespace details { namespace threads {
 
 class managed_thread;
-class world_state;
+class world_snapshot;
 
 namespace internals {
 struct thread_manager_access;
@@ -44,7 +44,7 @@ public:
 
     managed_thread* lookup_thread(std::thread::id thread_id) const;
 
-    world_state stop_the_world();
+    world_snapshot stop_the_world();
 private:
     thread_manager() = default;
 

@@ -38,6 +38,10 @@ int gc_init(gc_options ops)
             gc_set_strategy(std::move(gc));
         }
 
+        if (ops.print_stat) {
+            gc_enable_print_stats();
+        }
+
         init_flag = true;
     }
 

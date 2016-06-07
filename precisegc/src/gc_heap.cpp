@@ -23,6 +23,7 @@ gc_sweep_stat gc_heap::sweep()
 
     logging::info() << "Shrinking memory...";
     stat.shrunk = m_alloc.shrink();
+    stat.swept  = 0;
 
 
     if (m_compacting == gc_compacting::ENABLED) {

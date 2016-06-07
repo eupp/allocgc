@@ -84,7 +84,7 @@ struct incremental_initator_test : public ::testing::Test
 
 TEST_F(incremental_initator_test, test_user_request)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(Field(&incremental_gc_ops::phase, gc_phase::SWEEPING)))
+    EXPECT_CALL(gc_mock, gc())
             .Times(Exactly(1));
 
     EXPECT_CALL(gc_mock, phase())
@@ -99,7 +99,7 @@ TEST_F(incremental_initator_test, test_user_request)
 // check IDLING -> IDLING transition
 TEST_F(incremental_initator_test, test_initation_point_1)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(_))
+    EXPECT_CALL(gc_mock, gc_increment(_))
             .Times(0);
 
     EXPECT_CALL(gc_mock, phase())
@@ -114,7 +114,7 @@ TEST_F(incremental_initator_test, test_initation_point_1)
 // check IDLING -> MARKING transition
 TEST_F(incremental_initator_test, test_initation_point_2)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(Field(&incremental_gc_ops::phase, gc_phase::MARKING)))
+    EXPECT_CALL(gc_mock, gc_increment(Field(&incremental_gc_ops::phase, gc_phase::MARKING)))
             .Times(Exactly(1));
 
     EXPECT_CALL(gc_mock, phase())
@@ -132,7 +132,7 @@ TEST_F(incremental_initator_test, test_initation_point_2)
 // check IDLING -> SWEEPING transition
 TEST_F(incremental_initator_test, test_initation_point_3)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(Field(&incremental_gc_ops::phase, gc_phase::SWEEPING)))
+    EXPECT_CALL(gc_mock, gc_increment(Field(&incremental_gc_ops::phase, gc_phase::SWEEPING)))
             .Times(Exactly(1));
 
     EXPECT_CALL(gc_mock, phase())
@@ -150,7 +150,7 @@ TEST_F(incremental_initator_test, test_initation_point_3)
 // check MARKING -> SWEEPING transition
 TEST_F(incremental_initator_test, test_initation_point_4)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(Field(&incremental_gc_ops::phase, gc_phase::SWEEPING)))
+    EXPECT_CALL(gc_mock, gc_increment(Field(&incremental_gc_ops::phase, gc_phase::SWEEPING)))
             .Times(Exactly(1));
 
     EXPECT_CALL(gc_mock, phase())
@@ -168,7 +168,7 @@ TEST_F(incremental_initator_test, test_initation_point_4)
 // check MARKING -> MARKING transition
 TEST_F(incremental_initator_test, test_initation_point_5)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(_))
+    EXPECT_CALL(gc_mock, gc_increment(_))
             .Times(0);
 
     EXPECT_CALL(gc_mock, phase())
@@ -183,7 +183,7 @@ TEST_F(incremental_initator_test, test_initation_point_5)
 // check SWEEPING -> SWEEPING transition
 TEST_F(incremental_initator_test, test_initation_point_6)
 {
-    EXPECT_CALL(gc_mock, incremental_gc(_))
+    EXPECT_CALL(gc_mock, gc_increment(_))
             .Times(0);
 
     EXPECT_CALL(gc_mock, phase())

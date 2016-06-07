@@ -3,7 +3,7 @@
 #include <libprecisegc/details/logging.h>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/threads/world_state.hpp>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -49,9 +49,9 @@ managed_thread* thread_manager::lookup_thread(std::thread::id thread_id) const
     return it != m_threads.end() ? it->second : nullptr;
 }
 
-world_state thread_manager::stop_the_world()
+world_snapshot thread_manager::stop_the_world()
 {
-    return world_state(get_managed_threads());
+    return world_snapshot(get_managed_threads());
 }
 
 thread_manager::range_type thread_manager::get_managed_threads() const

@@ -42,15 +42,12 @@ public:
 
     managed_ptr allocate(size_t size);
 
-    void sweep();
-
-    size_t size() const noexcept;
+    gc_sweep_stat sweep();
 private:
     forwarding compact_memory();
     void fix_pointers(const forwarding& frwd);
 
     alloc_t m_alloc;
-    std::atomic<size_t> m_size;
     gc_compacting m_compacting;
 };
 

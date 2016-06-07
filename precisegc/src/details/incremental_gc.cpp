@@ -1,14 +1,14 @@
-#include <libprecisegc/details/incremental_garbage_collector.hpp>
+#include <libprecisegc/details/incremental_gc.hpp>
 
 #include <cassert>
 
 #include <libprecisegc/details/gc_unsafe_scope.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
-#include <libprecisegc/details/threads/world_state.hpp>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 
 namespace precisegc { namespace details {
 
-incremental_garbage_collector::incremental_garbage_collector(gc_compacting compacting,
+incremental_gc::incremental_gc(gc_compacting compacting,
                                                              std::unique_ptr<incremental_initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
@@ -17,7 +17,7 @@ incremental_garbage_collector::incremental_garbage_collector(gc_compacting compa
     assert(m_phase.is_lock_free());
 }
 
-managed_ptr incremental_garbage_collector::allocate(size_t size)
+managed_ptr incremental_gc::allocate(size_t size)
 {
     gc_unsafe_scope unsafe_scope;
     managed_ptr mp = m_heap.allocate(size);
@@ -27,12 +27,12 @@ managed_ptr incremental_garbage_collector::allocate(size_t size)
     return mp;
 }
 
-byte* incremental_garbage_collector::rbarrier(const atomic_byte_ptr& p)
+byte* incremental_gc::rbarrier(const atomic_byte_ptr& p)
 {
     return p.load(std::memory_order_acquire);
 }
 
-void incremental_garbage_collector::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
+void incremental_gc::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
     gc_unsafe_scope unsafe_scope;
     byte* p = src.load(std::memory_order_acquire);
@@ -47,37 +47,38 @@ void incremental_garbage_collector::wbarrier(atomic_byte_ptr& dst, const atomic_
     }
 }
 
-void incremental_garbage_collector::initation_point(initation_point_type ipoint)
+void incremental_gc::initation_point(initation_point_type ipoint)
 {
     m_initator.initation_point(ipoint);
 }
 
-gc_stat incremental_garbage_collector::stat() const
+gc_info incremental_gc::info() const
 {
-    gc_stat stat;
-    stat.heap_size                  = m_heap.size();
-    stat.incremental                = true;
-    stat.support_concurrent_mark    = true;
-    stat.support_concurrent_sweep   = false;
-    return stat;
+    static gc_info inf = {
+        .incremental                = true,
+        .support_concurrent_mark    = true,
+        .support_concurrent_sweep   = false
+    };
+
+    return inf;
 }
 
-gc_phase incremental_garbage_collector::phase() const
+gc_phase incremental_gc::phase() const
 {
     return m_phase.load(std::memory_order_acquire);
 }
 
-void incremental_garbage_collector::set_phase(gc_phase phase)
+void incremental_gc::set_phase(gc_phase phase)
 {
     m_phase.store(phase, std::memory_order_release);
 }
 
-void incremental_garbage_collector::gc()
+void incremental_gc::gc()
 {
     sweep();
 }
 
-void incremental_garbage_collector::incremental_gc(const incremental_gc_ops& ops)
+void incremental_gc::gc_increment(const incremental_gc_ops& ops)
 {
     if (ops.phase == gc_phase::IDLING) {
         assert(phase() == gc_phase::MARKING);
@@ -91,34 +92,53 @@ void incremental_garbage_collector::incremental_gc(const incremental_gc_ops& ops
     }
 }
 
-void incremental_garbage_collector::start_marking()
+void incremental_gc::start_marking()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING);
-    world_state wstate = thread_manager::instance().stop_the_world();
-    m_marker.trace_roots(wstate);
+
+    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    m_marker.trace_roots(snapshot);
     set_phase(gc_phase::MARKING);
     m_marker.start_marking();
+
+    gc_pause_stat pause_stat = {
+            .type       = gc_pause_type::TRACE_ROOTS,
+            .duration   = snapshot.time_since_stop_the_world()
+    };
+    gc_register_pause(pause_stat);
 }
 
-void incremental_garbage_collector::sweep()
+void incremental_gc::sweep()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);
+
+    gc_pause_type pause_type = gc_pause_type::NO_PAUSE;
+    if (phase() == gc_phase::MARKING) {
+        m_marker.pause_marking();
+    }
+    world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (phase() == gc_phase::IDLING) {
-        world_state wstate = thread_manager::instance().stop_the_world();
-        m_marker.trace_roots(wstate);
-        m_marker.trace_pins(wstate);
+        pause_type = gc_pause_type::GC;
+        m_marker.trace_roots(snapshot);
+        m_marker.trace_pins(snapshot);
         set_phase(gc_phase::MARKING);
         m_marker.mark();
     } else if (phase() == gc_phase::MARKING) {
-        m_marker.pause_marking();
-        world_state wstate = thread_manager::instance().stop_the_world();
-        m_marker.trace_pins(wstate);
+        pause_type = gc_pause_type::SWEEP_HEAP;
+        m_marker.trace_pins(snapshot);
         m_marker.mark();
     }
     set_phase(gc_phase::SWEEPING);
-    m_heap.sweep();
+
+    gc_sweep_stat sweep_stat = m_heap.sweep();
+    gc_pause_stat pause_stat = {
+            .type       = pause_type,
+            .duration   = snapshot.time_since_stop_the_world()
+    };
+
+    gc_register_sweep(sweep_stat, pause_stat);
     set_phase(gc_phase::IDLING);
 }
 

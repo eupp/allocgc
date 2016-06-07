@@ -7,8 +7,8 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/initation_policy.hpp>
-#include <libprecisegc/details/serial_garbage_collector.hpp>
-#include <libprecisegc/details/incremental_garbage_collector.hpp>
+#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/details/incremental_gc.hpp>
 #include <libprecisegc/details/logging.h>
 
 namespace precisegc {
@@ -19,7 +19,7 @@ int gc_init(gc_options ops)
 {
     using namespace details;
     if (!init_flag) {
-        details::logging::init(std::clog, details::logging::loglevel::OFF);
+        details::logging::init(std::clog, gc_loglevel::OFF);
         details::threads::thread_manager::instance().register_main_thread();
 
         const size_t HEAP_MAXSIZE       = 36 * 1024 * 1024;             // 32 Mb
@@ -28,14 +28,18 @@ int gc_init(gc_options ops)
         const double MARKING_THRESHOLD  = 0.6;
         const double INCREASE_FACTOR    = 2.0;
 
-        if (ops.strategy == gc_strategy::SERIAL) {
+        if (ops.type == gc_type::SERIAL) {
             auto policy = utils::make_unique<space_based_policy>(HEAP_STARTSIZE, THRESHOLD, INCREASE_FACTOR, HEAP_MAXSIZE);
-            auto gc     = utils::make_unique<serial_garbage_collector>(ops.compacting, std::move(policy));
-            gc_set(std::move(gc));
-        } else if (ops.strategy == gc_strategy::INCREMENTAL) {
+            auto gc     = utils::make_unique<serial_gc>(ops.compacting, std::move(policy));
+            gc_set_strategy(std::move(gc));
+        } else if (ops.type == gc_type::INCREMENTAL) {
             auto policy = utils::make_unique<incremental_space_based_policy>(HEAP_STARTSIZE, MARKING_THRESHOLD, THRESHOLD, INCREASE_FACTOR, HEAP_MAXSIZE);
-            auto gc     = utils::make_unique<incremental_garbage_collector>(ops.compacting, std::move(policy));
-            gc_set(std::move(gc));
+            auto gc     = utils::make_unique<incremental_gc>(ops.compacting, std::move(policy));
+            gc_set_strategy(std::move(gc));
+        }
+
+        if (ops.print_stat) {
+            gc_enable_print_stats();
         }
 
         init_flag = true;

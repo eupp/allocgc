@@ -88,18 +88,18 @@ marker::marker()
     , m_mark_flag(false)
 {}
 
-void marker::trace_roots(const threads::world_state& wstate)
+void marker::trace_roots(const threads::world_snapshot& snapshot)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    wstate.trace_roots([this] (void* p) {
+    snapshot.trace_roots([this] (void* p) {
         non_blocking_push(p);
     });
 }
 
-void marker::trace_pins(const threads::world_state& wstate)
+void marker::trace_pins(const threads::world_snapshot& snapshot)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    wstate.trace_pins([this] (void* p) {
+    snapshot.trace_pins([this] (void* p) {
         set_object_pin(p, true);
         non_blocking_push(p);
     });

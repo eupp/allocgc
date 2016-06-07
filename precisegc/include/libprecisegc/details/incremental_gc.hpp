@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.h>
 #include <libprecisegc/details/initator.hpp>
 #include <libprecisegc/details/marker.hpp>
@@ -11,11 +11,11 @@
 
 namespace precisegc { namespace details {
 
-class incremental_garbage_collector : public incremental_gc_interface
-                                    , private utils::noncopyable, private utils::nonmovable
+class incremental_gc : public incremental_gc_strategy
+                     , private utils::noncopyable, private utils::nonmovable
 {
 public:
-    incremental_garbage_collector(gc_compacting compacting, std::unique_ptr<incremental_initation_policy> init_policy);
+    incremental_gc(gc_compacting compacting, std::unique_ptr<incremental_initation_policy> init_policy);
 
     managed_ptr allocate(size_t size) override;
 
@@ -24,12 +24,11 @@ public:
 
     void initation_point(initation_point_type ipoint) override;
 
-    gc_stat stat() const override;
-
+    gc_info info() const override;
     gc_phase phase() const override;
 
     void gc() override;
-    void incremental_gc(const incremental_gc_ops& ops) override;
+    void gc_increment(const incremental_gc_ops& ops) override;
 private:
     void set_phase(gc_phase phase);
 

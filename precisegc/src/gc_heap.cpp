@@ -9,29 +9,22 @@
 namespace precisegc { namespace details {
 
 gc_heap::gc_heap(gc_compacting compacting)
-    : m_size(0)
-    , m_compacting(compacting)
+    : m_compacting(compacting)
 {}
 
 managed_ptr gc_heap::allocate(size_t size)
 {
-    managed_ptr p = m_alloc.allocate(size);
-    m_size.fetch_add(p.cell_size());
-    return p;
+    return m_alloc.allocate(size);
 }
 
-size_t gc_heap::size() const noexcept
+gc_sweep_stat gc_heap::sweep()
 {
-    return m_size.load();
-}
+    gc_sweep_stat stat;
 
-void gc_heap::sweep()
-{
-    size_t shrinked_size = m_alloc.shrink();
-    logging::info() << "Shrinked " << shrinked_size << " bytes";
-    size_t freed = shrinked_size;
-    assert(m_size >= freed);
-    m_size.fetch_sub(freed);
+    logging::info() << "Shrinking memory...";
+    stat.shrunk = m_alloc.shrink();
+    stat.swept  = 0;
+
 
     if (m_compacting == gc_compacting::ENABLED) {
         logging::info() << "Compacting memory...";
@@ -41,12 +34,12 @@ void gc_heap::sweep()
         logging::info() << "Fixing roots...";
         fix_roots(frwd);
     }
-//    logging::info() << "Sweeping...";
-//    sweep();
 
     m_alloc.apply_to_chunks([] (managed_pool_chunk& chunk) {
         chunk.unmark();
     });
+
+    return stat;
 }
 
 gc_heap::forwarding gc_heap::compact_memory()

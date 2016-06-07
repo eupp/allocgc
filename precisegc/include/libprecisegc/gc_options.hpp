@@ -3,7 +3,7 @@
 
 namespace precisegc {
 
-enum class gc_strategy
+enum class gc_type
 {
       SERIAL
     , INCREMENTAL
@@ -15,10 +15,20 @@ enum class gc_compacting
     , DISABLED
 };
 
+enum class gc_loglevel {
+      DEBUG
+    , INFO
+    , WARNING
+    , ERROR
+    , OFF
+};
+
 struct gc_options
 {
-    gc_strategy     strategy;
+    gc_type         type;
     gc_compacting   compacting;
+    gc_loglevel     loglevel;
+    bool            print_stat;
 };
 
 }

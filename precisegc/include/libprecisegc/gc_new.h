@@ -30,7 +30,7 @@ auto gc_new(Args&&... args)
         T* typed_ptr = reinterpret_cast<T*>(ptr);
         res = gc_ptr_access<T>::create(typed_ptr);
     }
-    initation_point(initation_point_type::AFTER_ALLOC);
+    gc_initation_point(initation_point_type::AFTER_ALLOC);
     return res;
 };
 
@@ -48,7 +48,7 @@ auto gc_new(size_t n)
         U* typed_ptr = reinterpret_cast<U*>(ptr);
         res = gc_ptr_access<T>::create(typed_ptr);
     }
-    initation_point(initation_point_type::AFTER_ALLOC);
+    gc_initation_point(initation_point_type::AFTER_ALLOC);
     return res;
 };
 

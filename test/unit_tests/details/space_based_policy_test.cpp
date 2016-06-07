@@ -8,11 +8,7 @@ struct space_base_policy_test : public ::testing::Test
 {
     space_base_policy_test()
         : policy(32, 0.5, 2.0, 96)
-    {
-        stat.incremental                = false;
-        stat.support_concurrent_mark    = false;
-        stat.support_concurrent_sweep   = false;
-    }
+    {}
 
     space_based_policy policy;
     gc_stat stat;
@@ -45,11 +41,7 @@ struct incremental_space_base_policy_test : public ::testing::Test
 {
     incremental_space_base_policy_test()
         : policy(32, 0.25, 0.5, 2.0, 96)
-    {
-        stat.incremental                = false;
-        stat.support_concurrent_mark    = false;
-        stat.support_concurrent_sweep   = false;
-    }
+    {}
 
     incremental_space_based_policy policy;
     gc_stat stat;

@@ -11,8 +11,8 @@
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/serial_garbage_collector.hpp>
-#include <libprecisegc/details/incremental_garbage_collector.hpp>
+#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/details/incremental_gc.hpp>
 #include <libprecisegc/gc_ptr.h>
 #include <libprecisegc/gc_new.h>
 #include <libprecisegc/gc.h>
@@ -167,11 +167,11 @@ static void* thread_routine(void* arg)
 
 struct gc_test: public ::testing::Test
 {
-    gc_test(std::unique_ptr<gc_interface> new_gc)
+    gc_test(std::unique_ptr<gc_strategy> new_gc)
     {
-        old_gc = gc_reset(std::move(new_gc));
+        old_gc = gc_reset_strategy(std::move(new_gc));
         auto guard = utils::make_scope_guard([this] {
-            gc_set(std::move(old_gc));
+            gc_set_strategy(std::move(old_gc));
         });
 
         srand(time(nullptr));
@@ -202,7 +202,7 @@ struct gc_test: public ::testing::Test
     ~gc_test()
     {
         auto guard = utils::make_scope_guard([this] {
-            gc_set(std::move(old_gc));
+            gc_set_strategy(std::move(old_gc));
         });
         for (auto& thread: threads) {
             thread.join();
@@ -212,29 +212,29 @@ struct gc_test: public ::testing::Test
     gc_ptr<node> root;
     utils::scoped_thread threads[THREADS_COUNT];
     node* root_raw;
-    std::unique_ptr<gc_interface> old_gc;
+    std::unique_ptr<gc_strategy> old_gc;
 };
 
 struct serial_gc_test : public gc_test
 {
     serial_gc_test()
-        : gc_test(utils::make_unique<serial_garbage_collector>(gc_compacting::DISABLED, utils::make_unique<empty_policy>()))
+        : gc_test(utils::make_unique<serial_gc>(gc_compacting::DISABLED, utils::make_unique<empty_policy>()))
     {
-        garbage_collector = static_cast<serial_garbage_collector*>(gc_get());
+        garbage_collector = static_cast<serial_gc*>(gc_get_strategy());
     }
 
-    serial_garbage_collector* garbage_collector;
+    serial_gc* garbage_collector;
 };
 
 struct incremental_gc_test : public gc_test
 {
     incremental_gc_test()
-        : gc_test(utils::make_unique<incremental_garbage_collector>(gc_compacting::DISABLED, utils::make_unique<incremental_empty_policy>()))
+        : gc_test(utils::make_unique<incremental_gc>(gc_compacting::DISABLED, utils::make_unique<incremental_empty_policy>()))
     {
-        garbage_collector = static_cast<incremental_garbage_collector*>(gc_get());
+        garbage_collector = static_cast<incremental_gc*>(gc_get_strategy());
     }
 
-    incremental_garbage_collector* garbage_collector;
+    incremental_gc* garbage_collector;
 };
 
 // This test doesn't check anything.
@@ -254,7 +254,7 @@ TEST_F(incremental_gc_test, test_marking)
     ops.concurrent_flag = true;
     ops.threads_num     = 1;
 
-    garbage_collector->incremental_gc(ops);
+    garbage_collector->gc_increment(ops);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
@@ -262,7 +262,7 @@ TEST_F(incremental_gc_test, test_marking)
     ops.concurrent_flag = false;
     ops.threads_num     = 0;
 
-    garbage_collector->incremental_gc(ops);
+    garbage_collector->gc_increment(ops);
 
     gc_finished = true;
     print_tree(root_raw);
@@ -277,27 +277,8 @@ TEST_F(incremental_gc_test, test_sweeping)
     ops.concurrent_flag = false;
     ops.threads_num     = 1;
 
-    garbage_collector->incremental_gc(ops);
+    garbage_collector->gc_increment(ops);
 
     gc_finished = true;
     print_tree(root_raw);
 }
-
-//TEST_F(gc_test, test_marking)
-//{
-//    auto& collector = gc_garbage_collector::instance();
-//    std::cout << "Start marking" << std::endl;
-//    collector.start_marking();
-//    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//    std::cout << "Pause marking" << std::endl;
-//
-//    gc_finished = true;
-//    collector.force_move_to_idle();
-//
-//    std::cout << std::endl;
-//    print_tree(root_raw);
-//    // travers tree and check marks of objects
-//    check_nodes(root_raw, 0);
-//
-//    collector.force_move_to_idle();
-//}

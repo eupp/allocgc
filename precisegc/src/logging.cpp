@@ -7,9 +7,9 @@ namespace precisegc { namespace details {
 const char* logging::prefix = "precisegc-";
 std::unique_ptr<logging::logger> logging::logger_ = nullptr;
 std::unique_ptr<threads::ass_mutex> logging::mutex_ = nullptr;
-logging::loglevel logging::loglevel_ = logging::loglevel::OFF;
+gc_loglevel logging::loglevel_ = gc_loglevel::OFF;
 
-void logging::init(std::ostream& stream, loglevel lv)
+void logging::init(std::ostream& stream, gc_loglevel lv)
 {
     logger_.reset(new logger(stream));
     mutex_.reset(new threads::ass_mutex());
@@ -18,25 +18,25 @@ void logging::init(std::ostream& stream, loglevel lv)
 
 logging::log_line logging::debug()
 {
-    return log(loglevel::DEBUG);
+    return log(gc_loglevel::DEBUG);
 }
 
 logging::log_line logging::info()
 {
-    return log(loglevel::INFO);
+    return log(gc_loglevel::INFO);
 }
 
 logging::log_line logging::warning()
 {
-    return log(loglevel::WARNING);
+    return log(gc_loglevel::WARNING);
 }
 
 logging::log_line logging::error()
 {
-    return log(loglevel::ERROR);
+    return log(gc_loglevel::ERROR);
 }
 
-logging::log_line logging::log(loglevel lv)
+logging::log_line logging::log(gc_loglevel lv)
 {
     assert(logger_);
     return log_line(lv);
@@ -48,7 +48,7 @@ logging::logger::logger(std::ostream& stream)
     m_stream.rdbuf()->pubsetbuf(0, 0);
 }
 
-logging::log_line::log_line(loglevel lv)
+logging::log_line::log_line(gc_loglevel lv)
     : m_active(lv >= loglevel_)
 {
     if (m_active) {
@@ -65,16 +65,16 @@ logging::log_line::log_line(loglevel lv)
         const char* lv_str = nullptr;
         switch (lv)
         {
-            case loglevel::DEBUG:
+            case gc_loglevel::DEBUG:
                 lv_str = "DEBUG";
                 break;
-            case loglevel::INFO:
+            case gc_loglevel::INFO:
                 lv_str = "INFO";
                 break;
-            case loglevel::WARNING:
+            case gc_loglevel::WARNING:
                 lv_str = "WARNING";
                 break;
-            case loglevel::ERROR:
+            case gc_loglevel::ERROR:
                 lv_str = "ERROR";
                 break;
         }

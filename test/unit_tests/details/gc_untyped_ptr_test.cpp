@@ -32,7 +32,7 @@ struct gc_untyped_ptr_barriers_test : public ::testing::Test
     }
 
     serial_gc_mock* gc_mock;
-    std::unique_ptr<gc_interface> old_gc;
+    std::unique_ptr<gc_strategy> old_gc;
 };
 
 TEST_F(gc_untyped_ptr_barriers_test, test_rbarrier)

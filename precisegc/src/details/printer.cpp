@@ -14,7 +14,7 @@ void printer::print_sweep_stat(const gc_sweep_stat& sweep_stat, const gc_pause_s
 {
     static std::string text =
             "****************************************************************************\n"
-            "   GC STAT SUMMARY                                                          \n"
+            "   GC SWEEP SUMMARY                                                         \n"
             "pause time xxxx yy                                                          \n"
             "shrunk     xxxx yy                                                          \n"
             "swept      xxxx yy                                                          \n"
@@ -35,7 +35,24 @@ void printer::print_sweep_stat(const gc_sweep_stat& sweep_stat, const gc_pause_s
 
 void printer::print_pause_stat(const gc_pause_stat& pause_stat)
 {
+    static std::string text =
+            "****************************************************************************\n"
+            "   GC PAUSE SUMMARY                                                         \n"
+            "pause type xxxx yy                                                          \n"
+            "pause time xxxx yy                                                          \n"
+            "****************************************************************************\n";
 
+    static const std::string placeholder = "xxxx yy";
+
+    static size_t pause_type_pos = text.find(placeholder, 0);
+    static size_t pause_time_pos = text.find(placeholder, pause_type_pos + placeholder.size());
+
+    std::string pause_type = pause_type_str(pause_stat.type);
+
+    text.replace(pause_type_pos, pause_type.size(), pause_type);
+    text.replace(pause_time_pos, placeholder.size(), duration_str(pause_stat.duration));
+
+    m_stream << text;
 }
 
 std::string printer::str(size_t n)
@@ -79,7 +96,11 @@ std::string printer::duration_str(gc_duration duration)
 
 const char* printer::pause_type_str(gc_pause_type pause_type)
 {
-    return "";
+    if (pause_type == gc_pause_type::TRACE_ROOTS) {
+        return "TRACE ROOTS";
+    } else if (pause_type == gc_pause_type::SWEEP_HEAP) {
+        return "SWEEP HEAP";
+    }
 }
 
 }}

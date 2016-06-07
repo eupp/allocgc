@@ -3,7 +3,7 @@
 
 #include <limits>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 
 namespace precisegc { namespace details {
 

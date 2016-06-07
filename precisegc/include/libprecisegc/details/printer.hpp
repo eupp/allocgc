@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
@@ -21,7 +21,6 @@ private:
     static std::string size_str(size_t size);
     static std::string duration_str(gc_duration duration);
     static const char* pause_type_str(gc_pause_type pause_type);
-
 
     std::ostream m_stream;
 };

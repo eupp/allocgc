@@ -3,9 +3,9 @@
 
 #include <gmock/gmock.h>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 
-class incremental_gc_mock : public precisegc::details::incremental_gc_interface
+class incremental_gc_mock : public precisegc::details::incremental_gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::atomic_byte_ptr atomic_byte_ptr;
@@ -22,7 +22,7 @@ public:
     MOCK_CONST_METHOD0(info, gc_info(void));
     MOCK_METHOD0(gc, void(void));
     MOCK_CONST_METHOD0(phase, gc_phase());
-    MOCK_METHOD1(incremental_gc, void(const incremental_gc_ops&));
+    MOCK_METHOD1(gc_increment, void(const incremental_gc_ops&));
 };
 
 #endif //DIPLOMA_INCREMENTAL_GC_MOCK_HPP

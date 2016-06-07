@@ -3,7 +3,7 @@
 
 #include <atomic>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
@@ -15,7 +15,8 @@ public:
 
     void register_alloc_request();
     void register_allocation(size_t size);
-    void register_gc(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
+    void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
+
     gc_stat stat() const;
 private:
     std::atomic<size_t> m_heap_size;

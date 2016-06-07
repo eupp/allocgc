@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.h>
 #include <libprecisegc/details/initator.hpp>
 #include <libprecisegc/details/marker.hpp>
@@ -11,10 +11,10 @@
 
 namespace precisegc { namespace details {
 
-class serial_gc_strategy : public serial_gc_interface, private utils::noncopyable, private utils::nonmovable
+class serial_gc : public serial_gc_strategy, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    serial_gc_strategy(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+    serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
 
     managed_ptr allocate(size_t size) override;
 

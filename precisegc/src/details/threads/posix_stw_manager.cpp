@@ -37,7 +37,7 @@ stw_manager::stw_manager()
 
 bool stw_manager::is_stop_the_world_disabled() const
 {
-    posix_signal::instance().is_locked();
+    return posix_signal::instance().is_locked();
 }
 
 void stw_manager::suspend_thread(std::thread::native_handle_type thread)

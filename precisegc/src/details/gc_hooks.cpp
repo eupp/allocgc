@@ -2,28 +2,33 @@
 
 #include <cassert>
 #include <memory>
+#include <iostream>
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/recorder.hpp>
+#include <libprecisegc/details/printer.hpp>
 
 namespace precisegc { namespace details {
 
 class garbage_collector : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    garbage_collector() = default;
+    garbage_collector()
+        : m_printer(std::clog)
+        , m_printer_enabled(false)
+    {}
 
-    gc_interface* get_strategy() const
+    gc_strategy* get_strategy() const
     {
         return m_strategy.get();
     }
 
-    void set_strategy(std::unique_ptr<gc_interface> strategy)
+    void set_strategy(std::unique_ptr<gc_strategy> strategy)
     {
         m_strategy = std::move(strategy);
     }
 
-    std::unique_ptr<gc_interface> reset_strategy(std::unique_ptr<gc_interface> strategy)
+    std::unique_ptr<gc_strategy> reset_strategy(std::unique_ptr<gc_strategy> strategy)
     {
         strategy.swap(m_strategy);
         return std::move(strategy);
@@ -56,30 +61,61 @@ public:
         m_strategy->initation_point(ipoint);
     }
 
-    bool printer_enabled() const;
-    void set_printer_enabled(bool enabled);
+    bool is_printer_enabled() const
+    {
+        return m_printer_enabled;
+    }
 
-    void register_gc(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
-    void register_pause(const gc_pause_stat& pause_stat);
+    void set_printer_enabled(bool enabled)
+    {
+        m_printer_enabled = enabled;
+    }
+
+    void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
+    {
+        m_recorder.register_sweep(sweep_stat, pause_stat);
+        if (m_printer_enabled) {
+            m_printer.print_sweep_stat(sweep_stat, pause_stat);
+        }
+    }
+
+    void register_pause(const gc_pause_stat& pause_stat)
+    {
+        if (m_printer_enabled) {
+            m_printer.print_pause_stat(pause_stat);
+        }
+    }
+
+    gc_info info() const
+    {
+        assert(m_strategy);
+        return m_strategy->info();
+    }
+
+    gc_stat stat() const
+    {
+        return m_recorder.stat();
+    }
 private:
-    std::unique_ptr<gc_interface> m_strategy;
+    std::unique_ptr<gc_strategy> m_strategy;
     recorder m_recorder;
-
+    printer m_printer;
+    bool m_printer_enabled;
 };
 
 static garbage_collector gc_instance;
 
-gc_interface* gc_get_strategy()
+gc_strategy* gc_get_strategy()
 {
     return gc_instance.get_strategy();
 }
 
-void gc_set_strategy(std::unique_ptr<gc_interface> strategy)
+void gc_set_strategy(std::unique_ptr<gc_strategy> strategy)
 {
     gc_instance.set_strategy(std::move(strategy));
 }
 
-std::unique_ptr<gc_interface> gc_reset_strategy(std::unique_ptr<gc_interface> strategy)
+std::unique_ptr<gc_strategy> gc_reset_strategy(std::unique_ptr<gc_strategy> strategy)
 {
     return gc_instance.reset_strategy(std::move(strategy));
 }
@@ -109,12 +145,32 @@ void gc_initation_point(initation_point_type ipoint)
     gc_instance.initation_point(ipoint);
 }
 
-void register_gc(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
+gc_info gc_get_info()
 {
-    gc_instance.register_gc(sweep_stat, pause_stat);
+    return gc_instance.info();
 }
 
-void register_pause(const gc_pause_stat& pause_stat)
+gc_stat gc_get_stats()
+{
+    return gc_instance.stat();
+}
+
+void gc_enable_print_stats()
+{
+    gc_instance.set_printer_enabled(true);
+}
+
+void gc_disable_print_stats()
+{
+    gc_instance.set_printer_enabled(false);
+}
+
+void gc_register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
+{
+    gc_instance.register_sweep(sweep_stat, pause_stat);
+}
+
+void gc_register_pause(const gc_pause_stat& pause_stat)
 {
     gc_instance.register_pause(pause_stat);
 }

@@ -3,9 +3,9 @@
 
 #include <gmock/gmock.h>
 
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
 
-class serial_gc_mock : public precisegc::details::serial_gc_interface
+class serial_gc_mock : public precisegc::details::serial_gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::atomic_byte_ptr atomic_byte_ptr;

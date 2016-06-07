@@ -85,10 +85,10 @@ public:
     {}
 };
 
-class gc_interface
+class gc_strategy
 {
 public:
-    virtual ~gc_interface() {}
+    virtual ~gc_strategy() {}
 
     virtual managed_ptr allocate(size_t size) = 0;
 
@@ -100,18 +100,18 @@ public:
     virtual gc_info info() const = 0;
 };
 
-class serial_gc_interface : public gc_interface
+class serial_gc_strategy : public gc_strategy
 {
 public:
     virtual void gc() = 0;
 };
 
-class incremental_gc_interface : public serial_gc_interface
+class incremental_gc_strategy : public serial_gc_strategy
 {
 public:
     virtual gc_phase phase() const = 0;
 
-    virtual void incremental_gc(const incremental_gc_ops& ops) = 0;
+    virtual void gc_increment(const incremental_gc_ops& ops) = 0;
 };
 
 }}

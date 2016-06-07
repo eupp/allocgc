@@ -1,4 +1,4 @@
-#include <libprecisegc/details/incremental_gc_strategy.hpp>
+#include <libprecisegc/details/incremental_gc.hpp>
 
 #include <cassert>
 
@@ -8,7 +8,7 @@
 
 namespace precisegc { namespace details {
 
-incremental_gc_strategy::incremental_gc_strategy(gc_compacting compacting,
+incremental_gc::incremental_gc(gc_compacting compacting,
                                                              std::unique_ptr<incremental_initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
@@ -17,7 +17,7 @@ incremental_gc_strategy::incremental_gc_strategy(gc_compacting compacting,
     assert(m_phase.is_lock_free());
 }
 
-managed_ptr incremental_gc_strategy::allocate(size_t size)
+managed_ptr incremental_gc::allocate(size_t size)
 {
     gc_unsafe_scope unsafe_scope;
     managed_ptr mp = m_heap.allocate(size);
@@ -27,12 +27,12 @@ managed_ptr incremental_gc_strategy::allocate(size_t size)
     return mp;
 }
 
-byte* incremental_gc_strategy::rbarrier(const atomic_byte_ptr& p)
+byte* incremental_gc::rbarrier(const atomic_byte_ptr& p)
 {
     return p.load(std::memory_order_acquire);
 }
 
-void incremental_gc_strategy::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
+void incremental_gc::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
 {
     gc_unsafe_scope unsafe_scope;
     byte* p = src.load(std::memory_order_acquire);
@@ -47,12 +47,12 @@ void incremental_gc_strategy::wbarrier(atomic_byte_ptr& dst, const atomic_byte_p
     }
 }
 
-void incremental_gc_strategy::initation_point(initation_point_type ipoint)
+void incremental_gc::initation_point(initation_point_type ipoint)
 {
-    m_initator.gc_initation_point(ipoint);
+    m_initator.initation_point(ipoint);
 }
 
-gc_info incremental_gc_strategy::info() const
+gc_info incremental_gc::info() const
 {
     static gc_info inf = {
         .incremental                = true,
@@ -63,22 +63,22 @@ gc_info incremental_gc_strategy::info() const
     return inf;
 }
 
-gc_phase incremental_gc_strategy::phase() const
+gc_phase incremental_gc::phase() const
 {
     return m_phase.load(std::memory_order_acquire);
 }
 
-void incremental_gc_strategy::set_phase(gc_phase phase)
+void incremental_gc::set_phase(gc_phase phase)
 {
     m_phase.store(phase, std::memory_order_release);
 }
 
-void incremental_gc_strategy::gc()
+void incremental_gc::gc()
 {
     sweep();
 }
 
-void incremental_gc_strategy::incremental_gc(const incremental_gc_ops& ops)
+void incremental_gc::gc_increment(const incremental_gc_ops& ops)
 {
     if (ops.phase == gc_phase::IDLING) {
         assert(phase() == gc_phase::MARKING);
@@ -92,7 +92,7 @@ void incremental_gc_strategy::incremental_gc(const incremental_gc_ops& ops)
     }
 }
 
-void incremental_gc_strategy::start_marking()
+void incremental_gc::start_marking()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING);
@@ -102,7 +102,7 @@ void incremental_gc_strategy::start_marking()
     m_marker.start_marking();
 }
 
-void incremental_gc_strategy::sweep()
+void incremental_gc::sweep()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);

@@ -35,56 +35,67 @@ managed_ptr::managed_ptr(byte* ptr, managed_memory_descriptor* descriptor)
 
 bool managed_ptr::get_mark() const
 {
+    assert(m_descr);
     return m_descr->get_mark(get());
 }
 
 bool managed_ptr::get_pin() const
 {
+    assert(m_descr);
     return m_descr->get_pin(get());
 }
 
 void managed_ptr::set_mark(bool mark) const
 {
+    assert(m_descr);
     return m_descr->set_mark(get(), mark);
 }
 
 void managed_ptr::set_pin(bool pin) const
 {
+    assert(m_descr);
     return m_descr->set_pin(get(), pin);
 }
 
 void managed_ptr::set_live(bool live)
 {
+    assert(m_descr);
     m_descr->set_live(m_ptr, live);
 }
 
 bool managed_ptr::is_live() const
 {
+    assert(m_descr);
     return m_descr->is_live(get());
 }
 
 void managed_ptr::sweep() const
 {
+    assert(m_descr);
     m_descr->sweep(get());
 }
 
 size_t managed_ptr::cell_size() const
 {
+    assert(m_descr);
     return m_descr->cell_size();
 }
 
 object_meta* managed_ptr::get_meta() const
 {
+    assert(m_descr);
     return m_descr->get_cell_meta(get());
 }
 
 byte* managed_ptr::get_cell_begin() const
 {
+    assert(m_descr);
     return m_descr->get_cell_begin(get());
 }
 
 byte* managed_ptr::get_obj_begin() const
 {
+    assert(m_descr);
     return m_descr->get_obj_begin(get());
 }
 

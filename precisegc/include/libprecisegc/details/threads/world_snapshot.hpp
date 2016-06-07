@@ -74,7 +74,10 @@ public:
         for (auto thread: m_threads) {
             root_set::element* it = thread->get_root_set().head();
             while (it != nullptr) {
-                f(it->root->get());
+                void* p = it->root->get();
+                if (p) {
+                    f(p);
+                }
                 it = it->next;
             }
         }
@@ -86,7 +89,10 @@ public:
         for (auto thread: m_threads) {
             root_set::element* it = thread->get_root_set().head();
             while (it != nullptr) {
-                f(it->root->get());
+                void* p = it->root->get();
+                if (p) {
+                    f(p);
+                }
                 it = it->next;
             }
         }
@@ -98,7 +104,10 @@ public:
         for (auto thread: m_threads) {
             root_set::element* it = thread->get_pin_set().head();
             while (it != nullptr) {
-                f(it->root->get());
+                void* p = it->root->get();
+                if (p) {
+                    f(p);
+                }
                 it = it->next;
             }
         }
@@ -110,7 +119,10 @@ public:
         for (auto thread: m_threads) {
             root_set::element* it = thread->get_pin_set().head();
             while (it != nullptr) {
-                f(it->root->get());
+                void* p = it->root->get();
+                if (p) {
+                    f(p);
+                }
                 it = it->next;
             }
         }

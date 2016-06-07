@@ -15,7 +15,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/iterator_facade.h
         include/libprecisegc/details/iterator_access.h
-        include/libprecisegc/details/barrier.h
+        include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h
         include/libprecisegc/details/ptrs/gc_new_stack.hpp

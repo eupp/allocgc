@@ -1,9 +1,9 @@
-#ifndef DIPLOMA_BARRIER_H
-#define DIPLOMA_BARRIER_H
+#ifndef DIPLOMA_BARRIER_HPP
+#define DIPLOMA_BARRIER_HPP
 
 #include <pthread.h>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace utils {
 
 class barrier
 {
@@ -34,6 +34,6 @@ private:
     pthread_barrier_t m_barrier;
 };
 
-}}
+}}}
 
-#endif //DIPLOMA_BARRIER_H
+#endif //DIPLOMA_BARRIER_HPP

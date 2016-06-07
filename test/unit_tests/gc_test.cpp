@@ -17,7 +17,7 @@
 #include <libprecisegc/gc_new.h>
 #include <libprecisegc/gc.h>
 #include <libprecisegc/details/gc_mark.h>
-#include <libprecisegc/details/barrier.h>
+#include <libprecisegc/details/utils/barrier.hpp>
 #include <libprecisegc/details/utils/math.h>
 
 using namespace precisegc;
@@ -129,7 +129,7 @@ void check_nodes(node* ptr, size_t depth)
 std::atomic<int> thread_num(0);
 std::atomic<bool> gc_finished(false);
 
-barrier threads_ready(THREADS_COUNT + 1);
+utils::barrier threads_ready(THREADS_COUNT + 1);
 
 static void* thread_routine(void* arg)
 {

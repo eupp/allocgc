@@ -19,7 +19,7 @@ void recorder::register_alloc_request()
 
 void recorder::register_allocation(size_t size)
 {
-    m_heap_size.fetch_add(size, std::memory_order_acq_rel);
+//    m_heap_size.fetch_add(size, std::memory_order_acq_rel);
 }
 
 void recorder::register_pause(const gc_pause_stat& pause_stat)
@@ -55,7 +55,8 @@ gc_stat recorder::stat() const
 
     stat.heap_size              = m_heap_size.load(std::memory_order_acquire);
     stat.heap_gain              = stat.heap_size - m_last_heap_size.load(std::memory_order_acquire);
-    stat.last_alloc_timediff    = now - m_last_alloc_time.load(std::memory_order_acquire);
+//    stat.last_alloc_timediff    = now - m_last_alloc_time.load(std::memory_order_acquire);
+    stat.last_alloc_timediff    = gc_clock::duration(0);
     stat.last_gc_timediff       = now - m_last_gc_time.load(std::memory_order_acquire);
     stat.last_gc_duration       = m_last_gc_duration.load(std::memory_order_acquire);
 

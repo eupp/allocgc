@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <vector>
+
 #include <pthread.h>
 
 namespace precisegc { namespace details {

@@ -70,7 +70,7 @@ void posix_signal::unlock()
     pcall.unlock();
 }
 
-bool posix_signal::is_locked() const
+bool posix_signal::is_locked()
 {
     return pcall.is_locked();
 }

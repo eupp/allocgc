@@ -10,14 +10,12 @@ class gc_unsafe_scope
 public:
     gc_unsafe_scope()
     {
-        static threads::posix_signal& sig = threads::posix_signal::instance();
-        sig.lock();
+        threads::posix_signal::lock();
     }
 
     ~gc_unsafe_scope()
     {
-        static threads::posix_signal& sig = threads::posix_signal::instance();
-        sig.unlock();
+        threads::posix_signal::unlock();
     }
 };
 

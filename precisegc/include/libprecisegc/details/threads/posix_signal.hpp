@@ -27,19 +27,15 @@ public:
 
     void send(pthread_t thread);
 
-    void lock();
-    void unlock();
+    static void lock();
+    static void unlock();
 
-    bool is_locked() const;
+    static bool is_locked();
 
     friend void call_signal_handler();
     friend void ::precisegc::details::threads::sighandler(int);
 private:
     static const int SIGNUM = SIGUSR2;
-
-//    static void call_signal_handler();
-
-//    static thread_local pending_call pcall;
 
     posix_signal();
 

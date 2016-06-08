@@ -15,24 +15,25 @@ void pending_call::operator()()
         return;
     }
     m_callable();
+    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 void pending_call::lock()
 {
+    std::atomic_signal_fence(std::memory_order_seq_cst);
     if (m_depth == 0) {
-        std::atomic_signal_fence(std::memory_order_seq_cst);
         m_depth = 1;
-        std::atomic_signal_fence(std::memory_order_seq_cst);
     } else {
         m_depth++;
     }
+    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 void pending_call::unlock()
 {
     assert(m_callable);
+    std::atomic_signal_fence(std::memory_order_seq_cst);
     if (m_depth == 1) {
-        std::atomic_signal_fence(std::memory_order_seq_cst);
         m_depth = 0;
         std::atomic_signal_fence(std::memory_order_seq_cst);
         bool pending = (m_pending_flag == PENDING);
@@ -43,6 +44,7 @@ void pending_call::unlock()
     } else {
         m_depth--;
     }
+    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 bool pending_call::is_locked() const

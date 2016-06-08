@@ -36,7 +36,7 @@ struct gc_stat
     size_t              heap_size;
     size_t              heap_gain;
     gc_clock::duration  last_alloc_timediff;
-    gc_clock::duration  last_gc_timediff;
+    gc_clock::duration  last_gc_time;
     gc_clock::duration  last_gc_duration;
 };
 

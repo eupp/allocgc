@@ -5,17 +5,18 @@
 #include <atomic>
 #include <cstddef>
 #include <mutex>
+#include <memory>
 
-#include "forwarding.h"
-#include "object_meta.h"
-#include "allocators/bucket_allocator.hpp"
-#include "allocators/pow2_bucket_policy.h"
-#include "allocators/paged_allocator.h"
-#include "allocators/fixed_block_cache.h"
-#include "constants.hpp"
-#include "managed_pool_chunk.hpp"
-#include "libprecisegc/details/utils/utility.hpp"
-#include "gc_hooks.hpp"
+#include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/allocators/bucket_allocator.hpp>
+#include <libprecisegc/details/allocators/pow2_bucket_policy.h>
+#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/forwarding.h>
+#include <libprecisegc/details/object_meta.h>
+#include <libprecisegc/details/managed_pool_chunk.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details {
 
@@ -27,8 +28,8 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 
     typedef allocators::bucket_allocator<
             managed_pool_chunk,
-            allocators::paged_allocator,
-            allocators::paged_allocator,
+            allocators::page_allocator,
+            allocators::default_allocator,
             allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
             std::mutex
         > alloc_t;

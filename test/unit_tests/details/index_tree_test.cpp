@@ -6,7 +6,7 @@
 
 #include "libprecisegc/details/index_tree.h"
 #include "libprecisegc/details/allocators/debug_layer.h"
-#include "libprecisegc/details/allocators/paged_allocator.h"
+#include "libprecisegc/details/allocators/page_allocator.hpp"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;

@@ -7,7 +7,7 @@
 #include "libprecisegc/details/forwarding.h"
 
 #include "libprecisegc/details/allocators/list_allocator.hpp"
-#include "libprecisegc/details/allocators/paged_allocator.h"
+#include "libprecisegc/details/allocators/page_allocator.hpp"
 #include "libprecisegc/details/managed_pool_chunk.hpp"
 
 #include "rand_util.h"
@@ -26,8 +26,8 @@ struct test_type
 };
 
 typedef list_allocator<managed_pool_chunk,
-                             paged_allocator,
-                             paged_allocator
+                             page_allocator,
+                             default_allocator
                             > allocator_t;
 }
 
@@ -46,7 +46,7 @@ public:
         m_paged_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
     }
 
-    paged_allocator m_paged_alloc;
+    page_allocator m_paged_alloc;
     allocator_t m_alloc;
     managed_pool_chunk m_chunk;
     std::unordered_set<byte*> m_allocated;
@@ -243,6 +243,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
 TEST_F(gc_compact_test, test_fix_pointers)
 {
     managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
+    cell_ptr.set_mark(true);
     byte* ptr = cell_ptr.get();
 
     test_type val1;

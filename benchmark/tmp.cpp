@@ -7,9 +7,47 @@
 #include <boost/lockfree/queue.hpp>
 #include <boost/lockfree/spsc_queue.hpp>
 
+#include <sys/mman.h>
+#include <cstdlib>
+
 #include "libprecisegc/details/gc_unsafe_scope.h"
 
 using namespace precisegc::details;
+
+static const size_t SIZE = 8192;
+
+NONIUS_BENCHMARK("mmap", [](nonius::chronometer meter)
+{
+    std::vector<void*> ps(meter.runs());
+    meter.measure([&ps] (size_t i) {
+        ps[i] = mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    });
+    for (auto p: ps) {
+        munmap(p, SIZE);
+    }
+});
+
+NONIUS_BENCHMARK("aligned_alloc", [](nonius::chronometer meter)
+{
+    std::vector<void*> ps(meter.runs());
+    meter.measure([&ps] (size_t i) {
+        ps[i] = aligned_alloc(SIZE, SIZE);
+    });
+    for (auto p: ps) {
+        free(p);
+    }
+});
+
+NONIUS_BENCHMARK("posix_memalign", [](nonius::chronometer meter)
+{
+    std::vector<void*> ps(meter.runs());
+    meter.measure([&ps] (size_t i) {
+        posix_memalign(&ps[i], SIZE, SIZE);
+    });
+    for (auto p: ps) {
+        free(p);
+    }
+});
 
 //NONIUS_BENCHMARK("plain assign", [](nonius::chronometer meter)
 //{

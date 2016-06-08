@@ -3,10 +3,11 @@
 #include <cassert>
 #include <mutex>
 
-#include "libprecisegc/details/allocators/bucket_allocator.hpp"
-#include "libprecisegc/details/allocators/paged_allocator.h"
-#include "libprecisegc/details/allocators/debug_layer.h"
-#include "libprecisegc/details/types.hpp"
+#include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/bucket_allocator.hpp>
+#include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/allocators/debug_layer.h>
+#include <libprecisegc/details/types.hpp>
 
 #include "test_chunk.h"
 
@@ -48,8 +49,8 @@ struct test_bucket_policy
 class bucket_allocator_test : public ::testing::Test
 {
 public:
-    typedef debug_layer<paged_allocator> allocator_t;
-    typedef bucket_allocator<test_chunk, allocator_t, allocator_t, test_bucket_policy, std::mutex> bucket_allocator_t;
+//    typedef debug_layer<page_allocator> allocator_t;
+    typedef bucket_allocator<test_chunk, default_allocator, default_allocator, test_bucket_policy, std::mutex> bucket_allocator_t;
 
     bucket_allocator_t m_alloc;
 };

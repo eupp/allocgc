@@ -17,7 +17,7 @@ set(precisegc_TESTS
         gc_environment.cpp
         details/index_tree_test.cpp
         details/allocators/plain_pool_chunk_test.cpp
-        details/allocators/fixed_size_allocator_test.cpp
+        details/allocators/list_allocator_test.cpp
         details/allocators/bucket_allocator_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp

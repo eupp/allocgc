@@ -28,7 +28,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/initator.hpp
-        include/libprecisegc/details/allocators/paged_allocator.h
+        include/libprecisegc/details/allocators/page_allocator.hpp
         include/libprecisegc/details/index_tree.h
         include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/any_ptr.h
@@ -69,7 +69,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/serial_gc.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
-        include/libprecisegc/details/incremental_gc.hpp include/libprecisegc/details/recorder.hpp include/libprecisegc/details/printer.hpp include/libprecisegc/details/gc_clock.hpp include/libprecisegc/details/gc_interface.hpp)
+        include/libprecisegc/details/incremental_gc.hpp include/libprecisegc/details/recorder.hpp include/libprecisegc/details/printer.hpp include/libprecisegc/details/gc_clock.hpp include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/allocators/default_allocator.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

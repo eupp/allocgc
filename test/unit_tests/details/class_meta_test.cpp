@@ -1,8 +1,9 @@
 #include <gtest/gtest.h>
 
 #include <vector>
+#include <algorithm>
 
-#include "libprecisegc/details/class_meta.h"
+#include <libprecisegc/details/type_meta.hpp>
 
 using namespace std;
 using namespace precisegc::details;
@@ -13,24 +14,25 @@ struct type_3 {};
 
 TEST(class_meta_test, test_is_initialized)
 {
-    EXPECT_FALSE(class_meta_provider<type_1>::is_created());
+    EXPECT_FALSE(type_meta_provider<type_1>::is_created());
 }
 
 TEST(class_meta_test, test_create_meta)
 {
-    typedef class_meta_provider<type_2> provider;
+    typedef type_meta_provider<type_2> provider;
     vector<size_t> offsets({1, 2, 3});
     provider::create_meta(offsets);
     EXPECT_TRUE(provider::is_created());
     EXPECT_EQ(sizeof(type_2), provider::get_meta().get_type_size());
-    EXPECT_EQ(offsets, provider::get_meta().get_offsets());
+    EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
+    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets_begin()));
 }
 
 static pthread_barrier_t g_barrier_1;
 
 static void* thread_routine(void* arg)
 {
-    typedef class_meta_provider<type_3> provider;
+    typedef type_meta_provider<type_3> provider;
     vector<size_t>* offsets = reinterpret_cast<vector<size_t>*>(arg);
     pthread_barrier_wait(&g_barrier_1);
     provider::create_meta(*offsets);
@@ -38,7 +40,7 @@ static void* thread_routine(void* arg)
 
 TEST(class_meta_test, test_threading)
 {
-    typedef class_meta_provider<type_3> provider;
+    typedef type_meta_provider<type_3> provider;
     vector<size_t> offsets;
     for (int i = 0; i < 1000; ++i) {
         offsets.push_back(i);
@@ -63,6 +65,7 @@ TEST(class_meta_test, test_threading)
 
     EXPECT_TRUE(provider::is_created());
     EXPECT_EQ(sizeof(type_3), provider::get_meta().get_type_size());
-    EXPECT_EQ(offsets, provider::get_meta().get_offsets());
+    EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
+    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets_begin()));
 }
 

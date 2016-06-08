@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_OBJECT_META_H
 #define DIPLOMA_OBJECT_META_H
 
-#include "class_meta.h"
+#include "type_meta.hpp"
 
 namespace precisegc { namespace details {
 
@@ -15,7 +15,7 @@ public:
         return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
     }
 
-    object_meta(const class_meta* cls_meta, size_t count, void* obj_ptr)
+    object_meta(const type_meta* cls_meta, size_t count, void* obj_ptr)
         : m_cls_meta(cls_meta)
         , m_count(count)
         , m_obj_ptr(obj_ptr)
@@ -26,12 +26,12 @@ public:
         return m_count * m_cls_meta->get_type_size();
     }
 
-    const class_meta* get_class_meta() const noexcept
+    const type_meta* get_class_meta() const noexcept
     {
         return m_cls_meta;
     }
 
-    void set_class_meta(const class_meta* cls_meta) noexcept
+    void set_class_meta(const type_meta* cls_meta) noexcept
     {
         m_cls_meta = cls_meta;
     }
@@ -57,7 +57,7 @@ public:
     }
 
 private:
-    const class_meta* m_cls_meta;
+    const type_meta* m_cls_meta;
     size_t m_count;
     void* m_obj_ptr;
 };

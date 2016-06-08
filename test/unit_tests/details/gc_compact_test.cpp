@@ -254,7 +254,7 @@ TEST_F(gc_compact_test, test_fix_pointers)
     from = &val2;
 
     auto offsets = std::vector<size_t>({0});
-    typedef class_meta_provider<test_type> provider;
+    typedef type_meta_provider<test_type> provider;
     provider::create_meta(offsets);
 
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);

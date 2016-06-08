@@ -229,7 +229,7 @@ void managed_pool_chunk::iterator::advance(ptrdiff_t n)
 
 ptrdiff_t managed_pool_chunk::iterator::distance_to(const iterator& other) const
 {
-    return m_ptr.get() - other.m_ptr.get();
+    return other.m_ptr.get() - m_ptr.get();
 }
 
 size_t managed_pool_chunk::iterator::cell_size() const

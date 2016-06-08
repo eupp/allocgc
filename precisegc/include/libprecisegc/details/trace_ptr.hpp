@@ -25,17 +25,17 @@ void trace_ptr(void* p, Queue& q)
     mp.set_mark(true);
 
     object_meta* obj_meta = mp.get_meta();
-    const class_meta* cls_meta = obj_meta->get_class_meta();
+    const type_meta* cls_meta = obj_meta->get_class_meta();
     size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
-    auto& offsets = cls_meta->get_offsets();
+    auto offsets = cls_meta->offsets_begin();
 
-    if (offsets.empty()) {
+    if (cls_meta->is_plain_type()) {
         return;
     }
 
     byte* obj = mp.get_cell_begin();
     size_t obj_count = obj_meta->get_count();
-    size_t offsets_size = offsets.size();
+    size_t offsets_size = cls_meta->offsets_count();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
             ptrs::gc_untyped_ptr* pchild = (ptrs::gc_untyped_ptr*) ((char *) obj + offsets[j]);

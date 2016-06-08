@@ -5,7 +5,7 @@
 #include <utility>
 
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/class_meta.h>
+#include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/object_meta.h>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 
@@ -52,11 +52,11 @@ void* gc_new_impl(size_t n, Args&&... args)
 
     // if class meta is not yet created - push pointer to current object and empty offsets
     // on gc_new_stack stack and call T constructor in order to fill offsets,
-    // then create class_meta with gotten offsets
-    if (!class_meta_provider<T>::is_created()) {
+    // then create type_meta with gotten offsets
+    if (!type_meta_provider<T>::is_created()) {
         gc_new_stack::stack_entry stack_entry(ptr, aligned_size);
         new (ptr) T(std::forward<Args>(args)...);
-        class_meta_provider<T>::create_meta(gc_new_stack::instance().get_top_offsets());
+        type_meta_provider<T>::create_meta(gc_new_stack::instance().get_top_offsets());
         begin += sizeof(T);
     }
 
@@ -67,7 +67,7 @@ void* gc_new_impl(size_t n, Args&&... args)
 
     // construct object_meta
     {
-        new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(class_meta_provider<T>::get_meta_ptr(), n, ptr);
+        new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(type_meta_provider<T>::get_meta_ptr(), n, ptr);
     }
 
     return ptr;

@@ -38,9 +38,15 @@ TEST(dynarray_test, test_data)
 
 TEST(dynarray_test, test_iterators)
 {
-    dynarray<int> da({0, 1, 2, 3});
+    dynarray<int> da1(0);
+    ASSERT_EQ(0, std::distance(da1.begin(), da1.end()));
+
+    dynarray<int> da2({0, 1, 2, 3});
+    ASSERT_EQ(4, std::distance(da2.begin(), da2.end()));
     int i = 0;
-    for (auto it = da.begin(); it < da.end(); ++it, ++i) {
+    for (auto it = da2.begin(); it < da2.end(); ++it, ++i) {
         ASSERT_EQ(i, *it);
     }
+
+
 }

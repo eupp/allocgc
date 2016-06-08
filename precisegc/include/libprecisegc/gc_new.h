@@ -9,7 +9,7 @@
 #include <pthread.h>
 
 #include "gc_ptr.h"
-#include "details/class_meta.h"
+#include "libprecisegc/details/type_meta.hpp"
 #include "details/gc_unsafe_scope.h"
 #include "libprecisegc/details/ptrs/gc_ptr_access.hpp"
 #include "libprecisegc/details/ptrs/gc_new_impl.hpp"

@@ -70,7 +70,7 @@ class dynarray
 
         ptrdiff_t distance_to(const iterator_base& other) const noexcept
         {
-            return m_ptr - other.m_ptr;
+            return other.m_ptr - m_ptr;
         }
 
         Value* m_ptr;
@@ -113,52 +113,52 @@ public:
         std::copy(init.begin(), init.end(), begin());
     }
 
-    reference operator[](size_type n)
+    reference operator[](size_type n) noexcept
     {
         return *(m_data.get() + n);
     }
 
-    const_reference operator[](size_type n) const
+    const_reference operator[](size_type n) const noexcept
     {
         return *(m_data.get() + n);
     }
 
-    reference front()
+    reference front() noexcept
     {
         return *m_data.get();
     }
 
-    const_reference front() const
+    const_reference front() const noexcept
     {
         return *m_data.get();
     }
 
-    reference back()
+    reference back() noexcept
     {
         return *(m_data.get() + m_size - 1);
     }
 
-    const_reference back() const
+    const_reference back() const noexcept
     {
         return *(m_data.get() + m_size - 1);
     }
 
-    T* data()
+    T* data() noexcept
     {
         return m_data.get();
     }
 
-    const T* data() const
+    const T* data() const noexcept
     {
         return m_data.get();
     }
 
-    bool empty() const
+    bool empty() const noexcept
     {
         return m_data == nullptr;
     }
 
-    size_type size() const
+    size_type size() const noexcept
     {
         return m_size;
     }

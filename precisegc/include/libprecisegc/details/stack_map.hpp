@@ -4,9 +4,7 @@
 #include <algorithm>
 #include <forward_list>
 
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/object_pool.hpp>
 #include <libprecisegc/details/allocators/stl_adapter.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -65,12 +63,7 @@ private:
         }
     }
 
-    typedef allocators::intrusive_list_allocator<
-                  allocators::freelist_pool_chunk
-                , allocators::default_allocator
-            > object_pool;
-
-    std::forward_list<T, allocators::stl_adapter<T, object_pool>> m_list;
+    std::forward_list<T, allocators::stl_adapter<T, allocators::object_pool>> m_list;
 };
 
 typedef stack_map<ptrs::gc_untyped_ptr*> root_stack_map;

@@ -2,8 +2,9 @@
 #define DIPLOMA_INTRUSIVE_intrusive_list_allocator_HPP
 
 #include <cassert>
-#include <type_traits>
 #include <memory>
+#include <algorithm>
+#include <type_traits>
 
 #include <boost/iterator/iterator_facade.hpp>
 

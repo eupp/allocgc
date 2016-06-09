@@ -93,7 +93,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/thread_manager.cpp
         src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp
         src/details/serial_gc.cpp
-        src/details/incremental_gc.cpp src/details/printer.cpp src/details/recorder.cpp src/details/allocators/freelist_pool_chunk.cpp)
+        src/details/incremental_gc.cpp src/details/printer.cpp src/details/recorder.cpp src/details/allocators/freelist_pool_chunk.cpp src/details/allocators/object_pool.cpp)
 
 
 find_package(Threads REQUIRED)

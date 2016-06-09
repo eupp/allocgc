@@ -33,7 +33,8 @@ public:
               iterator
             , const managed_ptr
             , boost::random_access_traversal_tag
-            , managed_ptr>
+            , managed_ptr
+        >
     {
         class proxy
         {
@@ -94,7 +95,6 @@ public:
     bool contains(const managed_ptr& ptr) const noexcept;
     bool memory_available() const noexcept;
     bool empty() const noexcept;
-    bool empty(size_t cell_size) const noexcept;
 
     byte*  get_mem() const;
     size_t get_mem_size() const;

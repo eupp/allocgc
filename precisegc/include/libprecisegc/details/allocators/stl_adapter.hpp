@@ -19,6 +19,9 @@ class stl_adapter : private Alloc
                   "stl_adapter should be used with raw memory allocator");
 
     typedef typename Alloc::alloc_tag alloc_tag;
+
+    template <typename U, typename OtherAlloc>
+    friend class stl_adapter;
 public:
     typedef T value_type;
     typedef value_type& reference;
@@ -48,7 +51,7 @@ public:
     {}
 
     template <typename U>
-    stl_adapter(const stl_adapter<U, Alloc>&& other)
+    stl_adapter(stl_adapter<U, Alloc>&& other)
         : Alloc(std::move(other))
     {}
 

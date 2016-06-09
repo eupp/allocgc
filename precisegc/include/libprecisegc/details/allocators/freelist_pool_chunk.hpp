@@ -13,6 +13,8 @@ namespace precisegc { namespace details { namespace allocators {
 class freelist_pool_chunk : private utils::noncopyable, private utils::nonmovable
 {
 public:
+    typedef byte* pointer_type;
+
     static const size_t CHUNK_MAXSIZE = std::numeric_limits<size_t>::max();
 
     freelist_pool_chunk(byte* chunk, size_t size, size_t obj_size);

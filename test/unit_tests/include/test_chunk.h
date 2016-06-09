@@ -68,11 +68,12 @@ public:
 
     test_chunk(byte* mem, size_t size, size_t obj_size)
             : m_mem(mem)
+            , m_size(size)
             , m_obj_size(obj_size)
             , m_available(true)
     {
         assert(mem);
-        assert(size == obj_size);
+//        assert(size == obj_size);
     }
 
     test_chunk(const test_chunk&) = delete;
@@ -109,9 +110,8 @@ public:
         return m_available;
     }
 
-    bool empty(size_t obj_size) const noexcept
+    bool empty() const noexcept
     {
-        assert(obj_size == m_obj_size);
         return m_available;
     }
 
@@ -122,7 +122,7 @@ public:
 
     size_t get_mem_size() const
     {
-        return m_obj_size;
+        return m_size;
     }
 
     iterator begin()
@@ -141,6 +141,7 @@ public:
     }
 private:
     byte* m_mem;
+    size_t m_size;
     size_t m_obj_size;
     bool m_available;
 };

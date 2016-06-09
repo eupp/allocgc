@@ -54,11 +54,6 @@ bool managed_pool_chunk::empty() const noexcept
     return m_mark_bits.none() && m_pin_bits.none();
 }
 
-bool managed_pool_chunk::empty(size_t cell_size) const noexcept
-{
-    return empty();
-}
-
 byte* managed_pool_chunk::get_mem() const
 {
     return m_chunk.get_mem();

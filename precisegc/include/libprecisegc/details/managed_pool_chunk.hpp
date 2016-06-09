@@ -9,7 +9,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/allocators/plain_pool_chunk.h>
+#include <libprecisegc/details/allocators/bitmap_pool_chunk.h>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/managed_memory_descriptor.hpp>
@@ -21,11 +21,11 @@ namespace precisegc { namespace details {
 class managed_pool_chunk : public managed_memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = allocators::plain_pool_chunk::CHUNK_MAXSIZE;
+    static const size_t CHUNK_MAXSIZE = allocators::bitmap_pool_chunk::CHUNK_MAXSIZE;
     static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;
-    typedef allocators::plain_pool_chunk plain_pool_chunk;
+    typedef allocators::bitmap_pool_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:

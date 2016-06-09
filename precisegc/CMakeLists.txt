@@ -35,7 +35,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/memory.h
         include/libprecisegc/details/allocators/debug_layer.h
         include/libprecisegc/details/allocators/bucket_allocator.hpp
-        include/libprecisegc/details/allocators/plain_pool_chunk.h
+        include/libprecisegc/details/allocators/bitmap_pool_chunk.h
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.h
@@ -82,7 +82,7 @@ set(precisegc_LIB_SRCS
         src/barrier_buffer.cpp
         src/details/initator.cpp
         src/details/allocators/memory.cpp
-        src/details/allocators/plain_pool_chunk.cpp
+        src/details/allocators/bitmap_pool_chunk.cpp
         src/details/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
         src/forwarding.cpp

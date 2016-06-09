@@ -15,15 +15,15 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class plain_pool_chunk: private utils::noncopyable
+class bitmap_pool_chunk: private utils::noncopyable
 {
 public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
 
-    plain_pool_chunk(byte* chunk, size_t size, size_t obj_size) noexcept;
+    bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size) noexcept;
 
-    plain_pool_chunk(plain_pool_chunk&&) = default;
-    plain_pool_chunk& operator=(plain_pool_chunk&&) = default;
+    bitmap_pool_chunk(bitmap_pool_chunk&&) = default;
+    bitmap_pool_chunk& operator=(bitmap_pool_chunk&&) = default;
 
     byte* allocate(size_t obj_size) noexcept;
     void  deallocate(byte* ptr, size_t obj_size) noexcept;
@@ -38,8 +38,8 @@ public:
     byte* get_mem() const noexcept;
     size_t get_mem_size() const noexcept;
 
-    void swap(plain_pool_chunk& other);
-    friend void swap(plain_pool_chunk& a, plain_pool_chunk& b);
+    void swap(bitmap_pool_chunk& other);
+    friend void swap(bitmap_pool_chunk& a, bitmap_pool_chunk& b);
 private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
 

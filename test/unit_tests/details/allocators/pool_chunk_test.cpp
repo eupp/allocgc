@@ -1,9 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <algorithm>
 
-#include "libprecisegc/details/types.hpp"
-#include "libprecisegc/details/allocators/bitmap_pool_chunk.h"
+#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/allocators/bitmap_pool_chunk.h>
+#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+
+#include <boost/integer/static_min_max.hpp>
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
@@ -12,7 +16,7 @@ template <typename Chunk>
 class pool_chunk_test: public ::testing::Test
 {
 public:
-    static const int CHUNK_SIZE = Chunk::CHUNK_MAXSIZE;
+    static const int CHUNK_SIZE = boost::static_unsigned_min<(size_t) 64, Chunk::CHUNK_MAXSIZE>::value;
     static const int OBJ_SIZE = sizeof(size_t);
 
     pool_chunk_test()
@@ -24,7 +28,7 @@ public:
     Chunk m_chk;
 };
 
-typedef ::testing::Types<bitmap_pool_chunk> test_chunk_types;
+typedef ::testing::Types<bitmap_pool_chunk, freelist_pool_chunk> test_chunk_types;
 TYPED_TEST_CASE(pool_chunk_test, test_chunk_types);
 
 TYPED_TEST(pool_chunk_test, test_memory_available)

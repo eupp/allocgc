@@ -5,7 +5,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-bitmap_pool_chunk::bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size) noexcept
+bitmap_pool_chunk::bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size) 
     : m_chunk(chunk)
     , m_size(size)
     , m_cnt(size / obj_size)
@@ -16,7 +16,7 @@ bitmap_pool_chunk::bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size) 
     assert(m_cnt <= CHUNK_MAXSIZE);
 }
 
-byte* bitmap_pool_chunk::allocate(size_t obj_size) noexcept
+byte* bitmap_pool_chunk::allocate(size_t obj_size) 
 {
     assert(memory_available());
     auto idx_opt = m_bits.least_significant_bit();
@@ -25,22 +25,22 @@ byte* bitmap_pool_chunk::allocate(size_t obj_size) noexcept
     return get_mem() + idx * obj_size;
 }
 
-void bitmap_pool_chunk::deallocate(byte* ptr, size_t obj_size) noexcept
+void bitmap_pool_chunk::deallocate(byte* ptr, size_t obj_size) 
 {
     set_live(ptr, obj_size, false);
 }
 
-bool bitmap_pool_chunk::contains(byte* ptr) const noexcept
+bool bitmap_pool_chunk::contains(byte* ptr) const 
 {
     return (m_chunk <= ptr) && (ptr < m_chunk + m_size);
 }
 
-bool bitmap_pool_chunk::memory_available() const noexcept
+bool bitmap_pool_chunk::memory_available() const 
 {
     return m_bits.any();
 }
 
-bool bitmap_pool_chunk::empty() const noexcept
+bool bitmap_pool_chunk::empty() const 
 {
     return m_bits.count() == m_cnt;
 }
@@ -61,12 +61,12 @@ void bitmap_pool_chunk::set_live(byte* ptr, size_t obj_size, bool live)
     m_bits.set(ind, !live);
 }
 
-byte* bitmap_pool_chunk::get_mem() const noexcept
+byte* bitmap_pool_chunk::get_mem() const 
 {
     return m_chunk;
 }
 
-size_t bitmap_pool_chunk::get_mem_size() const noexcept
+size_t bitmap_pool_chunk::get_mem_size() const 
 {
     return m_size;
 }

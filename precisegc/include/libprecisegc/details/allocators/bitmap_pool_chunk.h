@@ -2,41 +2,33 @@
 #define DIPLOMA_POOL_UTILITY_H
 
 #include <cstddef>
-#include <cstdint>
-#include <limits>
-#include <bitset>
 
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 
-#include <boost/dynamic_bitset.hpp>
-
 namespace precisegc { namespace details { namespace allocators {
 
-class bitmap_pool_chunk: private utils::noncopyable
+class bitmap_pool_chunk: private utils::noncopyable, private utils::nonmovable
 {
 public:
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
 
-    bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size) noexcept;
+    bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size);
 
-    bitmap_pool_chunk(bitmap_pool_chunk&&) = default;
-    bitmap_pool_chunk& operator=(bitmap_pool_chunk&&) = default;
+    byte* allocate(size_t obj_size);
+    void  deallocate(byte* ptr, size_t obj_size);
 
-    byte* allocate(size_t obj_size) noexcept;
-    void  deallocate(byte* ptr, size_t obj_size) noexcept;
-
-    bool contains(byte* ptr) const noexcept;
-    bool memory_available() const noexcept;
-    bool empty() const noexcept;
+    bool contains(byte* ptr) const;
+    bool memory_available() const;
+    bool empty() const;
 
     bool is_live(byte* ptr, size_t obj_size) const;
     void set_live(byte* ptr, size_t obj_size, bool live);
 
-    byte* get_mem() const noexcept;
-    size_t get_mem_size() const noexcept;
+    byte* get_mem() const;
+    size_t get_mem_size() const;
 
     void swap(bitmap_pool_chunk& other);
     friend void swap(bitmap_pool_chunk& a, bitmap_pool_chunk& b);

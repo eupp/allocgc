@@ -13,7 +13,7 @@
 #include "../gc_ptr.h"
 #include "managed_ptr.hpp"
 
-#include "root_set.hpp"
+#include "stack_map.hpp"
 
 namespace precisegc { namespace details {
 
@@ -90,11 +90,9 @@ void fix_roots(const Forwarding& frwd)
 {
     auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
     for (auto thread: threads_rng) {
-        root_set::element* it = thread->get_root_set().head();
-        while (it != nullptr) {
-            frwd.forward(it->root);
-            it = it->next;
-        }
+        thread->root_set().trace([&frwd] (ptrs::gc_untyped_ptr* p) {
+            frwd.forward(p);
+        });
     }
 }
 

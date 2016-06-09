@@ -13,37 +13,37 @@ namespace precisegc { namespace details { namespace ptrs {
 class gc_untyped_ptr
 {
 public:
-    gc_untyped_ptr() noexcept;
+    gc_untyped_ptr();
 //    gc_untyped_ptr(nullptr_t) noexcept;
-    gc_untyped_ptr(void* ptr) noexcept;
-    gc_untyped_ptr(const gc_untyped_ptr& other) noexcept;
-    gc_untyped_ptr(gc_untyped_ptr&& other) noexcept;
-    ~gc_untyped_ptr() noexcept;
+    gc_untyped_ptr(void* ptr);
+    gc_untyped_ptr(const gc_untyped_ptr& other);
+    gc_untyped_ptr(gc_untyped_ptr&& other);
+    ~gc_untyped_ptr();
 
-    gc_untyped_ptr& operator=(nullptr_t) noexcept;
-    gc_untyped_ptr& operator=(const gc_untyped_ptr& other) noexcept;
-    gc_untyped_ptr& operator=(gc_untyped_ptr&& other) noexcept;
+    gc_untyped_ptr& operator=(nullptr_t);
+    gc_untyped_ptr& operator=(const gc_untyped_ptr& other);
+    gc_untyped_ptr& operator=(gc_untyped_ptr&& other);
 
-    void swap(gc_untyped_ptr& other) noexcept;
+    void swap(gc_untyped_ptr& other);
 
-    explicit operator bool() const noexcept;
+    explicit operator bool() const;
 
-    bool is_root() const noexcept;
+    bool is_root() const;
 
-    void set(void* ptr) noexcept;
-    void* get() const noexcept;
+    void set(void* ptr);
+    void* get() const;
 protected:
     atomic_byte_ptr m_ptr;
 private:
     static thread_local gc_new_stack& gcnew_stack;
 
-    void register_root() noexcept;
-    void delete_root() noexcept;
+    void register_root();
+    void delete_root();
     
     const bool m_root_flag;
 };
 
-void swap(gc_untyped_ptr& a, gc_untyped_ptr& b) noexcept;
+void swap(gc_untyped_ptr& a, gc_untyped_ptr& b);
 
 }}}
 

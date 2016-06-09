@@ -72,14 +72,7 @@ public:
     void trace_roots(Functor& f) const
     {
         for (auto thread: m_threads) {
-            root_set::element* it = thread->get_root_set().head();
-            while (it != nullptr) {
-                void* p = it->root->get();
-                if (p) {
-                    f(p);
-                }
-                it = it->next;
-            }
+            thread->root_set().trace(f);
         }
     }
 
@@ -87,13 +80,8 @@ public:
     void trace_roots(const Functor& f) const
     {
         for (auto thread: m_threads) {
-            root_set::element* it = thread->get_root_set().head();
-            while (it != nullptr) {
-                void* p = it->root->get();
-                if (p) {
-                    f(p);
-                }
-                it = it->next;
+            for (auto thread: m_threads) {
+                thread->root_set().trace(f);
             }
         }
     }
@@ -102,13 +90,8 @@ public:
     void trace_pins(Functor& f) const
     {
         for (auto thread: m_threads) {
-            root_set::element* it = thread->get_pin_set().head();
-            while (it != nullptr) {
-                void* p = it->root->get();
-                if (p) {
-                    f(p);
-                }
-                it = it->next;
+            for (auto thread: m_threads) {
+                thread->pin_set().trace(f);
             }
         }
     }
@@ -117,13 +100,8 @@ public:
     void trace_pins(const Functor& f) const
     {
         for (auto thread: m_threads) {
-            root_set::element* it = thread->get_pin_set().head();
-            while (it != nullptr) {
-                void* p = it->root->get();
-                if (p) {
-                    f(p);
-                }
-                it = it->next;
+            for (auto thread: m_threads) {
+                thread->pin_set().trace(f);
             }
         }
     }

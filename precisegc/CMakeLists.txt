@@ -47,7 +47,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
         include/libprecisegc/details/threads/managed_thread.hpp
-        include/libprecisegc/details/root_set.hpp
+        include/libprecisegc/details/stack_map.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
         include/libprecisegc/details/gc_exception.hpp
         include/libprecisegc/details/threads/thread_manager.hpp
@@ -87,7 +87,6 @@ set(precisegc_LIB_SRCS
         src/details/managed_ptr.cpp
         src/forwarding.cpp
         src/details/threads/pending_call.cpp
-        src/details/root_set.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp

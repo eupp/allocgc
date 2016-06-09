@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/root_set.hpp>
+#include <libprecisegc/details/stack_map.hpp>
 #include <libprecisegc/details/barrier_buffer.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
@@ -42,12 +42,12 @@ public:
         return m_native_handle;
     }
 
-    root_set& get_root_set()
+    root_stack_map& root_set()
     {
         return m_root_set;
     }
 
-    root_set& get_pin_set()
+    pin_stack_map& pin_set()
     {
         return m_pin_set;
     }
@@ -75,8 +75,8 @@ private:
 
     std::thread::native_handle_type m_native_handle;
     std::thread::id m_id;
-    root_set m_root_set;
-    root_set m_pin_set;
+    root_stack_map m_root_set;
+    pin_stack_map m_pin_set;
     barrier_buffer m_barrier_buf;
 };
 

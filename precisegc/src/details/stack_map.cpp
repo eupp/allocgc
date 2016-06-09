@@ -1,4 +1,4 @@
-#include <libprecisegc/details/root_set.hpp>
+#include <libprecisegc/details/stack_map.hpp>
 
 #include <cassert>
 #include <utility>
@@ -7,40 +7,40 @@
 
 namespace precisegc { namespace details {
 
-root_set::root_set()
+stack_map::stack_map()
     : m_head(nullptr)
     , m_free_list(nullptr)
 {}
 
-root_set::root_set(root_set&& other)
+stack_map::stack_map(stack_map&& other)
     : m_head(other.m_head)
     , m_free_list(other.m_free_list)
 {}
 
-root_set::~root_set()
+stack_map::~stack_map()
 {
     // We get memory leak here since we are not munmap our memory.
-    // It wasn't fixed yet because memory management of root_set will be refactored soon anyway.
+    // It wasn't fixed yet because memory management of stack_map will be refactored soon anyway.
 }
 
-root_set& root_set::operator=(root_set&& other)
+stack_map& stack_map::operator=(stack_map&& other)
 {
-    root_set(std::move(other)).swap(*this);
+    stack_map(std::move(other)).swap(*this);
     return *this;
 }
 
-void root_set::swap(root_set& other)
+void stack_map::swap(stack_map& other)
 {
     std::swap(m_head, other.m_head);
     std::swap(m_free_list, other.m_free_list);
 }
 
-void root_set::add(ptrs::gc_untyped_ptr* root)
+void stack_map::insert(ptrs::gc_untyped_ptr* root)
 {
     gc_unsafe_scope unsafe_scope;
 
     static const size_t PAGE_SIZE = 4096;
-    static const size_t ELEM_PER_PAGE = PAGE_SIZE / sizeof(root_set::element);
+    static const size_t ELEM_PER_PAGE = PAGE_SIZE / sizeof(stack_map::element);
 
     if (m_free_list == nullptr) {
         element * data = (element *) mmap(nullptr, PAGE_SIZE, PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -58,7 +58,7 @@ void root_set::add(ptrs::gc_untyped_ptr* root)
     m_head = result;
 }
 
-void root_set::remove(ptrs::gc_untyped_ptr* root)
+void stack_map::remove(ptrs::gc_untyped_ptr* root)
 {
     gc_unsafe_scope unsafe_scope;
 
@@ -80,7 +80,7 @@ void root_set::remove(ptrs::gc_untyped_ptr* root)
     }
 }
 
-bool root_set::is_root(ptrs::gc_untyped_ptr* ptr)
+bool stack_map::contains(ptrs::gc_untyped_ptr* ptr)
 {
     element* curr = m_head;
     while (curr && ptr != curr->root) {
@@ -89,7 +89,7 @@ bool root_set::is_root(ptrs::gc_untyped_ptr* ptr)
     return curr != nullptr;
 }
 
-root_set::element* root_set::head() const
+stack_map::element* stack_map::head() const
 {
     return m_head;
 }

@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/root_set.hpp>
+#include <libprecisegc/details/stack_map.hpp>
 
 namespace precisegc { namespace details {
 
@@ -91,8 +91,8 @@ marker::marker()
 void marker::trace_roots(const threads::world_snapshot& snapshot)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
-    snapshot.trace_roots([this] (void* p) {
-        non_blocking_push(p);
+    snapshot.trace_roots([this] (ptrs::gc_untyped_ptr* p) {
+        non_blocking_push(p->get());
     });
 }
 

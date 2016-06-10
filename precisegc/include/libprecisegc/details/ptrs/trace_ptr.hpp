@@ -9,8 +9,8 @@
 
 namespace precisegc { namespace details {
 
-template <typename Queue>
-void trace_ptr(void* p, Queue& q)
+template <typename Functor>
+void trace_ptr(void* p, Functor& q)
 {
     if (!p) {
         return;

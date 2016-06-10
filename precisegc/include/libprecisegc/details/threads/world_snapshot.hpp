@@ -72,6 +72,7 @@ public:
     void trace_roots(Functor& f) const
     {
         for (auto thread: m_threads) {
+            thread->root_set().shrink();
             thread->root_set().trace(f);
         }
     }
@@ -80,6 +81,7 @@ public:
     void trace_roots(const Functor& f) const
     {
         for (auto thread: m_threads) {
+            thread->root_set().shrink();
             for (auto thread: m_threads) {
                 thread->root_set().trace(f);
             }
@@ -90,6 +92,7 @@ public:
     void trace_pins(Functor& f) const
     {
         for (auto thread: m_threads) {
+            thread->root_set().shrink();
             for (auto thread: m_threads) {
                 thread->pin_set().trace(f);
             }
@@ -100,6 +103,7 @@ public:
     void trace_pins(const Functor& f) const
     {
         for (auto thread: m_threads) {
+            thread->root_set().shrink();
             for (auto thread: m_threads) {
                 thread->pin_set().trace(f);
             }

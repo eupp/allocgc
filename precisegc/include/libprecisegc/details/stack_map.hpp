@@ -53,6 +53,11 @@ public:
     {
         std::for_each(begin(), end(), f);
     }
+
+    void shrink()
+    {
+        m_pool.shrink(sizeof(node));
+    }
 private:
     struct node
     {

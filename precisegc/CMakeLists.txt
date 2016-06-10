@@ -58,7 +58,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/marker.hpp
         include/libprecisegc/details/utils/lock_range.hpp
-        include/libprecisegc/details/trace_ptr.hpp
+        include/libprecisegc/details/ptrs/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
         include/libprecisegc/details/gc_strategy.hpp
         include/libprecisegc/details/utils/to_string.hpp

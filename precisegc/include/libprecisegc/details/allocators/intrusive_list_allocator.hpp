@@ -2,6 +2,7 @@
 #define DIPLOMA_INTRUSIVE_intrusive_list_allocator_HPP
 
 #include <cassert>
+#include <cstring>
 #include <memory>
 #include <algorithm>
 #include <type_traits>
@@ -37,6 +38,7 @@ public:
         : m_head(get_fake_block())
         , m_blk_size(MIN_BLOCK_SIZE)
         , m_alloc_chunk(m_head)
+        , m_freelist(nullptr)
     {
         m_fake.m_next = get_fake_block();
         m_fake.m_prev = get_fake_block();
@@ -52,6 +54,11 @@ public:
     pointer_type allocate(size_t size)
     {
         assert(size < this->MAX_BLOCK_SIZE);
+        if (m_freelist) {
+            byte* p = m_freelist;
+            m_freelist = *reinterpret_cast<byte**>(m_freelist);
+            return p;
+        }
         if (m_alloc_chunk == end()) {
             m_alloc_chunk = create_chunk(size);
             return m_alloc_chunk->allocate(size);
@@ -77,14 +84,20 @@ public:
 
     void deallocate(pointer_type ptr, size_t size)
     {
-        auto dealloc_chunk = std::find_if(begin(), end(),
-                                          [&ptr] (const Chunk& chk) { return chk.contains(ptr); });
-        if (dealloc_chunk != end()) {
-            dealloc_chunk->deallocate(ptr, size);
-            if (dealloc_chunk->empty()) {
-                destroy_chunk(dealloc_chunk);
-            }
+        assert(ptr && reinterpret_cast<std::uintptr_t>(ptr) % size == 0);
+        memcpy(ptr, &m_freelist, sizeof(byte*));
+        m_freelist = ptr;
+    }
+
+    size_t shrink(size_t cell_size)
+    {
+        size_t shrunk = 0;
+        while (m_freelist) {
+            byte* next = *reinterpret_cast<byte**>(m_freelist);
+            shrunk += deallocate_from_chunk(m_freelist, cell_size);
+            m_freelist = next;
         }
+        return shrunk;
     }
 
     template <typename Functor>
@@ -204,6 +217,21 @@ private:
         return next;
     }
 
+    size_t deallocate_from_chunk(byte* ptr, size_t size)
+    {
+        auto dealloc_chunk = std::find_if(begin(), end(),
+                                          [&ptr] (const Chunk& chk) { return chk.contains(ptr); });
+        if (dealloc_chunk != end()) {
+            dealloc_chunk->deallocate(ptr, size);
+            if (dealloc_chunk->empty()) {
+                size_t chunk_size = sizeof(pointers_block) + sizeof(Chunk) + dealloc_chunk->get_mem_size();
+                destroy_chunk(dealloc_chunk);
+                return chunk_size;
+            }
+        }
+        return 0;
+    }
+
     byte* get_fake_block()
     {
         return reinterpret_cast<byte*>(&m_fake);
@@ -238,6 +266,7 @@ private:
     byte* m_head;
     size_t m_blk_size;
     iterator m_alloc_chunk;
+    byte* m_freelist;
 };
 
 }}}

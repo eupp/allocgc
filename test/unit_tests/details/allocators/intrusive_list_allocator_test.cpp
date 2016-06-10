@@ -39,6 +39,7 @@ TEST_F(intrusive_list_allocator_test, test_allocate_2)
 {
     byte* ptr = m_alloc.allocate(OBJ_SIZE);
     m_alloc.deallocate(ptr, OBJ_SIZE);
+    m_alloc.shrink(OBJ_SIZE);
 
     ASSERT_EQ(0, m_alloc.upstream_allocator().get_allocated_mem_size());
 }

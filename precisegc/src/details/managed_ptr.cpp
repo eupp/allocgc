@@ -26,7 +26,7 @@ managed_ptr::managed_ptr(byte* ptr)
     }
 }
 
-managed_ptr::managed_ptr(byte* ptr, managed_memory_descriptor* descriptor)
+managed_ptr::managed_ptr(byte* ptr, memory_descriptor* descriptor)
     : m_ptr(ptr)
     , m_descr(descriptor)
 {
@@ -104,7 +104,7 @@ byte* managed_ptr::get() const
     return m_ptr;
 }
 
-managed_memory_descriptor* managed_ptr::get_descriptor() const
+memory_descriptor* managed_ptr::get_descriptor() const
 {
     return m_descr;
 }
@@ -132,7 +132,7 @@ managed_ptr::operator bool() const
     return m_ptr != nullptr;
 }
 
-managed_ptr managed_ptr::add_to_index(byte* ptr, size_t size, managed_memory_descriptor* descr)
+managed_ptr managed_ptr::add_to_index(byte* ptr, size_t size, memory_descriptor* descr)
 {
     indexer.index(ptr, size, descr);
     return managed_ptr(ptr);
@@ -149,7 +149,7 @@ void managed_ptr::remove_from_index(managed_ptr& ptr, size_t size)
     managed_ptr().swap(ptr);
 }
 
-managed_memory_descriptor* managed_ptr::index(byte* ptr)
+memory_descriptor* managed_ptr::index(byte* ptr)
 {
     return indexer.get_entry(ptr);
 }

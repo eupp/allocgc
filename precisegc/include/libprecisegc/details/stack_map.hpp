@@ -43,13 +43,7 @@ public:
     }
 
     template <typename Functor>
-    void trace(Functor& f) const
-    {
-        std::for_each(begin(), end(), f);
-    }
-
-    template <typename Functor>
-    void trace(const Functor& f) const
+    void trace(Functor&& f) const
     {
         std::for_each(begin(), end(), f);
     }

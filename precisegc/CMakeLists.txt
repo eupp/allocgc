@@ -31,8 +31,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/page_allocator.hpp
         include/libprecisegc/details/index_tree.h
         include/libprecisegc/details/types.hpp
-        include/libprecisegc/details/allocators/any_ptr.h
-        include/libprecisegc/details/allocators/memory.h
         include/libprecisegc/details/allocators/debug_layer.h
         include/libprecisegc/details/allocators/bucket_allocator.hpp
         include/libprecisegc/details/allocators/bitmap_pool_chunk.h
@@ -40,10 +38,9 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.h
         include/libprecisegc/details/managed_pool_chunk.hpp
-        include/libprecisegc/details/managed_memory_descriptor.hpp
+        include/libprecisegc/details/memory_descriptor.hpp
         include/libprecisegc/details/managed_ptr.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
-        include/libprecisegc/details/allocators/fixed_block_cache.h
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
         include/libprecisegc/details/threads/managed_thread.hpp
@@ -69,7 +66,15 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/serial_gc.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
-        include/libprecisegc/details/incremental_gc.hpp include/libprecisegc/details/recorder.hpp include/libprecisegc/details/printer.hpp include/libprecisegc/details/gc_clock.hpp include/libprecisegc/details/gc_interface.hpp include/libprecisegc/details/allocators/default_allocator.hpp include/libprecisegc/details/utils/dynarray.hpp include/libprecisegc/details/allocators/freelist_pool_chunk.hpp include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/details/allocators/object_pool.hpp)
+        include/libprecisegc/details/incremental_gc.hpp
+        include/libprecisegc/details/recorder.hpp
+        include/libprecisegc/details/printer.hpp
+        include/libprecisegc/details/gc_clock.hpp
+        include/libprecisegc/details/gc_interface.hpp
+        include/libprecisegc/details/allocators/default_allocator.hpp
+        include/libprecisegc/details/utils/dynarray.hpp
+        include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -81,7 +86,6 @@ set(precisegc_LIB_SRCS
         src/gc_init.cpp
         src/barrier_buffer.cpp
         src/details/initator.cpp
-        src/details/allocators/memory.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
@@ -93,7 +97,10 @@ set(precisegc_LIB_SRCS
         src/details/threads/thread_manager.cpp
         src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp
         src/details/serial_gc.cpp
-        src/details/incremental_gc.cpp src/details/printer.cpp src/details/recorder.cpp src/details/allocators/freelist_pool_chunk.cpp src/details/allocators/object_pool.cpp)
+        src/details/incremental_gc.cpp
+        src/details/printer.cpp
+        src/details/recorder.cpp
+        src/details/allocators/freelist_pool_chunk.cpp)
 
 
 find_package(Threads REQUIRED)

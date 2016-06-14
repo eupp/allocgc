@@ -74,7 +74,7 @@ void intrusive_forwarding::forward(void* ptr) const
 //            void* page = (void*) ((uintptr_t) from & mask);
 //            object_meta* meta = nullptr;
 //            if (m_cache.count(page)) {
-//                managed_memory_descriptor* descr = m_cache[page];
+//                memory_descriptor* descr = m_cache[page];
 //                auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from), descr);
 //                meta = cell_ptr.get_meta();
 //            } else {

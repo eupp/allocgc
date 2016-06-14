@@ -69,7 +69,7 @@ public:
     }
 
     template <typename Functor>
-    void trace_roots(Functor& f) const
+    void trace_roots(Functor&& f) const
     {
         for (auto thread: m_threads) {
             thread->root_set().shrink();
@@ -78,29 +78,7 @@ public:
     }
 
     template <typename Functor>
-    void trace_roots(const Functor& f) const
-    {
-        for (auto thread: m_threads) {
-            thread->root_set().shrink();
-            for (auto thread: m_threads) {
-                thread->root_set().trace(f);
-            }
-        }
-    }
-
-    template <typename Functor>
-    void trace_pins(Functor& f) const
-    {
-        for (auto thread: m_threads) {
-            thread->root_set().shrink();
-            for (auto thread: m_threads) {
-                thread->pin_set().trace(f);
-            }
-        }
-    }
-
-    template <typename Functor>
-    void trace_pins(const Functor& f) const
+    void trace_pins(Functor&& f) const
     {
         for (auto thread: m_threads) {
             thread->root_set().shrink();

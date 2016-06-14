@@ -57,7 +57,7 @@ TEST_F(managed_pool_chunk_test, test_allocate)
 
 TEST_F(managed_pool_chunk_test, test_get_cell_meta)
 {
-    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.get_descriptor();
     byte* mem = m_chunk.get_mem();
     size_t mem_size = m_chunk.get_mem_size();
 
@@ -84,7 +84,7 @@ struct test_type
 
 TEST_F(managed_pool_chunk_test, test_get_object_begin)
 {
-    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.get_descriptor();
     byte* mem = m_chunk.get_mem();
     size_t mem_size = m_chunk.get_mem_size();
     object_meta* meta = descr->get_cell_meta(mem);
@@ -103,7 +103,7 @@ TEST_F(managed_pool_chunk_test, test_get_object_begin)
 
 TEST_F(managed_pool_chunk_test, test_get_mark_pin)
 {
-    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.get_descriptor();
     byte* mem = m_chunk.get_mem();
     size_t mem_size = m_chunk.get_mem_size();
 
@@ -115,7 +115,7 @@ TEST_F(managed_pool_chunk_test, test_get_mark_pin)
 
 TEST_F(managed_pool_chunk_test, test_set_mark)
 {
-    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.get_descriptor();
     byte* ptr = m_chunk.get_mem() + m_rand();
 
     descr->set_mark(ptr, true);
@@ -124,7 +124,7 @@ TEST_F(managed_pool_chunk_test, test_set_mark)
 
 TEST_F(managed_pool_chunk_test, test_set_pin)
 {
-    managed_memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.get_descriptor();
     byte* ptr = m_chunk.get_mem() + m_rand();
 
     descr->set_pin(ptr, true);

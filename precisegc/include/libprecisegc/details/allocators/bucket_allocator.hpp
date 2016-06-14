@@ -58,16 +58,7 @@ public:
     }
 
     template <typename Functor>
-    void apply_to_chunks(Functor& f)
-    {
-        for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            std::lock_guard<Lock> lock(m_locks[i]);
-            m_buckets[i].apply_to_chunks(f);
-        }
-    }
-
-    template <typename Functor>
-    void apply_to_chunks(const Functor& f)
+    void apply_to_chunks(Functor&& f)
     {
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
             std::lock_guard<Lock> lock(m_locks[i]);

@@ -80,13 +80,7 @@ public:
     }
 
     template <typename Functor>
-    void apply_to_chunks(Functor& f)
-    {
-        std::for_each(m_chunks.begin(), m_chunks.end(), f);
-    }
-
-    template <typename Functor>
-    void apply_to_chunks(const Functor& f)
+    void apply_to_chunks(Functor&& f)
     {
         std::for_each(m_chunks.begin(), m_chunks.end(), f);
     }

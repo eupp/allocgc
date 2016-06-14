@@ -5,7 +5,7 @@
 #include <libprecisegc/details/index_tree.h>
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/to_string.hpp>
-#include <libprecisegc/details/managed_memory_descriptor.hpp>
+#include <libprecisegc/details/memory_descriptor.hpp>
 
 namespace precisegc { namespace details {
 
@@ -23,7 +23,7 @@ public:
     managed_ptr();
     managed_ptr(nullptr_t);
     managed_ptr(byte* ptr);
-    managed_ptr(byte* ptr, managed_memory_descriptor* descriptor);
+    managed_ptr(byte* ptr, memory_descriptor* descriptor);
 
     managed_ptr(const managed_ptr&) = default;
     managed_ptr(managed_ptr&&) = default;
@@ -49,7 +49,7 @@ public:
     byte* get_obj_begin() const;
 
     byte* get() const;
-    managed_memory_descriptor* get_descriptor() const;
+    memory_descriptor* get_descriptor() const;
 
     void advance(ptrdiff_t n);
 
@@ -58,17 +58,17 @@ public:
 
     explicit operator bool() const;
 
-    static managed_ptr add_to_index(byte* ptr, size_t size, managed_memory_descriptor* descr);
+    static managed_ptr add_to_index(byte* ptr, size_t size, memory_descriptor* descr);
     static void remove_from_index(byte* ptr, size_t size);
     static void remove_from_index(managed_ptr& ptr, size_t size);
-    static managed_memory_descriptor* index(byte* ptr);
+    static memory_descriptor* index(byte* ptr);
 private:
-    typedef index_tree<managed_memory_descriptor> index_type;
+    typedef index_tree<memory_descriptor> index_type;
 
     static index_type indexer;
 
     byte* m_ptr;
-    managed_memory_descriptor* m_descr;
+    memory_descriptor* m_descr;
 };
 
 }}

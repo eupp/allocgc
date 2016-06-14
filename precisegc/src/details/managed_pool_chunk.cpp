@@ -64,7 +64,7 @@ size_t managed_pool_chunk::get_mem_size() const
     return m_chunk.get_mem_size();
 }
 
-managed_memory_descriptor* managed_pool_chunk::get_descriptor()
+memory_descriptor* managed_pool_chunk::get_descriptor()
 {
     return this;
 }
@@ -193,7 +193,7 @@ size_t managed_pool_chunk::get_log2_cell_size() const
 managed_pool_chunk::iterator::iterator() noexcept
 {}
 
-managed_pool_chunk::iterator::iterator(byte* ptr, managed_memory_descriptor* descr) noexcept
+managed_pool_chunk::iterator::iterator(byte* ptr, memory_descriptor* descr) noexcept
     : m_ptr(ptr, descr)
 {}
 

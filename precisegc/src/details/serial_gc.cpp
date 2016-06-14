@@ -10,7 +10,7 @@
 namespace precisegc { namespace details {
 
 serial_gc::serial_gc(gc_compacting compacting,
-                                                   std::unique_ptr<initation_policy> init_policy)
+                     std::unique_ptr<initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
 {}

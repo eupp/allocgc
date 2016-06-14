@@ -5,7 +5,7 @@
 
 #include "libprecisegc/details/managed_pool_chunk.hpp"
 
-class memory_descriptor_mock : public precisegc::details::managed_memory_descriptor
+class memory_descriptor_mock : public precisegc::details::memory_descriptor
 {
     typedef precisegc::details::byte byte;
 public:

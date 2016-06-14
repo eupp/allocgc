@@ -3,17 +3,17 @@
 
 #include <memory>
 
-#include "libprecisegc/details/allocators/memory.h"
-#include "libprecisegc/details/types.hpp"
-#include "libprecisegc/details/constants.hpp"
+#include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 struct page_ptr_deleter
 {
-    void operator()(precisegc::details::byte* mem)
+    void operator()(precisegc::details::byte* mem) const
     {
         using namespace precisegc::details;
         using namespace precisegc::details::allocators;
-        paged_memory_deallocate(mem, PAGE_SIZE);
+        page_allocator().deallocate(mem, PAGE_SIZE);
     }
 };
 
@@ -23,7 +23,7 @@ page_ptr make_page_ptr()
 {
     using namespace precisegc::details;
     using namespace precisegc::details::allocators;
-    byte* p = paged_memory_allocate(PAGE_SIZE);
+    byte* p = page_allocator().allocate(PAGE_SIZE);
     assert(p);
     return page_ptr(p);
 }

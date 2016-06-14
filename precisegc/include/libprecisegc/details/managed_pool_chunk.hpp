@@ -12,13 +12,13 @@
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.h>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/managed_memory_descriptor.hpp>
+#include <libprecisegc/details/memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
 
-class managed_pool_chunk : public managed_memory_descriptor, private utils::noncopyable, private utils::nonmovable
+class managed_pool_chunk : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
     static const size_t CHUNK_MAXSIZE = allocators::bitmap_pool_chunk::CHUNK_MAXSIZE;
@@ -66,7 +66,7 @@ public:
         friend class managed_pool_chunk;
         friend class boost::iterator_core_access;
 
-        iterator(byte* ptr, managed_memory_descriptor* descr) noexcept;
+        iterator(byte* ptr, memory_descriptor* descr) noexcept;
 
         managed_ptr dereference() const;
 
@@ -99,7 +99,7 @@ public:
     byte*  get_mem() const;
     size_t get_mem_size() const;
 
-    managed_memory_descriptor* get_descriptor();
+    memory_descriptor* get_descriptor();
 
     void unmark();
 

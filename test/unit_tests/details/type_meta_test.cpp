@@ -21,7 +21,7 @@ TEST(type_meta_test, test_create_meta)
 {
     typedef type_meta_provider<type_2> provider;
     vector<size_t> offsets({1, 2, 3});
-    provider::create_meta(offsets);
+    provider::create_meta(offsets.begin(), offsets.end());
     EXPECT_TRUE(provider::is_created());
     EXPECT_EQ(sizeof(type_2), provider::get_meta().get_type_size());
     EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
@@ -35,7 +35,7 @@ static void* thread_routine(void* arg)
     typedef type_meta_provider<type_3> provider;
     vector<size_t>* offsets = reinterpret_cast<vector<size_t>*>(arg);
     pthread_barrier_wait(&g_barrier_1);
-    provider::create_meta(*offsets);
+    provider::create_meta(offsets->begin(), offsets->end());
 }
 
 TEST(type_meta_test, test_threading)

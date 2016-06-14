@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include <memory>
+#include <iterator>
 #include <algorithm>
 #include <utility>
 
@@ -85,6 +86,11 @@ public:
     typedef iterator_base<value_type>       iterator;
     typedef iterator_base<const value_type> const_iterator;
 
+    constexpr dynarray()
+        : m_data(nullptr)
+        , m_size(0)
+    {}
+
     explicit dynarray(size_type size)
         : m_data(size > 0 ? utils::make_unique<T[]>(size) : nullptr)
         , m_size(size)
@@ -94,6 +100,19 @@ public:
         : dynarray(size)
     {
         std::fill(begin(), end(), value);
+    }
+
+    template <typename Iter>
+    dynarray(Iter first, Iter last)
+            : dynarray(std::distance(first, last))
+    {
+        std::copy(first, last, begin());
+    }
+
+    dynarray(std::initializer_list<T> init)
+            : dynarray(init.size())
+    {
+        std::copy(init.begin(), init.end(), begin());
     }
 
     dynarray(const dynarray& other)
@@ -107,10 +126,10 @@ public:
         , m_size(other.m_size)
     { }
 
-    dynarray(std::initializer_list<T> init)
-        : dynarray(init.size())
+    dynarray& operator=(dynarray other)
     {
-        std::copy(init.begin(), init.end(), begin());
+        swap(other);
+        return *this;
     }
 
     reference operator[](size_type n) noexcept
@@ -191,6 +210,18 @@ public:
     const_iterator cend() const
     {
         return const_iterator(m_data.get() + m_size);
+    }
+
+    void swap(dynarray& other)
+    {
+        using std::swap;
+        swap(m_data, other.m_data);
+        swap(m_size, other.m_size);
+    }
+
+    friend void swap(dynarray& a, dynarray& b)
+    {
+        a.swap(b);
     }
 private:
     std::unique_ptr<value_type[]> m_data;

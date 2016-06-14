@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <atomic>
 
-#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
@@ -35,8 +34,6 @@ public:
 protected:
     atomic_byte_ptr m_ptr;
 private:
-    static thread_local gc_new_stack& gcnew_stack;
-
     void register_root();
     void delete_root();
     

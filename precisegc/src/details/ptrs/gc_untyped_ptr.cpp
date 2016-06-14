@@ -4,14 +4,12 @@
 #include <cassert>
 #include <utility>
 
-
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/logging.h>
 
 namespace precisegc { namespace details { namespace ptrs {
-
-thread_local gc_new_stack& gc_untyped_ptr::gcnew_stack = gc_new_stack::instance();
 
 gc_untyped_ptr::gc_untyped_ptr()
     : gc_untyped_ptr(nullptr)
@@ -23,18 +21,13 @@ gc_untyped_ptr::gc_untyped_ptr()
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr)
     : m_ptr(reinterpret_cast<byte*>(ptr))
-    , m_root_flag(!gcnew_stack.is_active())
+    , m_root_flag(!gc_new_stack::instance().is_active())
 {
     if (m_root_flag) {
         register_root();
     } else {
-        if (gcnew_stack.is_meta_requsted()) {
-            assert((void*) this >= gcnew_stack.get_top_pointer());
-            uintptr_t this_uintptr = reinterpret_cast<uintptr_t>(this);
-            uintptr_t top_uintptr = reinterpret_cast<uintptr_t>(gcnew_stack.get_top_pointer());
-            if (top_uintptr <= this_uintptr && this_uintptr < top_uintptr + gcnew_stack.get_top_size()) {
-                gcnew_stack.get_top_offsets().push_back(this_uintptr - top_uintptr);
-            }
+        if (gc_new_stack::instance().is_meta_requsted()) {
+            gc_new_stack::instance().register_child(this);
         }
     }
 }

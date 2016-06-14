@@ -28,8 +28,8 @@ public:
     trace_ptr_test()
         : heap(gc_compacting::DISABLED)
     {
-        type_meta_provider<simple_object>::create_meta({});
-        type_meta_provider<complex_object>::create_meta({0, sizeof(gc_untyped_ptr)});
+        type_meta_provider<simple_object>::create_meta();
+        type_meta_provider<complex_object>::create_meta(std::vector<size_t>({0, sizeof(gc_untyped_ptr)}));
 
         simple_object_ptr = heap.allocate(OBJ_SIZE);
         new (simple_object_ptr.get_meta()) object_meta(

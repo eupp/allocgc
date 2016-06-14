@@ -89,7 +89,7 @@ TEST_F(managed_pool_chunk_test, test_get_object_begin)
     size_t mem_size = m_chunk.get_mem_size();
     object_meta* meta = descr->get_cell_meta(mem);
 
-    type_meta_provider<test_type>::create_meta(std::vector<size_t>());
+    type_meta_provider<test_type>::create_meta();
     const type_meta* cls_meta = type_meta_provider<test_type>::get_meta_ptr();
     new (meta) object_meta(cls_meta, OBJ_CNT, mem);
 

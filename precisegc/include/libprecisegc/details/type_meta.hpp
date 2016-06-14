@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <type_traits>
 
+#include <boost/range/iterator_range.hpp>
+
 #include <libprecisegc/details/utils/dynarray.hpp>
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -52,11 +54,9 @@ private:
 
     template <typename Iter>
     type_meta(size_t type_size, Iter offsets_first, Iter offsets_last)
-        : m_offsets(std::distance(offsets_first, offsets_last))
+        : m_offsets(offsets_first, offsets_last)
         , m_type_size(type_size)
-    {
-        std::copy(offsets_first, offsets_last, m_offsets.begin());
-    }
+    {}
 
     dynarray_t m_offsets;
     size_t m_type_size;
@@ -111,9 +111,24 @@ public:
         return meta.is_initialized();
     }
 
-    static void create_meta(const std::vector<size_t>& offsets)
+    static void create_meta()
     {
-        meta.initialize(sizeof(T), offsets.begin(), offsets.end());
+        utils::dynarray<size_t> empty;
+        meta.initialize(sizeof(T), empty.begin(), empty.end());
+    }
+
+    template <typename Range>
+    static void create_meta(Range&& range)
+    {
+        static_assert(std::is_same<typename Range::value_type, size_t>::value, "Offsets should have size_t type");
+        meta.initialize(sizeof(T), range.begin(), range.end());
+    }
+
+    template <typename Iter>
+    static void create_meta(Iter offsets_begin, Iter offsets_end)
+    {
+        static_assert(std::is_same<typename Iter::value_type, size_t>::value, "Offsets should have size_t type");
+        meta.initialize(sizeof(T), offsets_begin, offsets_end);
     }
 
     static const type_meta& get_meta()

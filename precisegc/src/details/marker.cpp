@@ -4,6 +4,7 @@
 
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/ptrs/trace_ptr.hpp>
 #include <libprecisegc/details/stack_map.hpp>
 
 namespace precisegc { namespace details {
@@ -49,18 +50,20 @@ marker::worker::worker(marker* m)
 
 void marker::worker::mark()
 {
-    void* p = nullptr;
+    managed_ptr p;
     while (m_marker->m_mark_flag && pop(p)) {
-        trace_ptr(p, *this);
+        ptrs::trace_ptr(p, [this] (managed_ptr child) {
+            push(child);
+        });
     }
 }
 
-void marker::worker::push(void* p)
+void marker::worker::push(const managed_ptr& p)
 {
     m_local_stack.push_back(p);
 }
 
-bool marker::worker::pop(void*& p)
+bool marker::worker::pop(managed_ptr& p)
 {
     if (m_local_stack.empty()) {
         std::lock_guard<std::mutex> lock(m_marker->m_stack_mutex);
@@ -92,7 +95,11 @@ void marker::trace_roots(const threads::world_snapshot& snapshot)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
     snapshot.trace_roots([this] (ptrs::gc_untyped_ptr* p) {
-        non_blocking_push(p->get());
+        managed_ptr mp = managed_ptr((byte*) p->get());
+        if (mp) {
+            mp.set_mark(true);
+            non_blocking_push(mp);
+        }
     });
 }
 
@@ -100,8 +107,12 @@ void marker::trace_pins(const threads::world_snapshot& snapshot)
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
     snapshot.trace_pins([this] (void* p) {
-        set_object_pin(p, true);
-        non_blocking_push(p);
+        managed_ptr mp = managed_ptr((byte*) p);
+        if (mp) {
+            mp.set_mark(true);
+            mp.set_pin(true);
+            non_blocking_push(mp);
+        }
     });
 }
 
@@ -118,7 +129,11 @@ void marker::non_blocking_trace_barrier_buffers()
         auto& buf = thread->get_barrier_buffer();
         void* p = nullptr;
         while (buf.pop(p)) {
-            non_blocking_push(p);
+            managed_ptr mp = managed_ptr((byte*) p);
+            if (mp) {
+                mp.set_mark(true);
+                non_blocking_push(mp);
+            }
         }
     }
 }
@@ -197,7 +212,7 @@ void marker::wait_for_marking()
 //    return chunk;
 //}
 
-void marker::non_blocking_push(void* p)
+void marker::non_blocking_push(const managed_ptr& p)
 {
     m_stack.push_back(p);
 }

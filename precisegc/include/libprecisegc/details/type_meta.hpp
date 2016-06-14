@@ -67,7 +67,7 @@ class meta_holder : private utils::noncopyable, private utils::nonmovable
 {
 public:
     meta_holder()
-            : m_meta_ptr(nullptr)
+        : m_meta_ptr(nullptr)
     {}
 
     ~meta_holder()

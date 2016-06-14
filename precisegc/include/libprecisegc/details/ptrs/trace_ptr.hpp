@@ -7,45 +7,41 @@
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_mark.h>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace ptrs {
 
-template <typename Functor>
-void trace_ptr(void* p, Functor& q)
+template<typename Functor>
+void trace_ptr(managed_ptr p, Functor&& f)
 {
     if (!p) {
         return;
     }
 
-    managed_ptr mp((byte*) p);
+    assert(p.is_live());
 
-    assert(mp.is_live());
-    if (mp.get_mark()) {
-        return;
-    }
-    mp.set_mark(true);
-
-    object_meta* obj_meta = mp.get_meta();
+    object_meta* obj_meta = p.get_meta();
     const type_meta* cls_meta = obj_meta->get_class_meta();
-    size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
-    auto offsets = cls_meta->offsets_begin();
-
     if (cls_meta->is_plain_type()) {
         return;
     }
 
-    byte* obj = mp.get_cell_begin();
+    size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
+    auto offsets = cls_meta->offsets_begin();
+    byte* obj = p.get_cell_begin();
     size_t obj_count = obj_meta->get_count();
     size_t offsets_size = cls_meta->offsets_count();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
-            ptrs::gc_untyped_ptr* pchild = (ptrs::gc_untyped_ptr*) ((char *) obj + offsets[j]);
-            void* child = pchild->get();
-            if (child && !get_object_mark(child)) {
-                q.push(child);
+            gc_untyped_ptr* pchild = (ptrs::gc_untyped_ptr*) ((char*) obj + offsets[j]);
+            managed_ptr child = managed_ptr(reinterpret_cast<byte*>(pchild->get()));
+            if (child && !child.get_mark()) {
+                child.set_mark(true);
+                f(child);
             }
         }
         obj += obj_size;
     }
+}
+
 }
 
 }}

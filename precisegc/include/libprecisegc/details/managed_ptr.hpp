@@ -56,6 +56,8 @@ public:
     void swap(managed_ptr& other);
     friend void swap(managed_ptr& a, managed_ptr& b);
 
+    explicit operator bool() const;
+
     static managed_ptr add_to_index(byte* ptr, size_t size, managed_memory_descriptor* descr);
     static void remove_from_index(byte* ptr, size_t size);
     static void remove_from_index(managed_ptr& ptr, size_t size);

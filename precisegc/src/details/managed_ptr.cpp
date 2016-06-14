@@ -21,7 +21,7 @@ managed_ptr::managed_ptr(byte* ptr)
     : m_ptr(ptr)
     , m_descr(indexer.get_entry(ptr))
 {
-    if (!m_descr) {
+    if (m_ptr && !m_descr) {
         throw unindexed_memory_exception(ptr);
     }
 }
@@ -125,6 +125,11 @@ void managed_ptr::swap(managed_ptr& other)
 void swap(managed_ptr& a, managed_ptr& b)
 {
     a.swap(b);
+}
+
+managed_ptr::operator bool() const
+{
+    return m_ptr != nullptr;
 }
 
 managed_ptr managed_ptr::add_to_index(byte* ptr, size_t size, managed_memory_descriptor* descr)

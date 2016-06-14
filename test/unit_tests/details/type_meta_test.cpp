@@ -12,12 +12,12 @@ struct type_1 {};
 struct type_2 {};
 struct type_3 {};
 
-TEST(class_meta_test, test_is_initialized)
+TEST(type_meta_test, test_is_initialized)
 {
     EXPECT_FALSE(type_meta_provider<type_1>::is_created());
 }
 
-TEST(class_meta_test, test_create_meta)
+TEST(type_meta_test, test_create_meta)
 {
     typedef type_meta_provider<type_2> provider;
     vector<size_t> offsets({1, 2, 3});
@@ -38,7 +38,7 @@ static void* thread_routine(void* arg)
     provider::create_meta(*offsets);
 }
 
-TEST(class_meta_test, test_threading)
+TEST(type_meta_test, test_threading)
 {
     typedef type_meta_provider<type_3> provider;
     vector<size_t> offsets;

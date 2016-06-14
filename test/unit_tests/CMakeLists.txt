@@ -9,7 +9,7 @@ set(precisegc_TESTS
 
         gc_test.cpp
         gc_inside_method_test.cpp
-        details/class_meta_test.cpp
+        details/type_meta_test.cpp
         details/gc_heap_test.cpp
         details/gc_compact_test.cpp
         gc_new_test.cpp
@@ -40,7 +40,7 @@ set(precisegc_TESTS
         include/initation_policy_mock.hpp
         include/incremental_initation_policy_mock.hpp
         include/incremental_gc_mock.hpp
-        details/space_based_policy_test.cpp details/utils/dynarray_test.cpp details/allocators/intrusive_list_allocator_test.cpp)
+        details/space_based_policy_test.cpp details/utils/dynarray_test.cpp details/allocators/intrusive_list_allocator_test.cpp details/ptrs/trace_ptr_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

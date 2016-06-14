@@ -60,14 +60,14 @@ private:
 
         void mark();
 
-        void push(void* p);
-        bool pop(void*& p);
+        void push(const managed_ptr& p);
+        bool pop(managed_ptr& p);
     private:
         static const size_t LOCAL_QUEUE_SIZE = 2;
 
 //        std::unique_ptr<queue_chunk> m_local_queue[LOCAL_QUEUE_SIZE];
 //        size_t m_curr_queue;
-        std::vector<void*> m_local_stack;
+        std::vector<managed_ptr> m_local_stack;
         marker* m_marker;
     };
 
@@ -76,9 +76,9 @@ private:
 //    void push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk);
 //    std::unique_ptr<queue_chunk> pop_queue_chunk();
 
-    void non_blocking_push(void* p);
+    void non_blocking_push(const managed_ptr& p);
 
-    std::vector<void*> m_stack;
+    std::vector<managed_ptr> m_stack;
     std::mutex m_stack_mutex;
 
     size_t m_markers_cnt;

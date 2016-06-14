@@ -21,13 +21,13 @@ gc_untyped_ptr::gc_untyped_ptr()
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr)
     : m_ptr(reinterpret_cast<byte*>(ptr))
-    , m_root_flag(!gc_new_stack::instance().is_active())
+    , m_root_flag(!gc_new_stack::is_active())
 {
     if (m_root_flag) {
         register_root();
     } else {
-        if (gc_new_stack::instance().is_meta_requsted()) {
-            gc_new_stack::instance().register_child(this);
+        if (gc_new_stack::is_meta_requsted()) {
+            gc_new_stack::register_child(this);
         }
     }
 }

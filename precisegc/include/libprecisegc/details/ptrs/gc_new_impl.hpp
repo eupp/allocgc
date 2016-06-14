@@ -56,7 +56,7 @@ void* gc_new_impl(size_t n, Args&&... args)
     if (!type_meta_provider<T>::is_created()) {
         gc_new_stack::stack_entry stack_entry(ptr, aligned_size);
         new (ptr) T(std::forward<Args>(args)...);
-        type_meta_provider<T>::create_meta(gc_new_stack::instance().offsets());
+        type_meta_provider<T>::create_meta(gc_new_stack::offsets());
         begin += sizeof(T);
     }
 

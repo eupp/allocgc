@@ -15,8 +15,8 @@ namespace precisegc { namespace details { namespace ptrs {
 
 class gc_new_stack : public utils::noncopyable, public utils::nonmovable
 {
-    typedef utils::dynarray<size_t> offsets_storage_t;
 public:
+    typedef utils::dynarray<size_t> offsets_storage_t;
     typedef offsets_storage_t::const_iterator offsets_iterator;
     typedef boost::iterator_range<offsets_iterator> offsets_range;
 
@@ -40,29 +40,15 @@ public:
         offsets_storage_t m_old_offsets;
     };
 
-    static gc_new_stack& instance();
+    static void register_child(gc_untyped_ptr* child);
 
-    void register_child(gc_untyped_ptr* child);
+    static offsets_range offsets();
 
-    offsets_range offsets() const;
-
-    size_t depth() const noexcept;
-
-    bool is_active() const noexcept;
-    bool is_meta_requsted() const noexcept;
+    static size_t depth() noexcept;
+    static bool is_active() noexcept;
+    static bool is_meta_requsted() noexcept;
 private:
     static const size_t START_OFFSETS_STORAGE_SIZE = 64;
-
-    gc_new_stack();
-
-    void push_offset(size_t offset);
-
-    void* m_top_ptr;
-    size_t m_top_size;
-    size_t m_depth;
-    bool m_is_meta_requested;
-    size_t m_top_offsets_cnt;
-    offsets_storage_t m_top_offsets;
 };
 
 }}}

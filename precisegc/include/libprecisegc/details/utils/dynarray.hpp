@@ -104,13 +104,13 @@ public:
 
     template <typename Iter>
     dynarray(Iter first, Iter last)
-            : dynarray(std::distance(first, last))
+        : dynarray(std::distance(first, last))
     {
         std::copy(first, last, begin());
     }
 
     dynarray(std::initializer_list<T> init)
-            : dynarray(init.size())
+        : dynarray(init.size())
     {
         std::copy(init.begin(), init.end(), begin());
     }

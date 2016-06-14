@@ -4,8 +4,14 @@ include(CheckFunctionExists)
 include (CheckLibraryExists)
 cmake_minimum_required(VERSION 3.0.2)
 
+macro(remove_cxx_release_flag flag)
+    string(REPLACE "${flag}" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
+endmacro()
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11 -fPIC -fno-strict-aliasing")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O2")
+
+remove_cxx_release_flag("-O3")
 
 CHECK_LIBRARY_EXISTS(m main "" HAVE_LIBM)
 
@@ -21,31 +27,7 @@ CHECK_FUNCTION_EXISTS(mmap HAVE_MMAP)
 CHECK_FUNCTION_EXISTS(memset HAVE_MEMSET)
 CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
 
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config.h)
-
-#set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
-
 add_subdirectory(precisegc)
 add_subdirectory(benchmark)
 add_subdirectory(test/unit_tests)
 add_subdirectory(test/boehm_test)
-
-#test
-#file(GLOB children "test/*")
-#foreach(child ${children})
-#    if(IS_DIRECTORY ${child} AND EXISTS "${child}/CMakeLists.txt")
-#        message("Found test folder: ${child}")
-#        add_subdirectory(${child})
-#    endif()
-#endforeach()
-#
-#add_custom_target(test
-#    DEPENDS gc_inside_method
-#            multi_lists
-#            binary_tree_sort
-#            concurrency
-#            mark-and-copy-test
-#            boehm
-#            gc_ptr_timing
-#            skiplist
-#            merge_sort)

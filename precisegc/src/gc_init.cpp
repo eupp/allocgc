@@ -23,7 +23,7 @@ int gc_init(gc_options ops)
         details::threads::thread_manager::instance().register_main_thread();
 
         const size_t HEAP_MAXSIZE       = 36 * 1024 * 1024;             // 32 Mb
-        const size_t HEAP_STARTSIZE     = 4 * 1024;                     // 4 Mb
+        const size_t HEAP_STARTSIZE     = HEAP_MAXSIZE;
         const double THRESHOLD          = 1.0;
         const double MARKING_THRESHOLD  = 0.6;
         const double INCREASE_FACTOR    = 2.0;

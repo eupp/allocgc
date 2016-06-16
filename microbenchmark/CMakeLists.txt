@@ -3,7 +3,7 @@ set(precisegc_BENCHMARKS
         parallel_merge_sort_benchmark.cpp
         index_tree_benchmark.cpp
         pointers_benchmark.cpp
-        ../common/macro.h)
+        ../common/macro.h stack_map_benchmark.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 

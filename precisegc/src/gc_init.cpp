@@ -19,10 +19,10 @@ int gc_init(gc_options ops)
 {
     using namespace details;
     if (!init_flag) {
-        details::logging::init(std::clog, gc_loglevel::OFF);
+        details::logging::init(std::clog, ops.loglevel);
         details::threads::thread_manager::instance().register_main_thread();
 
-        const size_t HEAP_MAXSIZE       = 36 * 1024 * 1024;             // 32 Mb
+        const size_t HEAP_MAXSIZE       = 64 * 1024 * 1024;             // 32 Mb
         const size_t HEAP_STARTSIZE     = HEAP_MAXSIZE;
         const double THRESHOLD          = 1.0;
         const double MARKING_THRESHOLD  = 0.6;

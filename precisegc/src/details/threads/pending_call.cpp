@@ -21,11 +21,7 @@ void pending_call::operator()()
 void pending_call::lock()
 {
     std::atomic_signal_fence(std::memory_order_seq_cst);
-    if (m_depth == 0) {
-        m_depth = 1;
-    } else {
-        m_depth++;
-    }
+    m_depth++;
     std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 

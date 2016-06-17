@@ -1,8 +1,8 @@
 #ifndef DIPLOMA_ROOT_SET_HPP
 #define DIPLOMA_ROOT_SET_HPP
 
+#include <atomic>
 #include <algorithm>
-#include <forward_list>
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -26,19 +26,16 @@ public:
 
     void insert(T elem)
     {
-        gc_unsafe_scope unsafe_scope;
         push_front(elem);
     }
 
     void remove(T elem)
     {
-        gc_unsafe_scope unsafe_scope;
         remove_first(elem);
     }
 
     bool contains(T elem)
     {
-        gc_unsafe_scope unsafe_scope;
         return std::find(begin(), end(), elem) != end();
     }
 
@@ -56,7 +53,7 @@ private:
     struct node
     {
         T m_value;
-        node* m_next;
+        std::atomic<node*> m_next;
     };
 
     class iterator: public boost::iterator_facade<
@@ -91,7 +88,7 @@ private:
 
         void increment() noexcept
         {
-            m_pnode = m_pnode->m_next;
+            m_pnode = m_pnode->m_next.load(std::memory_order_relaxed);
         }
 
         bool equal(const iterator& other) const noexcept
@@ -104,7 +101,7 @@ private:
 
     iterator begin() const
     {
-        return iterator(m_head);
+        return iterator(m_head.load(std::memory_order_relaxed));
     }
 
     iterator end() const
@@ -115,27 +112,28 @@ private:
     void push_front(T elem)
     {
         node* pnode = create_node(elem);
-        pnode->m_next = m_head;
-        m_head = pnode;
+        pnode->m_next.store(m_head.load(std::memory_order_relaxed), std::memory_order_relaxed);
+        m_head.store(pnode, std::memory_order_relaxed);
     }
 
     void remove_first(T elem)
     {
         assert(m_head);
-        if (m_head->m_value == elem) {
-            node* tmp = m_head;
-            m_head = m_head->m_next;
+        node* head = m_head.load(std::memory_order_relaxed);
+        if (head->m_value == elem) {
+            node* tmp = head;
+            m_head.store(head->m_next.load(std::memory_order_relaxed), std::memory_order_relaxed);
             destroy_node(tmp);
             return;
         }
-        node* it = m_head;
-        node* next = it->m_next;
+        node* it = head;
+        node* next = it->m_next.load(std::memory_order_relaxed);
         while (next && next->m_value != elem) {
             it = next;
-            next = next->m_next;
+            next = next->m_next.load(std::memory_order_relaxed);
         }
         if (next) {
-            it->m_next = next->m_next;
+            it->m_next.store(next->m_next.load(std::memory_order_relaxed), std::memory_order_relaxed);
             destroy_node(next);
         }
     }
@@ -156,7 +154,7 @@ private:
             allocators::freelist_pool_chunk, allocators::default_allocator
         > object_pool_t;
 
-    node* m_head;
+    std::atomic<node*> m_head;
     object_pool_t m_pool;
 };
 

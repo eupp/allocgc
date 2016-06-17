@@ -1,11 +1,9 @@
 set(precisegc_BENCHMARKS
         main.cpp
-        signal_lock_benchmark.cpp
         parallel_merge_sort_benchmark.cpp
         index_tree_benchmark.cpp
         pointers_benchmark.cpp
-        tmp.cpp
-        ../common/macro.h)
+        ../common/macro.h stack_map_benchmark.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 

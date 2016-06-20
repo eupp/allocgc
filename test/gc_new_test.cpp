@@ -10,20 +10,17 @@ using namespace precisegc::details;
 TEST(gc_new_test, test_gc_new_int)
 {
     gc_ptr<int> ptr = gc_new<int>();
-    gc_pin<int> pin(ptr);
-    ASSERT_NE(nullptr, pin.get());
-    *pin = 42;
+    ASSERT_NE(nullptr, ptr.pin().get());
+    *ptr = 42;
 }
 
 TEST(gc_new_test, test_gc_new_int_array)
 {
     const int ARRAY_SIZE = 10;
     gc_ptr<int[]> ptr = gc_new<int[]>(ARRAY_SIZE);
-    gc_pin<int[]> pin(ptr);
-    int* raw_ptr = pin.get();
-    ASSERT_NE(nullptr, pin.get());
+    ASSERT_NE(nullptr, ptr.pin().get());
     for (int i = 0; i < ARRAY_SIZE; ++i) {
-        raw_ptr[i] = 42;
+        ptr[i] = 42;
     }
 }
 
@@ -39,7 +36,7 @@ class node0
 TEST(gc_new_test, test_meta)
 {
     gc_ptr<node0> ptr = gc_new<node0>();
-    gc_pin<node0> pin(ptr);
+    gc_pin<node0> pin = ptr.pin();
     object_meta* obj_meta = get_object_header((void*) pin.get());
     const type_meta* cls_meta = obj_meta->get_class_meta();
 
@@ -81,8 +78,7 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    gc_pin<node1> pin(ptr);
-    object_meta* obj_meta = get_object_header((void*) pin.get());
+    object_meta* obj_meta = get_object_header((void*) ptr.pin().get());
     const type_meta* cls_meta = obj_meta->get_class_meta();
 
     ASSERT_NE(nullptr, cls_meta);

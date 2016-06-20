@@ -63,7 +63,7 @@ gc_ptr<node> create_tree(size_t depth)
 void unmark_tree(const gc_ptr<node>& ptr)
 {
     if (ptr) {
-        gc_pin<node> pin(ptr);
+        gc_pin<node> pin = ptr.pin();
         set_object_mark(pin.get(), false);
         unmark_tree(ptr->m_left);
         unmark_tree(ptr->m_right);
@@ -77,7 +77,7 @@ void print_tree(const gc_ptr<node>& root, const std::string& offset = "")
         std::cout << offset << "nullptr" << std::endl;
         return;
     }
-    gc_pin<node> pin(root);
+    gc_pin<node> pin = root.pin();
     std::cout << offset << &root << " (" << pin.get() << ") [" << get_object_mark(pin.get()) << "]" << std::endl;
     auto new_offset = offset + "    ";
     print_tree(root->m_left, new_offset);
@@ -98,7 +98,7 @@ void print_tree(node* root, const std::string& offset = "")
 void generate_random_child(gc_ptr<node> ptr)
 {
     while (true) {
-        gc_pin<node> pin(ptr);
+        gc_pin<node> pin = ptr.pin();
         gc_ptr<node> new_ptr = rand() % 2 ? pin->m_left : pin->m_right;
         if (!new_ptr || rand() % 4 == 0) {
             new_ptr = create_gc_node();
@@ -117,11 +117,11 @@ void check_nodes(node* ptr, size_t depth)
         EXPECT_TRUE(get_object_mark(ptr)) << "ptr=" << ptr;
     }
     if (ptr->m_left) {
-        gc_pin<node> pin(ptr->m_left);
+        gc_pin<node> pin = ptr->m_left.pin();
         check_nodes(pin.get(), depth + 1);
     }
     if (ptr->m_right) {
-        gc_pin<node> pin(ptr->m_right);
+        gc_pin<node> pin = ptr->m_right.pin();
         check_nodes(pin.get(), depth + 1);
     }
 }
@@ -190,7 +190,7 @@ struct gc_test: public ::testing::Test
         threads_ready.wait();
 
         // save root in raw pointer and then null gc_ptr to collect it during gc
-        gc_pin<node> pin(root);
+        gc_pin<node> pin = root.pin();
         root_raw = pin.get();
         root.reset();
 

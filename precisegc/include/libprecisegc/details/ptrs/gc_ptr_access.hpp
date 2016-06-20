@@ -3,12 +3,10 @@
 
 #include <type_traits>
 
-#include "libprecisegc/gc_ptr.h"
+#include <libprecisegc/gc_ptr.h>
+#include <libprecisegc/gc_pin.hpp>
 
 namespace precisegc {
-
-template <typename T>
-class gc_ptr;
 
 namespace details { namespace ptrs {
 

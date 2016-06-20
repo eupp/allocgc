@@ -180,13 +180,13 @@ TEST(gc_untyped_ptr_test, test_is_root_2)
 TEST(gc_untyped_ptr_test, test_bool_conversion)
 {
     gc_untyped_ptr ptr1;
-    EXPECT_FALSE(ptr1);
+    EXPECT_TRUE(ptr1.is_null());
 
     int val;
     void* ptr = (void*) &val;
 
     gc_untyped_ptr ptr2(ptr);
-    EXPECT_TRUE((bool) ptr2);
+    EXPECT_FALSE(ptr2.is_null());
 }
 
 TEST(gc_untyped_ptr_test, test_swap)

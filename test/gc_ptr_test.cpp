@@ -15,16 +15,14 @@ TEST(gc_ptr_test, test_gc_ptr)
 
     ++ptr2;
     ASSERT_NE(ptr1, ptr2);
-    ASSERT_LT(ptr1, ptr2);
 
     --ptr2;
     ASSERT_EQ(ptr1, ptr2);
 
     ptr2 = ptr1 + SIZE;
-    ASSERT_LT(ptr1, ptr2);
 
-    gc_pin<int[]> pin1(ptr1);
-    gc_pin<int[]> pin2(ptr2);
+    gc_pin<int[]> pin1 = ptr1.pin();
+    gc_pin<int[]> pin2 = ptr2.pin();
     ASSERT_EQ(pin2.get(), pin1.get() + SIZE);
 
     ptr2 -= SIZE;

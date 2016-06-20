@@ -5,13 +5,12 @@
 #include <utility>
 #include <iterator>
 
-#include "gc_new.h"
-#include "libprecisegc/details/ptrs/gc_untyped_ptr.hpp"
-#include "libprecisegc/details/ptrs/gc_untyped_pin.hpp"
-#include "libprecisegc/details/ptrs/gc_ptr_access.hpp"
-#include "details/gc_unsafe_scope.h"
-#include "details/iterator_facade.h"
-#include "details/iterator_access.h"
+#include <boost/iterator/iterator_facade.hpp>
+
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/ptrs/gc_untyped_pin.hpp>
+#include <libprecisegc/gc_pin.hpp>
+#include <libprecisegc/gc_ref.hpp>
 
 namespace precisegc {
 
@@ -19,36 +18,6 @@ namespace details { namespace ptrs {
 template <typename T>
 class gc_ptr_access;
 }}
-
-template <typename T>
-class gc_ptr;
-
-template<typename T>
-class gc_pin: private details::ptrs::gc_untyped_pin
-{
-public:
-    explicit gc_pin(const gc_ptr<T>& ptr);
-
-    T* get() const;
-
-    T& operator*() const;
-    T* operator->();
-    const T* operator->() const;
-};
-
-template <typename T>
-class gc_pin<T[]> : private details::ptrs::gc_untyped_pin
-{
-public:
-    explicit gc_pin(const gc_ptr<T[]>& ptr);
-
-    T* get() const;
-    T& operator*() const;
-    T& operator[](size_t n) const;
-};
-
-template <typename T, size_t N>
-class gc_pin<T[N]>;
 
 template <typename T>
 class gc_ptr: private details::ptrs::gc_untyped_ptr
@@ -87,44 +56,51 @@ public:
         return *this;
     }
 
-    void swap(gc_ptr& other)
-    {
-        gc_untyped_ptr::swap(other);
-    }
-
-    explicit operator bool() const
-    {
-        return gc_untyped_ptr::operator bool();
-    }
-
     void reset()
     {
         gc_untyped_ptr::operator=(nullptr);
     }
 
-    gc_pin<T> operator->()
+    gc_pin<T> pin() const
     {
-        return gc_pin<T>(*this);
+        return gc_pin<T>(untyped_pin());
+    }
+
+    gc_ref<T> operator*() const
+    {
+        return gc_ref<T>(pin());
     }
 
     gc_pin<T> operator->() const
     {
-        return gc_pin<T>(*this);
+        return pin();
+    }
+
+    explicit operator bool() const
+    {
+        return !is_null();
     }
 
     friend bool operator==(const gc_ptr& p1, const gc_ptr& p2)
     {
-        details::gc_unsafe_scope gc_unsafe;
-        return p1.m_ptr.load() == p2.m_ptr.load();
+        return p1.equal(p2);
     }
 
     friend bool operator!=(const gc_ptr& p1, const gc_ptr& p2)
     {
-        details::gc_unsafe_scope gc_unsafe;
-        return p1.m_ptr.load() != p2.m_ptr.load();
+        return !p1.equal(p2);
     }
 
-    friend class gc_pin<T>;
+    void swap(gc_ptr& other)
+    {
+        gc_untyped_ptr::swap(other);
+    }
+
+    friend void swap(gc_ptr& a, gc_ptr& b)
+    {
+        a.swap(b);
+    }
+
     friend class details::ptrs::gc_ptr_access<T>;
 private:
     gc_ptr(T* ptr)
@@ -133,8 +109,7 @@ private:
 };
 
 template <typename T>
-class gc_ptr<T[]> : public details::iterator_facade<gc_ptr<T[]>, std::random_access_iterator_tag, T>
-                  , private details::ptrs::gc_untyped_ptr
+class gc_ptr<T[]> : private details::ptrs::gc_untyped_ptr
 {
     typedef details::ptrs::gc_untyped_ptr gc_untyped_ptr;
 public:
@@ -170,14 +145,16 @@ public:
         return *this;
     }
 
-    void swap(gc_ptr& other)
+    gc_ptr& operator+=(size_t n)
     {
-        gc_untyped_ptr::swap(other);
+        advance(n * sizeof(T));
+        return *this;
     }
 
-    explicit operator bool() const
+    gc_ptr& operator-=(size_t n)
     {
-        return gc_untyped_ptr::operator bool;
+        advance(-n * sizeof(T));
+        return *this;
     }
 
     void reset()
@@ -185,103 +162,101 @@ public:
         gc_untyped_ptr::operator=(nullptr);
     }
 
-    friend class gc_pin<T[]>;
+    gc_pin<T[]> pin() const
+    {
+        return gc_pin<T[]>(untyped_pin());
+    }
+
+    gc_ref<T[]> operator*() const
+    {
+        return gc_ref<T[]>(untyped_pin(), 0);
+    }
+
+    gc_ref<T[]> operator[](size_t n) const
+    {
+        return gc_ref<T[]>(untyped_pin(), n);
+    }
+
+    gc_ptr& operator++()
+    {
+        advance(sizeof(T));
+        return *this;
+    }
+
+    gc_ptr& operator--()
+    {
+        advance(-sizeof(T));
+        return *this;
+    }
+
+    gc_ptr operator++(int)
+    {
+        gc_ptr res = *this;
+        advance(sizeof(T));
+        return res;
+    }
+
+    gc_ptr operator--(int)
+    {
+        gc_ptr res = *this;
+        advance(-sizeof(T));
+        return res;
+    }
+
+    explicit operator bool() const
+    {
+        return !is_null();
+    }
+
+    friend bool operator==(const gc_ptr& p1, const gc_ptr& p2)
+    {
+        return p1.equal(p2);
+    }
+
+    friend bool operator!=(const gc_ptr& p1, const gc_ptr& p2)
+    {
+        return !p1.equal(p2);
+    }
+
+    friend gc_ptr operator+(const gc_ptr& p, size_t n)
+    {
+        return gc_ptr(p) += n;
+    }
+
+    friend gc_ptr operator+(size_t n, const gc_ptr& p)
+    {
+        return gc_ptr(p) += n;
+    }
+
+    friend gc_ptr operator-(const gc_ptr& p, size_t n)
+    {
+        return gc_ptr(p) -= n;
+    }
+
+    friend gc_ptr operator-(size_t n, const gc_ptr& p)
+    {
+        return gc_ptr(p) -= n;
+    }
+
+    void swap(gc_ptr& other)
+    {
+        gc_untyped_ptr::swap(other);
+    }
+
+    friend void swap(gc_ptr& a, gc_ptr& b)
+    {
+        a.swap(b);
+    }
+
     friend class details::ptrs::gc_ptr_access<T[]>;
-    friend class details::iterator_access<gc_ptr<T[]>>;
 private:
     gc_ptr(T* ptr)
         : gc_untyped_ptr((void*) ptr)
     {}
-
-    void increment()
-    {
-        m_ptr.fetch_add(sizeof(T));
-    }
-
-    void decrement()
-    {
-        m_ptr.fetch_sub(sizeof(T));
-    }
-
-    void advance(ptrdiff_t n)
-    {
-        m_ptr.fetch_add(n * sizeof(T));
-    }
-
-    ptrdiff_t difference(const gc_ptr& other) const
-    {
-        details::gc_unsafe_scope gc_unsafe;
-        return (m_ptr.load() - other.m_ptr.load()) / sizeof(T);
-    }
-
-    bool equal(const gc_ptr& other) const
-    {
-        details::gc_unsafe_scope gc_unsafe;
-        return m_ptr.load() == other.m_ptr.load();
-    }
-
-    bool less_than(const gc_ptr& other) const
-    {
-        details::gc_unsafe_scope gc_unsafe;
-        return m_ptr.load() < other.m_ptr.load();
-    }
 };
 
 template <typename T, size_t N>
 class gc_ptr<T[N]>;
-
-template <typename T>
-gc_pin<T>::gc_pin(const gc_ptr<T>& ptr)
-    : gc_untyped_pin(ptr)
-{}
-
-template <typename T>
-T* gc_pin<T>::get() const
-{
-    return reinterpret_cast<T*>(details::ptrs::gc_untyped_pin::get());
-}
-
-template <typename T>
-T& gc_pin<T>::operator*() const
-{
-    return *get();
-}
-
-template <typename T>
-T* gc_pin<T>::operator->()
-{
-    return get();
-}
-
-template <typename T>
-const T* gc_pin<T>::operator->() const
-{
-    return get();
-}
-
-template <typename T>
-gc_pin<T[]>::gc_pin(const gc_ptr<T[]>& ptr)
-        : gc_untyped_pin(ptr)
-{}
-
-template <typename T>
-T* gc_pin<T[]>::get() const
-{
-    return reinterpret_cast<T*>(details::ptrs::gc_untyped_pin::get());
-}
-
-template <typename T>
-T& gc_pin<T[]>::operator*() const
-{
-    return *(reinterpret_cast<T*>(details::ptrs::gc_untyped_pin::get()));
-}
-
-template <typename T>
-T& gc_pin<T[]>::operator[](size_t n) const
-{
-    T* b = reinterpret_cast<T*>(details::ptrs::gc_untyped_pin::get());
-    return *(b + n);
-}
 
 }
 

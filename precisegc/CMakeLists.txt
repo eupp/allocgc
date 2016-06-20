@@ -74,7 +74,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

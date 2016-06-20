@@ -69,11 +69,31 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other)
     return *this;
 }
 
-void gc_untyped_ptr::swap(gc_untyped_ptr& other)
+gc_untyped_pin gc_untyped_ptr::untyped_pin() const
 {
-    gc_untyped_ptr tmp = (*this);
-    (*this) = other;
-    other = tmp;
+    return gc_untyped_pin(m_ptr);
+}
+
+bool gc_untyped_ptr::is_null() const
+{
+    return m_ptr == nullptr;
+}
+
+bool gc_untyped_ptr::is_root() const
+{
+    return m_root_flag;
+}
+
+bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const
+{
+    gc_unsafe_scope unsafe_scope;
+    return gc_rbarrier(m_ptr) == gc_rbarrier(other.m_ptr);
+}
+
+void gc_untyped_ptr::advance(ptrdiff_t n)
+{
+    assert(check_bounds(n));
+    m_ptr.fetch_add(n, std::memory_order_acq_rel);
 }
 
 void* gc_untyped_ptr::get() const
@@ -86,14 +106,25 @@ void gc_untyped_ptr::set(void* ptr)
     gc_wbarrier(m_ptr, atomic_byte_ptr((byte*) ptr));
 }
 
-gc_untyped_ptr::operator bool() const
+void gc_untyped_ptr::swap(gc_untyped_ptr& other)
 {
-    return get() != nullptr;
+    gc_untyped_ptr tmp = (*this);
+    (*this) = other;
+    other = tmp;
 }
 
-bool gc_untyped_ptr::is_root() const
+void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
 {
-    return m_root_flag;
+    a.swap(b);
+}
+
+bool gc_untyped_ptr::check_bounds(ptrdiff_t n) const
+{
+    byte* p = gc_rbarrier(m_ptr) + n;
+    managed_ptr mp(p);
+    byte* cell_begin = mp.get_cell_begin();
+    byte* cell_end   = cell_begin + mp.cell_size();
+    return (cell_begin <= p) && (p <= cell_end);
 }
 
 void gc_untyped_ptr::register_root()
@@ -106,11 +137,6 @@ void gc_untyped_ptr::delete_root()
 {
     static thread_local root_stack_map& root_set = threads::managed_thread::this_thread().root_set();
     root_set.remove(this);
-}
-
-void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
-{
-    a.swap(b);
 }
 
 }}}

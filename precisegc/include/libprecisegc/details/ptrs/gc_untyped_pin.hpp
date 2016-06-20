@@ -1,18 +1,19 @@
 #ifndef DIPLOMA_GC_UNTYPED_PIN_H
 #define DIPLOMA_GC_UNTYPED_PIN_H
 
-#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
 
-class gc_untyped_ptr;
-
-class gc_untyped_pin
+class gc_untyped_pin : private utils::noncopyable
 {
 public:
-    gc_untyped_pin(const gc_untyped_ptr& ptr);
+    gc_untyped_pin(const atomic_byte_ptr& ptr);
+    gc_untyped_pin(gc_untyped_pin&& other);
     ~gc_untyped_pin();
+
+    gc_untyped_pin& operator=(gc_untyped_pin&& other);
 
     void* get() const noexcept;
 protected:

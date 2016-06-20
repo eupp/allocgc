@@ -28,6 +28,6 @@ CHECK_FUNCTION_EXISTS(memset HAVE_MEMSET)
 CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
 
 add_subdirectory(precisegc)
-add_subdirectory(benchmark)
+add_subdirectory(microbenchmark)
 add_subdirectory(test/unit_tests)
 add_subdirectory(test/boehm_test)

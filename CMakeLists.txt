@@ -29,5 +29,5 @@ CHECK_FUNCTION_EXISTS(gettimeofday HAVE_GETTIMEOFDAY)
 
 add_subdirectory(precisegc)
 add_subdirectory(microbenchmark)
-add_subdirectory(test/unit_tests)
-add_subdirectory(test/boehm_test)
+add_subdirectory(test)
+add_subdirectory(benchmark/boehm)

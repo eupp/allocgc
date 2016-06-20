@@ -235,8 +235,8 @@ class TestRunner:
 
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-BOEHM_TEST_TARGET   = "boehm_test"
-BOEHM_TEST_RUNNABLE = os.path.join("test", "boehm_test", "boehm_test")
+BOEHM_TEST_TARGET   = "boehm"
+BOEHM_TEST_RUNNABLE = os.path.join("test", "boehm", "boehm")
 OUT_FILENAME = "boehm_test_new.tex"
 
 if __name__ == '__main__':

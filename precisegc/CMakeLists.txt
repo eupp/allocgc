@@ -13,8 +13,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.h
         include/libprecisegc/details/forwarding.h
-        include/libprecisegc/details/iterator_facade.h
-        include/libprecisegc/details/iterator_access.h
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h

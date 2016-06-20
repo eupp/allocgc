@@ -42,23 +42,12 @@
 #include <type_traits>
 #include <sys/time.h>
 
-// Our precise GC
-//#define PRECISE_GC
-
-// Boehm/Demers/Weiser conservative GC
-//#define BDW_GC
-
-// std::shared_ptr (reference count)
-//#define SHARED_PTR
-
-// raw pointers
-//#define NO_GC
+#include "../../common/macro.h"
 
 #ifdef BDW_GC
     #include <gc/gc.h>
 #endif
 
-#include "../../common/macro.h"
 
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.h"

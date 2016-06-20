@@ -1,35 +1,84 @@
 #include <cstdlib>
 #include <atomic>
+#include <thread>
+#include <future>
+#include <mutex>
 #include <iostream>
+#include <functional>
+#include <type_traits>
+#include <utility>
 
-// Our precise GC
-#define PRECISE_GC
+#include "../../common/macro.h"
 
-// Boehm/Demers/Weiser conservative GC
-//#define BDW_GC
-
-// std::shared_ptr (reference count)
-//#define SHARED_PTR
-
-// raw pointers
-//#define NO_GC
+#include <libprecisegc/details/utils/scope_guard.hpp>
 
 #ifdef BDW_GC
     #define GC_THREADS
     #include <gc/gc.h>
 #endif
 
-#include "../../common/macro.h"
+#ifdef PRECISE_GC
+    #include <libprecisegc/libprecisegc.h>
+    #include <libprecisegc/details/threads/managed_thread.hpp>
+    using namespace precisegc;
+#endif
 
-#include "libprecisegc/libprecisegc.h"
-#include "libprecisegc/details/gc_heap.h"
+// peak heap size - about 16 Mb
+static const int node_size    = 64;
+static const int lists_count  = 512;
+static const int lists_length = 512;
 
-using namespace precisegc;
+static std::mutex threads_mutex;
+static std::condition_variable threads_cond;
+static size_t threads_count = 0;
 
-using namespace std;
+template <typename Function, typename... Args>
+std::thread create_thread(Function&& f, Args&&... args)
+{
+    #ifdef PRECISE_GC
+        return details::threads::managed_thread::create(std::forward<Function>(f), std::forward<Args>(args)...);
+    #else
+        return std::thread(std::forward<Function>(f), std::forward<Args>(args)...);
+    #endif
+};
 
-namespace {
-std::atomic<size_t> threads_cnt(0);
+template <typename F, typename... Args>
+std::future<typename std::result_of<F(Args...)>::type> launch_task(F&& f, Args&&... args)
+{
+    typedef typename std::result_of<F(Args...)>::type result_type;
+
+    std::function<result_type(Args...)> functor(f);
+    std::packaged_task<result_type(bool, Args...)> task([functor] (bool parallel_flag, Args&&... task_args) {
+        auto guard = details::utils::make_scope_guard([parallel_flag, &threads_mutex, &threads_cond, &threads_count] {
+            if (parallel_flag) {
+                std::lock_guard<std::mutex> lock(threads_mutex);
+                assert(threads_count != 0);
+                --threads_count;
+                threads_cond.notify_one();
+            }
+        });
+        return functor(std::forward<Args>(task_args)...);
+    });
+    auto future = task.get_future();
+
+    std::unique_lock<std::mutex> lock(threads_mutex);
+    if (threads_count < std::thread::hardware_concurrency() - 1) {
+        ++threads_count;
+        std::thread thread = create_thread(std::move(task), true, std::forward<Args>(args)...);
+        thread.detach();
+    } else {
+        lock.unlock();
+        task(false, std::forward<Args>(args)...);
+    }
+
+    return future;
+};
+
+void wait_for_tasks_complete()
+{
+    std::unique_lock<std::mutex> lock(threads_mutex);
+    threads_cond.wait(lock, [&threads_count] { return threads_count == 0; });
+}
 
 struct Node
 {
@@ -42,15 +91,6 @@ struct List
     ptr_t(Node) head;
     size_t length;
 };
-}
-
-struct merge_routine_data
-{
-    List list;
-    ptr_t(Node) res;
-};
-
-void* merge_sort_routine(void*);
 
 ptr_t(Node) advance(ptr_t(Node) node, size_t n)
 {
@@ -61,16 +101,18 @@ ptr_t(Node) advance(ptr_t(Node) node, size_t n)
     return node;
 }
 
-ptr_t(Node) merge(const List& fst, const List& snd)
+List merge(const List& fst, const List& snd)
 {
     if (fst.length == 0 && snd.length == 0) {
-        return null_ptr(Node);
+        return {.head = null_ptr(Node), .length = 0};
     }
+
     ptr_t(Node) res;
     ptr_t(Node) it1 = fst.head;
     ptr_t(Node) it2 = snd.head;
     size_t l1 = fst.length;
     size_t l2 = snd.length;
+    size_t length = l1 + l2;
 
     if (it1->data < it2->data) {
         res = it1;
@@ -97,89 +139,43 @@ ptr_t(Node) merge(const List& fst, const List& snd)
         }
     }
 
-    while (l1 > 0) {
+    if (l1 > 0) {
         dst->next = it1;
-        dst = dst->next;
-        it1 = it1->next;
-        --l1;
     }
-    while (l2 > 0) {
+    if (l2 > 0) {
         dst->next = it2;
-        dst = dst->next;
-        it2 = it2->next;
-        --l2;
     }
 
-    return res;
+    return {.head = res, .length = length};
 }
 
-void merge_sort(const List& list, ptr_t(Node)& res)
+List merge_sort(const List& list)
 {
     if (list.length == 0) {
-        res = null_ptr(Node);
-        return;
+        return {.head = null_ptr(Node), .length = 0};
     } else if (list.length == 1) {
-        res = new_(Node);
-        res->data = list.head->data;
-        return;
+        ptr_t(Node) node = new_(Node);
+        node->data = list.head->data;
+        set_null(node->next);
+        return {.head = node, .length = 1};
     }
 
     size_t m = list.length / 2;
     ptr_t(Node) mid = advance(list.head, m);
 
-    List lpart = {list.head, m};
-    List rpart = {mid, list.length - m};
+    List lpart = {.head = list.head, .length = m};
+    List rpart = {.head = mid,       .length = list.length - m};
 
-    ptr_t(Node) lnew;
-    ptr_t(Node) rnew;
-    merge_routine_data mr_data = {lpart, lnew};
+    std::future<List> lsorted = launch_task(merge_sort, std::ref(lpart));
+    List rsorted = merge_sort(rpart);
 
-    pthread_t thread;
-    const size_t SPAWN_LB = 16;
-    const size_t MAX_THREADS_CNT = 16;
-    bool spawn_thread = list.length > SPAWN_LB && threads_cnt < MAX_THREADS_CNT;
-    if (spawn_thread) {
-        #if defined(PRECISE_GC)
-            int res = thread_create(&thread, nullptr, merge_sort_routine, (void*) &mr_data);
-        #else
-            int res = pthread_create(&thread, nullptr, merge_sort_routine, (void*) &mr_data);
-        #endif
-
-        assert(res == 0);
-        ++threads_cnt;
-    } else {
-        merge_sort(lpart, lnew);
-    }
-    merge_sort(rpart, rnew);
-
-    if (spawn_thread) {
-        void* ret;
-        #if defined(PRECISE_GC)
-            thread_join(thread, &ret);
-        #else
-            pthread_join(thread, &ret);
-        #endif
-
-        lnew = mr_data.res;
-        --threads_cnt;
-    }
-
-    lpart = {lnew, m};
-    rpart = {rnew, list.length - m};
-    res = merge(lpart, rpart);
-}
-
-void* merge_sort_routine(void* arg)
-{
-    merge_routine_data* data = (merge_routine_data*) arg;
-    merge_sort(data->list, data->res);
-    return nullptr;
+    return merge(lsorted.get(), rsorted);
 }
 
 List create_list(size_t n, int mod)
 {
     if (n == 0) {
-        return {null_ptr(Node), 0};
+        return {.head = null_ptr(Node), .length = 0};
     }
     size_t length = n;
     ptr_t(Node) head = new_(Node);
@@ -192,7 +188,7 @@ List create_list(size_t n, int mod)
         it->data = rand() % mod;
         --n;
     }
-    return {head, length};
+    return {.head = head, .length = length};
 }
 
 void clear_list(List& list)
@@ -210,44 +206,39 @@ void clear_list(List& list)
     list.length = 0;
 }
 
-NONIUS_BENCHMARK("parallel_merge_sort", [](nonius::chronometer meter)
+void routine()
+{
+    List list = create_list(lists_length, lists_length);
+    List sorted = merge_sort(list);
+
+    ptr_t(Node) it = sorted.head;
+    assert(sorted.length == lists_length);
+    for (size_t i = 0; i < sorted.length - 1; ++i) {
+        assert(it->data <= it->next->data);
+    }
+
+    clear_list(list);
+    clear_list(sorted);
+}
+
+int main()
 {
     #if defined(PRECISE_GC)
-        gc_init();
+        gc_options ops;
+        ops.type        = gc_type::SERIAL;
+        ops.compacting  = gc_compacting::DISABLED;
+        ops.loglevel    = gc_loglevel::DEBUG;
+        ops.print_stat  = true;
+        gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();
         GC_enable_incremental();
     #endif
 
-    threads_cnt = 1;
-    const size_t LIST_SIZE = 4 * 1024;
-
-    meter.measure([] {
-        List list = create_list(LIST_SIZE, LIST_SIZE);
-        ptr_t(Node) res;
-
-        merge_sort(list, res);
-
-        List sorted_list = {res, LIST_SIZE};
-        clear_list(list);
-        clear_list(sorted_list);
-    });
-
-    ptr_t(Node) sorted = res;
-    for (size_t i = 0; i < LIST_SIZE - 1; ++i) {
-//        std::cout << sorted->data << " ";
-        assert(sorted->data <= sorted->next->data);
-        sorted = sorted->next;
+    for (int i = 0; i < lists_count; ++i) {
+        std::cout << "Sorting " << i+1 << " list" << std::endl;
+        launch_task(routine);
     }
-    std::cout << std::endl << "Threads spawned: " << threads_cnt << std::endl;
-
-    #if defined(BDW_GC)
-        cout << "Completed " << GC_gc_no << " collections" <<endl;
-        cout << "Heap size is " << GC_get_heap_size() << endl;
-    #elif defined(PRECISE_GC)
-        cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
-        cout << "Heap size is " << details::gc_heap::instance().size() << endl;
-    #endif
-
-});
+    wait_for_tasks_complete();
+}
 

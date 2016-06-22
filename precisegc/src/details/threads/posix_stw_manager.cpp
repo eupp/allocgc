@@ -46,7 +46,7 @@ bool stw_manager::is_stop_the_world_disabled() const
 
 void stw_manager::suspend_thread(std::thread::native_handle_type thread)
 {
-    logging::debug() << "Sending stw signal to thread " << std::this_thread::get_id();
+    logging::debug() << "Sending stw signal to thread " << thread;
 
     ++m_threads_cnt;
     posix_signal::instance().send(thread);

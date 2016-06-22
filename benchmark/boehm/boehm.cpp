@@ -253,7 +253,7 @@ int main () {
         gc_options ops;
         ops.type        = gc_type::SERIAL;
         ops.compacting  = gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::OFF;
+        ops.loglevel    = gc_loglevel::DEBUG;
         ops.print_stat  = false;
         gc_init(ops);
     #elif defined(BDW_GC)

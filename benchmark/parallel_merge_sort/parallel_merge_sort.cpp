@@ -62,7 +62,7 @@ std::future<typename std::result_of<F(Args...)>::type> launch_task(F&& f, Args&&
     auto future = task.get_future();
 
     std::unique_lock<std::mutex> lock(threads_mutex);
-    if (threads_count < std::thread::hardware_concurrency() - 1) {
+    if (threads_count < std::thread::hardware_concurrency()) {
         ++threads_count;
         std::thread thread = create_thread(std::move(task), true, std::forward<Args>(args)...);
         thread.detach();
@@ -227,7 +227,7 @@ int main()
         gc_options ops;
         ops.type        = gc_type::SERIAL;
         ops.compacting  = gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::DEBUG;
+        ops.loglevel    = gc_loglevel::OFF;
         ops.print_stat  = true;
         gc_init(ops);
     #elif defined(BDW_GC)
@@ -236,7 +236,9 @@ int main()
     #endif
 
     for (int i = 0; i < lists_count; ++i) {
-        std::cout << "Sorting " << i+1 << " list" << std::endl;
+        if ((i+1) % 64 == 0) {
+            std::cout << "Sorting " << i+1 << " list" << std::endl;
+        }
         launch_task(routine);
     }
     wait_for_tasks_complete();

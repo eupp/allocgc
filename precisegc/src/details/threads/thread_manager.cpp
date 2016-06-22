@@ -56,9 +56,11 @@ world_snapshot thread_manager::stop_the_world()
 
 thread_manager::range_type thread_manager::get_managed_threads() const
 {
+    m_lock.lock();
     return range_type(
             boost::make_iterator_range(m_threads.begin(), m_threads.end()) | boost::adaptors::map_values,
-            m_lock
+            m_lock,
+            std::adopt_lock
         );
 }
 

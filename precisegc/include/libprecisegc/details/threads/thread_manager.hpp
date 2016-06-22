@@ -24,7 +24,7 @@ struct thread_manager_access;
 class thread_manager : private utils::noncopyable, private utils::nonmovable
 {
     typedef std::map<std::thread::id, managed_thread*> map_type;
-    typedef std::recursive_mutex lock_type;
+    typedef std::mutex lock_type;
 
     typedef utils::locked_range<
     boost::select_second_const_range<

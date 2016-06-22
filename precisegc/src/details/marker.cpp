@@ -67,9 +67,9 @@ bool marker::worker::pop(managed_ptr& p)
 {
     if (m_local_stack.empty()) {
         std::lock_guard<std::mutex> lock(m_marker->m_stack_mutex);
-        if (m_marker->m_stack.empty()) {
-            m_marker->non_blocking_trace_barrier_buffers();
-        }
+//        if (m_marker->m_stack.empty()) {
+//            m_marker->non_blocking_trace_barrier_buffers();
+//        }
         if (!m_marker->m_stack.empty()) {
             static const size_t CHUNK_MAXCOUNT = 2048;
             size_t chunk_count = std::min(m_marker->m_stack.size(), CHUNK_MAXCOUNT);

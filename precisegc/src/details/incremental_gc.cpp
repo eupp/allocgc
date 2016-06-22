@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/garbage_collector.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
@@ -107,7 +107,7 @@ void incremental_gc::start_marking()
             .type       = gc_pause_type::TRACE_ROOTS,
             .duration   = snapshot.time_since_stop_the_world()
     };
-    gc_register_pause(pause_stat);
+    gci().register_pause(pause_stat);
 }
 
 void incremental_gc::sweep()
@@ -139,7 +139,7 @@ void incremental_gc::sweep()
             .duration   = snapshot.time_since_stop_the_world()
     };
 
-    gc_register_sweep(sweep_stat, pause_stat);
+    gci().register_sweep(sweep_stat, pause_stat);
     set_phase(gc_phase::IDLING);
 }
 

@@ -6,7 +6,7 @@
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/garbage_collector.hpp>
 #include <libprecisegc/details/logging.h>
 
 namespace precisegc { namespace details { namespace ptrs {
@@ -20,7 +20,7 @@ gc_untyped_ptr::gc_untyped_ptr()
 //{}
 
 gc_untyped_ptr::gc_untyped_ptr(void* ptr)
-    : m_ptr(reinterpret_cast<byte*>(ptr))
+    : m_handle(reinterpret_cast<byte*>(ptr))
     , m_root_flag(!gc_new_stack::is_active())
 {
     if (m_root_flag) {
@@ -35,13 +35,13 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr)
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other)
     : gc_untyped_ptr()
 {
-    gc_wbarrier(m_ptr, other.m_ptr);
+    m_handle.wbarrier(other.m_handle);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other)
     : gc_untyped_ptr()
 {
-    gc_wbarrier(m_ptr, other.m_ptr);
+    m_handle.wbarrier(other.m_handle);
 }
 
 gc_untyped_ptr::~gc_untyped_ptr()
@@ -53,30 +53,30 @@ gc_untyped_ptr::~gc_untyped_ptr()
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t)
 {
-    set(nullptr);
+    m_handle.reset();
     return *this;
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other)
 {
-    gc_wbarrier(m_ptr, other.m_ptr);
+    m_handle.wbarrier(other.m_handle);
     return *this;
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other)
 {
-    gc_wbarrier(m_ptr, other.m_ptr);
+    m_handle.wbarrier(other.m_handle);
     return *this;
 }
 
 gc_untyped_pin gc_untyped_ptr::untyped_pin() const
 {
-    return gc_untyped_pin(m_ptr);
+    return gc_untyped_pin(m_handle);
 }
 
 bool gc_untyped_ptr::is_null() const
 {
-    return m_ptr == nullptr;
+    return m_handle.is_null();
 }
 
 bool gc_untyped_ptr::is_root() const
@@ -86,24 +86,22 @@ bool gc_untyped_ptr::is_root() const
 
 bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const
 {
-    gc_unsafe_scope unsafe_scope;
-    return gc_rbarrier(m_ptr) == gc_rbarrier(other.m_ptr);
+    return m_handle.equal(other.m_handle);
 }
 
 void gc_untyped_ptr::advance(ptrdiff_t n)
 {
-    assert(check_bounds(n));
-    m_ptr.fetch_add(n, std::memory_order_acq_rel);
+    m_handle.interior_shift(n);
 }
 
 void* gc_untyped_ptr::get() const
 {
-    return gc_rbarrier(m_ptr);
+    return m_handle.rbarrier();
 }
 
-void gc_untyped_ptr::set(void* ptr)
+void gc_untyped_ptr::forward(void* ptr)
 {
-    gc_wbarrier(m_ptr, atomic_byte_ptr((byte*) ptr));
+    gc_handle_access::store(m_handle, (byte*) ptr, std::memory_order_relaxed);
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other)
@@ -116,15 +114,6 @@ void gc_untyped_ptr::swap(gc_untyped_ptr& other)
 void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
 {
     a.swap(b);
-}
-
-bool gc_untyped_ptr::check_bounds(ptrdiff_t n) const
-{
-    byte* p = gc_rbarrier(m_ptr) + n;
-    managed_ptr mp(p);
-    byte* cell_begin = mp.get_cell_begin();
-    byte* cell_end   = cell_begin + mp.cell_size();
-    return (cell_begin <= p) && (p <= cell_end);
 }
 
 void gc_untyped_ptr::register_root()

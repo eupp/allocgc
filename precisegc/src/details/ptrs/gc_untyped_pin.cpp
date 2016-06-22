@@ -5,17 +5,13 @@
 #include "gc_unsafe_scope.h"
 #include "managed_ptr.hpp"
 
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/garbage_collector.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
 
-gc_untyped_pin::gc_untyped_pin(const atomic_byte_ptr& ptr)
-{
-    gc_unsafe_scope unsafe_scope;
-    m_ptr = gc_rbarrier(ptr);
-    static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-    pin_set.insert((byte*) m_ptr);
-}
+gc_untyped_pin::gc_untyped_pin(const gc_handle& handle)
+    : m_ptr(gci().pin(handle))
+{}
 
 gc_untyped_pin::gc_untyped_pin(gc_untyped_pin&& other)
     : m_ptr(other.m_ptr)

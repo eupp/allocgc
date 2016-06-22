@@ -7,7 +7,7 @@
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/garbage_collector.hpp>
 
 #include "serial_gc_mock.hpp"
 
@@ -51,7 +51,7 @@ TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_1)
 
     int val = 0;
     gc_untyped_ptr ptr;
-    ptr.set((void*) &val);
+    ptr.forward((void*) &val);
 }
 
 TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_2)

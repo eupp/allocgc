@@ -2,14 +2,14 @@
 #define DIPLOMA_GC_UNTYPED_PIN_H
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
 
 class gc_untyped_pin : private utils::noncopyable
 {
 public:
-    gc_untyped_pin(const atomic_byte_ptr& ptr);
+    gc_untyped_pin(const gc_handle& handle);
     gc_untyped_pin(gc_untyped_pin&& other);
     ~gc_untyped_pin();
 

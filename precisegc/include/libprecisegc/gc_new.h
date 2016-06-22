@@ -8,12 +8,12 @@
 #include <utility>
 #include <pthread.h>
 
-#include "gc_ptr.h"
-#include "libprecisegc/details/type_meta.hpp"
-#include "details/gc_unsafe_scope.h"
-#include "libprecisegc/details/ptrs/gc_ptr_access.hpp"
-#include "libprecisegc/details/ptrs/gc_new_impl.hpp"
-#include "libprecisegc/details/initator.hpp"
+#include <libprecisegc/gc_ptr.h>
+#include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/ptrs/gc_ptr_access.hpp>
+#include <libprecisegc/details/ptrs/gc_new_impl.hpp>
 
 namespace precisegc {
 
@@ -30,7 +30,7 @@ auto gc_new(Args&&... args)
         T* typed_ptr = reinterpret_cast<T*>(ptr);
         res = gc_ptr_access<T>::create(typed_ptr);
     }
-    gc_initation_point(initation_point_type::AFTER_ALLOC);
+    gci().initation_point(initation_point_type::AFTER_ALLOC);
     return res;
 };
 
@@ -48,7 +48,7 @@ auto gc_new(size_t n)
         U* typed_ptr = reinterpret_cast<U*>(ptr);
         res = gc_ptr_access<T>::create(typed_ptr);
     }
-    gc_initation_point(initation_point_type::AFTER_ALLOC);
+    gci().initation_point(initation_point_type::AFTER_ALLOC);
     return res;
 };
 

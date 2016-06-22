@@ -50,7 +50,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/scoped_thread.hpp
         include/libprecisegc/details/utils/scope_guard.hpp
         include/libprecisegc/details/threads/posix_thread.hpp
-        include/libprecisegc/details/gc_hooks.hpp
+        include/libprecisegc/details/garbage_collector.hpp
         include/libprecisegc/details/marker.hpp
         include/libprecisegc/details/utils/lock_range.hpp
         include/libprecisegc/details/ptrs/trace_ptr.hpp
@@ -72,7 +72,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -93,12 +93,12 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp
+        src/details/marker.cpp src/details/garbage_collector.cpp src/details/initation_policy.cpp
         src/details/serial_gc.cpp
         src/details/incremental_gc.cpp
         src/details/printer.cpp
         src/details/recorder.cpp
-        src/details/allocators/freelist_pool_chunk.cpp)
+        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_handle.cpp)
 
 
 find_package(Threads REQUIRED)

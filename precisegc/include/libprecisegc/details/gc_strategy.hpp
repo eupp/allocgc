@@ -6,7 +6,7 @@
 #include <libprecisegc/gc_options.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/gc_exception.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 
 namespace precisegc { namespace details {
 
@@ -17,8 +17,16 @@ public:
 
     virtual managed_ptr allocate(size_t size) = 0;
 
-    virtual byte* rbarrier(const atomic_byte_ptr& p) = 0;
-    virtual void  wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src) = 0;
+    virtual byte* rbarrier(const gc_handle& p) = 0;
+    virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;
+
+    virtual void interior_wbarrier(gc_handle& handle, byte* ptr) = 0;
+    virtual void interior_shift(gc_handle& handle, ptrdiff_t shift) = 0;
+
+    virtual byte* pin(const gc_handle& handle) = 0;
+    virtual void  unpin(byte* ptr) = 0;
+
+    virtual bool compare(const gc_handle& a, const gc_handle& b) = 0;
 
     virtual void initation_point(initation_point_type ipoint) = 0;
 

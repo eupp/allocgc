@@ -6,6 +6,7 @@
 #include <atomic>
 
 #include <libprecisegc/details/ptrs/gc_untyped_pin.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
@@ -33,18 +34,17 @@ public:
 
     void advance(ptrdiff_t n);
 
-    void  set(void* ptr);
     void* get() const;
+
+    void forward(void* ptr);
 
     void swap(gc_untyped_ptr& other);
     friend void swap(gc_untyped_ptr& a, gc_untyped_ptr& b);
 private:
-    bool check_bounds(ptrdiff_t n) const;
-
     void register_root();
     void delete_root();
 
-    atomic_byte_ptr m_ptr;
+    gc_handle m_handle;
     const bool m_root_flag;
 };
 

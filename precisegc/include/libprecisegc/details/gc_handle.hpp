@@ -34,6 +34,7 @@ private:
     // they are used by garbage collector itself
     byte* load(std::memory_order order) const;
     void  store(byte* ptr, std::memory_order order);
+    void  fetch_advance(ptrdiff_t n, std::memory_order order);
 
     atomic_byte_ptr m_ptr;
 };
@@ -43,6 +44,7 @@ class gc_handle_access
 public:
     static byte* load(const gc_handle& handle, std::memory_order order);
     static void  store(gc_handle& handle, byte* ptr, std::memory_order order);
+    static void  fetch_advance(gc_handle& handle, ptrdiff_t n, std::memory_order order);
 };
 
 }}

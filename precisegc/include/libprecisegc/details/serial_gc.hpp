@@ -11,25 +11,43 @@
 
 namespace precisegc { namespace details {
 
-class serial_gc : public serial_gc_strategy, private utils::noncopyable, private utils::nonmovable
+namespace internals {
+
+class serial_gc_base : public serial_gc_strategy, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+    serial_gc_base(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
 
     managed_ptr allocate(size_t size) override;
 
-    byte* rbarrier(const atomic_byte_ptr& p) override;
-    void  wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src) override;
-
     void initation_point(initation_point_type ipoint) override;
 
-    gc_info info() const override;
-
-    void gc();
+    void gc() override;
 private:
     initator m_initator;
     gc_heap m_heap;
     marker m_marker;
+};
+
+}
+
+class serial_gc : public internals::serial_gc_base
+{
+public:
+    serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+
+    byte* rbarrier(const gc_handle& handle) override;
+    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
+
+    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
+    void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
+
+    bool compare(const gc_handle& a, const gc_handle& b) override;
+
+    byte* pin(const gc_handle& handle) override;
+    void  unpin(byte* ptr) override;
+
+    gc_info info() const override;
 };
 
 }}

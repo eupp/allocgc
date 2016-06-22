@@ -9,31 +9,81 @@
 
 namespace precisegc { namespace details {
 
-serial_gc::serial_gc(gc_compacting compacting,
-                     std::unique_ptr<initation_policy> init_policy)
+namespace internals {
+
+serial_gc_base::serial_gc_base(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
 {}
 
-managed_ptr serial_gc::allocate(size_t size)
+managed_ptr serial_gc_base::allocate(size_t size)
 {
     return m_heap.allocate(size);
 }
 
-byte* serial_gc::rbarrier(const atomic_byte_ptr& p)
-{
-    return p.load(std::memory_order_relaxed);
-}
-
-void serial_gc::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
-{
-    gc_unsafe_scope unsafe_scope;
-    dst.store(src.load(std::memory_order_relaxed), std::memory_order_relaxed);
-}
-
-void serial_gc::initation_point(initation_point_type ipoint)
+void serial_gc_base::initation_point(initation_point_type ipoint)
 {
     m_initator.initation_point(ipoint);
+}
+
+void serial_gc_base::gc()
+{
+    using namespace threads;
+    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    m_marker.trace_roots(snapshot);
+    m_marker.trace_pins(snapshot);
+    m_marker.mark();
+
+    gc_sweep_stat sweep_stat = m_heap.sweep();
+    gc_pause_stat pause_stat = {
+            .type       = gc_pause_type::GC,
+            .duration   = snapshot.time_since_stop_the_world()
+    };
+
+    gci().register_sweep(sweep_stat, pause_stat);
+}
+
+}
+
+serial_gc::serial_gc(gc_compacting compacting,
+                     std::unique_ptr<initation_policy> init_policy)
+    : serial_gc_base(compacting, std::move(init_policy))
+{}
+
+byte* serial_gc::rbarrier(const gc_handle& handle)
+{
+    return gc_handle_access::load(handle, std::memory_order_relaxed);
+}
+
+void serial_gc::wbarrier(gc_handle& dst, const gc_handle& src)
+{
+    byte* p = gc_handle_access::load(src, std::memory_order_relaxed);
+    gc_handle_access::store(dst, p, std::memory_order_relaxed);
+}
+
+void serial_gc::interior_wbarrier(gc_handle& handle, byte* ptr)
+{
+    gc_handle_access::store(handle, ptr, std::memory_order_relaxed);
+}
+
+void serial_gc::interior_shift(gc_handle& handle, ptrdiff_t shift)
+{
+    gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
+}
+
+bool serial_gc::compare(const gc_handle& a, const gc_handle& b)
+{
+    return gc_handle_access::load(a, std::memory_order_relaxed) == gc_handle_access::load(b, std::memory_order_relaxed);
+}
+
+byte* serial_gc::pin(const gc_handle& handle)
+{
+    return gc_handle_access::load(handle, std::memory_order_relaxed);
+}
+
+void serial_gc::unpin(byte* ptr)
+{
+    return;
 }
 
 gc_info serial_gc::info() const
@@ -46,22 +96,5 @@ gc_info serial_gc::info() const
 
     return inf;
 }
-
-void serial_gc::gc()
-{
-    using namespace threads;
-    world_snapshot snapshot = thread_manager::instance().stop_the_world();
-    m_marker.trace_roots(snapshot);
-    m_marker.trace_pins(snapshot);
-    m_marker.mark();
-
-    gc_sweep_stat sweep_stat = m_heap.sweep();
-    gc_pause_stat pause_stat = {
-            .type       = gc_pause_type::GC,
-            .duration   = snapshot.time_since_stop_the_world()};
-
-    gci().register_sweep(sweep_stat, pause_stat);
-}
-
 }}
 

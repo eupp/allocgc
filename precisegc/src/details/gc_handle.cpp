@@ -37,16 +37,6 @@ void gc_handle::reset()
     gci().interior_wbarrier(*this, nullptr);
 }
 
-void gc_handle::pin() const
-{
-    gci().pin(*this);
-}
-
-void gc_handle::unpin() const
-{
-    gci().unpin(*this);
-}
-
 bool gc_handle::equal(const gc_handle& other) const
 {
     return gci().compare(*this, other);
@@ -67,6 +57,11 @@ void gc_handle::store(byte* ptr, std::memory_order order)
     m_ptr.store(ptr, order);
 }
 
+void gc_handle::fetch_advance(ptrdiff_t n, std::memory_order order)
+{
+    m_ptr.fetch_add(n, order);
+}
+
 byte* gc_handle_access::load(const gc_handle& handle, std::memory_order order)
 {
     return handle.load(order);
@@ -75,6 +70,11 @@ byte* gc_handle_access::load(const gc_handle& handle, std::memory_order order)
 void gc_handle_access::store(gc_handle& handle, byte* ptr, std::memory_order order)
 {
     handle.store(ptr, order);
+}
+
+void gc_handle_access::fetch_advance(gc_handle& handle, ptrdiff_t n, std::memory_order order)
+{
+    handle.fetch_advance(n, order);
 }
 
 }}

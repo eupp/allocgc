@@ -17,7 +17,7 @@ public:
 
     virtual managed_ptr allocate(size_t size) = 0;
 
-    virtual byte* rbarrier(const gc_handle& p) = 0;
+    virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;
 
     virtual void interior_wbarrier(gc_handle& handle, byte* ptr) = 0;

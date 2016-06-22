@@ -2,7 +2,7 @@ find_package(Threads REQUIRED)
 
 set(boehm_SRC
         ../../common/macro.h
-        boehm.cpp ../multisize_boehm/multisize_boehm.cpp)
+        multisize_boehm.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 
@@ -16,8 +16,8 @@ find_library(BDWGC NAMES gc
         /usr/local/lib64
         )
 
-add_executable(boehm ${boehm_SRC})
-target_link_libraries(boehm ${CMAKE_THREAD_LIBS_INIT})
+add_executable(multisize_boehm ${boehm_SRC})
+target_link_libraries(multisize_boehm ${CMAKE_THREAD_LIBS_INIT})
 
 option(NO_GC OFF)
 option(BDW_GC OFF)
@@ -42,6 +42,6 @@ if(SHARED_PTR)
 endif()
 
 if(PRECISE_GC)
-    target_link_libraries(boehm libprecisegc)
+    target_link_libraries(multisize_boehm libprecisegc)
     add_definitions(-DPRECISE_GC)
 endif()

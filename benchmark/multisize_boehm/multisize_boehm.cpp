@@ -39,19 +39,19 @@
 
 #include <new>
 #include <iostream>
-#include <type_traits>
+#include <random>
+#include <utility>
 #include <sys/time.h>
 
 #include "../../common/macro.h"
 
 #ifdef BDW_GC
-    #include <gc/gc.h>
+#include <gc/gc.h>
 #endif
 
 
 #ifdef PRECISE_GC
-    #include "libprecisegc/libprecisegc.h"
-    #include "libprecisegc/details/gc_heap.h"
+    #include <libprecisegc/libprecisegc.h>
     using namespace precisegc;
 #endif
 
@@ -63,12 +63,12 @@ using namespace std;
 
 /* Get the current time in milliseconds */
 unsigned stats_rtclock( void ) {
-  struct timeval t;
-  struct timezone tz;
+    struct timeval t;
+    struct timezone tz;
 
-  if (gettimeofday( &t, &tz ) == -1)
+    if (gettimeofday( &t, &tz ) == -1)
         return 0;
-  return (unsigned)(t.tv_sec * 1000 + t.tv_usec / 1000);
+    return (unsigned)(t.tv_sec * 1000 + t.tv_usec / 1000);
 }
 
 static const int kStretchTreeDepth    = 18; //18;       // about 16Mb
@@ -77,34 +77,117 @@ static const int kArraySize  = 500000;      //500000;   // about 4Mb
 static const int kMinTreeDepth = 4;         //4
 static const int kMaxTreeDepth = 16;        //16;
 
-struct Node
+// distribution of size of nodes
+static const double smallProb  = 0.5;
+static const double mediumProb = 0.25;
+static const double largeProb  = 0.25;
+static const double xlargeProb = 0.00;
+
+
+struct NodeBase
 {
-    ptr_t(Node) left;
-    ptr_t(Node) right;
+    ptr_t(NodeBase) left;
+    ptr_t(NodeBase) right;
 
     int i, j;
 
-    Node(ptr_in(Node) l, ptr_in(Node) r)
-        : left(l)
-        , right(r)
+    NodeBase(ptr_in(NodeBase) l, ptr_in(NodeBase) r)
+            : left(l)
+              , right(r)
     {}
 
-    #ifndef PRECISE_GC
-        Node()
+#ifndef PRECISE_GC
+    NodeBase()
             : left(nullptr)
             , right(nullptr)
         {}
-    #else
-        Node() {}
-    #endif
+#else
+    NodeBase() {}
+#endif
 
-    ~Node()
+    ~NodeBase()
     {
         delete_(left);
         delete_(right);
     }
 };
 
+// 40b -> 64b
+struct SmallNode : public NodeBase
+{};
+
+// 168b -> 256b
+struct MediumNode : public NodeBase
+{
+    char data[128];
+};
+
+// 4000b -> ~4Kb
+struct LargeNode : public NodeBase
+{
+    char data[4000];
+};
+
+// a bit more than 1Mb
+struct XLargeNode : public NodeBase
+{
+    char data[1024 * 1024];
+};
+
+enum class NodeType
+{
+      SMALL
+    , MEDIUM
+    , LARGE
+    , XLARGE
+};
+
+NodeType generateNodeType()
+{
+    static std::random_device rd;
+    static std::default_random_engine gen(rd());
+    static std::uniform_real_distribution<double> distr(0.0, 1.0);
+
+    double rnd = distr(gen);
+    if (rnd < smallProb) {
+        return NodeType::SMALL;
+    } else if (rnd < smallProb + mediumProb) {
+        return NodeType::MEDIUM;
+    } else if (rnd < smallProb + mediumProb + largeProb) {
+        return NodeType::LARGE;
+    } else {
+        return NodeType::XLARGE;
+    }
+}
+
+ptr_t(NodeBase) createNode()
+{
+    switch (generateNodeType()) {
+        case NodeType::SMALL :
+            return new_(SmallNode);
+        case NodeType::MEDIUM :
+            return new_(MediumNode);
+        case NodeType::LARGE :
+            return new_(LargeNode);
+        case NodeType::XLARGE :
+            return new_(XLargeNode);
+    }
+}
+
+template <typename... Args>
+ptr_t(NodeBase) createNode(Args&&... args)
+{
+    switch (generateNodeType()) {
+        case NodeType::SMALL :
+            return new_args_(SmallNode, std::forward<Args>(args)...);
+        case NodeType::MEDIUM :
+            return new_args_(MediumNode, std::forward<Args>(args)...);
+        case NodeType::LARGE :
+            return new_args_(LargeNode, std::forward<Args>(args)...);
+        case NodeType::XLARGE :
+            return new_args_(XLargeNode, std::forward<Args>(args)...);
+    }
+}
 
 struct GCBench {
 
@@ -119,50 +202,50 @@ struct GCBench {
     }
 
     // Build tree top down, assigning to older objects.
-    static void Populate (int iDepth, ptr_in(Node) thisNode)
+    static void Populate (int iDepth, ptr_in(NodeBase) thisNode)
     {
         if (iDepth<=0) {
             return;
         } else {
             iDepth--;
-            thisNode->left  = new_(Node);
-            thisNode->right = new_(Node);
+            thisNode->left  = createNode();
+            thisNode->right = createNode();
             Populate (iDepth, thisNode->left);
             Populate (iDepth, thisNode->right);
         }
     }
 
     // Build tree bottom-up
-    static ptr_t(Node) MakeTree(int iDepth)
+    static ptr_t(NodeBase) MakeTree(int iDepth)
     {
         if (iDepth<=0) {
-            return new_(Node);
+            return createNode();
         } else {
-            return new_args_(Node, MakeTree(iDepth-1), MakeTree(iDepth-1));
+            return createNode(MakeTree(iDepth-1), MakeTree(iDepth-1));
         }
     }
 
     static void PrintDiagnostics() {
-        #if 0
-            long lFreeMemory = Runtime.getRuntime().freeMemory();
+#if 0
+        long lFreeMemory = Runtime.getRuntime().freeMemory();
             long lTotalMemory = Runtime.getRuntime().totalMemory();
 
             System.out.print(" Total memory available="
                            + lTotalMemory + " bytes");
             System.out.println("  Free memory=" + lFreeMemory + " bytes");
-        #endif
+#endif
     }
 
     static void TimeConstruction(int depth) {
         long    tStart, tFinish;
         int     iNumIters = NumIters(depth);
-        ptr_t(Node) tempTree;
+        ptr_t(NodeBase) tempTree;
 
         cout << "Creating " << iNumIters << " trees of depth " << depth << endl;
 
         tStart = currentTime();
         for (int i = 0; i < iNumIters; ++i) {
-            tempTree = new_(Node);
+            tempTree = createNode(NodeBase);
             Populate(depth, tempTree);
             delete_(tempTree);
             set_null(tempTree);
@@ -182,17 +265,17 @@ struct GCBench {
     }
 
     void main() {
-        ptr_t(Node) root;
-        ptr_t(Node) longLivedTree;
-        ptr_t(Node) tempTree;
+        ptr_t(NodeBase) root;
+        ptr_t(NodeBase) longLivedTree;
+        ptr_t(NodeBase) tempTree;
 
         long    tStart, tFinish;
         long    tElapsed;
 
         cout << "Garbage Collector Test" << endl;
-        cout << " Live storage will peak at "
-             << 2 * sizeof(Node) * TreeSize(kLongLivedTreeDepth) /*+ sizeof(double) * kArraySize*/
-             << " bytes." << endl << endl;
+//        cout << " Live storage will peak at "
+//        << 2 * sizeof(NodeBase) * TreeSize(kLongLivedTreeDepth) /*+ sizeof(double) * kArraySize*/
+//        << " bytes." << endl << endl;
         cout << " Stretching memory with a binary tree of depth " << kStretchTreeDepth << endl;
 
         PrintDiagnostics();
@@ -207,7 +290,7 @@ struct GCBench {
         // Create a long lived object
         cout << " Creating a long-lived binary tree of depth " << kLongLivedTreeDepth << endl;
 
-        longLivedTree = new_(Node);
+        longLivedTree = createNode();
         Populate(kLongLivedTreeDepth, longLivedTree);
 
         // Create long-lived array, filling half of it
@@ -236,28 +319,28 @@ struct GCBench {
         tElapsed = elapsedTime(tFinish-tStart);
         PrintDiagnostics();
         cout << "Completed in " << tElapsed << " msec" << endl;
-        #if defined(BDW_GC)
-            cout << "Completed " << GC_gc_no << " collections" <<endl;
+#if defined(BDW_GC)
+        cout << "Completed " << GC_gc_no << " collections" <<endl;
             cout << "Heap size is " << GC_get_heap_size() << endl;
-        #elif defined(PRECISE_GC)
+#elif defined(PRECISE_GC)
 //            cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
 //            cout << "Heap size is " << details::gc_heap::instance().size() << endl;
-        #endif
+#endif
     }
 };
 
 int main () {
-    #if defined(PRECISE_GC)
-        gc_options ops;
-        ops.type        = gc_type::SERIAL;
-        ops.compacting  = gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::DEBUG;
-        ops.print_stat  = false;
-        gc_init(ops);
-    #elif defined(BDW_GC)
-//        GC_full_freq = 30;
+#if defined(PRECISE_GC)
+    gc_options ops;
+    ops.type        = gc_type::SERIAL;
+    ops.compacting  = gc_compacting::DISABLED;
+    ops.loglevel    = gc_loglevel::DEBUG;
+    ops.print_stat  = false;
+    gc_init(ops);
+#elif defined(BDW_GC)
+    //        GC_full_freq = 30;
         GC_enable_incremental();
-    #endif
+#endif
     GCBench x;
     x.main();
     cout.flush();

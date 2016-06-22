@@ -162,31 +162,33 @@ NodeType generateNodeType()
 
 ptr_t(NodeBase) createNode()
 {
-    switch (generateNodeType()) {
-        case NodeType::SMALL :
-            return new_(SmallNode);
-        case NodeType::MEDIUM :
-            return new_(MediumNode);
-        case NodeType::LARGE :
-            return new_(LargeNode);
-        case NodeType::XLARGE :
-            return new_(XLargeNode);
-    }
+    return new_(NodeBase);
+//    switch (generateNodeType()) {
+//        case NodeType::SMALL :
+//            return new_(SmallNode);
+//        case NodeType::MEDIUM :
+//            return new_(MediumNode);
+//        case NodeType::LARGE :
+//            return new_(LargeNode);
+//        case NodeType::XLARGE :
+//            return new_(XLargeNode);
+//    }
 }
 
 template <typename... Args>
 ptr_t(NodeBase) createNode(Args&&... args)
 {
-    switch (generateNodeType()) {
-        case NodeType::SMALL :
-            return new_args_(SmallNode, std::forward<Args>(args)...);
-        case NodeType::MEDIUM :
-            return new_args_(MediumNode, std::forward<Args>(args)...);
-        case NodeType::LARGE :
-            return new_args_(LargeNode, std::forward<Args>(args)...);
-        case NodeType::XLARGE :
-            return new_args_(XLargeNode, std::forward<Args>(args)...);
-    }
+    return new_args_(NodeBase, std::forward<Args>(args)...);
+//    switch (generateNodeType()) {
+//        case NodeType::SMALL :
+//            return new_args_(SmallNode, std::forward<Args>(args)...);
+//        case NodeType::MEDIUM :
+//            return new_args_(MediumNode, std::forward<Args>(args)...);
+//        case NodeType::LARGE :
+//            return new_args_(LargeNode, std::forward<Args>(args)...);
+//        case NodeType::XLARGE :
+//            return new_args_(XLargeNode, std::forward<Args>(args)...);
+//    }
 }
 
 struct GCBench {
@@ -245,7 +247,7 @@ struct GCBench {
 
         tStart = currentTime();
         for (int i = 0; i < iNumIters; ++i) {
-            tempTree = createNode(NodeBase);
+            tempTree = createNode();
             Populate(depth, tempTree);
             delete_(tempTree);
             set_null(tempTree);

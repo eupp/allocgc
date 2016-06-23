@@ -25,7 +25,7 @@ public:
         {}
     };
 
-    world_snapshot(range_type&& threads)
+    world_snapshot(range_type threads)
         : m_threads(std::move(threads))
     {
         static stw_manager& stwm = stw_manager::instance();
@@ -81,10 +81,26 @@ public:
     void trace_pins(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            thread->root_set().shrink();
-            for (auto thread: m_threads) {
-                thread->pin_set().trace(f);
-            }
+            thread->pin_set().shrink();
+            thread->pin_set().trace(f);
+        }
+    }
+
+    template <typename Functor>
+    void trace_barrier_buffers(Functor&& f) const
+    {
+        for (auto thread: m_threads) {
+            thread->get_barrier_buffer().trace(f);
+        }
+    }
+
+    template <typename Forwarding>
+    void fix_roots(const Forwarding& frwd) const
+    {
+        for (auto thread: m_threads) {
+            thread->root_set().trace([&frwd] (ptrs::gc_untyped_ptr* p) {
+                frwd.forward(p);
+            });
         }
     }
 

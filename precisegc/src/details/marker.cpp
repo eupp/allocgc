@@ -4,6 +4,7 @@
 
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/threads_snapshot.hpp>
 #include <libprecisegc/details/ptrs/trace_ptr.hpp>
 #include <libprecisegc/details/stack_map.hpp>
 
@@ -67,9 +68,9 @@ bool marker::worker::pop(managed_ptr& p)
 {
     if (m_local_stack.empty()) {
         std::lock_guard<std::mutex> lock(m_marker->m_stack_mutex);
-//        if (m_marker->m_stack.empty()) {
-//            m_marker->non_blocking_trace_barrier_buffers();
-//        }
+        if (m_marker->m_stack.empty()) {
+            m_marker->non_blocking_trace_barrier_buffers();
+        }
         if (!m_marker->m_stack.empty()) {
             static const size_t CHUNK_MAXCOUNT = 2048;
             size_t chunk_count = std::min(m_marker->m_stack.size(), CHUNK_MAXCOUNT);
@@ -116,6 +117,18 @@ void marker::trace_pins(const threads::world_snapshot& snapshot)
     });
 }
 
+void marker::trace_barrier_buffers(const threads::world_snapshot& snapshot)
+{
+    std::lock_guard<std::mutex> lock(m_stack_mutex);
+    snapshot.trace_barrier_buffers([this] (void* p) {
+        managed_ptr mp = managed_ptr((byte*) p);
+        if (mp) {
+            mp.set_mark(true);
+            non_blocking_push(mp);
+        }
+    });
+}
+
 void marker::trace_barrier_buffers()
 {
     std::lock_guard<std::mutex> lock(m_stack_mutex);
@@ -124,18 +137,14 @@ void marker::trace_barrier_buffers()
 
 void marker::non_blocking_trace_barrier_buffers()
 {
-    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
-    for (auto thread: threads_rng) {
-        auto& buf = thread->get_barrier_buffer();
-        void* p = nullptr;
-        while (buf.pop(p)) {
-            managed_ptr mp = managed_ptr((byte*) p);
-            if (mp) {
-                mp.set_mark(true);
-                non_blocking_push(mp);
-            }
+    auto threads_snapshot = threads::thread_manager::instance().threads();
+    threads_snapshot.trace_barrier_buffers([this] (void* p) {
+        managed_ptr mp = managed_ptr((byte*) p);
+        if (mp) {
+            mp.set_mark(true);
+            non_blocking_push(mp);
         }
-    }
+    });
 }
 
 void marker::start_marking()

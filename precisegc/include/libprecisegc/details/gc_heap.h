@@ -11,6 +11,7 @@
 #include <libprecisegc/details/allocators/page_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.h>
+#include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>
 #include <libprecisegc/details/object_meta.h>
@@ -43,7 +44,7 @@ public:
 
     managed_ptr allocate(size_t size);
 
-    gc_sweep_stat sweep();
+    gc_sweep_stat sweep(const threads::world_snapshot& snapshot);
 private:
     forwarding compact_memory();
     void fix_pointers(const forwarding& frwd);

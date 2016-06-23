@@ -35,7 +35,7 @@ void serial_gc_base::gc()
     m_marker.trace_pins(snapshot);
     m_marker.mark();
 
-    gc_sweep_stat sweep_stat = m_heap.sweep();
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot);
     gc_pause_stat pause_stat = {
             .type       = gc_pause_type::GC,
             .duration   = snapshot.time_since_stop_the_world()

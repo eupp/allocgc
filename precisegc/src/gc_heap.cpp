@@ -17,7 +17,7 @@ managed_ptr gc_heap::allocate(size_t size)
     return m_alloc.allocate(size);
 }
 
-gc_sweep_stat gc_heap::sweep()
+gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot)
 {
     gc_sweep_stat stat;
 
@@ -32,7 +32,7 @@ gc_sweep_stat gc_heap::sweep()
         logging::info() << "Fixing pointers...";
         fix_pointers(frwd);
         logging::info() << "Fixing roots...";
-        fix_roots(frwd);
+        snapshot.fix_roots(frwd);
     }
 
     m_alloc.apply_to_chunks([] (managed_pool_chunk& chunk) {

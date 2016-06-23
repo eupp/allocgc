@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <utility>
+#include <type_traits>
 
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -14,50 +15,15 @@ class locked_range : public Range, private utils::noncopyable
 public:
     typedef typename Range::iterator iterator;
 
-    locked_range(Range& r, Lockable& lockable)
-        : Range(r)
-        , m_lock(lockable)
+    template<typename R, typename = typename std::enable_if<
+            std::is_same<Range, typename std::remove_cv<typename std::remove_reference<R>::type>::type>::value
+        >::type>
+    locked_range(R&& range, std::unique_lock<Lockable> lock)
+        : Range(std::forward<R>(range))
+        , m_lock(std::move(lock))
     {}
 
-    locked_range(Range& r, Lockable& lockable, std::defer_lock_t)
-        : Range(r)
-        , m_lock(lockable, std::defer_lock)
-    {}
-
-    locked_range(Range& r, Lockable& lockable, std::try_to_lock_t)
-        : Range(r)
-        , m_lock(lockable, std::try_to_lock)
-    {}
-
-    locked_range(Range& r, Lockable& lockable, std::adopt_lock_t)
-        : Range(r)
-        , m_lock(lockable, std::adopt_lock)
-    {}
-
-    locked_range(const Range& r, Lockable& lockable)
-        : Range(r)
-        , m_lock(lockable)
-    {}
-
-    locked_range(const Range& r, Lockable& lockable, std::defer_lock_t)
-        : Range(r)
-        , m_lock(lockable, std::defer_lock)
-    {}
-
-    locked_range(const Range& r, Lockable& lockable, std::try_to_lock_t)
-        : Range(r)
-        , m_lock(lockable, std::try_to_lock)
-    {}
-
-    locked_range(const Range& r, Lockable& lockable, std::adopt_lock_t)
-        : Range(r)
-        , m_lock(lockable, std::adopt_lock)
-    {}
-
-    locked_range(locked_range&& other)
-        : Range(other)
-        , m_lock(std::move(other.m_lock))
-    {}
+    locked_range(locked_range&& other) = default;
 
     bool owns_lock() const
     {
@@ -77,54 +43,6 @@ public:
     }
 private:
     std::unique_lock<Lockable> m_lock;
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(Range& range, Lockable& lockable)
-{
-    return locked_range<Range, Lockable>(range, lockable);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(Range& range, Lockable& lockable, std::defer_lock_t)
-{
-    return locked_range<Range, Lockable>(range, lockable, std::defer_lock);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(Range& range, Lockable& lockable, std::try_to_lock_t)
-{
-    return locked_range<Range, Lockable>(range, lockable, std::try_to_lock);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(Range& range, Lockable& lockable, std::adopt_lock_t)
-{
-    return locked_range<Range, Lockable>(range, lockable, std::adopt_lock);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(const Range& range, Lockable& lockable)
-{
-    return locked_range<Range, Lockable>(range, lockable);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(const Range& range, Lockable& lockable, std::defer_lock_t)
-{
-    return locked_range<Range, Lockable>(range, lockable, std::defer_lock);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(const Range& range, Lockable& lockable, std::try_to_lock_t)
-{
-    return locked_range<Range, Lockable>(range, lockable, std::try_to_lock);
-};
-
-template <typename Range, typename Lockable>
-locked_range<Range, Lockable> lock_range(const Range& range, Lockable& lockable, std::adopt_lock_t)
-{
-    return locked_range<Range, Lockable>(range, lockable, std::adopt_lock);
 };
 
 }}}

@@ -130,11 +130,12 @@ void incremental_gc_base::sweep()
     } else if (phase() == gc_phase::MARKING) {
         pause_type = gc_pause_type::SWEEP_HEAP;
         m_marker.trace_pins(snapshot);
+        m_marker.trace_barrier_buffers(snapshot);
         m_marker.mark();
     }
     set_phase(gc_phase::SWEEPING);
 
-    gc_sweep_stat sweep_stat = m_heap.sweep();
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot);
     gc_pause_stat pause_stat = {
             .type       = pause_type,
             .duration   = snapshot.time_since_stop_the_world()

@@ -68,7 +68,7 @@ public:
 
     range_type memory_range(size_t bucket_ind)
     {
-        return utils::lock_range(m_buckets[bucket_ind].memory_range(), m_locks[bucket_ind]);
+        return range_type(m_buckets[bucket_ind].memory_range(), std::unique_lock<Lock>(m_locks[bucket_ind]));
     }
 
     BucketPolicy& get_bucket_policy()

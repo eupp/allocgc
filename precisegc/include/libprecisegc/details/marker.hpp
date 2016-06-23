@@ -8,9 +8,9 @@
 #include <condition_variable>
 
 #include <libprecisegc/details/threads/world_snapshot.hpp>
-#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/ptrs/trace_ptr.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 
 namespace precisegc { namespace details {
@@ -22,6 +22,7 @@ public:
 
     void trace_roots(const threads::world_snapshot& snapshot);
     void trace_pins(const threads::world_snapshot& snapshot);
+    void trace_barrier_buffers(const threads::world_snapshot& snapshot);
     void trace_barrier_buffers();
 
     void start_marking();

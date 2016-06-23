@@ -3,6 +3,7 @@
 #include <libprecisegc/details/logging.h>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/threads_snapshot.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -49,24 +50,24 @@ managed_thread* thread_manager::lookup_thread(std::thread::id thread_id) const
     return it != m_threads.end() ? it->second : nullptr;
 }
 
-world_snapshot thread_manager::stop_the_world()
+threads_snapshot thread_manager::threads() const
 {
-    return world_snapshot(get_managed_threads());
-}
-
-thread_manager::range_type thread_manager::get_managed_threads() const
-{
-    m_lock.lock();
-    return range_type(
+    std::unique_lock<lock_type> lock(m_lock, std::try_to_lock);
+    auto range = range_type(
             boost::make_iterator_range(m_threads.begin(), m_threads.end()) | boost::adaptors::map_values,
-            m_lock,
-            std::adopt_lock
-        );
+            std::move(lock)
+    );
+    return threads_snapshot(std::move(range));
 }
 
-internals::thread_manager_access::range_type internals::thread_manager_access::get_managed_threads(const thread_manager& manager)
+world_snapshot thread_manager::stop_the_world() const
 {
-    return manager.get_managed_threads();
+    std::unique_lock<lock_type> lock(m_lock);
+    auto range = range_type(
+            boost::make_iterator_range(m_threads.begin(), m_threads.end()) | boost::adaptors::map_values,
+            std::move(lock)
+    );
+    return world_snapshot(std::move(range));
 }
 
 }}}

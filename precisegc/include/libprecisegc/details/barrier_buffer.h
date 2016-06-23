@@ -18,6 +18,12 @@ public:
 
     bool push(void* ptr);
     bool pop(void*& p);
+
+    template <typename Functor>
+    void trace(Functor&& f)
+    {
+        m_queue.consume_all(f);
+    }
 private:
     static const size_t MAX_SIZE = 65536;
 

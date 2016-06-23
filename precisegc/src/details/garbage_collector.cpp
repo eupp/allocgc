@@ -6,17 +6,6 @@
 
 namespace precisegc { namespace details {
 
-garbage_collector& gci()
-{
-    return garbage_collector::instance();
-}
-
-garbage_collector& garbage_collector::instance()
-{
-    static garbage_collector collector;
-    return collector;
-}
-
 garbage_collector::garbage_collector()
     : m_printer(std::clog)
     , m_printer_enabled(false)
@@ -81,6 +70,7 @@ byte* garbage_collector::pin(const gc_handle& handle)
 
 void garbage_collector::unpin(byte* ptr)
 {
+    assert(ptr);
     assert(m_strategy);
     m_strategy->unpin(ptr);
 }

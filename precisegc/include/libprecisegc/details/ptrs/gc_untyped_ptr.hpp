@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <atomic>
 
-#include <libprecisegc/details/ptrs/gc_untyped_pin.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -25,7 +24,7 @@ public:
     gc_untyped_ptr& operator=(const gc_untyped_ptr& other);
     gc_untyped_ptr& operator=(gc_untyped_ptr&& other);
 
-    gc_untyped_pin untyped_pin() const;
+    gc_handle::pin_guard untyped_pin() const;
 
     bool is_null() const;
     bool is_root() const;

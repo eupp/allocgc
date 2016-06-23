@@ -8,7 +8,6 @@
 #include <boost/iterator/iterator_facade.hpp>
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/ptrs/gc_untyped_pin.hpp>
 #include <libprecisegc/gc_pin.hpp>
 #include <libprecisegc/gc_ref.hpp>
 

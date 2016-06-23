@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include <libprecisegc/details/ptrs/gc_untyped_pin.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc {
@@ -36,11 +36,11 @@ public:
 
     friend class gc_ptr<T>;
 private:
-    gc_pin(details::ptrs::gc_untyped_pin&& pin)
+    gc_pin(details::gc_handle::pin_guard pin)
         : m_pin(std::move(pin))
     {}
 
-    details::ptrs::gc_untyped_pin m_pin;
+    details::gc_handle::pin_guard m_pin;
 };
 
 template <typename T>
@@ -68,11 +68,11 @@ public:
 
     friend class gc_ptr<T[]>;
 private:
-    gc_pin(details::ptrs::gc_untyped_pin&& pin)
-        : m_pin(std::move(pin))
+    gc_pin(details::gc_handle::pin_guard pin)
+            : m_pin(std::move(pin))
     {}
 
-    details::ptrs::gc_untyped_pin m_pin;
+    details::gc_handle::pin_guard m_pin;
 };
 
 template <typename T, size_t N>

@@ -69,9 +69,9 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other)
     return *this;
 }
 
-gc_untyped_pin gc_untyped_ptr::untyped_pin() const
+gc_handle::pin_guard gc_untyped_ptr::untyped_pin() const
 {
-    return gc_untyped_pin(m_handle);
+    return m_handle.pin();
 }
 
 bool gc_untyped_ptr::is_null() const

@@ -41,7 +41,7 @@ void* gc_new_impl(size_t n, Args&&... args)
     gc_new_stack::activation_entry activation_entry;
 
     size_t size = n * sizeof(T) + sizeof(object_meta);
-    managed_ptr cell_ptr = gci().allocate(size);
+    managed_ptr cell_ptr = gc_allocate(size);
 //    assert(cell_ptr.is_live());
     byte* ptr = cell_ptr.get();
     size_t aligned_size = cell_ptr.cell_size();

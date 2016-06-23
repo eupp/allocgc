@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
@@ -41,7 +41,7 @@ void serial_gc_base::gc()
             .duration   = snapshot.time_since_stop_the_world()
     };
 
-    gci().register_sweep(sweep_stat, pause_stat);
+    gc_register_sweep(sweep_stat, pause_stat);
 }
 
 }
@@ -134,8 +134,10 @@ byte* serial_compacting_gc::pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::load(handle, std::memory_order_relaxed);
-    static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-    pin_set.insert(ptr);
+    if (ptr) {
+        static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
+        pin_set.insert(ptr);
+    }
     return ptr;
 }
 

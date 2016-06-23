@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/initation_policy.hpp>
 #include <libprecisegc/details/serial_gc.hpp>
@@ -31,15 +31,15 @@ int gc_init(gc_options ops)
         if (ops.type == gc_type::SERIAL) {
             auto policy = utils::make_unique<space_based_policy>(HEAP_STARTSIZE, THRESHOLD, INCREASE_FACTOR, HEAP_MAXSIZE);
             auto gc     = utils::make_unique<serial_gc>(ops.compacting, std::move(policy));
-            gci().set_strategy(std::move(gc));
+            gc_set_strategy(std::move(gc));
         } else if (ops.type == gc_type::INCREMENTAL) {
             auto policy = utils::make_unique<incremental_space_based_policy>(HEAP_STARTSIZE, MARKING_THRESHOLD, THRESHOLD, INCREASE_FACTOR, HEAP_MAXSIZE);
             auto gc     = utils::make_unique<incremental_gc>(ops.compacting, std::move(policy));
-            gci().set_strategy(std::move(gc));
+            gc_set_strategy(std::move(gc));
         }
 
         if (ops.print_stat) {
-            gci().set_printer_enabled(true);
+            gc_enable_print_stats();
         }
 
         init_flag = true;

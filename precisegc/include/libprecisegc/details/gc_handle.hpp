@@ -13,6 +13,23 @@ class gc_handle_access;
 class gc_handle : private utils::noncopyable, private utils::nonmovable
 {
 public:
+    class pin_guard : private utils::noncopyable
+    {
+    public:
+        pin_guard(pin_guard&& other);
+        ~pin_guard();
+
+        pin_guard& operator=(pin_guard&& other);
+
+        byte* get() const noexcept;
+
+        friend class gc_handle;
+    private:
+        pin_guard(const gc_handle& handle);
+
+        byte* m_ptr;
+    };
+
     gc_handle();
     gc_handle(byte* ptr);
 
@@ -22,6 +39,8 @@ public:
     // reset handle to point to some different location inside same cell that was pointed to before
     void interior_wbarrier(byte* ptr);
     void interior_shift(ptrdiff_t shift);
+
+    pin_guard pin() const;
 
     void reset();
 

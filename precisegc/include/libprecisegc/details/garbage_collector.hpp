@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_GC_HOOKS_HPP
-#define DIPLOMA_GC_HOOKS_HPP
+#ifndef DIPLOMA_GARBAGE_COLLECTOR_HPP
+#define DIPLOMA_GARBAGE_COLLECTOR_HPP
 
 #include <memory>
 
@@ -13,15 +13,10 @@
 
 namespace precisegc { namespace details {
 
-class garbage_collector;
-
-// returns garbage collector instance (shortcut for garbage_collector::instance())
-garbage_collector& gci();
-
 class garbage_collector : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static garbage_collector& instance();
+    garbage_collector();
 
     gc_strategy* get_strategy() const;
     void set_strategy(std::unique_ptr<gc_strategy> strategy);
@@ -51,8 +46,6 @@ public:
     gc_info info() const;
     gc_stat stat() const;
 private:
-    garbage_collector();
-
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
     static bool is_interior_shift(const gc_handle& handle, ptrdiff_t shift);
 
@@ -64,4 +57,4 @@ private:
 
 }}
 
-#endif //DIPLOMA_GC_HOOKS_HPP
+#endif //DIPLOMA_GARBAGE_COLLECTOR_HPP

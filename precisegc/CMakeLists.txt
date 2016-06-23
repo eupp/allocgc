@@ -20,7 +20,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/ptrs/gc_new_impl.hpp
         include/libprecisegc/details/gc_unsafe_scope.h
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
-        include/libprecisegc/details/ptrs/gc_untyped_pin.hpp
         include/libprecisegc/details/ptrs/gc_ptr_access.hpp
         include/libprecisegc/details/logging.h
         include/libprecisegc/details/barrier_buffer.h
@@ -72,14 +71,13 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
         src/gc_heap.cpp
         src/details/ptrs/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
-        src/details/ptrs/gc_untyped_pin.cpp
         src/logging.cpp
         src/gc_init.cpp
         src/barrier_buffer.cpp
@@ -98,7 +96,7 @@ set(precisegc_LIB_SRCS
         src/details/incremental_gc.cpp
         src/details/printer.cpp
         src/details/recorder.cpp
-        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_handle.cpp)
+        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_hooks.cpp)
 
 
 find_package(Threads REQUIRED)

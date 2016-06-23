@@ -9,6 +9,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/utils/base_offset.hpp>
 #include <libprecisegc/gc_pin.hpp>
 #include <libprecisegc/gc_ref.hpp>
 
@@ -37,7 +38,9 @@ public:
     template <typename D, typename = typename std::enable_if<std::is_base_of<T, D>::value>::type>
     gc_ptr(const gc_ptr<D>& other)
         : gc_untyped_ptr(other)
-    {};
+    {
+        shift_to_base<D>();
+    };
 
     gc_ptr(gc_ptr&& other)
         : gc_untyped_ptr(std::move(other))
@@ -46,7 +49,9 @@ public:
     template <typename D, typename = typename std::enable_if<std::is_base_of<T, D>::value>::type>
     gc_ptr(gc_ptr<D>&& other)
         : gc_untyped_ptr(std::move(other))
-    {};
+    {
+        shift_to_base<D>();
+    };
 
     gc_ptr& operator=(nullptr_t)
     {
@@ -60,11 +65,27 @@ public:
         return *this;
     }
 
+    template <typename D, typename = typename std::enable_if<std::is_base_of<T, D>::value>::type>
+    gc_ptr& operator=(const gc_ptr<D>& other)
+    {
+        gc_untyped_ptr::operator=(other);
+        shift_to_base<D>();
+        return *this;
+    };
+
     gc_ptr& operator=(gc_ptr&& other)
     {
         gc_untyped_ptr::operator=(std::move(other));
         return *this;
     }
+
+    template <typename D, typename = typename std::enable_if<std::is_base_of<T, D>::value>::type>
+    gc_ptr& operator=(gc_ptr<D>&& other)
+    {
+        gc_untyped_ptr::operator=(std::move(other));
+        shift_to_base<D>();
+        return *this;
+    };
 
     void reset()
     {
@@ -111,11 +132,21 @@ public:
         a.swap(b);
     }
 
+    template <typename U>
+    friend class gc_ptr;
+
     friend class details::ptrs::gc_ptr_access<T>;
 private:
     gc_ptr(T* ptr)
         : gc_untyped_ptr((void*) ptr)
     {}
+
+    template <typename D>
+    void shift_to_base()
+    {
+        static const ptrdiff_t offset = details::utils::base_offset<T>(reinterpret_cast<D*>(get()));
+        advance(offset);
+    }
 };
 
 template <typename T>

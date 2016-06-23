@@ -10,7 +10,7 @@
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
-#include <libprecisegc/details/utils/lock_range.hpp>
+#include <libprecisegc/details/utils/locked_range.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -58,6 +58,8 @@ namespace internals {
 struct thread_manager_access
 {
     typedef thread_manager::range_type range_type;
+
+    static range_type get_managed_threads(const thread_manager& manager);
 };
 }
 

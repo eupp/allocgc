@@ -7,7 +7,7 @@
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
 
 #include "serial_gc_mock.hpp"
 
@@ -50,21 +50,11 @@ TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_1)
             .Times(Exactly(1));
 
     int val = 0;
-    gc_untyped_ptr ptr;
-    ptr.forward((void*) &val);
-}
-
-TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_2)
-{
-    EXPECT_CALL(*gc_mock, wbarrier(_, _))
-            .Times(Exactly(1));
-
-    int val = 0;
     gc_untyped_ptr src((void*) &val);
     gc_untyped_ptr dst(src);
 }
 
-TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_3)
+TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_2)
 {
     EXPECT_CALL(*gc_mock, wbarrier(_, _))
             .Times(Exactly(1));
@@ -75,7 +65,6 @@ TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_3)
 
     dst = src;
 }
-
 
 TEST(gc_untyped_ptr_test, test_default_construct)
 {

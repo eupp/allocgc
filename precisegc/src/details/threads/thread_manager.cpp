@@ -70,4 +70,16 @@ world_snapshot thread_manager::stop_the_world() const
     return world_snapshot(std::move(range));
 }
 
+namespace internals {
+
+thread_manager_access::range_type thread_manager_access::get_managed_threads(const thread_manager& manager)
+{
+    return range_type(
+            boost::make_iterator_range(manager.m_threads.begin(), manager.m_threads.end()) | boost::adaptors::map_values,
+            std::unique_lock<thread_manager::lock_type>(manager.m_lock, std::defer_lock)
+    );
+}
+
+}
+
 }}}

@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <utility>
 #include <iterator>
+#include <type_traits>
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -33,9 +34,19 @@ public:
         : gc_untyped_ptr(other)
     {}
 
+    template <typename D, typename = typename std::enable_if<std::is_base_of<T, D>::value>::type>
+    gc_ptr(const gc_ptr<D>& other)
+        : gc_untyped_ptr(other)
+    {};
+
     gc_ptr(gc_ptr&& other)
         : gc_untyped_ptr(std::move(other))
     {}
+
+    template <typename D, typename = typename std::enable_if<std::is_base_of<T, D>::value>::type>
+    gc_ptr(gc_ptr<D>&& other)
+        : gc_untyped_ptr(std::move(other))
+    {};
 
     gc_ptr& operator=(nullptr_t)
     {

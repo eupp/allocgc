@@ -51,7 +51,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/posix_thread.hpp
         include/libprecisegc/details/garbage_collector.hpp
         include/libprecisegc/details/marker.hpp
-        include/libprecisegc/details/utils/lock_range.hpp
+        include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/ptrs/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
         include/libprecisegc/details/gc_strategy.hpp
@@ -71,7 +71,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp include/libprecisegc/details/utils/base_offset.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

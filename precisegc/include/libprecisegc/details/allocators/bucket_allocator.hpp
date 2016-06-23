@@ -7,7 +7,7 @@
 #include <mutex>
 
 #include <libprecisegc/details/allocators/list_allocator.hpp>
-#include <libprecisegc/details/utils/lock_range.hpp>
+#include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 

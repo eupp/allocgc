@@ -16,12 +16,12 @@ namespace precisegc { namespace details {
 class garbage_collector;
 
 // returns garbage collector instance (shortcut for garbage_collector::instance())
-garbage_collector gci();
+garbage_collector& gci();
 
 class garbage_collector : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static garbage_collector instance();
+    static garbage_collector& instance();
 
     gc_strategy* get_strategy() const;
     void set_strategy(std::unique_ptr<gc_strategy> strategy);

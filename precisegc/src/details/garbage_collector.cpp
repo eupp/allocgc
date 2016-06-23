@@ -6,12 +6,12 @@
 
 namespace precisegc { namespace details {
 
-garbage_collector gci()
+garbage_collector& gci()
 {
     return garbage_collector::instance();
 }
 
-garbage_collector garbage_collector::instance()
+garbage_collector& garbage_collector::instance()
 {
     static garbage_collector collector;
     return collector;

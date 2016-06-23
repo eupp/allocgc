@@ -21,12 +21,7 @@ gc_untyped_pin::gc_untyped_pin(gc_untyped_pin&& other)
 
 gc_untyped_pin::~gc_untyped_pin()
 {
-    // here we not use unsafe_scope because it is always used in delete_stack_root
-    // and taking pinned raw pointer is safe
-    if (m_ptr) {
-        static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-        pin_set.remove((byte*) m_ptr);
-    }
+    gci().unpin((byte*) m_ptr);
 }
 
 gc_untyped_pin& gc_untyped_pin::operator=(gc_untyped_pin&& other)

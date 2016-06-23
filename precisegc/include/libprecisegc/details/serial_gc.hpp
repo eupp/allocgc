@@ -50,6 +50,25 @@ public:
     gc_info info() const override;
 };
 
+class serial_compacting_gc : public internals::serial_gc_base
+{
+public:
+    serial_compacting_gc(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+
+    byte* rbarrier(const gc_handle& handle) override;
+    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
+
+    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
+    void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
+
+    bool compare(const gc_handle& a, const gc_handle& b) override;
+
+    byte* pin(const gc_handle& handle) override;
+    void  unpin(byte* ptr) override;
+
+    gc_info info() const override;
+};
+
 }}
 
 #endif //DIPLOMA_SERIAL_GC_HPP

@@ -9,8 +9,10 @@
 
 namespace precisegc { namespace details {
 
-incremental_gc::incremental_gc(gc_compacting compacting,
-                                                             std::unique_ptr<incremental_initation_policy> init_policy)
+namespace internals {
+
+incremental_gc_base::incremental_gc_base(gc_compacting compacting,
+                                         std::unique_ptr<incremental_initation_policy> init_policy)
     : m_initator(this, std::move(init_policy))
     , m_heap(compacting)
     , m_phase(gc_phase::IDLING)
@@ -18,7 +20,7 @@ incremental_gc::incremental_gc(gc_compacting compacting,
     assert(m_phase.is_lock_free());
 }
 
-managed_ptr incremental_gc::allocate(size_t size)
+managed_ptr incremental_gc_base::allocate(size_t size)
 {
     gc_unsafe_scope unsafe_scope;
     managed_ptr mp = m_heap.allocate(size);
@@ -28,16 +30,16 @@ managed_ptr incremental_gc::allocate(size_t size)
     return mp;
 }
 
-byte* incremental_gc::rbarrier(const atomic_byte_ptr& p)
+byte* incremental_gc_base::rbarrier(const gc_handle& handle)
 {
-    return p.load(std::memory_order_acquire);
+    return gc_handle_access::load(handle, std::memory_order_acquire);
 }
 
-void incremental_gc::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
+void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* p = src.load(std::memory_order_acquire);
-    dst.store(p, std::memory_order_release);
+    byte* p = gc_handle_access::load(src, std::memory_order_acquire);
+    gc_handle_access::store(dst, p, std::memory_order_release);
     if (phase() == gc_phase::MARKING) {
         bool res = shade(p);
         while (!res) {
@@ -48,38 +50,37 @@ void incremental_gc::wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
     }
 }
 
-void incremental_gc::initation_point(initation_point_type ipoint)
+void incremental_gc_base::interior_wbarrier(gc_handle& handle, byte* ptr)
+{
+    gc_handle_access::store(handle, ptr, std::memory_order_release);
+}
+
+void incremental_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
+{
+    gc_handle_access::fetch_advance(handle, shift, std::memory_order_acq_rel);
+}
+
+void incremental_gc_base::initation_point(initation_point_type ipoint)
 {
     m_initator.initation_point(ipoint);
 }
 
-gc_info incremental_gc::info() const
-{
-    static gc_info inf = {
-        .incremental                = true,
-        .support_concurrent_mark    = true,
-        .support_concurrent_sweep   = false
-    };
-
-    return inf;
-}
-
-gc_phase incremental_gc::phase() const
+gc_phase incremental_gc_base::phase() const
 {
     return m_phase.load(std::memory_order_acquire);
 }
 
-void incremental_gc::set_phase(gc_phase phase)
+void incremental_gc_base::set_phase(gc_phase phase)
 {
     m_phase.store(phase, std::memory_order_release);
 }
 
-void incremental_gc::gc()
+void incremental_gc_base::gc()
 {
     sweep();
 }
 
-void incremental_gc::gc_increment(const incremental_gc_ops& ops)
+void incremental_gc_base::gc_increment(const incremental_gc_ops& ops)
 {
     if (ops.phase == gc_phase::IDLING) {
         assert(phase() == gc_phase::MARKING);
@@ -93,7 +94,7 @@ void incremental_gc::gc_increment(const incremental_gc_ops& ops)
     }
 }
 
-void incremental_gc::start_marking()
+void incremental_gc_base::start_marking()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING);
@@ -110,7 +111,7 @@ void incremental_gc::start_marking()
     gci().register_pause(pause_stat);
 }
 
-void incremental_gc::sweep()
+void incremental_gc_base::sweep()
 {
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);
@@ -141,6 +142,76 @@ void incremental_gc::sweep()
 
     gci().register_sweep(sweep_stat, pause_stat);
     set_phase(gc_phase::IDLING);
+}
+
+}
+
+incremental_gc::incremental_gc(gc_compacting compacting,
+                               std::unique_ptr<incremental_initation_policy> init_policy)
+    : incremental_gc_base(compacting, std::move(init_policy))
+{}
+
+bool incremental_gc::compare(const gc_handle& a, const gc_handle& b)
+{
+    return gc_handle_access::load(a, std::memory_order_acquire) == gc_handle_access::load(b, std::memory_order_acquire);
+}
+
+byte* incremental_gc::pin(const gc_handle& handle)
+{
+    return gc_handle_access::load(handle, std::memory_order_acquire);
+}
+
+void incremental_gc::unpin(byte* ptr)
+{
+    return;
+}
+
+gc_info incremental_gc::info() const
+{
+    static gc_info inf = {
+            .incremental                = true,
+            .support_concurrent_mark    = true,
+            .support_concurrent_sweep   = false
+    };
+
+    return inf;
+}
+
+incremental_compacting_gc::incremental_compacting_gc(gc_compacting compacting,
+                                                     std::unique_ptr<incremental_initation_policy> init_policy)
+        : incremental_gc_base(compacting, std::move(init_policy))
+{}
+
+bool incremental_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
+{
+    gc_unsafe_scope unsafe_scope;
+    return gc_handle_access::load(a, std::memory_order_acquire) == gc_handle_access::load(b, std::memory_order_acquire);
+}
+
+byte* incremental_compacting_gc::pin(const gc_handle& handle)
+{
+    gc_unsafe_scope unsafe_scope;
+    byte* ptr = gc_handle_access::load(handle, std::memory_order_acquire);
+    static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
+    pin_set.insert(ptr);
+    return ptr;
+}
+
+void incremental_compacting_gc::unpin(byte* ptr)
+{
+    static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
+    pin_set.remove(ptr);
+}
+
+gc_info incremental_compacting_gc::info() const
+{
+    static gc_info inf = {
+            .incremental                = true,
+            .support_concurrent_mark    = true,
+            .support_concurrent_sweep   = false
+    };
+
+    return inf;
 }
 
 }}

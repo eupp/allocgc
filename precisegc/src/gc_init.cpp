@@ -22,7 +22,7 @@ int gc_init(gc_options ops)
         details::logging::init(std::clog, ops.loglevel);
         details::threads::thread_manager::instance().register_main_thread();
 
-        const size_t HEAP_MAXSIZE       = 64 * 1024 * 1024;             // 32 Mb
+        const size_t HEAP_MAXSIZE       = 1024 * 1024 * 1024;             // 1Gb
         const size_t HEAP_STARTSIZE     = HEAP_MAXSIZE;
         const double THRESHOLD          = 1.0;
         const double MARKING_THRESHOLD  = 0.6;

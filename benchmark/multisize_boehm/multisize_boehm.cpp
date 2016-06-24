@@ -71,9 +71,9 @@ unsigned stats_rtclock( void ) {
     return (unsigned)(t.tv_sec * 1000 + t.tv_usec / 1000);
 }
 
-static const int kStretchTreeDepth    = 18; //18;       // about 16Mb
-static const int kLongLivedTreeDepth  = 16; //16;       // about 4Mb
-static const int kArraySize  = 500000;      //500000;   // about 4Mb
+static const int kStretchTreeDepth    = 18; //18;
+static const int kLongLivedTreeDepth  = 16; //16;
+static const int kArraySize  = 500000;      //500000;
 static const int kMinTreeDepth = 4;         //4
 static const int kMaxTreeDepth = 16;        //16;
 
@@ -92,8 +92,8 @@ struct NodeBase
     int i, j;
 
     NodeBase(ptr_in(NodeBase) l, ptr_in(NodeBase) r)
-            : left(l)
-              , right(r)
+        : left(l)
+        , right(r)
     {}
 
 #ifndef PRECISE_GC
@@ -114,23 +114,47 @@ struct NodeBase
 
 // 40b -> 64b
 struct SmallNode : public NodeBase
-{};
+{
+    SmallNode() = default;
+
+    SmallNode(ptr_in(NodeBase) l, ptr_in(NodeBase) r)
+        : NodeBase(l, r)
+    {}
+};
 
 // 168b -> 256b
 struct MediumNode : public NodeBase
 {
+    MediumNode() = default;
+
+    MediumNode(ptr_in(NodeBase) l, ptr_in(NodeBase) r)
+        : NodeBase(l, r)
+    {}
+
     char data[128];
 };
 
 // 4000b -> ~4Kb
 struct LargeNode : public NodeBase
 {
+    LargeNode() = default;
+
+    LargeNode(ptr_in(NodeBase) l, ptr_in(NodeBase) r)
+        : NodeBase(l, r)
+    {}
+
     char data[4000];
 };
 
 // a bit more than 1Mb
 struct XLargeNode : public NodeBase
 {
+    XLargeNode() = default;
+
+    XLargeNode(ptr_in(NodeBase) l, ptr_in(NodeBase) r)
+        : NodeBase(l, r)
+    {}
+
     char data[1024 * 1024];
 };
 
@@ -162,33 +186,31 @@ NodeType generateNodeType()
 
 ptr_t(NodeBase) createNode()
 {
-    return new_(NodeBase);
-//    switch (generateNodeType()) {
-//        case NodeType::SMALL :
-//            return new_(SmallNode);
-//        case NodeType::MEDIUM :
-//            return new_(MediumNode);
-//        case NodeType::LARGE :
-//            return new_(LargeNode);
-//        case NodeType::XLARGE :
-//            return new_(XLargeNode);
-//    }
+    switch (generateNodeType()) {
+        case NodeType::SMALL :
+            return new_(SmallNode);
+        case NodeType::MEDIUM :
+            return new_(MediumNode);
+        case NodeType::LARGE :
+            return new_(LargeNode);
+        case NodeType::XLARGE :
+            return new_(XLargeNode);
+    }
 }
 
 template <typename... Args>
 ptr_t(NodeBase) createNode(Args&&... args)
 {
-    return new_args_(NodeBase, std::forward<Args>(args)...);
-//    switch (generateNodeType()) {
-//        case NodeType::SMALL :
-//            return new_args_(SmallNode, std::forward<Args>(args)...);
-//        case NodeType::MEDIUM :
-//            return new_args_(MediumNode, std::forward<Args>(args)...);
-//        case NodeType::LARGE :
-//            return new_args_(LargeNode, std::forward<Args>(args)...);
-//        case NodeType::XLARGE :
-//            return new_args_(XLargeNode, std::forward<Args>(args)...);
-//    }
+    switch (generateNodeType()) {
+        case NodeType::SMALL :
+            return new_args_(SmallNode, std::forward<Args>(args)...);
+        case NodeType::MEDIUM :
+            return new_args_(MediumNode, std::forward<Args>(args)...);
+        case NodeType::LARGE :
+            return new_args_(LargeNode, std::forward<Args>(args)...);
+        case NodeType::XLARGE :
+            return new_args_(XLargeNode, std::forward<Args>(args)...);
+    }
 }
 
 struct GCBench {
@@ -274,10 +296,15 @@ struct GCBench {
         long    tStart, tFinish;
         long    tElapsed;
 
+        size_t sizes = smallProb * sizeof(SmallNode)
+                     + mediumProb * sizeof(MediumNode)
+                     + largeProb * sizeof(LargeNode)
+                     + xlargeProb * sizeof(XLargeNode);
+
         cout << "Garbage Collector Test" << endl;
-//        cout << " Live storage will peak at "
-//        << 2 * sizeof(NodeBase) * TreeSize(kLongLivedTreeDepth) /*+ sizeof(double) * kArraySize*/
-//        << " bytes." << endl << endl;
+        cout << " Live storage will peak at "
+        << sizes * TreeSize(kLongLivedTreeDepth) /*+ sizeof(double) * kArraySize*/
+        << " bytes." << endl << endl;
         cout << " Stretching memory with a binary tree of depth " << kStretchTreeDepth << endl;
 
         PrintDiagnostics();
@@ -336,8 +363,8 @@ int main () {
     gc_options ops;
     ops.type        = gc_type::SERIAL;
     ops.compacting  = gc_compacting::DISABLED;
-    ops.loglevel    = gc_loglevel::DEBUG;
-    ops.print_stat  = false;
+    ops.loglevel    = gc_loglevel::OFF;
+    ops.print_stat  = true;
     gc_init(ops);
 #elif defined(BDW_GC)
     //        GC_full_freq = 30;

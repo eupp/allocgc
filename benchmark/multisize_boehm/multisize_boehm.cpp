@@ -361,10 +361,12 @@ struct GCBench {
 int main () {
 #if defined(PRECISE_GC)
     gc_options ops;
+    ops.heapsize    = 1024 * 1024 * 1024;      // 1Gb
     ops.type        = gc_type::SERIAL;
+    ops.init        = gc_init_strategy::SPACE_BASED;
     ops.compacting  = gc_compacting::DISABLED;
     ops.loglevel    = gc_loglevel::OFF;
-    ops.print_stat  = true;
+    ops.print_stat  = false;
     gc_init(ops);
 #elif defined(BDW_GC)
     //        GC_full_freq = 30;

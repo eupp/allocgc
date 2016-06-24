@@ -7,7 +7,8 @@ namespace precisegc {
 
 inline void gc()
 {
-    details::gc_initation_point(details::initation_point_type::USER_REQUEST);
+    using namespace details;
+    gc_initation_point(details::initation_point_type::USER_REQUEST);
 }
 
 }

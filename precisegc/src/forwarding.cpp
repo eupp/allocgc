@@ -95,7 +95,7 @@ void intrusive_forwarding::forward(void* ptr) const
             void* to = meta->get_object_ptr();
             if (from != to) {
                 logging::debug() << "fix ptr: from " << from << " to " << to;
-                gcptr->set(to);
+                gcptr->forward(to);
             }
         } catch (unindexed_memory_exception& exc) {
             logging::error() << "Unindexed memory discovered: " << from;

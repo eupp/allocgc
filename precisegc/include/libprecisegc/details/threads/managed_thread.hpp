@@ -58,7 +58,7 @@ public:
     }
 private:
     template <typename Functor>
-    static void start_routine(std::unique_ptr<Functor>&& bf)
+    static void start_routine(std::unique_ptr<Functor> bf)
     {
         static thread_manager& manager = thread_manager::instance();
 

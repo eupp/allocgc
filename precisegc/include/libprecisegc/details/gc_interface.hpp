@@ -73,11 +73,11 @@ class gc_bad_alloc : public gc_exception
 {
 public:
     gc_bad_alloc(const char* msg)
-            : gc_exception(std::string("failed to allocate memory; ") + msg)
+        : gc_exception(std::string("failed to allocate memory; ") + msg)
     {}
 
     gc_bad_alloc(const std::string& msg)
-            : gc_exception("failed to allocate memory; " + msg)
+        : gc_exception("failed to allocate memory; " + msg)
     {}
 };
 

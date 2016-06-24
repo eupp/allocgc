@@ -13,8 +13,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.h
         include/libprecisegc/details/forwarding.h
-        include/libprecisegc/details/iterator_facade.h
-        include/libprecisegc/details/iterator_access.h
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h
@@ -22,12 +20,11 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/ptrs/gc_new_impl.hpp
         include/libprecisegc/details/gc_unsafe_scope.h
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
-        include/libprecisegc/details/ptrs/gc_untyped_pin.hpp
         include/libprecisegc/details/ptrs/gc_ptr_access.hpp
         include/libprecisegc/details/logging.h
         include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
-        include/libprecisegc/details/initator.hpp
+        include/libprecisegc/details/collectors/initator.hpp
         include/libprecisegc/details/allocators/page_allocator.hpp
         include/libprecisegc/details/index_tree.h
         include/libprecisegc/details/types.hpp
@@ -52,9 +49,9 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/scoped_thread.hpp
         include/libprecisegc/details/utils/scope_guard.hpp
         include/libprecisegc/details/threads/posix_thread.hpp
-        include/libprecisegc/details/gc_hooks.hpp
+        include/libprecisegc/details/garbage_collector.hpp
         include/libprecisegc/details/marker.hpp
-        include/libprecisegc/details/utils/lock_range.hpp
+        include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/ptrs/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
         include/libprecisegc/details/gc_strategy.hpp
@@ -62,11 +59,11 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/make_reverse_iterator.hpp
         include/libprecisegc/details/allocators/allocator_tag.hpp
         include/libprecisegc/details/utils/bitset.hpp
-        include/libprecisegc/details/initation_policy.hpp
-        include/libprecisegc/details/serial_gc.hpp
+        include/libprecisegc/details/collectors/initation_policy.hpp
+        include/libprecisegc/details/collectors/serial_gc.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
-        include/libprecisegc/details/incremental_gc.hpp
+        include/libprecisegc/details/collectors/incremental_gc.hpp
         include/libprecisegc/details/recorder.hpp
         include/libprecisegc/details/printer.hpp
         include/libprecisegc/details/gc_clock.hpp
@@ -74,18 +71,17 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp include/libprecisegc/details/utils/base_offset.hpp include/libprecisegc/details/gc_factory.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
         src/gc_heap.cpp
         src/details/ptrs/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
-        src/details/ptrs/gc_untyped_pin.cpp
         src/logging.cpp
         src/gc_init.cpp
         src/barrier_buffer.cpp
-        src/details/initator.cpp
+        src/details/collectors/initator.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
@@ -95,12 +91,12 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/marker.cpp src/details/gc_hooks.cpp src/details/initation_policy.cpp
-        src/details/serial_gc.cpp
-        src/details/incremental_gc.cpp
+        src/details/marker.cpp src/details/garbage_collector.cpp src/details/collectors/initation_policy.cpp
+        src/details/collectors/serial_gc.cpp
+        src/details/collectors/incremental_gc.cpp
         src/details/printer.cpp
         src/details/recorder.cpp
-        src/details/allocators/freelist_pool_chunk.cpp)
+        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_hooks.cpp src/details/gc_factory.cpp)
 
 
 find_package(Threads REQUIRED)

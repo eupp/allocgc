@@ -4,7 +4,7 @@
 #include <cassert>
 #include <utility>
 
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/garbage_collector.hpp>
 #include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/object_meta.h>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>

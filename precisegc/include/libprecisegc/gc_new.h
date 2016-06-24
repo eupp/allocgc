@@ -8,12 +8,12 @@
 #include <utility>
 #include <pthread.h>
 
-#include "gc_ptr.h"
-#include "libprecisegc/details/type_meta.hpp"
-#include "details/gc_unsafe_scope.h"
-#include "libprecisegc/details/ptrs/gc_ptr_access.hpp"
-#include "libprecisegc/details/ptrs/gc_new_impl.hpp"
-#include "libprecisegc/details/initator.hpp"
+#include <libprecisegc/gc_ptr.h>
+#include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/ptrs/gc_ptr_access.hpp>
+#include <libprecisegc/details/ptrs/gc_new_impl.hpp>
 
 namespace precisegc {
 

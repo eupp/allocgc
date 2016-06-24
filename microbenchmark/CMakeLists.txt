@@ -1,4 +1,4 @@
-set(precisegc_BENCHMARKS
+set(precisegc_microbenchmark
         main.cpp
         parallel_merge_sort_benchmark.cpp
         index_tree_benchmark.cpp
@@ -20,8 +20,8 @@ find_library(BDWGC NAMES gc
 
 #add_definitions(-DNONIUS_USE_BOOST_CHRONO)
 
-add_executable(precisegc_benchmark ${precisegc_BENCHMARKS})
-target_link_libraries(precisegc_benchmark ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(precisegc_benchmark ${Boost_LIBRARIES})
-target_link_libraries(precisegc_benchmark libprecisegc)
-target_link_libraries(precisegc_benchmark ${BDWGC})
+add_executable(precisegc_microbenchmark ${precisegc_microbenchmark})
+target_link_libraries(precisegc_microbenchmark ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(precisegc_microbenchmark ${Boost_LIBRARIES})
+target_link_libraries(precisegc_microbenchmark ${BDWGC})
+target_link_libraries(precisegc_microbenchmark libprecisegc)

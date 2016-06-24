@@ -1,110 +1,11 @@
 #include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 
-#include <cassert>
-#include <memory>
-#include <iostream>
-
-#include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/recorder.hpp>
-#include <libprecisegc/details/printer.hpp>
+#include <libprecisegc/details/garbage_collector.hpp>
 
 namespace precisegc { namespace details {
 
-class garbage_collector : private utils::noncopyable, private utils::nonmovable
-{
-public:
-    garbage_collector()
-        : m_printer(std::clog)
-        , m_printer_enabled(false)
-    {}
-
-    gc_strategy* get_strategy() const
-    {
-        return m_strategy.get();
-    }
-
-    void set_strategy(std::unique_ptr<gc_strategy> strategy)
-    {
-        m_strategy = std::move(strategy);
-    }
-
-    std::unique_ptr<gc_strategy> reset_strategy(std::unique_ptr<gc_strategy> strategy)
-    {
-        strategy.swap(m_strategy);
-        return std::move(strategy);
-    }
-
-    managed_ptr allocate(size_t size)
-    {
-        assert(m_strategy);
-        m_recorder.register_alloc_request();
-        managed_ptr p = m_strategy->allocate(size);
-        m_recorder.register_allocation(p.cell_size());
-        return p;
-    }
-
-    byte* rbarrier(const atomic_byte_ptr& p)
-    {
-        assert(m_strategy);
-        return m_strategy->rbarrier(p);
-    }
-
-    void  wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
-    {
-        assert(m_strategy);
-        m_strategy->wbarrier(dst, src);
-    }
-
-    void initation_point(initation_point_type ipoint)
-    {
-        assert(m_strategy);
-        m_strategy->initation_point(ipoint);
-    }
-
-    bool is_printer_enabled() const
-    {
-        return m_printer_enabled;
-    }
-
-    void set_printer_enabled(bool enabled)
-    {
-        m_printer_enabled = enabled;
-    }
-
-    void register_pause(const gc_pause_stat& pause_stat)
-    {
-        m_recorder.register_pause(pause_stat);
-        if (m_printer_enabled) {
-            m_printer.print_pause_stat(pause_stat);
-        }
-    }
-
-    void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
-    {
-        m_recorder.register_sweep(sweep_stat, pause_stat);
-        if (m_printer_enabled) {
-            m_printer.print_sweep_stat(sweep_stat, pause_stat);
-        }
-    }
-
-    gc_info info() const
-    {
-        assert(m_strategy);
-        return m_strategy->info();
-    }
-
-    gc_stat stat() const
-    {
-        return m_recorder.stat();
-    }
-private:
-    std::unique_ptr<gc_strategy> m_strategy;
-    recorder m_recorder;
-    printer m_printer;
-    bool m_printer_enabled;
-};
-
-static garbage_collector gc_instance;
+static garbage_collector gc_instance{};
 
 gc_strategy* gc_get_strategy()
 {
@@ -121,24 +22,9 @@ std::unique_ptr<gc_strategy> gc_reset_strategy(std::unique_ptr<gc_strategy> stra
     return gc_instance.reset_strategy(std::move(strategy));
 }
 
-void gc()
-{
-    gc_instance.initation_point(initation_point_type::USER_REQUEST);
-};
-
 managed_ptr gc_allocate(size_t size)
 {
     return gc_instance.allocate(size);
-}
-
-byte* gc_rbarrier(const atomic_byte_ptr& p)
-{
-    return gc_instance.rbarrier(p);
-}
-
-void gc_wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src)
-{
-    gc_instance.wbarrier(dst, src);
 }
 
 void gc_initation_point(initation_point_type ipoint)
@@ -174,6 +60,112 @@ void gc_register_pause(const gc_pause_stat& pause_stat)
 void gc_register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
 {
     gc_instance.register_sweep(sweep_stat, pause_stat);
+}
+
+gc_handle::gc_handle()
+    : m_ptr(nullptr)
+{}
+
+gc_handle::gc_handle(byte* ptr)
+    : m_ptr(ptr)
+{}
+
+byte* gc_handle::rbarrier() const
+{
+    return gc_instance.rbarrier(*this);
+}
+
+void gc_handle::wbarrier(const gc_handle& other)
+{
+    gc_instance.wbarrier(*this, other);
+}
+
+void gc_handle::interior_wbarrier(byte* ptr)
+{
+    gc_instance.interior_wbarrier(*this, ptr);
+}
+
+void gc_handle::interior_shift(ptrdiff_t shift)
+{
+    gc_instance.interior_shift(*this, shift);
+}
+
+gc_handle::pin_guard gc_handle::pin() const
+{
+    return pin_guard(*this);
+}
+
+void gc_handle::reset()
+{
+    gc_instance.interior_wbarrier(*this, nullptr);
+}
+
+bool gc_handle::equal(const gc_handle& other) const
+{
+    return gc_instance.compare(*this, other);
+}
+
+bool gc_handle::is_null() const
+{
+    return rbarrier() == nullptr;
+}
+
+byte* gc_handle::load(std::memory_order order) const
+{
+    return m_ptr.load(order);
+}
+
+void gc_handle::store(byte* ptr, std::memory_order order)
+{
+    m_ptr.store(ptr, order);
+}
+
+void gc_handle::fetch_advance(ptrdiff_t n, std::memory_order order)
+{
+    m_ptr.fetch_add(n, order);
+}
+
+gc_handle::pin_guard::pin_guard(const gc_handle& handle)
+    : m_ptr(gc_instance.pin(handle))
+{}
+
+gc_handle::pin_guard::pin_guard(pin_guard&& other)
+    : m_ptr(other.m_ptr)
+{
+    other.m_ptr = nullptr;
+}
+
+gc_handle::pin_guard::~pin_guard()
+{
+    if (m_ptr) {
+        gc_instance.unpin(m_ptr);
+    }
+}
+
+gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)
+{
+    m_ptr = other.m_ptr;
+    other.m_ptr = nullptr;
+}
+
+byte* gc_handle::pin_guard::get() const noexcept
+{
+    return m_ptr;
+}
+
+byte* gc_handle_access::load(const gc_handle& handle, std::memory_order order)
+{
+    return handle.load(order);
+}
+
+void gc_handle_access::store(gc_handle& handle, byte* ptr, std::memory_order order)
+{
+    handle.store(ptr, order);
+}
+
+void gc_handle_access::fetch_advance(gc_handle& handle, ptrdiff_t n, std::memory_order order)
+{
+    handle.fetch_advance(n, order);
 }
 
 }}

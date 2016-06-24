@@ -10,11 +10,12 @@
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
-#include <libprecisegc/details/utils/lock_range.hpp>
+#include <libprecisegc/details/utils/locked_range.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
 class managed_thread;
+class threads_snapshot;
 class world_snapshot;
 
 namespace internals {
@@ -24,13 +25,13 @@ struct thread_manager_access;
 class thread_manager : private utils::noncopyable, private utils::nonmovable
 {
     typedef std::map<std::thread::id, managed_thread*> map_type;
-    typedef std::recursive_mutex lock_type;
+    typedef std::mutex lock_type;
 
     typedef utils::locked_range<
-    boost::select_second_const_range<
-            boost::iterator_range<map_type::const_iterator>
-        >
-        , lock_type> range_type;
+            boost::select_second_const_range<
+                    boost::iterator_range<map_type::const_iterator>
+                >
+            , lock_type> range_type;
 
     friend class internals::thread_manager_access;
 public:
@@ -44,11 +45,10 @@ public:
 
     managed_thread* lookup_thread(std::thread::id thread_id) const;
 
-    world_snapshot stop_the_world();
+    threads_snapshot threads() const;
+    world_snapshot stop_the_world() const;
 private:
     thread_manager() = default;
-
-    range_type get_managed_threads() const;
 
     map_type m_threads;
     mutable lock_type m_lock;

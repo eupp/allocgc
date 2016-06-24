@@ -3,10 +3,9 @@
 
 #include <memory>
 
+#include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/logging.h>
 
 namespace precisegc { namespace details {
 
@@ -15,9 +14,6 @@ void gc_set_strategy(std::unique_ptr<gc_strategy> strategy);
 std::unique_ptr<gc_strategy> gc_reset_strategy(std::unique_ptr<gc_strategy> strategy);
 
 managed_ptr gc_allocate(size_t size);
-
-byte* gc_rbarrier(const atomic_byte_ptr& p);
-void  gc_wbarrier(atomic_byte_ptr& dst, const atomic_byte_ptr& src);
 
 void gc_initation_point(initation_point_type ipoint);
 

@@ -85,17 +85,6 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
     }
 }
 
-template <typename Forwarding>
-void fix_roots(const Forwarding& frwd)
-{
-    auto threads_rng = threads::internals::thread_manager_access::get_managed_threads(threads::thread_manager::instance());
-    for (auto thread: threads_rng) {
-        thread->root_set().trace([&frwd] (ptrs::gc_untyped_ptr* p) {
-            frwd.forward(p);
-        });
-    }
-}
-
 }}
 
 #endif //DIPLOMA_GC_COMPACT_H

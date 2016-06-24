@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/initator.hpp>
+#include <libprecisegc/details/collectors/initator.hpp>
 
 #include "serial_gc_mock.hpp"
 #include "incremental_gc_mock.hpp"

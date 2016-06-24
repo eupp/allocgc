@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/initation_policy.hpp>
+#include <libprecisegc/details/collectors/initation_policy.hpp>
 
 using namespace precisegc::details;
 

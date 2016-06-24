@@ -1,4 +1,4 @@
-#include <libprecisegc/details/initator.hpp>
+#include <libprecisegc/details/collectors/initator.hpp>
 
 #include <atomic>
 #include <stdexcept>
@@ -8,7 +8,7 @@
 #include <libprecisegc/details/gc_heap.h>
 #include <libprecisegc/details/logging.h>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 initator::initator(serial_gc_strategy* gc, std::unique_ptr<initation_policy>&& policy)
     : m_gc(gc)
@@ -85,4 +85,4 @@ incremental_initation_policy* incremental_initator::get_policy() const
     return m_policy.get();
 }
 
-}}
+}}}

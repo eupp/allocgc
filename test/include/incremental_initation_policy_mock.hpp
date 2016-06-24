@@ -3,9 +3,9 @@
 
 #include <gmock/gmock.h>
 
-#include <libprecisegc/details/initation_policy.hpp>
+#include <libprecisegc/details/collectors/initation_policy.hpp>
 
-class incremental_initation_policy_mock : public precisegc::details::incremental_initation_policy
+class incremental_initation_policy_mock : public precisegc::details::collectors::incremental_initation_policy
 {
     typedef precisegc::details::gc_phase gc_phase;
     typedef precisegc::details::gc_stat gc_stat;

@@ -1,6 +1,6 @@
-#include <libprecisegc/details/initation_policy.hpp>
+#include <libprecisegc/details/collectors/initation_policy.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 space_based_policy::space_based_policy(size_t start_heap_size,
                                        double threshold,
@@ -116,4 +116,4 @@ double incremental_space_based_policy::increase_factor() const
     return m_sweeping_policy.increase_factor();
 }
 
-}}
+}}}

@@ -1,4 +1,4 @@
-#include <libprecisegc/details/incremental_gc.hpp>
+#include <libprecisegc/details/collectors/incremental_gc.hpp>
 
 #include <cassert>
 
@@ -7,7 +7,7 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
@@ -147,9 +147,8 @@ void incremental_gc_base::sweep()
 
 }
 
-incremental_gc::incremental_gc(gc_compacting compacting,
-                               std::unique_ptr<incremental_initation_policy> init_policy)
-    : incremental_gc_base(compacting, std::move(init_policy))
+incremental_gc::incremental_gc(std::unique_ptr<incremental_initation_policy> init_policy)
+    : incremental_gc_base(gc_compacting::DISABLED, std::move(init_policy))
 {}
 
 bool incremental_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -178,9 +177,8 @@ gc_info incremental_gc::info() const
     return inf;
 }
 
-incremental_compacting_gc::incremental_compacting_gc(gc_compacting compacting,
-                                                     std::unique_ptr<incremental_initation_policy> init_policy)
-        : incremental_gc_base(compacting, std::move(init_policy))
+incremental_compacting_gc::incremental_compacting_gc(std::unique_ptr<incremental_initation_policy> init_policy)
+        : incremental_gc_base(gc_compacting::ENABLED, std::move(init_policy))
 {}
 
 bool incremental_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -217,5 +215,5 @@ gc_info incremental_compacting_gc::info() const
     return inf;
 }
 
-}}
+}}}
 

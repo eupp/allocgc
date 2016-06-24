@@ -1,4 +1,4 @@
-#include <libprecisegc/details/serial_gc.hpp>
+#include <libprecisegc/details/collectors/serial_gc.hpp>
 
 #include <utility>
 
@@ -7,7 +7,7 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
@@ -20,6 +20,21 @@ serial_gc_base::serial_gc_base(gc_compacting compacting,
 managed_ptr serial_gc_base::allocate(size_t size)
 {
     return m_heap.allocate(size);
+}
+
+byte* serial_gc_base::rbarrier(const gc_handle& handle)
+{
+    return gc_handle_access::load(handle, std::memory_order_relaxed);
+}
+
+void serial_gc_base::interior_wbarrier(gc_handle& handle, byte* ptr)
+{
+    gc_handle_access::store(handle, ptr, std::memory_order_relaxed);
+}
+
+void serial_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
+{
+    gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
 }
 
 void serial_gc_base::initation_point(initation_point_type ipoint)
@@ -46,30 +61,14 @@ void serial_gc_base::gc()
 
 }
 
-serial_gc::serial_gc(gc_compacting compacting,
-                     std::unique_ptr<initation_policy> init_policy)
-    : serial_gc_base(compacting, std::move(init_policy))
+serial_gc::serial_gc(std::unique_ptr<initation_policy> init_policy)
+    : serial_gc_base(gc_compacting::DISABLED, std::move(init_policy))
 {}
-
-byte* serial_gc::rbarrier(const gc_handle& handle)
-{
-    return gc_handle_access::load(handle, std::memory_order_relaxed);
-}
 
 void serial_gc::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     byte* p = gc_handle_access::load(src, std::memory_order_relaxed);
     gc_handle_access::store(dst, p, std::memory_order_relaxed);
-}
-
-void serial_gc::interior_wbarrier(gc_handle& handle, byte* ptr)
-{
-    gc_handle_access::store(handle, ptr, std::memory_order_relaxed);
-}
-
-void serial_gc::interior_shift(gc_handle& handle, ptrdiff_t shift)
-{
-    gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
 }
 
 bool serial_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -97,31 +96,15 @@ gc_info serial_gc::info() const
     return inf;
 }
 
-serial_compacting_gc::serial_compacting_gc(gc_compacting compacting,
-                                           std::unique_ptr<initation_policy> init_policy)
-    : serial_gc_base(compacting, std::move(init_policy))
+serial_compacting_gc::serial_compacting_gc(std::unique_ptr<initation_policy> init_policy)
+    : serial_gc_base(gc_compacting::ENABLED, std::move(init_policy))
 {}
-
-byte* serial_compacting_gc::rbarrier(const gc_handle& handle)
-{
-    return gc_handle_access::load(handle, std::memory_order_relaxed);
-}
 
 void serial_compacting_gc::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
     byte* p = gc_handle_access::load(src, std::memory_order_relaxed);
     gc_handle_access::store(dst, p, std::memory_order_relaxed);
-}
-
-void serial_compacting_gc::interior_wbarrier(gc_handle& handle, byte* ptr)
-{
-    gc_handle_access::store(handle, ptr, std::memory_order_relaxed);
-}
-
-void serial_compacting_gc::interior_shift(gc_handle& handle, ptrdiff_t shift)
-{
-    gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
 }
 
 bool serial_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -157,5 +140,5 @@ gc_info serial_compacting_gc::info() const
     return inf;
 }
 
-}}
+}}}
 

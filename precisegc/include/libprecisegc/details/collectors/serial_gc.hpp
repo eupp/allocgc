@@ -5,11 +5,11 @@
 
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.h>
-#include <libprecisegc/details/initator.hpp>
+#include <libprecisegc/details/collectors/initator.hpp>
 #include <libprecisegc/details/marker.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
@@ -19,6 +19,11 @@ public:
     serial_gc_base(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
 
     managed_ptr allocate(size_t size) override;
+
+    byte* rbarrier(const gc_handle& handle) override;
+
+    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
+    void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
 
     void initation_point(initation_point_type ipoint) override;
 
@@ -34,13 +39,9 @@ private:
 class serial_gc : public internals::serial_gc_base
 {
 public:
-    serial_gc(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+    serial_gc(std::unique_ptr<initation_policy> init_policy);
 
-    byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
-
-    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
-    void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
@@ -53,13 +54,9 @@ public:
 class serial_compacting_gc : public internals::serial_gc_base
 {
 public:
-    serial_compacting_gc(gc_compacting compacting, std::unique_ptr<initation_policy> init_policy);
+    serial_compacting_gc(std::unique_ptr<initation_policy> init_policy);
 
-    byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
-
-    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
-    void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
@@ -69,6 +66,6 @@ public:
     gc_info info() const override;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_SERIAL_GC_HPP

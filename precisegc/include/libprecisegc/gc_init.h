@@ -5,7 +5,7 @@
 
 namespace precisegc {
 
-int gc_init(gc_options ops);
+int gc_init(const gc_options& options = gc_options());
 
 }
 

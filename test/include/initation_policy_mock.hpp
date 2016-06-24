@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include <libprecisegc/details/initation_policy.hpp>
+#include <libprecisegc/details/collectors/initation_policy.hpp>
 
 class initation_policy_mock : public precisegc::details::initation_policy
 {

@@ -8,12 +8,10 @@
 #include <mutex>
 
 #include <libprecisegc/details/gc_strategy.hpp>
-#include <libprecisegc/details/initation_policy.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/collectors/initation_policy.hpp>
 
-#include "gc_heap.h"
-
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 class initator : private utils::noncopyable, private utils::nonmovable
 {
@@ -43,7 +41,6 @@ private:
     std::mutex m_mutex;
 };
 
-
-}}
+}}}
 
 #endif //DIPLOMA_GC_INITATOR_H

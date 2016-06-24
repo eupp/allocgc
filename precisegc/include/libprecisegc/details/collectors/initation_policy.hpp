@@ -5,7 +5,7 @@
 
 #include <libprecisegc/details/gc_strategy.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 class initation_policy
 {
@@ -97,6 +97,6 @@ private:
     const double m_marking_threshold;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_INITATION_POLICY_HPP

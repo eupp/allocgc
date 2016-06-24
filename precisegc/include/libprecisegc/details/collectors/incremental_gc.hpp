@@ -5,11 +5,11 @@
 
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.h>
-#include <libprecisegc/details/initator.hpp>
+#include <libprecisegc/details/collectors/initator.hpp>
 #include <libprecisegc/details/marker.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
@@ -47,10 +47,9 @@ private:
 }
 
 class incremental_gc : public internals::incremental_gc_base
-                     , private utils::noncopyable, private utils::nonmovable
 {
 public:
-    incremental_gc(gc_compacting compacting, std::unique_ptr<incremental_initation_policy> init_policy);
+    incremental_gc(std::unique_ptr<incremental_initation_policy> init_policy);
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
@@ -61,10 +60,9 @@ public:
 };
 
 class incremental_compacting_gc : public internals::incremental_gc_base
-                                , private utils::noncopyable, private utils::nonmovable
 {
 public:
-    incremental_compacting_gc(gc_compacting compacting, std::unique_ptr<incremental_initation_policy> init_policy);
+    incremental_compacting_gc(std::unique_ptr<incremental_initation_policy> init_policy);
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
@@ -74,6 +72,6 @@ public:
     gc_info info() const override;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_INCREMENTAL_GC_HPP

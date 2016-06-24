@@ -249,7 +249,9 @@ struct GCBench {
 int main () {
     #if defined(PRECISE_GC)
         gc_options ops;
-        ops.type        = gc_type::SERIAL;
+        ops.heapsize    = 64 * 1024 * 1024;      // 64 Mb
+        ops.type        = gc_type::INCREMENTAL;
+        ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
         ops.loglevel    = gc_loglevel::OFF;
         ops.print_stat  = false;

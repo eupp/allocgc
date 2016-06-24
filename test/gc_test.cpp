@@ -11,8 +11,8 @@
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/serial_gc.hpp>
-#include <libprecisegc/details/incremental_gc.hpp>
+#include <libprecisegc/details/collectors/serial_gc.hpp>
+#include <libprecisegc/details/collectors/incremental_gc.hpp>
 #include <libprecisegc/gc_ptr.h>
 #include <libprecisegc/gc_new.h>
 #include <libprecisegc/gc.h>

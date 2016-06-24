@@ -218,23 +218,23 @@ struct gc_test: public ::testing::Test
 struct serial_gc_test : public gc_test
 {
     serial_gc_test()
-        : gc_test(utils::make_unique<serial_gc>(gc_compacting::DISABLED, utils::make_unique<empty_policy>()))
+        : gc_test(utils::make_unique<collectors::serial_gc>(utils::make_unique<collectors::empty_policy>()))
     {
-        garbage_collector = static_cast<serial_gc*>(gc_get_strategy());
+        garbage_collector = static_cast<collectors::serial_gc*>(gc_get_strategy());
     }
 
-    serial_gc* garbage_collector;
+    collectors::serial_gc* garbage_collector;
 };
 
 struct incremental_gc_test : public gc_test
 {
     incremental_gc_test()
-        : gc_test(utils::make_unique<incremental_gc>(gc_compacting::DISABLED, utils::make_unique<incremental_empty_policy>()))
+        : gc_test(utils::make_unique<collectors::incremental_gc>(utils::make_unique<collectors::incremental_empty_policy>()))
     {
-        garbage_collector = static_cast<incremental_gc*>(gc_get_strategy());
+        garbage_collector = static_cast<collectors::incremental_gc*>(gc_get_strategy());
     }
 
-    incremental_gc* garbage_collector;
+    collectors::incremental_gc* garbage_collector;
 };
 
 // This test doesn't check anything.

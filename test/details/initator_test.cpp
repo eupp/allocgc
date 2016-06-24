@@ -12,6 +12,7 @@
 #include "incremental_initation_policy_mock.hpp"
 
 using namespace precisegc::details;
+using namespace precisegc::details::collectors;
 
 using ::testing::_;
 using ::testing::Exactly;

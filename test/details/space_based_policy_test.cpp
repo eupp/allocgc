@@ -3,6 +3,7 @@
 #include <libprecisegc/details/collectors/initation_policy.hpp>
 
 using namespace precisegc::details;
+using namespace precisegc::details::collectors;
 
 struct space_base_policy_test : public ::testing::Test
 {

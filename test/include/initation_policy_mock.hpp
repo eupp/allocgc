@@ -5,7 +5,7 @@
 
 #include <libprecisegc/details/collectors/initation_policy.hpp>
 
-class initation_policy_mock : public precisegc::details::initation_policy
+class initation_policy_mock : public precisegc::details::collectors::initation_policy
 {
     typedef precisegc::details::gc_stat gc_stat;
     typedef precisegc::details::initation_point_type initation_point_type;

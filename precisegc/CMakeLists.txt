@@ -34,7 +34,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.h
-        include/libprecisegc/details/managed_pool_chunk.hpp
+        include/libprecisegc/details/allocators/managed_pool_chunk.hpp
         include/libprecisegc/details/memory_descriptor.hpp
         include/libprecisegc/details/managed_ptr.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
@@ -71,7 +71,14 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp include/libprecisegc/details/utils/base_offset.hpp include/libprecisegc/details/gc_factory.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
+        include/libprecisegc/gc_pin.hpp
+        include/libprecisegc/gc_ref.hpp
+        include/libprecisegc/details/gc_handle.hpp
+        include/libprecisegc/details/threads/threads_snapshot.hpp
+        include/libprecisegc/details/gc_hooks.hpp
+        include/libprecisegc/details/utils/base_offset.hpp
+        include/libprecisegc/details/gc_factory.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -83,7 +90,7 @@ set(precisegc_LIB_SRCS
         src/barrier_buffer.cpp
         src/details/collectors/initator.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
-        src/details/managed_pool_chunk.cpp
+        src/details/allocators/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
         src/forwarding.cpp
         src/details/threads/pending_call.cpp
@@ -96,7 +103,9 @@ set(precisegc_LIB_SRCS
         src/details/collectors/incremental_gc.cpp
         src/details/printer.cpp
         src/details/recorder.cpp
-        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_hooks.cpp src/details/gc_factory.cpp)
+        src/details/allocators/freelist_pool_chunk.cpp
+        src/details/gc_hooks.cpp
+        src/details/gc_factory.cpp )
 
 
 find_package(Threads REQUIRED)

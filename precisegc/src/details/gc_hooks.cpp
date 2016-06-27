@@ -52,6 +52,16 @@ void gc_disable_print_stats()
     gc_instance.set_printer_enabled(false);
 }
 
+void gc_register_page(const byte* page, size_t size)
+{
+    gc_instance.register_page(page, size);
+}
+
+void gc_deregister_page(const byte* page, size_t size)
+{
+    gc_instance.deregister_page(page, size);
+}
+
 void gc_register_pause(const gc_pause_stat& pause_stat)
 {
     gc_instance.register_pause(pause_stat);

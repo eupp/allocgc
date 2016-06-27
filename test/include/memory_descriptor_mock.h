@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include "libprecisegc/details/managed_pool_chunk.hpp"
+#include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
 
 class memory_descriptor_mock : public precisegc::details::memory_descriptor
 {

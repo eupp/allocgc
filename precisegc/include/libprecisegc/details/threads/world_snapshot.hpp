@@ -32,9 +32,9 @@ public:
 
         logging::info() << "Thread " << std::this_thread::get_id() << " is requesting stop-the-world";
 
-        if (stwm.is_stop_the_world_disabled()) {
-            throw stop_the_world_disabled();
-        }
+//        if (stwm.is_stop_the_world_disabled()) {
+//            throw stop_the_world_disabled();
+//        }
 
         for (auto thread: m_threads) {
             if (thread->native_handle() != managed_thread::this_thread().native_handle()) {

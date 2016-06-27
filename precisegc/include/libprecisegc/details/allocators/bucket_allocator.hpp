@@ -61,7 +61,7 @@ public:
     void apply_to_chunks(Functor&& f)
     {
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            std::lock_guard<Lock> lock(m_locks[i]);
+//            std::lock_guard<Lock> lock(m_locks[i]);
             m_buckets[i].apply_to_chunks(f);
         }
     }

@@ -19,6 +19,11 @@ void recorder::register_alloc_request()
 
 void recorder::register_allocation(size_t size)
 {
+//    m_heap_size.fetch_add(size, std::memory_order_acq_rel);
+}
+
+void recorder::register_page(const byte* page, size_t size)
+{
     m_heap_size.fetch_add(size, std::memory_order_acq_rel);
 }
 

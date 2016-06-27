@@ -40,6 +40,8 @@ public:
     bool is_printer_enabled() const;
     void set_printer_enabled(bool enabled);
 
+    void register_page(const byte* page, size_t size);
+    void deregister_page(const byte* page, size_t size);
     void register_pause(const gc_pause_stat& pause_stat);
     void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
 

@@ -16,7 +16,7 @@
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace allocators {
 
 class managed_pool_chunk : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
@@ -140,6 +140,6 @@ private:
     bitset_t m_pin_bits;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_MANAGED_POOL_CHUNK_H

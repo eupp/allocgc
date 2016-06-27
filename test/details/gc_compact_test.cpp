@@ -8,7 +8,7 @@
 
 #include "libprecisegc/details/allocators/list_allocator.hpp"
 #include "libprecisegc/details/allocators/page_allocator.hpp"
-#include "libprecisegc/details/managed_pool_chunk.hpp"
+#include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
 
 #include "rand_util.h"
 

@@ -23,6 +23,8 @@ gc_stat gc_get_stats();
 void gc_enable_print_stats();
 void gc_disable_print_stats();
 
+void gc_register_page(const byte* page, size_t size);
+void gc_deregister_page(const byte* page, size_t size);
 void gc_register_pause(const gc_pause_stat& pause_stat);
 void gc_register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
 

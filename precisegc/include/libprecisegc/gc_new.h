@@ -23,15 +23,11 @@ auto gc_new(Args&&... args)
 {
     using namespace precisegc::details;
     using namespace precisegc::details::ptrs;
-    gc_ptr<T> res;
-    {
-        gc_unsafe_scope unsafe_scope;
-        void* ptr = gc_new_impl<T>(1, std::forward<Args>(args)...);
-        T* typed_ptr = reinterpret_cast<T*>(ptr);
-        res = gc_ptr_access<T>::create(typed_ptr);
-    }
-    gc_initation_point(initation_point_type::AFTER_ALLOC);
-    return res;
+
+    gc_unsafe_scope unsafe_scope;
+    void* ptr = gc_new_impl<T>(1, std::forward<Args>(args)...);
+    T* typed_ptr = reinterpret_cast<T*>(ptr);
+    return gc_ptr_access<T>::create(typed_ptr);
 };
 
 template <typename T>
@@ -41,15 +37,11 @@ auto gc_new(size_t n)
     typedef typename std::remove_extent<T>::type U;
     using namespace precisegc::details;
     using namespace precisegc::details::ptrs;
-    gc_ptr<T> res;
-    {
-        gc_unsafe_scope unsafe_scope;
-        void* ptr = gc_new_impl<U>(n);
-        U* typed_ptr = reinterpret_cast<U*>(ptr);
-        res = gc_ptr_access<T>::create(typed_ptr);
-    }
-    gc_initation_point(initation_point_type::AFTER_ALLOC);
-    return res;
+
+    gc_unsafe_scope unsafe_scope;
+    void* ptr = gc_new_impl<U>(n);
+    U* typed_ptr = reinterpret_cast<U*>(ptr);
+    return gc_ptr_access<T>::create(typed_ptr);
 };
 
 template<typename T, typename... Args>

@@ -8,6 +8,7 @@ namespace precisegc { namespace details {
 
 enum class initation_point_type {
       USER_REQUEST
+    , HEAP_GROWTH
     , AFTER_ALLOC
 };
 

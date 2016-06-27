@@ -1,11 +1,11 @@
-#include "managed_pool_chunk.hpp"
+#include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
 
 #include <utility>
 
 #include "libprecisegc/details/utils/math.h"
 #include "logging.h"
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace allocators {
 
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
     : m_chunk(chunk, size, cell_size)
@@ -233,4 +233,4 @@ size_t managed_pool_chunk::iterator::cell_size() const
     return chunk->cell_size();
 }
 
-}}
+}}}

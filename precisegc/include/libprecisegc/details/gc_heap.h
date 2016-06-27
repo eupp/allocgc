@@ -11,11 +11,11 @@
 #include <libprecisegc/details/allocators/page_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.h>
+#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>
 #include <libprecisegc/details/object_meta.h>
-#include <libprecisegc/details/managed_pool_chunk.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
 
@@ -28,7 +28,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     static const size_t MAX_ALLOC_SIZE_BITS = MIN_ALLOC_SIZE_BITS + SEGREGATED_STORAGE_SIZE;
 
     typedef allocators::bucket_allocator<
-            managed_pool_chunk,
+            allocators::managed_pool_chunk,
             allocators::page_allocator,
             allocators::default_allocator,
             allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,

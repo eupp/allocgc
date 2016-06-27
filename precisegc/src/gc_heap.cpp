@@ -35,7 +35,7 @@ gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot)
         snapshot.fix_roots(frwd);
     }
 
-    m_alloc.apply_to_chunks([] (managed_pool_chunk& chunk) {
+    m_alloc.apply_to_chunks([] (allocators::managed_pool_chunk& chunk) {
         chunk.unmark();
     });
 

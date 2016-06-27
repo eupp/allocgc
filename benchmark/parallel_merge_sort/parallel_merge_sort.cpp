@@ -229,7 +229,7 @@ int main()
         ops.type        = gc_type::INCREMENTAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::OFF;
+        ops.loglevel    = gc_loglevel::DEBUG;
         ops.print_stat  = false;
         gc_init(ops);
     #elif defined(BDW_GC)

@@ -22,7 +22,7 @@ space_based_policy::space_based_policy(size_t start_heap_size,
 
 bool space_based_policy::check(const gc_stat& stat, initation_point_type ipoint) const
 {
-    if (ipoint == initation_point_type::AFTER_ALLOC) {
+    if (ipoint == initation_point_type::HEAP_GROWTH) {
         return stat.heap_size > m_threshold * heap_size();
     }
     return false;
@@ -30,7 +30,7 @@ bool space_based_policy::check(const gc_stat& stat, initation_point_type ipoint)
 
 void space_based_policy::update(const gc_stat& stat, initation_point_type ipoint)
 {
-    if (ipoint == initation_point_type::AFTER_ALLOC) {
+    if (ipoint == initation_point_type::HEAP_GROWTH) {
         size_t curr_max_heap_size = heap_size();
         if (stat.heap_size > m_threshold * curr_max_heap_size) {
             if (stat.heap_size > m_max_heap_size) {
@@ -80,7 +80,7 @@ gc_phase incremental_space_based_policy::check(const gc_stat& stat, initation_po
 {
     if (m_sweeping_policy.check(stat, ipoint)) {
         return gc_phase::SWEEPING;
-    } else if (stat.heap_size > m_marking_threshold * heap_size()) {
+    } else if (ipoint == initation_point_type::HEAP_GROWTH && stat.heap_size > m_marking_threshold * heap_size()) {
         return gc_phase::MARKING;
     }
     return gc_phase::IDLING;

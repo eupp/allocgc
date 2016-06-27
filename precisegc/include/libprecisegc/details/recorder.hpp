@@ -3,9 +3,10 @@
 
 #include <atomic>
 
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
-#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {
 
@@ -16,6 +17,7 @@ public:
 
     void register_alloc_request();
     void register_allocation(size_t size);
+    void register_page(const byte* page, size_t size);
     void register_pause(const gc_pause_stat& pause_stat);
     void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
 

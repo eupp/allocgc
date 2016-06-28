@@ -253,6 +253,6 @@ int main()
     }
     wait_for_tasks_complete();
 
-    std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>().count() << " ms" << std::endl;
+    std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
 }
 

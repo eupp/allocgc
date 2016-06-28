@@ -17,10 +17,15 @@ public:
     timer& operator=(const timer&) = delete;
     timer& operator=(timer&&) = delete;
 
-    template <typename Duration>
-    Duration elapsed() const
+    void reset()
     {
-        return std::chrono::duration_cast<Duration>(clock_t::now() - m_tm);
+        m_tm = clock_t::now();
+    }
+
+    template <typename Duration>
+    typename Duration::rep elapsed() const
+    {
+        return std::chrono::duration_cast<Duration>(clock_t::now() - m_tm).count();
     }
 private:
     clock_t::time_point m_tm;

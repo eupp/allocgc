@@ -33,7 +33,7 @@ if(NO_GC)
 endif()
 
 if(BDW_GC)
-    target_link_libraries(boehm ${BDWGC})
+    target_link_libraries(multisize_boehm ${BDWGC})
     add_definitions(-DBDW_GC)
 endif()
 

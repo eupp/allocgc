@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/gc_ptr.h"
+#include "libprecisegc/gc_ptr.hpp"
 #include "libprecisegc/gc_new.h"
 
 using namespace precisegc;

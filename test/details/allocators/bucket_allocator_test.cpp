@@ -6,7 +6,7 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
-#include <libprecisegc/details/allocators/debug_layer.h>
+#include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/types.hpp>
 
 #include "test_chunk.h"

@@ -5,7 +5,7 @@
 
 #include "libprecisegc/details/managed_pool_chunk.hpp"
 #include "libprecisegc/details/allocators/page_allocator.hpp"
-#include "libprecisegc/details/allocators/debug_layer.h"
+#include "libprecisegc/details/allocators/debug_layer.hpp"
 
 #include "rand_util.h"
 

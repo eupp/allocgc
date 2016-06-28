@@ -4,7 +4,7 @@
 #include <algorithm>
 
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/allocators/bitmap_pool_chunk.h>
+#include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 
 #include <boost/integer/static_min_max.hpp>

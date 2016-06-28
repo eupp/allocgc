@@ -1,6 +1,6 @@
 #include <nonius/main.h++>
 
-#include <libprecisegc/libprecisegc.h>
+#include <libprecisegc/libprecisegc.hpp>
 
 using namespace precisegc;
 

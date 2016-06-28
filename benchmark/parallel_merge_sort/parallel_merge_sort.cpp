@@ -20,7 +20,7 @@
 #endif
 
 #ifdef PRECISE_GC
-    #include <libprecisegc/libprecisegc.h>
+    #include <libprecisegc/libprecisegc.hpp>
     #include <libprecisegc/details/threads/managed_thread.hpp>
     using namespace precisegc;
 #endif

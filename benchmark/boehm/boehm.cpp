@@ -51,7 +51,7 @@
 
 
 #ifdef PRECISE_GC
-    #include "libprecisegc/libprecisegc.h"
+    #include "libprecisegc/libprecisegc.hpp"
     #include "libprecisegc/details/gc_heap.h"
     using namespace precisegc;
 #endif

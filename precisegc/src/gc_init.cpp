@@ -1,4 +1,4 @@
-#include <libprecisegc/gc_init.h>
+#include <libprecisegc/gc_init.hpp>
 
 #include <iostream>
 #include <memory>

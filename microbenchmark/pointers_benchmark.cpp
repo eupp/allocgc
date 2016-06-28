@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <memory>
 
-#include <libprecisegc/libprecisegc.h>
+#include <libprecisegc/libprecisegc.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 
 using namespace precisegc;

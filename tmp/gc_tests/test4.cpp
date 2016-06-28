@@ -1,4 +1,4 @@
-#include <libprecisegc/libprecisegc.h>
+#include <libprecisegc/libprecisegc.hpp>
 
 const int array_size = 100;
 

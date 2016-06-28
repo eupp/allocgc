@@ -1,17 +1,17 @@
 
 set(precisegc_LIB_HDRS
-        include/libprecisegc/gc_ptr.h
+        include/libprecisegc/gc_ptr.hpp
         include/libprecisegc/gc_new.h
-        include/libprecisegc/gc.h
-        include/libprecisegc/gc_init.h
+        include/libprecisegc/gc.hpp
+        include/libprecisegc/gc_init.hpp
         include/libprecisegc/gc_options.hpp
-        include/libprecisegc/libprecisegc.h
+        include/libprecisegc/libprecisegc.hpp
 
         include/libprecisegc/details/type_meta.hpp
         include/libprecisegc/details/object_meta.h
         include/libprecisegc/details/gc_heap.h
         include/libprecisegc/details/constants.hpp
-        include/libprecisegc/details/utils/math.h
+        include/libprecisegc/details/utils/math.hpp
         include/libprecisegc/details/forwarding.h
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
@@ -26,14 +26,14 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/collectors/initator.hpp
         include/libprecisegc/details/allocators/page_allocator.hpp
-        include/libprecisegc/details/index_tree.h
+        include/libprecisegc/details/index_tree.hpp
         include/libprecisegc/details/types.hpp
-        include/libprecisegc/details/allocators/debug_layer.h
+        include/libprecisegc/details/allocators/debug_layer.hpp
         include/libprecisegc/details/allocators/bucket_allocator.hpp
-        include/libprecisegc/details/allocators/bitmap_pool_chunk.h
+        include/libprecisegc/details/allocators/bitmap_pool_chunk.hpp
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
-        include/libprecisegc/details/allocators/pow2_bucket_policy.h
+        include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
         include/libprecisegc/details/managed_pool_chunk.hpp
         include/libprecisegc/details/memory_descriptor.hpp
         include/libprecisegc/details/managed_ptr.hpp

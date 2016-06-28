@@ -13,12 +13,12 @@
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/collectors/serial_gc.hpp>
 #include <libprecisegc/details/collectors/incremental_gc.hpp>
-#include <libprecisegc/gc_ptr.h>
+#include <libprecisegc/gc_ptr.hpp>
 #include <libprecisegc/gc_new.h>
-#include <libprecisegc/gc.h>
+#include <libprecisegc/gc.hpp>
 #include <libprecisegc/details/gc_mark.h>
 #include <libprecisegc/details/utils/barrier.hpp>
-#include <libprecisegc/details/utils/math.h>
+#include <libprecisegc/details/utils/math.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;

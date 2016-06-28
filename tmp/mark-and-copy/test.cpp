@@ -1,7 +1,7 @@
 //
 // Created by evagl on 26.03.15.
 //
-#include <libprecisegc/libprecisegc.h>
+#include <libprecisegc/libprecisegc.hpp>
 
 struct A {
     A(int v=0xfaceface) : value(v) {}

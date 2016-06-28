@@ -10,7 +10,7 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
-#include <libprecisegc/details/allocators/pow2_bucket_policy.h>
+#include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>

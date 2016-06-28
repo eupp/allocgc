@@ -2,7 +2,7 @@
 #define DIPLOMA_MANAGED_PTR_H
 
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/index_tree.h>
+#include <libprecisegc/details/index_tree.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/to_string.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>

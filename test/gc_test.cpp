@@ -14,7 +14,7 @@
 #include <libprecisegc/details/collectors/serial_gc.hpp>
 #include <libprecisegc/details/collectors/incremental_gc.hpp>
 #include <libprecisegc/gc_ptr.hpp>
-#include <libprecisegc/gc_new.h>
+#include <libprecisegc/gc_new.hpp>
 #include <libprecisegc/gc.hpp>
 #include <libprecisegc/details/gc_mark.h>
 #include <libprecisegc/details/utils/barrier.hpp>

@@ -12,7 +12,7 @@ struct space_base_policy_test : public ::testing::Test
     {}
 
     space_based_policy policy;
-    gc_stat stat;
+    gc_state stat;
 };
 
 TEST_F(space_base_policy_test, test_check)
@@ -45,7 +45,7 @@ struct incremental_space_base_policy_test : public ::testing::Test
     {}
 
     incremental_space_based_policy policy;
-    gc_stat stat;
+    gc_state stat;
 };
 
 TEST_F(incremental_space_base_policy_test, test_check)

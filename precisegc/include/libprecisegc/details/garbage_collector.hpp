@@ -10,6 +10,7 @@
 #include <libprecisegc/details/recorder.hpp>
 #include <libprecisegc/details/printer.hpp>
 #include <libprecisegc/details/logging.h>
+#include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {
 
@@ -44,7 +45,8 @@ public:
     void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
 
     gc_info info() const;
-    gc_stat stat() const;
+    gc_stat stats() const;
+    gc_state state() const;
 private:
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
     static bool is_interior_shift(const gc_handle& handle, ptrdiff_t shift);

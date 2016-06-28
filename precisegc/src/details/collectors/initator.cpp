@@ -23,14 +23,14 @@ void initator::initation_point(initation_point_type ipoint)
     if (ipoint == initation_point_type::USER_REQUEST) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_gc->gc();
-        m_policy->update(gc_get_stats(), ipoint);
+        m_policy->update(gc_get_state(), ipoint);
     }
-    if (m_policy->check(gc_get_stats(), ipoint)) {
+    if (m_policy->check(gc_get_state(), ipoint)) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        gc_stat stat = gc_get_stats();
+        gc_state stat = gc_get_state();
         if (m_policy->check(stat, ipoint)) {
             m_gc->gc();
-            m_policy->update(gc_get_stats(), ipoint);
+            m_policy->update(gc_get_state(), ipoint);
         }
     }
 }
@@ -54,12 +54,12 @@ void incremental_initator::initation_point(initation_point_type ipoint)
     if (ipoint == initation_point_type::USER_REQUEST) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_gc->gc();
-        m_policy->update(gc_get_stats(), ipoint);
+        m_policy->update(gc_get_state(), ipoint);
     }
-    gc_phase phase = m_policy->check(gc_get_stats(), ipoint);
+    gc_phase phase = m_policy->check(gc_get_state(), ipoint);
     if (phase != gc_phase::IDLING) {
         std::lock_guard<std::mutex> lock(m_mutex);
-        gc_stat stat = gc_get_stats();
+        gc_state stat = gc_get_state();
         phase = m_policy->check(stat, ipoint);
         gc_phase curr_phase = m_gc->phase();
         if (phase == gc_phase::MARKING && curr_phase == gc_phase::IDLING) {
@@ -76,7 +76,7 @@ void incremental_initator::initation_point(initation_point_type ipoint)
             ops.threads_num = 1;
             m_gc->gc_increment(ops);
         }
-        m_policy->update(gc_get_stats(), ipoint);
+        m_policy->update(gc_get_state(), ipoint);
     }
 }
 

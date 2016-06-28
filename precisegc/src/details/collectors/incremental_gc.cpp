@@ -116,7 +116,7 @@ void incremental_gc_base::sweep()
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);
 
-    gc_pause_type pause_type = gc_pause_type::NO_PAUSE;
+    gc_pause_type pause_type;
     if (phase() == gc_phase::MARKING) {
         m_marker.pause_marking();
     }

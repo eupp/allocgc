@@ -1,15 +1,17 @@
 #ifndef DIPLOMA_GC_H
 #define DIPLOMA_GC_H
 
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/gc_options.hpp>
+#include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc {
 
-inline void gc()
-{
-    using namespace details;
-    gc_initation_point(details::initation_point_type::USER_REQUEST);
-}
+int gc_init(const gc_options& options = gc_options());
+
+gc_stat gc_stats();
+
+void gc();
+
 
 }
 

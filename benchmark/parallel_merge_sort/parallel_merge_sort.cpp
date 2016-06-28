@@ -227,7 +227,7 @@ int main()
     #if defined(PRECISE_GC)
         gc_options ops;
         ops.heapsize    = 2 * 1024 * 1024;      // 2 Mb
-        ops.type        = gc_type::SERIAL;
+        ops.type        = gc_type::INCREMENTAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
         ops.loglevel    = gc_loglevel::OFF;
@@ -254,5 +254,14 @@ int main()
     wait_for_tasks_complete();
 
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
+    #if defined(BDW_GC)
+        std::cout << "Completed " << GC_get_gc_no() << " collections" << std::endl;
+        std::cout << "Heap size is " << GC_get_heap_size() << std::endl;
+    #elif defined(PRECISE_GC)
+        gc_stat stat = gc_stats();
+        std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
+        std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " msec" << std::endl;
+        std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time / stat.gc_count).count() << " msec" << std::endl;
+    #endif
 }
 

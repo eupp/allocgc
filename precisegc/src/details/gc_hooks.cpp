@@ -39,7 +39,12 @@ gc_info gc_get_info()
 
 gc_stat gc_get_stats()
 {
-    return gc_instance.stat();
+    return gc_instance.stats();
+}
+
+gc_state gc_get_state()
+{
+    return gc_instance.state();
 }
 
 void gc_enable_print_stats()

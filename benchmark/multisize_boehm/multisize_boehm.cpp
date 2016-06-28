@@ -52,7 +52,7 @@
 
 
 #ifdef PRECISE_GC
-    #include <libprecisegc/libprecisegc.h>
+    #include <libprecisegc/libprecisegc.hpp>
     using namespace precisegc;
 #endif
 
@@ -315,13 +315,15 @@ struct GCBench {
         }
 
         cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
-#if defined(BDW_GC)
-        cout << "Completed " << GC_gc_no << " collections" <<endl;
-            cout << "Heap size is " << GC_get_heap_size() << endl;
-#elif defined(PRECISE_GC)
-//            cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
-//            cout << "Heap size is " << details::gc_heap::instance().size() << endl;
-#endif
+        #if defined(BDW_GC)
+                cout << "Completed " << GC_get_gc_no() << " collections" << endl;
+                cout << "Heap size is " << GC_get_heap_size() << endl;
+        #elif defined(PRECISE_GC)
+                gc_stat stat = gc_stats();
+                cout << "Completed " << stat.gc_count << " collections" << endl;
+                cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " msec" << endl;
+                cout << "Average pause time " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time / stat.gc_count).count() << " msec" << endl;
+        #endif
     }
 };
 
@@ -329,7 +331,7 @@ int main () {
 #if defined(PRECISE_GC)
     gc_options ops;
     ops.heapsize    = 1024 * 1024 * 1024;      // 1Gb
-    ops.type        = gc_type::SERIAL;
+    ops.type        = gc_type::INCREMENTAL;
     ops.init        = gc_init_strategy::SPACE_BASED;
     ops.compacting  = gc_compacting::DISABLED;
     ops.loglevel    = gc_loglevel::OFF;

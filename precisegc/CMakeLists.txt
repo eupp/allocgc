@@ -3,7 +3,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.hpp
         include/libprecisegc/gc_new.h
         include/libprecisegc/gc.hpp
-        include/libprecisegc/gc_init.hpp
         include/libprecisegc/gc_options.hpp
         include/libprecisegc/libprecisegc.hpp
 
@@ -71,7 +70,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp include/libprecisegc/details/utils/base_offset.hpp include/libprecisegc/details/gc_factory.hpp)
+        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/gc_pin.hpp include/libprecisegc/gc_ref.hpp include/libprecisegc/details/gc_handle.hpp include/libprecisegc/details/threads/threads_snapshot.hpp include/libprecisegc/details/gc_hooks.hpp include/libprecisegc/details/utils/base_offset.hpp include/libprecisegc/details/gc_factory.hpp include/libprecisegc/gc_stat.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -79,7 +78,6 @@ set(precisegc_LIB_SRCS
         src/details/ptrs/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
         src/logging.cpp
-        src/gc_init.cpp
         src/barrier_buffer.cpp
         src/details/collectors/initator.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
@@ -96,7 +94,7 @@ set(precisegc_LIB_SRCS
         src/details/collectors/incremental_gc.cpp
         src/details/printer.cpp
         src/details/recorder.cpp
-        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_hooks.cpp src/details/gc_factory.cpp)
+        src/details/allocators/freelist_pool_chunk.cpp src/details/gc_hooks.cpp src/details/gc_factory.cpp src/gc.cpp)
 
 
 find_package(Threads REQUIRED)

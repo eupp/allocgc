@@ -12,8 +12,8 @@ class initation_policy
 public:
     virtual ~initation_policy() {}
 
-    virtual bool check(const gc_stat& stat, initation_point_type ipoint) const = 0;
-    virtual void update(const gc_stat& stat, initation_point_type ipoint) = 0;
+    virtual bool check(const gc_state& stat, initation_point_type ipoint) const = 0;
+    virtual void update(const gc_state& stat, initation_point_type ipoint) = 0;
 };
 
 class incremental_initation_policy
@@ -21,19 +21,19 @@ class incremental_initation_policy
 public:
     virtual ~incremental_initation_policy() {}
 
-    virtual gc_phase check(const gc_stat& stat, initation_point_type ipoint) const = 0;
-    virtual void update(const gc_stat& stat, initation_point_type ipoint) = 0;
+    virtual gc_phase check(const gc_state& stat, initation_point_type ipoint) const = 0;
+    virtual void update(const gc_state& stat, initation_point_type ipoint) = 0;
 };
 
 class empty_policy : public initation_policy
 {
 public:
-    bool check(const gc_stat& stat, initation_point_type ipoint) const override
+    bool check(const gc_state& stat, initation_point_type ipoint) const override
     {
         return false;
     }
 
-    void update(const gc_stat& stat, initation_point_type ipoint) override
+    void update(const gc_state& stat, initation_point_type ipoint) override
     {
         return;
     }
@@ -42,12 +42,12 @@ public:
 class incremental_empty_policy : public incremental_initation_policy
 {
 public:
-    gc_phase check(const gc_stat& stat, initation_point_type ipoint) const override
+    gc_phase check(const gc_state& stat, initation_point_type ipoint) const override
     {
         return gc_phase::IDLING;
     }
 
-    void update(const gc_stat& stat, initation_point_type ipoint) override
+    void update(const gc_state& stat, initation_point_type ipoint) override
     {
         return;
     }
@@ -61,8 +61,8 @@ public:
                        double increase_factor,
                        size_t max_heap_size = std::numeric_limits<size_t>::max());
 
-    bool check(const gc_stat& stat, initation_point_type ipoint) const override;
-    void update(const gc_stat& stat, initation_point_type ipoint) override;
+    bool check(const gc_state& stat, initation_point_type ipoint) const override;
+    void update(const gc_state& stat, initation_point_type ipoint) override;
 
     size_t heap_size() const;
     size_t max_heap_size() const;
@@ -84,8 +84,8 @@ public:
                                    double increase_factor,
                                    size_t max_heap_size = std::numeric_limits<size_t>::max());
 
-    gc_phase check(const gc_stat& stat, initation_point_type ipoint) const override;
-    void update(const gc_stat& stat, initation_point_type ipoint) override;
+    gc_phase check(const gc_state& stat, initation_point_type ipoint) const override;
+    void update(const gc_state& stat, initation_point_type ipoint) override;
 
     size_t heap_size() const;
     size_t max_heap_size() const;

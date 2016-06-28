@@ -3,12 +3,14 @@
 #include <thread>
 #include <future>
 #include <mutex>
+#include <cassert>
 #include <iostream>
 #include <functional>
 #include <type_traits>
 #include <utility>
 
-#include "../../common/macro.h"
+#include "../../common/macro.hpp"
+#include "../../common/timer.hpp"
 
 #include <libprecisegc/details/utils/scope_guard.hpp>
 
@@ -23,7 +25,6 @@
     using namespace precisegc;
 #endif
 
-// peak heap size - about 16 Mb
 static const int node_size    = 64;
 static const int lists_count  = 512;
 static const int lists_length = 512;
@@ -49,7 +50,7 @@ std::future<typename std::result_of<F(Args...)>::type> launch_task(F&& f, Args&&
 
     std::function<result_type(Args...)> functor(f);
     std::packaged_task<result_type(bool, Args...)> task([functor] (bool parallel_flag, Args&&... task_args) {
-        auto guard = details::utils::make_scope_guard([parallel_flag, &threads_mutex, &threads_cond, &threads_count] {
+        auto guard = precisegc::details::utils::make_scope_guard([parallel_flag, &threads_mutex, &threads_cond, &threads_count] {
             if (parallel_flag) {
                 std::lock_guard<std::mutex> lock(threads_mutex);
                 assert(threads_count != 0);
@@ -226,7 +227,7 @@ int main()
     #if defined(PRECISE_GC)
         gc_options ops;
         ops.heapsize    = 2 * 1024 * 1024;      // 2 Mb
-        ops.type        = gc_type::INCREMENTAL;
+        ops.type        = gc_type::SERIAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
         ops.loglevel    = gc_loglevel::OFF;
@@ -235,14 +236,23 @@ int main()
     #elif defined(BDW_GC)
         GC_INIT();
         GC_enable_incremental();
+        GC_register_my_thread()
+        GC_allow_register_threads();
     #endif
 
+    std::cout << "Sorting " << lists_count << " lists with length " << lists_length << std::endl;
+    std::cout << "Size of each list " << lists_length * sizeof(Node) << " b" << std::endl;
+    std::cout << "Total memory usage " << 2 * lists_length * sizeof(Node) * lists_count << " b" << std::endl;
+
+    timer tm;
     for (int i = 0; i < lists_count; ++i) {
-        if ((i+1) % 64 == 0) {
-            std::cout << "Sorting " << i+1 << " list" << std::endl;
+        if ((i+1) % 32 == 0) {
+            std::cout << (i+1) * 100 / lists_count << "%" << std::endl;
         }
-        launch_task(routine);
+        routine();
     }
     wait_for_tasks_complete();
+
+    std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>().count() << " ms" << std::endl;
 }
 

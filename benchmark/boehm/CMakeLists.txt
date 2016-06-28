@@ -1,7 +1,7 @@
 find_package(Threads REQUIRED)
 
 set(boehm_SRC
-        ../../common/macro.h
+        ../../common/macro.hpp
         boehm.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

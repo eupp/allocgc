@@ -42,7 +42,7 @@
 #include <type_traits>
 #include <sys/time.h>
 
-#include "../../common/macro.h"
+#include "../../common/macro.hpp"
 
 #ifdef BDW_GC
     #include <gc/gc.h>

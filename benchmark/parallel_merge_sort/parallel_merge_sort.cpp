@@ -236,8 +236,6 @@ int main()
     #elif defined(BDW_GC)
         GC_INIT();
         GC_enable_incremental();
-        GC_register_my_thread()
-        GC_allow_register_threads();
     #endif
 
     std::cout << "Sorting " << lists_count << " lists with length " << lists_length << std::endl;

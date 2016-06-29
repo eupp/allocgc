@@ -338,7 +338,7 @@ int main () {
     ops.print_stat  = false;
     gc_init(ops);
 #elif defined(BDW_GC)
-    //        GC_full_freq = 30;
+        GC_INIT();
         GC_enable_incremental();
 #endif
     GCBench x;

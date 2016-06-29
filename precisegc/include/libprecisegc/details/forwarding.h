@@ -25,7 +25,6 @@ public:
 
     std::vector<entry>& get_list();
 private:
-
     std::vector<entry> m_frwd_list;
 };
 
@@ -35,24 +34,7 @@ public:
     intrusive_forwarding();
     void create(void* from, void* to, size_t obj_size);
     void forward(void* ptr) const;
-private:
-    template<typename T>
-    struct fast_pointer_hash {
-        size_t operator() (const T* val) const
-        {
-            uintptr_t ad = (uintptr_t)val;
-            return (size_t)((13 * ad) ^ (ad >> 15));
-//            return (size_t)(val) >> 3;
-//            uintptr_t ad = (uintptr_t) val;
-//            return (size_t)(ad ^ (ad >> 16));
-        }
-    };
-
-    static const size_t CACHE_SIZE = 1024;
-    typedef std::unordered_map<void*, memory_descriptor*, fast_pointer_hash<void>> cache_t;
-
-    size_t m_frwd_cnt;
-    mutable cache_t m_cache;
+    void join(const intrusive_forwarding& other);
 };
 
 }}

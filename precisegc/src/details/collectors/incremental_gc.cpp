@@ -135,7 +135,7 @@ void incremental_gc_base::sweep()
     }
     set_phase(gc_phase::SWEEPING);
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot);
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
     gc_pause_stat pause_stat = {
             .type       = pause_type,
             .duration   = snapshot.time_since_stop_the_world()

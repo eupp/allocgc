@@ -16,7 +16,7 @@
 
 namespace precisegc { namespace details { namespace utils {
 
-class static_thread_pool : private utils::noncopyable
+class static_thread_pool : private utils::noncopyable, private utils::nonmovable
 {
 public:
     explicit static_thread_pool(size_t n)

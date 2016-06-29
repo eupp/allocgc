@@ -2,7 +2,7 @@
 #define DIPLOMA_SCOPED_THREAD_HPP
 
 #include <thread>
-#include <stdexcept>
+#include <utility>
 
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -14,11 +14,16 @@ public:
     scoped_thread() = default;
     scoped_thread(scoped_thread&&) = default;
 
-    scoped_thread& operator=(scoped_thread&&) = default;
+    template <typename Functor, typename... Args>
+    explicit scoped_thread(Functor&& f, Args&&... args)
+        : m_thread(std::forward<Functor>(f), std::forward<Args>(args)...)
+    {};
 
     scoped_thread(std::thread&& thread)
         : m_thread(std::move(thread))
     {}
+
+    scoped_thread& operator=(scoped_thread&&) = default;
 
     scoped_thread& operator=(std::thread&& thread)
     {

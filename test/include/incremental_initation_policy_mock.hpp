@@ -8,7 +8,7 @@
 class incremental_initation_policy_mock : public precisegc::details::collectors::incremental_initation_policy
 {
     typedef precisegc::details::gc_phase gc_phase;
-    typedef precisegc::details::gc_stat gc_stat;
+    typedef precisegc::details::gc_state gc_stat;
     typedef precisegc::details::initation_point_type initation_point_type;
 public:
     MOCK_CONST_METHOD2(check, gc_phase(const gc_stat&, initation_point_type));

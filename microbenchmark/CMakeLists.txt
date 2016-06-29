@@ -1,9 +1,8 @@
 set(precisegc_microbenchmark
         main.cpp
-        parallel_merge_sort_benchmark.cpp
         index_tree_benchmark.cpp
         pointers_benchmark.cpp
-        ../common/macro.h stack_map_benchmark.cpp)
+        ../common/macro.hpp stack_map_benchmark.cpp lock_free_benchmark.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/details/allocators/pow2_bucket_policy.h"
+#include "libprecisegc/details/allocators/pow2_bucket_policy.hpp"
 
 using namespace precisegc::details::allocators;
 

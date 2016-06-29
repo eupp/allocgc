@@ -1,7 +1,7 @@
 find_package(Threads REQUIRED)
 
 set(boehm_SRC
-        ../../common/macro.h
+        ../../common/macro.hpp
         multisize_boehm.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
@@ -33,7 +33,7 @@ if(NO_GC)
 endif()
 
 if(BDW_GC)
-    target_link_libraries(boehm ${BDWGC})
+    target_link_libraries(multisize_boehm ${BDWGC})
     add_definitions(-DBDW_GC)
 endif()
 

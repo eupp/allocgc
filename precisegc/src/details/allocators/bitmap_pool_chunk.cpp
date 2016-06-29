@@ -1,4 +1,4 @@
-#include "allocators/bitmap_pool_chunk.h"
+#include "allocators/bitmap_pool_chunk.hpp"
 
 #include <cassert>
 #include <utility>

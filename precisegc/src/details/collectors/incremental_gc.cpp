@@ -116,7 +116,7 @@ void incremental_gc_base::sweep()
     using namespace threads;
     assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);
 
-    gc_pause_type pause_type = gc_pause_type::NO_PAUSE;
+    gc_pause_type pause_type;
     if (phase() == gc_phase::MARKING) {
         m_marker.pause_marking();
     }
@@ -135,7 +135,7 @@ void incremental_gc_base::sweep()
     }
     set_phase(gc_phase::SWEEPING);
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot);
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
     gc_pause_stat pause_stat = {
             .type       = pause_type,
             .duration   = snapshot.time_since_stop_the_world()

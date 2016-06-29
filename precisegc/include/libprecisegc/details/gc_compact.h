@@ -10,7 +10,7 @@
 #include "forwarding.h"
 #include "object_meta.h"
 #include "gc_mark.h"
-#include "../gc_ptr.h"
+#include "libprecisegc/gc_ptr.hpp"
 #include "managed_ptr.hpp"
 
 #include "stack_map.hpp"

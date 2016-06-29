@@ -2,7 +2,7 @@
 #define DIPLOMA_MACRO_HPP
 
 #ifdef PRECISE_GC
-    #include "libprecisegc/libprecisegc.h"
+    #include "libprecisegc/libprecisegc.hpp"
 #endif
 
 #ifdef BDW_GC

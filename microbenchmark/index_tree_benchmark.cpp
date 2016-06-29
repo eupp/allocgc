@@ -3,7 +3,7 @@
 #include <vector>
 #include <cstdlib>
 
-#include "libprecisegc/details/index_tree.h"
+#include "libprecisegc/details/index_tree.hpp"
 
 using namespace precisegc::details;
 

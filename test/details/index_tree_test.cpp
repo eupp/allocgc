@@ -2,10 +2,10 @@
 
 #include <random>
 #include <limits>
-#include <libprecisegc/details/index_tree.h>
+#include <libprecisegc/details/index_tree.hpp>
 
-#include "libprecisegc/details/index_tree.h"
-#include "libprecisegc/details/allocators/debug_layer.h"
+#include "libprecisegc/details/index_tree.hpp"
+#include "libprecisegc/details/allocators/debug_layer.hpp"
 #include "libprecisegc/details/allocators/page_allocator.hpp"
 
 using namespace precisegc::details;

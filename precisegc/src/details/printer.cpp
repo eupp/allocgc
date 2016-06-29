@@ -107,8 +107,8 @@ const char* printer::pause_type_str(gc_pause_type pause_type)
         return "trace roots";
     } else if (pause_type == gc_pause_type::SWEEP_HEAP) {
         return "sweep heap";
-    } else if (pause_type == gc_pause_type::NO_PAUSE) {
-        return "no";
+    } else {
+        return "undefined";
     }
 }
 

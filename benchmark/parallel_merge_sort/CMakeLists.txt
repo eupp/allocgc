@@ -1,8 +1,9 @@
 find_package(Threads REQUIRED)
 
 set(par_merge_sort_SRC
-        ../../common/macro.h
-        parallel_merge_sort.cpp parallel_merge_sort.cpp)
+        ../../common/macro.hpp
+        ../../common/timer.hpp
+        parallel_merge_sort.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 

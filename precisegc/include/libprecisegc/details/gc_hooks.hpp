@@ -6,6 +6,7 @@
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {
 
@@ -19,6 +20,7 @@ void gc_initation_point(initation_point_type ipoint);
 
 gc_info gc_get_info();
 gc_stat gc_get_stats();
+gc_state gc_get_state();
 
 void gc_enable_print_stats();
 void gc_disable_print_stats();

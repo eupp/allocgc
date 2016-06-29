@@ -16,7 +16,7 @@ enum class gc_pause_type {
       GC
     , TRACE_ROOTS
     , SWEEP_HEAP
-    , NO_PAUSE
+    , count
 };
 
 enum class gc_phase {
@@ -32,11 +32,10 @@ struct gc_info
     bool    support_concurrent_sweep;
 };
 
-struct gc_stat
+struct gc_state
 {
     size_t              heap_size;
     size_t              heap_gain;
-    gc_clock::duration  last_alloc_timediff;
     gc_clock::duration  last_gc_time;
     gc_clock::duration  last_gc_duration;
 };

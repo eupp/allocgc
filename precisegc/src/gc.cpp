@@ -1,7 +1,4 @@
-#include <libprecisegc/gc_init.h>
-
-#include <iostream>
-#include <memory>
+#include <libprecisegc/gc.hpp>
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
@@ -10,11 +7,11 @@
 
 namespace precisegc {
 
-static bool init_flag = false;
+using namespace details;
 
 int gc_init(const gc_options& options)
 {
-    using namespace details;
+    static bool init_flag = false;
     if (!init_flag) {
         logging::init(std::clog, options.loglevel);
         threads::thread_manager::instance().register_main_thread();
@@ -31,4 +28,15 @@ int gc_init(const gc_options& options)
     return 0;
 }
 
+gc_stat gc_stats()
+{
+    return gc_get_stats();
 }
+
+void gc()
+{
+    gc_initation_point(details::initation_point_type::USER_REQUEST);
+}
+
+}
+

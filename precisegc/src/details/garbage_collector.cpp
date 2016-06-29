@@ -3,6 +3,7 @@
 #include <cassert>
 #include <memory>
 #include <iostream>
+#include <libprecisegc/details/gc_unsafe_scope.h>
 
 namespace precisegc { namespace details {
 
@@ -30,7 +31,6 @@ std::unique_ptr<gc_strategy> garbage_collector::reset_strategy(std::unique_ptr<g
 managed_ptr garbage_collector::allocate(size_t size)
 {
     assert(m_strategy);
-    m_recorder.register_alloc_request();
     managed_ptr p = m_strategy->allocate(size);
     m_recorder.register_allocation(p.cell_size());
     return p;
@@ -130,9 +130,18 @@ gc_info garbage_collector::info() const
     return m_strategy->info();
 }
 
-gc_stat garbage_collector::stat() const
+gc_stat garbage_collector::stats() const
 {
-    return m_recorder.stat();
+    gc_unsafe_scope unsafe_scope;
+    gc_stat stat;
+    stat.gc_count = m_recorder.gc_cycles_count();
+    stat.gc_time = m_recorder.gc_pause_time();
+    return stat;
+}
+
+gc_state garbage_collector::state() const
+{
+    return m_recorder.state();
 }
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)

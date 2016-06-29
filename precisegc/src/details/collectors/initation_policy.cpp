@@ -20,7 +20,7 @@ space_based_policy::space_based_policy(size_t start_heap_size,
     }
 }
 
-bool space_based_policy::check(const gc_stat& stat, initation_point_type ipoint) const
+bool space_based_policy::check(const gc_state& stat, initation_point_type ipoint) const
 {
     if (ipoint == initation_point_type::HEAP_GROWTH) {
         return stat.heap_size > m_threshold * heap_size();
@@ -28,7 +28,7 @@ bool space_based_policy::check(const gc_stat& stat, initation_point_type ipoint)
     return false;
 }
 
-void space_based_policy::update(const gc_stat& stat, initation_point_type ipoint)
+void space_based_policy::update(const gc_state& stat, initation_point_type ipoint)
 {
     if (ipoint == initation_point_type::HEAP_GROWTH) {
         size_t curr_max_heap_size = heap_size();
@@ -76,7 +76,7 @@ incremental_space_based_policy::incremental_space_based_policy(size_t start_heap
     }
 }
 
-gc_phase incremental_space_based_policy::check(const gc_stat& stat, initation_point_type ipoint) const
+gc_phase incremental_space_based_policy::check(const gc_state& stat, initation_point_type ipoint) const
 {
     if (m_sweeping_policy.check(stat, ipoint)) {
         return gc_phase::SWEEPING;
@@ -86,7 +86,7 @@ gc_phase incremental_space_based_policy::check(const gc_stat& stat, initation_po
     return gc_phase::IDLING;
 }
 
-void incremental_space_based_policy::update(const gc_stat& stat, initation_point_type ipoint)
+void incremental_space_based_policy::update(const gc_state& stat, initation_point_type ipoint)
 {
     m_sweeping_policy.update(stat, ipoint);
 }

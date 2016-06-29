@@ -1,4 +1,4 @@
-#include <libprecisegc/libprecisegc.h>
+#include <libprecisegc/libprecisegc.hpp>
 #include <stdio.h>
 
 class A {

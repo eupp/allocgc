@@ -9,7 +9,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/allocators/bitmap_pool_chunk.h>
+#include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>

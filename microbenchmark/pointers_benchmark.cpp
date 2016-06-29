@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <memory>
 
-#include <libprecisegc/libprecisegc.h>
+#include <libprecisegc/libprecisegc.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 
 using namespace precisegc;
@@ -144,7 +144,6 @@ NONIUS_BENCHMARK("ptrs gc_ptr dereference", [](nonius::chronometer meter)
 {
     gc_ptr<obj_type> p = gc_new<obj_type>(42);
     meter.measure([&p] {
-        gc_pin<obj_type> pin(p);
-        return *pin;
+        return *p;
     });
 });

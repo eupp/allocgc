@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "libprecisegc/libprecisegc.h"
+#include "libprecisegc/libprecisegc.hpp"
 
 using namespace precisegc;
 
@@ -15,6 +15,7 @@ public:
     {
         gc_options gc_ops;
         gc_ops.type         = gc_type::SERIAL;
+        gc_ops.init         = gc_init_strategy::MANUAL;
         gc_ops.compacting   = gc_compacting::ENABLED;
         gc_ops.loglevel     = gc_loglevel::DEBUG;
         gc_ops.print_stat   = true;

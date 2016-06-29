@@ -43,7 +43,8 @@
 #include <utility>
 #include <sys/time.h>
 
-#include "../../common/macro.h"
+#include "../../common/macro.hpp"
+#include "../../common/timer.hpp"
 
 #ifdef BDW_GC
 #include <gc/gc.h>
@@ -51,25 +52,11 @@
 
 
 #ifdef PRECISE_GC
-    #include <libprecisegc/libprecisegc.h>
+    #include <libprecisegc/libprecisegc.hpp>
     using namespace precisegc;
 #endif
 
 using namespace std;
-
-//  These macros were a quick hack for the Macintosh.
-#define currentTime() stats_rtclock()
-#define elapsedTime(x) (x)
-
-/* Get the current time in milliseconds */
-unsigned stats_rtclock( void ) {
-    struct timeval t;
-    struct timezone tz;
-
-    if (gettimeofday( &t, &tz ) == -1)
-        return 0;
-    return (unsigned)(t.tv_sec * 1000 + t.tv_usec / 1000);
-}
 
 static const int kStretchTreeDepth    = 18; //18;
 static const int kLongLivedTreeDepth  = 16; //16;
@@ -249,17 +236,6 @@ struct GCBench {
         }
     }
 
-    static void PrintDiagnostics() {
-#if 0
-        long lFreeMemory = Runtime.getRuntime().freeMemory();
-            long lTotalMemory = Runtime.getRuntime().totalMemory();
-
-            System.out.print(" Total memory available="
-                           + lTotalMemory + " bytes");
-            System.out.println("  Free memory=" + lFreeMemory + " bytes");
-#endif
-    }
-
     static void TimeConstruction(int depth) {
         long    tStart, tFinish;
         int     iNumIters = NumIters(depth);
@@ -267,7 +243,7 @@ struct GCBench {
 
         cout << "Creating " << iNumIters << " trees of depth " << depth << endl;
 
-        tStart = currentTime();
+        timer tm;
         for (int i = 0; i < iNumIters; ++i) {
             tempTree = createNode();
             Populate(depth, tempTree);
@@ -275,17 +251,15 @@ struct GCBench {
             set_null(tempTree);
         }
 
-        tFinish = currentTime();
-        cout << "\tTop down construction took " << elapsedTime(tFinish - tStart) << " msec" << endl;
+        cout << "\tTop down construction took " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
 
-        tStart = currentTime();
+        tm.reset();
         for (int i = 0; i < iNumIters; ++i) {
             tempTree = MakeTree(depth);
             delete_(tempTree);
             set_null(tempTree);
         }
-        tFinish = currentTime();
-        cout << "\tBottom up construction took " << elapsedTime(tFinish - tStart) << " msec" << endl;
+        cout << "\tBottom up construction took " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
     }
 
     void main() {
@@ -307,9 +281,7 @@ struct GCBench {
         << " bytes." << endl << endl;
         cout << " Stretching memory with a binary tree of depth " << kStretchTreeDepth << endl;
 
-        PrintDiagnostics();
-
-        tStart = currentTime();
+        timer tm;
 
         // Stretch the memory space quickly
         tempTree = MakeTree(kStretchTreeDepth);
@@ -330,8 +302,6 @@ struct GCBench {
 //            array[i] = 1.0/i;
 //        }
 
-        PrintDiagnostics();
-
 
         for (int d = kMinTreeDepth; d <= kMaxTreeDepth; d += 2) {
             TimeConstruction(d);
@@ -344,17 +314,16 @@ struct GCBench {
             // to keep them from being optimized away
         }
 
-        tFinish = currentTime();
-        tElapsed = elapsedTime(tFinish-tStart);
-        PrintDiagnostics();
-        cout << "Completed in " << tElapsed << " msec" << endl;
-#if defined(BDW_GC)
-        cout << "Completed " << GC_gc_no << " collections" <<endl;
-            cout << "Heap size is " << GC_get_heap_size() << endl;
-#elif defined(PRECISE_GC)
-//            cout << "Completed " << details::gc_garbage_collector::instance().get_gc_cycles_count() << " collections" <<endl;
-//            cout << "Heap size is " << details::gc_heap::instance().size() << endl;
-#endif
+        cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
+        #if defined(BDW_GC)
+                cout << "Completed " << GC_get_gc_no() << " collections" << endl;
+                cout << "Heap size is " << GC_get_heap_size() << endl;
+        #elif defined(PRECISE_GC)
+                gc_stat stat = gc_stats();
+                cout << "Completed " << stat.gc_count << " collections" << endl;
+                cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " msec" << endl;
+                cout << "Average pause time " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time / stat.gc_count).count() << " msec" << endl;
+        #endif
     }
 };
 
@@ -364,12 +333,12 @@ int main () {
     ops.heapsize    = 1024 * 1024 * 1024;      // 1Gb
     ops.type        = gc_type::SERIAL;
     ops.init        = gc_init_strategy::SPACE_BASED;
-    ops.compacting  = gc_compacting::DISABLED;
+    ops.compacting  = gc_compacting::ENABLED;
     ops.loglevel    = gc_loglevel::OFF;
     ops.print_stat  = false;
     gc_init(ops);
 #elif defined(BDW_GC)
-    //        GC_full_freq = 30;
+        GC_INIT();
         GC_enable_incremental();
 #endif
     GCBench x;

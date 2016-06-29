@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/gc_new.h"
+#include "libprecisegc/gc_new.hpp"
 #include "libprecisegc/details/type_meta.hpp"
 #include "libprecisegc/details/gc_mark.h"
 

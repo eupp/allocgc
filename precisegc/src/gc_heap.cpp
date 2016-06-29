@@ -67,16 +67,17 @@ gc_heap::forwarding gc_heap::parallel_compact(size_t threads_num)
     logging::info() << "Compacting memory (in parallel with " << threads_num << " threads)...";
 
     utils::static_thread_pool thread_pool(threads_num);
+    std::array<std::function<void()>, SEGREGATED_STORAGE_SIZE> tasks;
     std::array<forwarding, SEGREGATED_STORAGE_SIZE> forwardings;
 
     for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
-        thread_pool.submit([this, i, &forwardings] {
+        tasks[i] = [this, i, &forwardings] {
             auto& bp = m_alloc.get_bucket_policy();
             auto rng = m_alloc.memory_range(i);
             two_finger_compact(rng, bp.bucket_size(i), forwardings[i]);
-        });
+        };
     }
-    thread_pool.wait_for_complete();
+    thread_pool.run(tasks.begin(), tasks.end());
 
     forwarding frwd = forwardings[0];
     for (size_t i = 1; i < SEGREGATED_STORAGE_SIZE; ++i) {
@@ -109,8 +110,7 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
         });
     });
 
-    thread_pool.submit(tasks.begin(), tasks.end());
-    thread_pool.wait_for_complete();
+    thread_pool.run(tasks.begin(), tasks.end());
 }
 
 void gc_heap::fix_roots(const threads::world_snapshot& snapshot, const forwarding& frwd)

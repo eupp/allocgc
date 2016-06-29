@@ -5,7 +5,7 @@
 #include <atomic>
 #include <mutex>
 #include <condition_variable>
-#include <queue>
+#include <vector>
 #include <utility>
 #include <type_traits>
 
@@ -22,6 +22,8 @@ public:
     explicit static_thread_pool(size_t n)
         : m_threads(n)
         , m_done(false)
+        , m_tasks_cnt(0)
+        , m_complete_tasks_cnt(0)
     {
         auto guard = make_scope_guard([this] { stop_workers(); });
         for (auto& thread: m_threads) {
@@ -35,66 +37,63 @@ public:
         stop_workers();
     }
 
-    template <typename Functor>
-    void submit(Functor&& f)
-    {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        unsafe_submit(std::forward<Functor>(f));
-        m_not_empty_cond.notify_one();
-    };
-
     template <typename Iterator>
-    void submit(Iterator first, Iterator last)
+    void run(Iterator first, Iterator last)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        for (; first != last; ++first) {
-            unsafe_submit(*first);
-        }
-        m_not_empty_cond.notify_all();
-    }
+        typedef decltype(*std::declval<Iterator>()) functor_t;
+        static_assert(std::is_same<void, typename std::result_of<functor_t()>::type>::value,
+                      "Only void() tasks are supported");
 
-    void wait_for_complete()
-    {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_empty_cond.wait(lock, [this] { return m_tasks.empty(); });
+        for (; first != last; ++first) {
+            m_tasks.emplace_back(*first);
+        }
+        m_tasks_cnt = m_tasks.size();
+        m_complete_tasks_cnt = 0;
+        m_tasks_ready_cond.notify_all();
+
+        m_tasks_complete_cond.wait(lock, [this] { return m_complete_tasks_cnt == m_tasks_cnt; });
     }
 private:
-    template <typename Functor>
-    void unsafe_submit(Functor&& f)
-    {
-        static_assert(std::is_same<void, typename std::result_of<Functor()>::type>::value,
-                      "Only void() tasks are supported");
-        m_tasks.emplace(std::forward<Functor>(f));
-    }
-
     void stop_workers()
     {
         m_done = true;
-        m_not_empty_cond.notify_all();
+        m_tasks_ready_cond.notify_all();
     }
 
     void thread_routine()
     {
         while (true) {
             std::unique_lock<std::mutex> lock(m_mutex);
-            m_not_empty_cond.wait(lock, [this] { return !m_tasks.empty() || m_done; });
+            m_tasks_ready_cond.wait(lock, [this] { return !m_tasks.empty() || m_done; });
             if (m_done) {
                 return;
             }
-            std::function<void()> task = m_tasks.front();
-            m_tasks.pop();
-            m_empty_cond.notify_all();
+
+            size_t tasks_per_worker = (m_tasks_cnt + m_threads.size() - 1) / m_threads.size();
+            size_t pop_cnt = std::min(tasks_per_worker, m_tasks.size());
+            std::vector<std::function<void()>> worker_tasks(m_tasks.rbegin(), std::next(m_tasks.rbegin(), pop_cnt));
+            m_tasks.resize(m_tasks.size() - pop_cnt);
             lock.unlock();
-            task();
+
+            for (auto& task: worker_tasks) {
+                task();
+            }
+
+            lock.lock();
+            m_complete_tasks_cnt += pop_cnt;
+            m_tasks_complete_cond.notify_all();
         }
     }
 
     dynarray<scoped_thread> m_threads;
-    std::queue<std::function<void()>> m_tasks;
-    std::mutex m_mutex;
-    std::condition_variable m_not_empty_cond;
-    std::condition_variable m_empty_cond;
     std::atomic<bool> m_done;
+    std::vector<std::function<void()>> m_tasks;
+    size_t m_tasks_cnt;
+    size_t m_complete_tasks_cnt;
+    std::mutex m_mutex;
+    std::condition_variable m_tasks_ready_cond;
+    std::condition_variable m_tasks_complete_cond;
 };
 
 }}}

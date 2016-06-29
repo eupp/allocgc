@@ -1,5 +1,7 @@
 #include <libprecisegc/details/recorder.hpp>
 
+#include <libprecisegc/details/logging.h>
+
 namespace precisegc { namespace details {
 
 recorder::recorder()
@@ -18,11 +20,15 @@ void recorder::register_allocation(size_t size)
 
 void recorder::register_pause(const gc_pause_stat& pause_stat)
 {
+    logging::info() << "GC pause duration " << pause_stat.duration.count();
+
     m_gc_time.fetch_add(pause_stat.duration.count(), std::memory_order_acq_rel);
 }
 
 void recorder::register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
 {
+    logging::info() << "GC pause duration " << pause_stat.duration.count();
+
     gc_clock::duration now = gc_clock::now().time_since_epoch();
     size_t freed = sweep_stat.shrunk + sweep_stat.swept;
 

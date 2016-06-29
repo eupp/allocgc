@@ -21,42 +21,69 @@ class static_thread_pool : private utils::noncopyable
 public:
     explicit static_thread_pool(size_t n)
         : m_threads(n)
+        , m_done(false)
     {
-        auto guard = make_scope_guard([this] { m_done = true; });
+        auto guard = make_scope_guard([this] { stop_workers(); });
         for (auto& thread: m_threads) {
-            thread = std::thread(thread_routine, this);
+            thread = std::thread(&precisegc::details::utils::static_thread_pool::thread_routine, this);
         }
         guard.commit();
     }
 
     ~static_thread_pool()
     {
-        m_done = false;
+        stop_workers();
     }
 
     template <typename Functor>
     void submit(Functor&& f)
     {
-        static_assert(std::is_same<void, typename std::result_of<Functor()>::type>::value,
-                      "Only void() tasks are supported");
         std::lock_guard<std::mutex> lock(m_mutex);
-        m_tasks.emplace(std::forward<Functor>(f));
-        m_condvar.notify_one();
+        unsafe_submit(std::forward<Functor>(f));
+        m_not_empty_cond.notify_one();
     };
 
-    void wait_for_all_tasks()
+    template <typename Iterator>
+    void submit(Iterator first, Iterator last)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (; first != last; ++first) {
+            unsafe_submit(*first);
+        }
+        m_not_empty_cond.notify_all();
+    }
+
+    void wait_for_complete()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_condvar.wait(lock, [this] { return m_tasks.empty(); });
+        m_empty_cond.wait(lock, [this] { return m_tasks.empty(); });
     }
 private:
+    template <typename Functor>
+    void unsafe_submit(Functor&& f)
+    {
+        static_assert(std::is_same<void, typename std::result_of<Functor()>::type>::value,
+                      "Only void() tasks are supported");
+        m_tasks.emplace(std::forward<Functor>(f));
+    }
+
+    void stop_workers()
+    {
+        m_done = true;
+        m_not_empty_cond.notify_all();
+    }
+
     void thread_routine()
     {
-        while (!m_done) {
+        while (true) {
             std::unique_lock<std::mutex> lock(m_mutex);
-            m_condvar.wait(lock, [this] { return !m_tasks.empty(); });
+            m_not_empty_cond.wait(lock, [this] { return !m_tasks.empty() || m_done; });
+            if (m_done) {
+                return;
+            }
             std::function<void()> task = m_tasks.front();
             m_tasks.pop();
+            m_empty_cond.notify_all();
             lock.unlock();
             task();
         }
@@ -65,7 +92,8 @@ private:
     dynarray<scoped_thread> m_threads;
     std::queue<std::function<void()>> m_tasks;
     std::mutex m_mutex;
-    std::condition_variable m_condvar;
+    std::condition_variable m_not_empty_cond;
+    std::condition_variable m_empty_cond;
     std::atomic<bool> m_done;
 };
 

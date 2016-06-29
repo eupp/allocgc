@@ -94,6 +94,8 @@ std::string printer::duration_str(gc_clock::duration duration)
         return str(dur_us / s) + " s ";
     } else if (dur_us >= ms) {
         return str(dur_us / ms) + " ms";
+    } else {
+        return str(dur_us) + " us";
     }
 }
 
@@ -105,6 +107,8 @@ const char* printer::pause_type_str(gc_pause_type pause_type)
         return "trace roots";
     } else if (pause_type == gc_pause_type::SWEEP_HEAP) {
         return "sweep heap";
+    } else {
+        return "undefined";
     }
 }
 

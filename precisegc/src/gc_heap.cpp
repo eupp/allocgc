@@ -33,7 +33,6 @@ gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot, size_t thr
         if (threads_available > 1) {
             forwarding frwd = parallel_compact(threads_available);
             parallel_fix_pointers(frwd, threads_available);
-            logging::info() << "Fixing roots...";
             fix_roots(snapshot, frwd);
         } else {
             forwarding frwd = compact();

@@ -1,33 +1,58 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/details/threads/pending_call.hpp>
-
-#include <mutex>
+#include <libprecisegc/details/utils/scope_guard.hpp>
 
 using namespace precisegc::details::threads;
+using namespace precisegc::details::utils;
 
-namespace {
-int counter = 0;
-
-void f()
+struct pending_call_test : public ::testing::Test
 {
-    ++counter;
-}
-}
+    pending_call_test()
+    {
+        counter = 0;
+    }
 
-TEST(pending_call_test, test_pending_call)
+    static void inc_counter()
+    {
+        ++counter;
+    }
+
+    static int counter;
+};
+
+int pending_call_test::counter = 0;
+
+TEST_F(pending_call_test, test_pending_call)
 {
-    pending_call pcall(f);
-    ASSERT_EQ(0, counter);
+    pending_call pcall(pending_call_test::inc_counter);
+    ASSERT_EQ(0, (int) counter);
 
     pcall();
-    ASSERT_EQ(1, counter);
+    ASSERT_EQ(1, (int) counter);
 
     {
-        std::lock_guard<pending_call> lock(pcall);
+        pcall.enter_pending_scope();
+        auto guard = make_scope_guard([&pcall] { pcall.leave_pending_scope(); });
         pcall();
-        ASSERT_EQ(1, counter);
-        ASSERT_TRUE(pcall.is_locked());
+        ASSERT_EQ(1, (int) counter);
+        ASSERT_TRUE(pcall.is_in_pending_scope());
     }
-    ASSERT_EQ(2, counter);
+    ASSERT_EQ(2, (int) counter);
+}
+
+TEST_F(pending_call_test, test_safe_scope)
+{
+    pending_call pcall(pending_call_test::inc_counter);
+    ASSERT_EQ(0, (int) counter);
+
+    pcall.enter_pending_scope();
+    auto guard1 = make_scope_guard([&pcall] { pcall.leave_pending_scope(); });
+    pcall();
+    ASSERT_EQ(0, (int) counter);
+
+    pcall.enter_safe_scope();
+    auto guard2 = make_scope_guard([&pcall] { pcall.leave_safe_scope(); });
+    ASSERT_FALSE(pcall.is_in_pending_scope());
+    ASSERT_EQ(1, (int) counter);
 }

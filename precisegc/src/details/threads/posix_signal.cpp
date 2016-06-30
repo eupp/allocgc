@@ -62,17 +62,27 @@ void posix_signal::send(pthread_t thread)
 
 void posix_signal::lock()
 {
-    pcall.lock();
+    pcall.enter_pending_scope();
 }
 
 void posix_signal::unlock()
 {
-    pcall.unlock();
+    pcall.leave_pending_scope();
+}
+
+void posix_signal::enter_safe_scope()
+{
+    pcall.enter_safe_scope();
+}
+
+void posix_signal::leave_safe_scope()
+{
+    pcall.leave_safe_scope();
 }
 
 bool posix_signal::is_locked()
 {
-    return pcall.is_locked();
+    return pcall.is_in_pending_scope();
 }
 
 }}}

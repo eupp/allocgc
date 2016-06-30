@@ -17,6 +17,16 @@ public:
     {
         threads::posix_signal::unlock();
     }
+
+    static void enter_safepoint()
+    {
+        threads::posix_signal::enter_safe_scope();
+    }
+
+    static void leave_safepoint()
+    {
+        threads::posix_signal::leave_safe_scope();
+    }
 };
 
 }}

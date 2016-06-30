@@ -15,21 +15,28 @@ public:
     constexpr pending_call(callable_type callable)
         : m_callable(callable)
         , m_depth(0)
+        , m_saved_depth(0)
         , m_pending_flag(NOT_PENDING)
     {}
 
     void operator()();
 
-    void lock();
-    void unlock();
+    void enter_pending_scope();
+    void leave_pending_scope();
+    
+    void enter_safe_scope();
+    void leave_safe_scope();
 
-    bool is_locked() const;
+    bool is_in_pending_scope() const;
 private:
+    void call_if_pended();
+
     static const sig_atomic_t PENDING = 1;
     static const sig_atomic_t NOT_PENDING = 0;
 
     callable_type m_callable;
     volatile sig_atomic_t m_depth;
+    volatile sig_atomic_t m_saved_depth;
     volatile sig_atomic_t m_pending_flag;
 };
 

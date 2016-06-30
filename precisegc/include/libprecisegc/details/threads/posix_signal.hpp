@@ -30,6 +30,9 @@ public:
     static void lock();
     static void unlock();
 
+    static void enter_safe_scope();
+    static void leave_safe_scope();
+
     static bool is_locked();
 
     friend void call_signal_handler();

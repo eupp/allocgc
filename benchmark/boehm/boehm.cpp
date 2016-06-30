@@ -218,7 +218,7 @@ int main () {
     #if defined(PRECISE_GC)
         gc_options ops;
         ops.heapsize    = 64 * 1024 * 1024;      // 64 Mb
-        ops.type        = gc_type::INCREMENTAL;
+        ops.type        = gc_type::SERIAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = gc_compacting::ENABLED;
         ops.loglevel    = gc_loglevel::INFO;

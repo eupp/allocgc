@@ -11,20 +11,16 @@ namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
-incremental_gc_base::incremental_gc_base(gc_compacting compacting,
-                                         std::unique_ptr<incremental_initation_policy> init_policy)
-    : m_initator(this, std::move(init_policy))
-    , m_heap(compacting)
-    , m_phase(gc_phase::IDLING)
-{
-    assert(m_phase.is_lock_free());
-}
+incremental_gc_base::incremental_gc_base(gc_compacting compacting)
+    : m_heap(compacting)
+    , m_phase(gc_phase::IDLE)
+{}
 
 managed_ptr incremental_gc_base::allocate(size_t size)
 {
     gc_unsafe_scope unsafe_scope;
     managed_ptr mp = m_heap.allocate(size);
-    if (phase() == gc_phase::MARKING) {
+    if (m_phase == gc_phase::MARK) {
         mp.set_mark(true);
     }
     return mp;
@@ -40,7 +36,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_unsafe_scope unsafe_scope;
     byte* p = gc_handle_access::load(src, std::memory_order_acquire);
     gc_handle_access::store(dst, p, std::memory_order_release);
-    if (phase() == gc_phase::MARKING) {
+    if (m_phase == gc_phase::MARK) {
         bool res = shade(p);
         while (!res) {
             m_marker.trace_barrier_buffers();
@@ -60,36 +56,11 @@ void incremental_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
     gc_handle_access::fetch_advance(handle, shift, std::memory_order_acq_rel);
 }
 
-void incremental_gc_base::initation_point(initation_point_type ipoint)
+void incremental_gc_base::gc(gc_phase phase)
 {
-    m_initator.initation_point(ipoint);
-}
-
-gc_phase incremental_gc_base::phase() const
-{
-    return m_phase.load(std::memory_order_acquire);
-}
-
-void incremental_gc_base::set_phase(gc_phase phase)
-{
-    m_phase.store(phase, std::memory_order_release);
-}
-
-void incremental_gc_base::gc()
-{
-    sweep();
-}
-
-void incremental_gc_base::gc_increment(const incremental_gc_ops& ops)
-{
-    if (ops.phase == gc_phase::IDLING) {
-        assert(phase() == gc_phase::MARKING);
-        set_phase(gc_phase::IDLING);
-    } else if (ops.phase == gc_phase::MARKING) {
-        assert(ops.concurrent_flag);
+    if (phase == gc_phase::MARK) {
         start_marking();
-    } else if (ops.phase == gc_phase::SWEEPING) {
-        assert(!ops.concurrent_flag);
+    } else if (phase == gc_phase::SWEEP) {
         sweep();
     }
 }
@@ -97,11 +68,11 @@ void incremental_gc_base::gc_increment(const incremental_gc_ops& ops)
 void incremental_gc_base::start_marking()
 {
     using namespace threads;
-    assert(phase() == gc_phase::IDLING);
+    assert(m_phase == gc_phase::IDLE);
 
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot);
-    set_phase(gc_phase::MARKING);
+    m_phase = gc_phase::MARK;
     m_marker.start_marking();
 
     gc_pause_stat pause_stat = {
@@ -114,26 +85,26 @@ void incremental_gc_base::start_marking()
 void incremental_gc_base::sweep()
 {
     using namespace threads;
-    assert(phase() == gc_phase::IDLING || phase() == gc_phase::MARKING);
+    assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
     gc_pause_type pause_type;
-    if (phase() == gc_phase::MARKING) {
+    if (m_phase == gc_phase::MARK) {
         m_marker.pause_marking();
     }
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
-    if (phase() == gc_phase::IDLING) {
+    if (m_phase == gc_phase::IDLE) {
         pause_type = gc_pause_type::GC;
         m_marker.trace_roots(snapshot);
         m_marker.trace_pins(snapshot);
-        set_phase(gc_phase::MARKING);
+        m_phase = gc_phase::MARK;
         m_marker.mark();
-    } else if (phase() == gc_phase::MARKING) {
+    } else if (m_phase == gc_phase::MARK) {
         pause_type = gc_pause_type::SWEEP_HEAP;
         m_marker.trace_pins(snapshot);
         m_marker.trace_barrier_buffers(snapshot);
         m_marker.mark();
     }
-    set_phase(gc_phase::SWEEPING);
+    m_phase = gc_phase::SWEEP;
 
     gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
     gc_pause_stat pause_stat = {
@@ -142,13 +113,13 @@ void incremental_gc_base::sweep()
     };
 
     gc_register_sweep(sweep_stat, pause_stat);
-    set_phase(gc_phase::IDLING);
+    m_phase = gc_phase::IDLE;
 }
 
 }
 
-incremental_gc::incremental_gc(std::unique_ptr<incremental_initation_policy> init_policy)
-    : incremental_gc_base(gc_compacting::DISABLED, std::move(init_policy))
+incremental_gc::incremental_gc()
+    : incremental_gc_base(gc_compacting::DISABLED)
 {}
 
 bool incremental_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -177,8 +148,8 @@ gc_info incremental_gc::info() const
     return inf;
 }
 
-incremental_compacting_gc::incremental_compacting_gc(std::unique_ptr<incremental_initation_policy> init_policy)
-        : incremental_gc_base(gc_compacting::ENABLED, std::move(init_policy))
+incremental_compacting_gc::incremental_compacting_gc()
+        : incremental_gc_base(gc_compacting::ENABLED)
 {}
 
 bool incremental_compacting_gc::compare(const gc_handle& a, const gc_handle& b)

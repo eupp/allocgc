@@ -35,12 +35,16 @@ set(precisegc_TESTS
 
         details/utils/flattened_range_test.cpp
         details/utils/bitset_test.cpp
-        details/initator_test.cpp
+        details/initiation_point_test.cpp
         include/serial_gc_mock.hpp
-        include/initation_policy_mock.hpp
-        include/incremental_initation_policy_mock.hpp
+        include/initiation_policy_mock.hpp
         include/incremental_gc_mock.hpp
-        details/space_based_policy_test.cpp details/utils/dynarray_test.cpp details/allocators/intrusive_list_allocator_test.cpp details/ptrs/trace_ptr_test.cpp details/utils/base_offset_test.cpp details/utils/static_thread_pool_test.cpp)
+        details/space_based_policy_test.cpp
+        details/utils/dynarray_test.cpp
+        details/allocators/intrusive_list_allocator_test.cpp
+        details/ptrs/trace_ptr_test.cpp
+        details/utils/base_offset_test.cpp
+        details/utils/static_thread_pool_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

@@ -5,12 +5,13 @@
 
 #include <libprecisegc/details/gc_strategy.hpp>
 
-class serial_gc_mock : public precisegc::details::serial_gc_strategy
+class serial_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_handle gc_handle;
     typedef precisegc::details::managed_ptr managed_ptr;
-    typedef precisegc::details::initation_point_type initation_point_type;
+    typedef precisegc::details::initiation_point_type initation_point_type;
+    typedef precisegc::details::gc_phase gc_phase;
     typedef precisegc::details::gc_info gc_info;
 public:
     MOCK_METHOD1(allocate, managed_ptr(size_t));
@@ -26,11 +27,17 @@ public:
 
     MOCK_METHOD2(compare, bool(const gc_handle& a, const gc_handle& b));
 
-    MOCK_METHOD1(initation_point, void(initation_point_type));
+    MOCK_METHOD1(gc, void(gc_phase));
 
-    MOCK_CONST_METHOD0(info, gc_info(void));
-
-    MOCK_METHOD0(gc, void(void));
+    gc_info info() const override
+    {
+        static gc_info inf = {
+                .incremental                = false,
+                .support_concurrent_mark    = false,
+                .support_concurrent_sweep   = false
+        };
+        return inf;
+    }
 };
 
 #endif //DIPLOMA_SERIAL_GC_MOCK_HPP

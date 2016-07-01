@@ -3,6 +3,8 @@
 #include <cassert>
 #include <memory>
 #include <iostream>
+
+#include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.h>
 
 namespace precisegc { namespace details {
@@ -11,6 +13,14 @@ garbage_collector::garbage_collector()
     : m_printer(std::clog)
     , m_printer_enabled(false)
 {}
+
+void garbage_collector::init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
+{
+    m_strategy = std::move(strategy);
+    m_initiation_policy = std::move(init_policy);
+
+    m_gc_info = m_strategy->info();
+}
 
 gc_strategy* garbage_collector::get_strategy() const
 {
@@ -81,10 +91,24 @@ bool garbage_collector::compare(const gc_handle& a, const gc_handle& b)
     return m_strategy->compare(a, b);
 }
 
-void garbage_collector::initation_point(initation_point_type ipoint)
+void garbage_collector::initiation_point(initiation_point_type ipoint)
 {
-    assert(m_strategy);
-    m_strategy->initation_point(ipoint);
+    assert(m_initiation_policy);
+
+    gc_unsafe_scope::enter_safepoint();
+    auto guard = utils::make_scope_guard([] { gc_unsafe_scope::leave_safepoint(); });
+
+    if (ipoint == initiation_point_type::USER_REQUEST) {
+        std::lock_guard<std::mutex> lock(m_gc_mutex);
+        m_strategy->gc(gc_phase::SWEEP);
+    }
+    if (check_gc_phase(m_initiation_policy->check(ipoint, state()))) {
+        std::lock_guard<std::mutex> lock(m_gc_mutex);
+        gc_phase phase = m_initiation_policy->check(ipoint, state());
+        if (check_gc_phase(phase)) {
+            m_strategy->gc(phase);
+        }
+    }
 }
 
 bool garbage_collector::is_printer_enabled() const
@@ -100,7 +124,7 @@ void garbage_collector::set_printer_enabled(bool enabled)
 void garbage_collector::register_page(const byte* page, size_t size)
 {
     m_recorder.register_page(page, size);
-    m_strategy->initation_point(initation_point_type::HEAP_GROWTH);
+    initiation_point(initiation_point_type::HEAP_GROWTH);
 }
 
 void garbage_collector::deregister_page(const byte* page, size_t size)
@@ -122,6 +146,7 @@ void garbage_collector::register_sweep(const gc_sweep_stat& sweep_stat, const gc
     if (m_printer_enabled) {
         m_printer.print_sweep_stat(sweep_stat, pause_stat);
     }
+    m_initiation_policy->update(state());
 }
 
 gc_info garbage_collector::info() const
@@ -142,6 +167,11 @@ gc_stat garbage_collector::stats() const
 gc_state garbage_collector::state() const
 {
     return m_recorder.state();
+}
+
+bool garbage_collector::check_gc_phase(gc_phase phase)
+{
+    return (phase == gc_phase::MARK && m_gc_info.incremental) || phase == gc_phase::SWEEP;
 }
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)

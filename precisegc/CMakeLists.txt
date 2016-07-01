@@ -23,7 +23,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/logging.h
         include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
-        include/libprecisegc/details/collectors/initator.hpp
         include/libprecisegc/details/allocators/page_allocator.hpp
         include/libprecisegc/details/index_tree.hpp
         include/libprecisegc/details/types.hpp
@@ -58,7 +57,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/make_reverse_iterator.hpp
         include/libprecisegc/details/allocators/allocator_tag.hpp
         include/libprecisegc/details/utils/bitset.hpp
-        include/libprecisegc/details/collectors/initation_policy.hpp
+        include/libprecisegc/details/initiation_policy.hpp
         include/libprecisegc/details/collectors/serial_gc.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
@@ -78,7 +77,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/utils/base_offset.hpp
         include/libprecisegc/details/gc_factory.hpp
-        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp)
+        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp include/libprecisegc/details/utils/dummy_mutex.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -87,7 +86,6 @@ set(precisegc_LIB_SRCS
         src/details/ptrs/gc_untyped_ptr.cpp
         src/logging.cpp
         src/barrier_buffer.cpp
-        src/details/collectors/initator.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
@@ -97,8 +95,8 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/marker.cpp src/details/garbage_collector.cpp src/details/collectors/initation_policy.cpp
-        src/details/collectors/serial_gc.cpp
+        src/details/marker.cpp src/details/garbage_collector.cpp src/details/collectors/initiation_policy.cpp
+        src/details/serial_gc.cpp
         src/details/collectors/incremental_gc.cpp
         src/details/printer.cpp
         src/details/recorder.cpp

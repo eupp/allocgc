@@ -11,10 +11,8 @@ namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
-serial_gc_base::serial_gc_base(gc_compacting compacting,
-                               std::unique_ptr<initation_policy> init_policy)
-    : m_initator(this, std::move(init_policy))
-    , m_heap(compacting)
+serial_gc_base::serial_gc_base(gc_compacting compacting)
+    : m_heap(compacting)
 {}
 
 managed_ptr serial_gc_base::allocate(size_t size)
@@ -37,13 +35,12 @@ void serial_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
     gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
 }
 
-void serial_gc_base::initation_point(initation_point_type ipoint)
+void serial_gc_base::gc(gc_phase phase)
 {
-    m_initator.initation_point(ipoint);
-}
+    if (phase != gc_phase::SWEEP) {
+        return;
+    }
 
-void serial_gc_base::gc()
-{
     using namespace threads;
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot);
@@ -61,8 +58,8 @@ void serial_gc_base::gc()
 
 }
 
-serial_gc::serial_gc(std::unique_ptr<initation_policy> init_policy)
-    : serial_gc_base(gc_compacting::DISABLED, std::move(init_policy))
+serial_gc::serial_gc()
+    : serial_gc_base(gc_compacting::DISABLED)
 {}
 
 void serial_gc::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -96,8 +93,8 @@ gc_info serial_gc::info() const
     return inf;
 }
 
-serial_compacting_gc::serial_compacting_gc(std::unique_ptr<initation_policy> init_policy)
-    : serial_gc_base(gc_compacting::ENABLED, std::move(init_policy))
+serial_compacting_gc::serial_compacting_gc()
+    : serial_gc_base(gc_compacting::ENABLED)
 {}
 
 void serial_compacting_gc::wbarrier(gc_handle& dst, const gc_handle& src)

@@ -7,19 +7,9 @@ namespace precisegc { namespace details {
 
 static garbage_collector gc_instance{};
 
-gc_strategy* gc_get_strategy()
+void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
 {
-    return gc_instance.get_strategy();
-}
-
-void gc_set_strategy(std::unique_ptr<gc_strategy> strategy)
-{
-    gc_instance.set_strategy(std::move(strategy));
-}
-
-std::unique_ptr<gc_strategy> gc_reset_strategy(std::unique_ptr<gc_strategy> strategy)
-{
-    return gc_instance.reset_strategy(std::move(strategy));
+    gc_instance.init(std::move(strategy), std::move(init_policy));
 }
 
 managed_ptr gc_allocate(size_t size)
@@ -27,9 +17,9 @@ managed_ptr gc_allocate(size_t size)
     return gc_instance.allocate(size);
 }
 
-void gc_initation_point(initation_point_type ipoint)
+void gc_initiation_point(initiation_point_type ipoint)
 {
-    gc_instance.initation_point(ipoint);
+    gc_instance.initiation_point(ipoint);
 }
 
 gc_info gc_get_info()

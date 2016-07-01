@@ -28,23 +28,9 @@ public:
 
     virtual bool compare(const gc_handle& a, const gc_handle& b) = 0;
 
-    virtual void initation_point(initation_point_type ipoint) = 0;
+    virtual void gc(gc_phase) = 0;
 
     virtual gc_info info() const = 0;
-};
-
-class serial_gc_strategy : public gc_strategy
-{
-public:
-    virtual void gc() = 0;
-};
-
-class incremental_gc_strategy : public serial_gc_strategy
-{
-public:
-    virtual gc_phase phase() const = 0;
-
-    virtual void gc_increment(const incremental_gc_ops& ops) = 0;
 };
 
 }}

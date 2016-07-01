@@ -5,18 +5,17 @@
 
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
+#include <libprecisegc/details/initiation_policy.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {
 
-gc_strategy* gc_get_strategy();
-void gc_set_strategy(std::unique_ptr<gc_strategy> strategy);
-std::unique_ptr<gc_strategy> gc_reset_strategy(std::unique_ptr<gc_strategy> strategy);
+void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
 
 managed_ptr gc_allocate(size_t size);
 
-void gc_initation_point(initation_point_type ipoint);
+void gc_initiation_point(initiation_point_type ipoint);
 
 gc_info gc_get_info();
 gc_stat gc_get_stats();

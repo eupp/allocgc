@@ -5,12 +5,12 @@
 
 #include <libprecisegc/details/gc_strategy.hpp>
 
-class incremental_gc_mock : public precisegc::details::incremental_gc_strategy
+class incremental_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_handle gc_handle;
     typedef precisegc::details::managed_ptr managed_ptr;
-    typedef precisegc::details::initation_point_type initation_point_type;
+    typedef precisegc::details::initiation_point_type initation_point_type;
     typedef precisegc::details::gc_info gc_info;
     typedef precisegc::details::gc_phase gc_phase;
     typedef precisegc::details::incremental_gc_ops incremental_gc_ops;
@@ -28,13 +28,17 @@ public:
 
     MOCK_METHOD2(compare, bool(const gc_handle& a, const gc_handle& b));
 
-    MOCK_METHOD1(initation_point, void(initation_point_type));
+    MOCK_METHOD1(gc, void(gc_phase));
 
-    MOCK_CONST_METHOD0(info, gc_info(void));
-    MOCK_CONST_METHOD0(phase, gc_phase());
-
-    MOCK_METHOD0(gc, void(void));
-    MOCK_METHOD1(gc_increment, void(const incremental_gc_ops&));
+    gc_info info() const override
+    {
+        static gc_info inf = {
+                .incremental                = true,
+                .support_concurrent_mark    = false,
+                .support_concurrent_sweep   = false
+        };
+        return inf;
+    }
 };
 
 #endif //DIPLOMA_INCREMENTAL_GC_MOCK_HPP

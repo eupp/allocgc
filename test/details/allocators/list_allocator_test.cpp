@@ -3,10 +3,11 @@
 #include <iostream>
 #include <iterator>
 
-#include "libprecisegc/details/allocators/list_allocator.hpp"
-#include "libprecisegc/details/allocators/default_allocator.hpp"
-#include "libprecisegc/details/allocators/debug_layer.hpp"
-#include "libprecisegc/details/types.hpp"
+#include <libprecisegc/details/allocators/list_allocator.hpp>
+#include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/debug_layer.hpp>
+#include <libprecisegc/details/utils/dummy_mutex.hpp>
+#include <libprecisegc/details/types.hpp>
 
 #include "test_chunk.h"
 
@@ -21,14 +22,14 @@ class list_allocator_test: public ::testing::Test
 {
 public:
     typedef debug_layer<default_allocator> allocator_t;
-    typedef list_allocator<test_chunk, allocator_t, allocator_t> list_allocator_t;
+    typedef list_allocator<test_chunk, allocator_t, allocator_t, utils::dummy_mutex> list_allocator_t;
 
     list_allocator_t m_alloc;
 };
 
 TEST_F(list_allocator_test, test_sizeof)
 {
-    typedef list_allocator<test_chunk, default_allocator, default_allocator> alloc_t;
+    typedef list_allocator<test_chunk, default_allocator, default_allocator, utils::dummy_mutex> alloc_t;
     RecordProperty("size", sizeof(alloc_t));
     std::cout << "[          ] sizeof(list_allocator) = " << sizeof(alloc_t) << std::endl;
 }

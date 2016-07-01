@@ -3,15 +3,16 @@
 
 #include <string>
 
+#include <boost/variant.hpp>
+
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 
 namespace precisegc { namespace details {
 
-enum class initation_point_type {
+enum class initiation_point_type {
       USER_REQUEST
     , HEAP_GROWTH
-    , AFTER_ALLOC
 };
 
 enum class gc_pause_type {
@@ -22,9 +23,9 @@ enum class gc_pause_type {
 };
 
 enum class gc_phase {
-      IDLING
-    , MARKING
-    , SWEEPING
+      IDLE
+    , MARK
+    , SWEEP
 };
 
 struct gc_info
@@ -59,17 +60,17 @@ struct incremental_gc_ops
     gc_phase    phase;
     bool        concurrent_flag;
     size_t      threads_num;
+
+    friend bool operator==(const incremental_gc_ops& a, const incremental_gc_ops& b)
+    {
+        return a.phase == b.phase && a.concurrent_flag == b.concurrent_flag && a.threads_num == b.threads_num;
+    }
+
+    friend bool operator!=(const incremental_gc_ops& a, const incremental_gc_ops& b)
+    {
+        return !(a == b);
+    }
 };
-
-inline bool operator==(const incremental_gc_ops& a, const incremental_gc_ops& b)
-{
-    return a.phase == b.phase && a.concurrent_flag == b.concurrent_flag && a.threads_num == b.threads_num;
-}
-
-inline bool operator!=(const incremental_gc_ops& a, const incremental_gc_ops& b)
-{
-    return !(a == b);
-}
 
 inline const char* pause_type_to_str(gc_pause_type pause_type)
 {
@@ -93,11 +94,11 @@ inline std::string duration_to_str(gc_clock::duration duration)
 
     char str[8];
     if (dur_us >= s) {
-        snprintf(str, 8, "%4u s ", dur_us / s);
+        snprintf(str, 8, "%4lu s ", dur_us / s);
     } else if (dur_us >= ms) {
-        snprintf(str, 8, "%4u ms", dur_us / ms);
+        snprintf(str, 8, "%4lu ms", dur_us / ms);
     } else {
-        snprintf(str, 8, "%4u us", dur_us);
+        snprintf(str, 8, "%4ld us", dur_us);
     }
     return std::string(str);
 }
@@ -110,13 +111,13 @@ inline std::string heapsize_to_str(size_t size)
 
     char str[8];
     if (size >= Gb) {
-        snprintf(str, 8, "%4u Gb", size / Gb);
+        snprintf(str, 8, "%4lu Gb", size / Gb);
     } else if (size >= Mb) {
-        snprintf(str, 8, "%4u Mb", size / Mb);
+        snprintf(str, 8, "%4lu Mb", size / Mb);
     } else if (size >= Kb) {
-        snprintf(str, 8, "%4u Kb", size / Kb);
+        snprintf(str, 8, "%4lu Kb", size / Kb);
     } else {
-        snprintf(str, 8, "%4u b ", size);
+        snprintf(str, 8, "%4lu b ", size);
     }
     return std::string(str);
 }

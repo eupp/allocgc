@@ -17,9 +17,9 @@ using ::testing::Return;
 using ::testing::AllOf;
 using ::testing::Field;
 
-struct initiation_point_test : public ::testing::Test
+struct garbage_collector_test : public ::testing::Test
 {
-    initiation_point_test()
+    garbage_collector_test()
     {
         auto gc_strategy_owner = utils::make_unique<incremental_gc_mock>();
         auto policy_mock_owner = utils::make_unique<initiation_policy_mock>();
@@ -35,19 +35,15 @@ struct initiation_point_test : public ::testing::Test
     initiation_policy_mock* policy_mock;
 };
 
-TEST_F(initiation_point_test, test_user_request)
+TEST_F(garbage_collector_test, test_initiation_point_user_request)
 {
     EXPECT_CALL(*gc_mock, gc(gc_phase::SWEEP))
-            .Times(Exactly(1));
-
-    EXPECT_CALL(*policy_mock, update(_))
             .Times(Exactly(1));
 
     collector.initiation_point(initiation_point_type::USER_REQUEST);
 }
 
-// check IDLE -> IDLE transition
-TEST_F(initiation_point_test, test_idle)
+TEST_F(garbage_collector_test, test_initiation_point_idle)
 {
     EXPECT_CALL(*policy_mock, check(initiation_point_type::HEAP_GROWTH, _))
             .WillRepeatedly(Return(gc_phase::IDLE));
@@ -55,11 +51,10 @@ TEST_F(initiation_point_test, test_idle)
     EXPECT_CALL(*gc_mock, gc(_))
             .Times(0);
 
-    collector.initiation_point(initiation_point_type::AFTER_ALLOC);
+    collector.initiation_point(initiation_point_type::HEAP_GROWTH);
 }
 
-// check IDLE -> MARK transition
-TEST_F(initiation_point_test, test_mark)
+TEST_F(garbage_collector_test, test_initiation_point_mark)
 {
     EXPECT_CALL(*policy_mock, check(initiation_point_type::HEAP_GROWTH, _))
             .WillRepeatedly(Return(gc_phase::MARK));
@@ -67,11 +62,10 @@ TEST_F(initiation_point_test, test_mark)
     EXPECT_CALL(*gc_mock, gc(gc_phase::MARK))
             .Times(Exactly(1));
 
-    collector.initiation_point(initiation_point_type::AFTER_ALLOC);
+    collector.initiation_point(initiation_point_type::HEAP_GROWTH);
 }
 
-// check IDLE -> SWEEP transition
-TEST_F(initiation_point_test, test_sweep)
+TEST_F(garbage_collector_test, test_initiation_point_sweep)
 {
     EXPECT_CALL(*policy_mock, check(initiation_point_type::HEAP_GROWTH, _))
             .WillRepeatedly(Return(gc_phase::SWEEP));
@@ -80,4 +74,12 @@ TEST_F(initiation_point_test, test_sweep)
             .Times(Exactly(1));
 
     collector.initiation_point(initiation_point_type::HEAP_GROWTH);
+}
+
+TEST_F(garbage_collector_test, test_register_sweep)
+{
+    EXPECT_CALL(*policy_mock, update(_))
+            .Times(Exactly(1));
+
+    collector.register_sweep(gc_sweep_stat(), gc_pause_stat());
 }

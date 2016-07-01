@@ -35,7 +35,7 @@ set(precisegc_TESTS
 
         details/utils/flattened_range_test.cpp
         details/utils/bitset_test.cpp
-        details/initiation_point_test.cpp
+        details/garbage_collector_test.cpp
         include/serial_gc_mock.hpp
         include/initiation_policy_mock.hpp
         include/incremental_gc_mock.hpp

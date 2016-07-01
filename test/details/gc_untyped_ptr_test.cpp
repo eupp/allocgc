@@ -17,55 +17,6 @@ using namespace precisegc::details::ptrs;
 using ::testing::_;
 using ::testing::Exactly;
 
-struct gc_untyped_ptr_barriers_test : public ::testing::Test
-{
-    gc_untyped_ptr_barriers_test()
-    {
-        auto gc_mock_owner = utils::make_unique<serial_gc_mock>();
-        gc_mock = gc_mock_owner.get();
-        old_gc  = gc_reset_strategy(std::move(gc_mock_owner));
-    }
-
-    ~gc_untyped_ptr_barriers_test()
-    {
-        gc_set_strategy(std::move(old_gc));
-    }
-
-    serial_gc_mock* gc_mock;
-    std::unique_ptr<gc_strategy> old_gc;
-};
-
-TEST_F(gc_untyped_ptr_barriers_test, test_rbarrier)
-{
-    EXPECT_CALL(*gc_mock, rbarrier(_))
-            .Times(Exactly(1));
-
-    gc_untyped_ptr ptr;
-    ptr.get();
-}
-
-TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_1)
-{
-    EXPECT_CALL(*gc_mock, wbarrier(_, _))
-            .Times(Exactly(1));
-
-    int val = 0;
-    gc_untyped_ptr src((void*) &val);
-    gc_untyped_ptr dst(src);
-}
-
-TEST_F(gc_untyped_ptr_barriers_test, test_wbarrier_2)
-{
-    EXPECT_CALL(*gc_mock, wbarrier(_, _))
-            .Times(Exactly(1));
-
-    int val = 0;
-    gc_untyped_ptr src((void*) &val);
-    gc_untyped_ptr dst;
-
-    dst = src;
-}
-
 TEST(gc_untyped_ptr_test, test_default_construct)
 {
     gc_untyped_ptr ptr;

@@ -58,7 +58,7 @@ void incremental_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
 
 void incremental_gc_base::gc(gc_phase phase)
 {
-    if (phase == gc_phase::MARK) {
+    if (phase == gc_phase::MARK && m_phase == gc_phase::IDLE) {
         start_marking();
     } else if (phase == gc_phase::SWEEP) {
         sweep();

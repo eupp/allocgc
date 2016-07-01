@@ -24,22 +24,22 @@ void thread_manager::register_main_thread()
 {
     managed_thread& main_thread = managed_thread::this_thread();
 
-    logging::info() << "Register main thread " << main_thread.get_id();
     std::lock_guard<lock_type> lock(m_lock);
+    logging::info() << "Register main thread " << main_thread.get_id();
     m_threads[main_thread.get_id()] = &main_thread;
 }
 
 void thread_manager::register_thread(managed_thread* thread_ptr)
 {
-    logging::info() << "Register new managed thread " << thread_ptr->get_id();
     std::lock_guard<lock_type> lock(m_lock);
+    logging::info() << "Register new managed thread " << thread_ptr->get_id();
     m_threads[thread_ptr->get_id()] = thread_ptr;
 }
 
 void thread_manager::deregister_thread(managed_thread* thread_ptr)
 {
-    logging::info() << "Deregister managed thread " << thread_ptr->get_id();
     std::lock_guard<lock_type> lock(m_lock);
+    logging::info() << "Deregister managed thread " << thread_ptr->get_id();
     m_threads.erase(thread_ptr->get_id());
 }
 

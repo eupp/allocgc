@@ -333,7 +333,7 @@ int main () {
     ops.heapsize    = 1024 * 1024 * 1024;      // 1Gb
     ops.type        = gc_type::SERIAL;
     ops.init        = gc_init_strategy::SPACE_BASED;
-    ops.compacting  = gc_compacting::ENABLED;
+    ops.compacting  = gc_compacting::DISABLED;
     ops.loglevel    = gc_loglevel::OFF;
     ops.print_stat  = false;
     gc_init(ops);

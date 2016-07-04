@@ -46,6 +46,7 @@ void serial_gc_base::gc(gc_phase phase)
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_marker.trace_pins(snapshot.get_pin_tracer());
+    m_marker.concurrent_mark(std::thread::hardware_concurrency() - 1);
     m_marker.mark();
 
     gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());

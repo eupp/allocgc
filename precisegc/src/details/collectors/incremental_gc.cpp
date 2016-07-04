@@ -81,7 +81,7 @@ void incremental_gc_base::start_marking()
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_phase = gc_phase::MARK;
-    m_marker.concurrent_mark(1);
+    m_marker.concurrent_mark(std::thread::hardware_concurrency() - 1);
 
     gc_pause_stat pause_stat = {
             .type       = gc_pause_type::TRACE_ROOTS,
@@ -102,6 +102,7 @@ void incremental_gc_base::sweep()
         m_marker.trace_roots(snapshot.get_root_tracer());
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_phase = gc_phase::MARK;
+        m_marker.concurrent_mark(std::thread::hardware_concurrency() - 1);
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
         pause_type = gc_pause_type::SWEEP_HEAP;

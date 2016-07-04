@@ -13,14 +13,13 @@ std::unique_ptr<initiation_policy> create_space_based_policy(size_t max_heap_siz
 {
     static const size_t start_heap_size     = 2 * 1024 * 1024;  // 2 Mb
     static const double increase_factor     = 2.0;
-    static const double sweeping_threshold  = 1.0;
     static const double marking_threshold   = 0.6;
-    static const double sweep_threshold     = 1.0;
+    static const double sweeping_threshold  = 1.0;
 
     return utils::make_unique<space_based_policy>(
               max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
             , marking_threshold
-            , sweep_threshold
+            , sweeping_threshold
             , increase_factor
             , max_heap_size
     );

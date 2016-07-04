@@ -58,22 +58,6 @@ public:
 
     void wait_for_marking();
 private:
-    class queue_chunk : private utils::noncopyable, private utils::nonmovable
-    {
-    public:
-        queue_chunk();
-
-        void push(ptrs::gc_untyped_ptr* p);
-        ptrs::gc_untyped_ptr* pop();
-
-        bool is_full() const;
-        bool empty() const;
-    private:
-        static const size_t SIZE = 4096;
-        ptrs::gc_untyped_ptr* m_data[SIZE];
-        size_t m_size;
-    };
-
     class worker : private utils::noncopyable
     {
     public:

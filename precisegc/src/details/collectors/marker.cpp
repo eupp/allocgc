@@ -10,32 +10,6 @@
 
 namespace precisegc { namespace details { namespace collectors {
 
-marker::queue_chunk::queue_chunk()
-    : m_size(0)
-{}
-
-void marker::queue_chunk::push(ptrs::gc_untyped_ptr* p)
-{
-    assert(!is_full());
-    m_data[m_size++] = p;
-}
-
-ptrs::gc_untyped_ptr* marker::queue_chunk::pop()
-{
-    assert(m_size > 0);
-    return m_data[--m_size];
-}
-
-bool marker::queue_chunk::is_full() const
-{
-    return m_size == SIZE;
-}
-
-bool marker::queue_chunk::empty() const
-{
-    return m_size == 0;
-}
-
 void marker::worker::routine(marker* m)
 {
     worker wrk(m);

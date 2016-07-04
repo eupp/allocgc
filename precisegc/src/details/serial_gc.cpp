@@ -13,6 +13,7 @@ namespace internals {
 
 serial_gc_base::serial_gc_base(gc_compacting compacting)
     : m_heap(compacting)
+    , m_marker(&m_packet_manager)
 {}
 
 managed_ptr serial_gc_base::allocate(size_t size)

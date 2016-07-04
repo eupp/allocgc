@@ -5,11 +5,11 @@
 #include <functional>
 #include <memory>
 
-#include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/stack_map.hpp>
-#include <libprecisegc/details/barrier_buffer.h>
+#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
+#include <libprecisegc/details/stack_map.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -52,9 +52,9 @@ public:
         return m_pin_set;
     }
 
-    barrier_buffer& get_barrier_buffer()
+    std::unique_ptr<collectors::mark_packet>& get_mark_packet()
     {
-        return m_barrier_buf;
+        return m_mark_packet;
     }
 private:
     template <typename Functor>
@@ -77,7 +77,7 @@ private:
     std::thread::id m_id;
     root_stack_map m_root_set;
     pin_stack_map m_pin_set;
-    barrier_buffer m_barrier_buf;
+    std::unique_ptr<collectors::mark_packet> m_mark_packet;
 };
 
 }}}

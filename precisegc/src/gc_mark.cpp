@@ -42,14 +42,14 @@ bool get_object_mark(void* ptr)
     return cell_ptr.get_mark();
 }
 
-bool shade(byte* ptr)
-{
-    static thread_local barrier_buffer& bb = threads::managed_thread::this_thread().get_barrier_buffer();
-    if (!ptr) {
-        return true;
-    }
-    return bb.push(ptr);
-}
+//bool shade(byte* ptr)
+//{
+//    static thread_local barrier_buffer& bb = threads::managed_thread::this_thread().get_barrier_buffer();
+//    if (!ptr) {
+//        return true;
+//    }
+//    return bb.push(ptr);
+//}
 
 void* get_pointed_to(void* ptr)
 {

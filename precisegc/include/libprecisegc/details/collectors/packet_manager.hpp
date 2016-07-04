@@ -42,7 +42,7 @@ class packet_manager : private utils::noncopyable, private utils::nonmovable
         size_t size() const;
     private:
         std::vector<std::unique_ptr<mark_packet>> m_packets;
-        std::mutex m_mutex;
+        mutable std::mutex m_mutex;
     };
 public:
     packet_manager();

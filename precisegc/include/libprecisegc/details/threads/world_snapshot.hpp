@@ -132,14 +132,6 @@ public:
         }
     }
 
-    template <typename Functor>
-    void trace_barrier_buffers(Functor&& f) const
-    {
-        for (auto thread: m_threads) {
-            thread->get_barrier_buffer().trace(f);
-        }
-    }
-
     template <typename Forwarding>
     void fix_roots(const Forwarding& frwd) const
     {
@@ -147,6 +139,14 @@ public:
             thread->root_set().trace([&frwd] (ptrs::gc_untyped_ptr* p) {
                 frwd.forward(p);
             });
+        }
+    }
+
+    template <typename Functor>
+    void apply_to_threads(Functor&& f)
+    {
+        for (auto thread: m_threads) {
+            f(thread);
         }
     }
 

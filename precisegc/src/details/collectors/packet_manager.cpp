@@ -95,7 +95,7 @@ void packet_manager::push_packet(std::unique_ptr<mark_packet> packet)
         m_empty_packets.push(std::move(packet));
     } else if (packet->is_partial_full()) {
         m_partial_packets.push(std::move(packet));
-    } else if (packet->is_full()) {
+    } else if (packet->is_almost_full()) {
         m_full_packets.push(std::move(packet));
     }
 }

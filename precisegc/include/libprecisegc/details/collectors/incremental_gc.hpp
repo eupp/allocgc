@@ -3,10 +3,11 @@
 
 #include <atomic>
 
-#include <libprecisegc/details/gc_strategy.hpp>
-#include <libprecisegc/details/gc_heap.h>
+#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/collectors/marker.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/gc_strategy.hpp>
+#include <libprecisegc/details/gc_heap.h>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -31,6 +32,7 @@ private:
     void sweep();
 
     gc_heap m_heap;
+    packet_manager m_packet_manager;
     marker m_marker;
     gc_phase m_phase;
 };

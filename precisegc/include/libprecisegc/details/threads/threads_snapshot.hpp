@@ -16,16 +16,6 @@ public:
     {}
 
     threads_snapshot(threads_snapshot&& other) = default;
-
-    template <typename Functor>
-    void trace_barrier_buffers(Functor&& f) const
-    {
-        if (m_threads.owns_lock()) {
-            for (auto thread: m_threads) {
-                thread->get_barrier_buffer().trace(f);
-            }
-        }
-    }
 private:
     range_type m_threads;
 };

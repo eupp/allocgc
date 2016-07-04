@@ -95,7 +95,8 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/collectors/marker.cpp src/details/garbage_collector.cpp src/details/collectors/initiation_policy.cpp
+        src/details/garbage_collector.cpp
+        src/details/collectors/initiation_policy.cpp
         src/details/serial_gc.cpp
         src/details/collectors/incremental_gc.cpp
         src/details/printer.cpp

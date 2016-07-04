@@ -7,6 +7,7 @@
 #include <memory>
 #include <condition_variable>
 
+#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/ptrs/trace_ptr.hpp>
@@ -18,84 +19,99 @@ namespace precisegc { namespace details { namespace collectors {
 class marker
 {
 public:
-    marker();
+    marker(packet_manager* manager)
+        : m_packet_manager(manager)
+    {}
 
     template <typename Traceable>
     void trace_roots(Traceable&& tracer)
     {
-        std::lock_guard<std::mutex> lock(m_stack_mutex);
-        tracer.trace([this] (ptrs::gc_untyped_ptr* p) {
+        auto output_packet = m_packet_manager->pop_output_packet();
+        tracer.trace([this, &output_packet] (ptrs::gc_untyped_ptr* p) {
             managed_ptr mp = managed_ptr((byte*) p->get());
             if (mp) {
                 mp.set_mark(true);
-                non_blocking_push(mp);
+                push_root_to_packet(mp, output_packet);
             }
         });
+        m_packet_manager->push_packet(std::move(output_packet));
     }
 
     template <typename Traceable>
     void trace_pins(Traceable&& tracer)
     {
-        std::lock_guard<std::mutex> lock(m_stack_mutex);
-        tracer.trace([this] (void* p) {
+        auto output_packet = m_packet_manager->pop_output_packet();
+        tracer.trace([this, &output_packet] (void* p) {
             managed_ptr mp = managed_ptr((byte*) p);
             if (mp) {
                 mp.set_mark(true);
                 mp.set_pin(true);
-                non_blocking_push(mp);
+                push_root_to_packet(mp, output_packet);
             }
         });
+        m_packet_manager->push_packet(std::move(output_packet));
     }
 
-    void trace_barrier_buffers(const threads::world_snapshot& snapshot);
-    void trace_barrier_buffers();
-
-    void start_marking();
-    void pause_marking();
-
-    void join_markers();
-    void mark();
-
-    void wait_for_marking();
-private:
-    class worker : private utils::noncopyable
+    void mark()
     {
-    public:
-        static void routine(marker* m);
+        worker_routine();
+        for (auto& worker: m_workers) {
+            worker.join();
+        }
+        m_workers.resize(0);
+        m_workers.shrink_to_fit();
+    }
 
-        worker(marker* m);
+    void concurrent_mark(size_t threads_num)
+    {
+        m_workers.resize(threads_num);
+        for (auto& worker: m_workers) {
+            worker = std::thread(&marker::worker_routine, this);
+        }
+    }
+private:
+    void worker_routine()
+    {
+        auto input_packet = m_packet_manager->pop_input_packet();
+        while (true) {
+            while (!input_packet) {
+                if (m_packet_manager->is_no_input()) {
+                    return;
+                }
+                std::this_thread::yield();
+                input_packet = m_packet_manager->pop_input_packet();
+            }
+            auto output_packet = m_packet_manager->pop_output_packet();
+            while (!input_packet->is_empty()) {
+                ptrs::trace_ptr(input_packet->pop(), [this, &output_packet] (const managed_ptr& child) {
+                    if (output_packet->is_full()) {
+                        auto new_packet = m_packet_manager->pop_output_packet();
+                        m_packet_manager->push_packet(std::move(output_packet));
+                        output_packet = std::move(new_packet);
+                    }
+                    output_packet->push(child);
+                });
+            }
 
-        worker(worker&&) = default;
-        worker& operator=(worker&&) = default;
+            m_packet_manager->push_packet(std::move(output_packet));
 
-        void mark();
+            auto empty_packet = std::move(input_packet);
+            input_packet = m_packet_manager->pop_input_packet();
+            m_packet_manager->push_packet(std::move(empty_packet));
+        }
+    }
 
-        void push(const managed_ptr& p);
-        bool pop(managed_ptr& p);
-    private:
-        static const size_t LOCAL_QUEUE_SIZE = 2;
+    void push_root_to_packet(const managed_ptr& mp, std::unique_ptr<mark_packet>& output_packet)
+    {
+        if (output_packet->is_full()) {
+            m_packet_manager->push_packet(std::move(output_packet));
+            output_packet = m_packet_manager->pop_output_packet();
+        }
+        output_packet->push(mp);
+    }
 
-//        std::unique_ptr<queue_chunk> m_local_queue[LOCAL_QUEUE_SIZE];
-//        size_t m_curr_queue;
-        std::vector<managed_ptr> m_local_stack;
-        marker* m_marker;
-    };
-
-    void non_blocking_trace_barrier_buffers();
-
-//    void push_queue_chunk(std::unique_ptr<queue_chunk>&& chunk);
-//    std::unique_ptr<queue_chunk> pop_queue_chunk();
-
-    void non_blocking_push(const managed_ptr& p);
-
-    std::vector<managed_ptr> m_stack;
-    std::mutex m_stack_mutex;
-
-    size_t m_markers_cnt;
-    std::mutex m_markers_mutex;
-    std::condition_variable m_markers_cond;
+    packet_manager* m_packet_manager;
     std::vector<utils::scoped_thread> m_workers;
-    std::atomic<bool> m_mark_flag;
 };
 
 }}}

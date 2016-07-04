@@ -5,6 +5,7 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.h>
 #include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
@@ -13,6 +14,7 @@ namespace internals {
 
 incremental_gc_base::incremental_gc_base(gc_compacting compacting)
     : m_heap(compacting)
+    , m_marker(&m_packet_manager)
     , m_phase(gc_phase::IDLE)
 {}
 
@@ -37,11 +39,17 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     byte* p = gc_handle_access::load(src, std::memory_order_acquire);
     gc_handle_access::store(dst, p, std::memory_order_release);
     if (m_phase == gc_phase::MARK) {
-        bool res = shade(p);
-        while (!res) {
-            m_marker.trace_barrier_buffers();
-            std::this_thread::yield();
-            res = shade(p);
+        managed_ptr mp(p);
+        if (!mp.get_mark()) {
+            std::unique_ptr<mark_packet>& packet = threads::managed_thread::this_thread().get_mark_packet();
+            if (!packet) {
+                packet = m_packet_manager.pop_output_packet();
+            } else if (packet->is_full()) {
+                auto new_packet = m_packet_manager.pop_output_packet();
+                m_packet_manager.push_packet(std::move(packet));
+                packet = std::move(new_packet);
+            }
+            packet->push(mp);
         }
     }
 }
@@ -73,7 +81,7 @@ void incremental_gc_base::start_marking()
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_phase = gc_phase::MARK;
-    m_marker.start_marking();
+    m_marker.concurrent_mark(1);
 
     gc_pause_stat pause_stat = {
             .type       = gc_pause_type::TRACE_ROOTS,
@@ -88,9 +96,6 @@ void incremental_gc_base::sweep()
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
     gc_pause_type pause_type;
-    if (m_phase == gc_phase::MARK) {
-        m_marker.pause_marking();
-    }
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (m_phase == gc_phase::IDLE) {
         pause_type = gc_pause_type::GC;
@@ -101,7 +106,12 @@ void incremental_gc_base::sweep()
     } else if (m_phase == gc_phase::MARK) {
         pause_type = gc_pause_type::SWEEP_HEAP;
         m_marker.trace_pins(snapshot.get_pin_tracer());
-        m_marker.trace_barrier_buffers(snapshot);
+        snapshot.apply_to_threads([this] (managed_thread* thread ) {
+            if (thread->get_mark_packet()) {
+                m_packet_manager.push_packet(std::move(thread->get_mark_packet()));
+                thread->get_mark_packet() = nullptr;
+            }
+        });
         m_marker.mark();
     }
     m_phase = gc_phase::SWEEP;

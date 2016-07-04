@@ -1,4 +1,4 @@
-#include <libprecisegc/details/marker.hpp>
+#include <libprecisegc/details/collectors/marker.hpp>
 
 #include <cassert>
 
@@ -8,7 +8,7 @@
 #include <libprecisegc/details/ptrs/trace_ptr.hpp>
 #include <libprecisegc/details/stack_map.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 marker::queue_chunk::queue_chunk()
     : m_size(0)
@@ -91,31 +91,6 @@ marker::marker()
     : m_markers_cnt(0)
     , m_mark_flag(false)
 {}
-
-void marker::trace_roots(const threads::world_snapshot& snapshot)
-{
-    std::lock_guard<std::mutex> lock(m_stack_mutex);
-    snapshot.trace_roots([this] (ptrs::gc_untyped_ptr* p) {
-        managed_ptr mp = managed_ptr((byte*) p->get());
-        if (mp) {
-            mp.set_mark(true);
-            non_blocking_push(mp);
-        }
-    });
-}
-
-void marker::trace_pins(const threads::world_snapshot& snapshot)
-{
-    std::lock_guard<std::mutex> lock(m_stack_mutex);
-    snapshot.trace_pins([this] (void* p) {
-        managed_ptr mp = managed_ptr((byte*) p);
-        if (mp) {
-            mp.set_mark(true);
-            mp.set_pin(true);
-            non_blocking_push(mp);
-        }
-    });
-}
 
 void marker::trace_barrier_buffers(const threads::world_snapshot& snapshot)
 {
@@ -226,4 +201,4 @@ void marker::non_blocking_push(const managed_ptr& p)
     m_stack.push_back(p);
 }
 
-}}
+}}}

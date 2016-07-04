@@ -48,7 +48,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/scope_guard.hpp
         include/libprecisegc/details/threads/posix_thread.hpp
         include/libprecisegc/details/garbage_collector.hpp
-        include/libprecisegc/details/marker.hpp
+        include/libprecisegc/details/collectors/marker.hpp
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/ptrs/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
@@ -95,7 +95,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/marker.cpp src/details/garbage_collector.cpp src/details/collectors/initiation_policy.cpp
+        src/details/collectors/marker.cpp src/details/garbage_collector.cpp src/details/collectors/initiation_policy.cpp
         src/details/serial_gc.cpp
         src/details/collectors/incremental_gc.cpp
         src/details/printer.cpp

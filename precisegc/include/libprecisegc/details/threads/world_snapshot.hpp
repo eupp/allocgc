@@ -25,6 +25,42 @@ public:
         {}
     };
 
+    class root_tracer
+    {
+    public:
+        template <typename Functor>
+        void trace(Functor&& f) const
+        {
+            m_snapshot.trace_roots(std::forward<Functor>(f));
+        }
+
+        friend class world_snapshot;
+    private:
+        root_tracer(const world_snapshot& snapshot)
+            : m_snapshot(snapshot)
+        {}
+
+        const world_snapshot& m_snapshot;
+    };
+
+    class pin_tracer
+    {
+    public:
+        template <typename Functor>
+        void trace(Functor&& f) const
+        {
+            m_snapshot.trace_pins(std::forward<Functor>(f));
+        }
+
+        friend class world_snapshot;
+    private:
+        pin_tracer(const world_snapshot& snapshot)
+                : m_snapshot(snapshot)
+        {}
+
+        const world_snapshot& m_snapshot;
+    };
+
     world_snapshot(range_type threads)
         : m_threads(std::move(threads))
     {
@@ -32,9 +68,9 @@ public:
 
         logging::info() << "Thread " << std::this_thread::get_id() << " is requesting stop-the-world";
 
-//        if (stwm.is_stop_the_world_disabled()) {
-//            throw stop_the_world_disabled();
-//        }
+        if (stwm.is_stop_the_world_disabled()) {
+            throw stop_the_world_disabled();
+        }
 
         for (auto thread: m_threads) {
             if (thread->native_handle() != managed_thread::this_thread().native_handle()) {
@@ -66,6 +102,16 @@ public:
         stwm.wait_for_world_start();
 
         logging::info() << "World started";
+    }
+
+    root_tracer get_root_tracer() const
+    {
+        return root_tracer(*this);
+    }
+
+    pin_tracer get_pin_tracer() const
+    {
+        return pin_tracer(*this);
     }
 
     template <typename Functor>

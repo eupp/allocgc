@@ -13,15 +13,40 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 class marker
 {
 public:
     marker();
 
-    void trace_roots(const threads::world_snapshot& snapshot);
-    void trace_pins(const threads::world_snapshot& snapshot);
+    template <typename Traceable>
+    void trace_roots(Traceable&& tracer)
+    {
+        std::lock_guard<std::mutex> lock(m_stack_mutex);
+        tracer.trace([this] (ptrs::gc_untyped_ptr* p) {
+            managed_ptr mp = managed_ptr((byte*) p->get());
+            if (mp) {
+                mp.set_mark(true);
+                non_blocking_push(mp);
+            }
+        });
+    }
+
+    template <typename Traceable>
+    void trace_pins(Traceable&& tracer)
+    {
+        std::lock_guard<std::mutex> lock(m_stack_mutex);
+        tracer.trace([this] (void* p) {
+            managed_ptr mp = managed_ptr((byte*) p);
+            if (mp) {
+                mp.set_mark(true);
+                mp.set_pin(true);
+                non_blocking_push(mp);
+            }
+        });
+    }
+
     void trace_barrier_buffers(const threads::world_snapshot& snapshot);
     void trace_barrier_buffers();
 
@@ -89,6 +114,6 @@ private:
     std::atomic<bool> m_mark_flag;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_MARKER_HPP

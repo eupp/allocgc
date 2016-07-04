@@ -71,7 +71,7 @@ void incremental_gc_base::start_marking()
     assert(m_phase == gc_phase::IDLE);
 
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
-    m_marker.trace_roots(snapshot);
+    m_marker.trace_roots(snapshot.get_root_tracer());
     m_phase = gc_phase::MARK;
     m_marker.start_marking();
 
@@ -94,13 +94,13 @@ void incremental_gc_base::sweep()
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (m_phase == gc_phase::IDLE) {
         pause_type = gc_pause_type::GC;
-        m_marker.trace_roots(snapshot);
-        m_marker.trace_pins(snapshot);
+        m_marker.trace_roots(snapshot.get_root_tracer());
+        m_marker.trace_pins(snapshot.get_pin_tracer());
         m_phase = gc_phase::MARK;
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
         pause_type = gc_pause_type::SWEEP_HEAP;
-        m_marker.trace_pins(snapshot);
+        m_marker.trace_pins(snapshot.get_pin_tracer());
         m_marker.trace_barrier_buffers(snapshot);
         m_marker.mark();
     }

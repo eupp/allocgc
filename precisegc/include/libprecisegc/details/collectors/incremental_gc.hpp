@@ -5,7 +5,7 @@
 
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.h>
-#include <libprecisegc/details/marker.hpp>
+#include <libprecisegc/details/collectors/marker.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace collectors {

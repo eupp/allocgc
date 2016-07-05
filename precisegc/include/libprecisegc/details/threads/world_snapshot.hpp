@@ -66,7 +66,7 @@ public:
     {
         static stw_manager& stwm = stw_manager::instance();
 
-        logging::info() << "Thread is requesting stop-the-world";
+        logging::info() << "Thread is requesting stop-the-world (" << std::distance(m_threads.begin(), m_threads.end()) << " running threads)";
 
         if (stwm.is_stop_the_world_disabled()) {
             throw stop_the_world_disabled();

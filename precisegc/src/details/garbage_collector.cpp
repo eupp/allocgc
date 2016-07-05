@@ -42,7 +42,13 @@ std::unique_ptr<gc_strategy> garbage_collector::reset_strategy(std::unique_ptr<g
 managed_ptr garbage_collector::allocate(size_t size)
 {
     assert(m_strategy);
-    managed_ptr p = m_strategy->allocate(size);
+    managed_ptr p;
+    try {
+        p = m_strategy->allocate(size);
+    } catch (gc_bad_alloc& ) {
+        initiation_point(initiation_point_type::GC_BAD_ALLOC);
+        p = m_strategy->allocate(size);
+    }
     m_recorder.register_allocation(p.cell_size());
     return p;
 }
@@ -92,26 +98,32 @@ bool garbage_collector::compare(const gc_handle& a, const gc_handle& b)
     return m_strategy->compare(a, b);
 }
 
-void garbage_collector::initiation_point(initiation_point_type ipoint)
+void garbage_collector::initiation_point(initiation_point_type ipt, const initiation_point_data& ipd)
 {
     assert(m_initiation_policy);
 
     gc_unsafe_scope::enter_safepoint();
     auto guard = utils::make_scope_guard([] { gc_unsafe_scope::leave_safepoint(); });
 
-    if (ipoint == initiation_point_type::USER_REQUEST) {
-        logging::debug() << "Thread initiate gc by user's request";
+    if (ipt == initiation_point_type::USER_REQUEST) {
 
+        logging::info() << "Thread initiates gc by user's request";
         std::lock_guard<std::mutex> lock(m_gc_mutex);
         m_strategy->gc(gc_phase::SWEEP);
-    }
-    if (check_gc_phase(m_initiation_policy->check(ipoint, state()))) {
-        logging::debug() << "Thread tries to initiate gc";
 
+    } else if (ipt == initiation_point_type::GC_BAD_ALLOC) {
+
+        logging::info() << "GC_BAD_ALLOC received - Thread initiates gc";
         std::lock_guard<std::mutex> lock(m_gc_mutex);
-        gc_phase phase = m_initiation_policy->check(ipoint, state());
-        if (check_gc_phase(phase)) {
+        m_strategy->gc(gc_phase::SWEEP);
+
+    } else if (ipt == initiation_point_type::HEAP_EXPANSION) {
+
+        gc_phase phase = m_initiation_policy->check(ipt, ipd, state());
+        if (phase == gc_phase::MARK && m_gc_info.incremental && m_gc_info.support_concurrent_mark) {
             m_strategy->gc(phase);
+        } else if (phase == gc_phase::SWEEP) {
+            throw gc_bad_alloc();
         }
     }
 }
@@ -129,7 +141,7 @@ void garbage_collector::set_printer_enabled(bool enabled)
 void garbage_collector::register_page(const byte* page, size_t size)
 {
     m_recorder.register_page(page, size);
-    initiation_point(initiation_point_type::HEAP_GROWTH);
+    initiation_point(initiation_point_type::HEAP_EXPANSION);
 }
 
 void garbage_collector::deregister_page(const byte* page, size_t size)

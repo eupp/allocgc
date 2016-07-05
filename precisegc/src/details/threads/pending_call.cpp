@@ -3,6 +3,8 @@
 #include <cassert>
 #include <atomic>
 
+#include <iostream>
+
 namespace precisegc { namespace details { namespace threads {
 
 void pending_call::operator()()
@@ -21,6 +23,9 @@ void pending_call::operator()()
 void pending_call::enter_pending_scope()
 {
     std::atomic_signal_fence(std::memory_order_seq_cst);
+    if (m_depth == 0) {
+//        std::cout << "Thread " << pthread_self() << " enters unsafe scope" << std::endl;
+    }
     m_depth++;
     std::atomic_signal_fence(std::memory_order_seq_cst);
 }
@@ -30,6 +35,7 @@ void pending_call::leave_pending_scope()
     assert(m_callable);
     std::atomic_signal_fence(std::memory_order_seq_cst);
     if (m_depth == 1) {
+//        std::cout << "Thread " << pthread_self() << " leaves unsafe scope" << std::endl;
         m_depth = 0;
         call_if_pended();
     } else {
@@ -41,6 +47,7 @@ void pending_call::leave_pending_scope()
 void pending_call::enter_safe_scope()
 {
     std::atomic_signal_fence(std::memory_order_seq_cst);
+//    std::cout << "Thread " << pthread_self() << " enters safepoint" << std::endl;
     m_saved_depth = m_depth;
     m_depth = 0;
     call_if_pended();
@@ -50,6 +57,7 @@ void pending_call::enter_safe_scope()
 void pending_call::leave_safe_scope()
 {
     std::atomic_signal_fence(std::memory_order_seq_cst);
+//    std::cout << "Thread " << pthread_self() << " leaves safepoint" << std::endl;
     m_depth = m_saved_depth;
     m_saved_depth = 0;
     std::atomic_signal_fence(std::memory_order_seq_cst);

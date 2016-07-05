@@ -15,7 +15,8 @@ void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initia
 
 managed_ptr gc_allocate(size_t size);
 
-void gc_initiation_point(initiation_point_type ipoint);
+void gc_initiation_point(initiation_point_type ipoint,
+                         const initiation_point_data& ipd = initiation_point_data::create_empty_data());
 
 gc_info gc_get_info();
 gc_stat gc_get_stats();

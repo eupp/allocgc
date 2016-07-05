@@ -12,7 +12,7 @@ void stw_manager::sighandler()
 {
     stw_manager& stwm = stw_manager::instance();
 
-    logging::debug() << "Thread enters stop-the-world signal handler";
+//    logging::debug() << "Thread enters stop-the-world signal handler";
 
     ++stwm.m_threads_suspended_cnt;
     std::atomic_thread_fence(std::memory_order_release);
@@ -23,7 +23,7 @@ void stw_manager::sighandler()
     std::atomic_thread_fence(std::memory_order_acquire);
     stwm.m_barrier.notify();
 
-    logging::debug() << "Thread leaves stop-the-world signal handler";
+//    logging::debug() << "Thread leaves stop-the-world signal handler";
 }
 
 stw_manager& stw_manager::instance()

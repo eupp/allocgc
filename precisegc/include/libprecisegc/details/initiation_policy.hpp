@@ -12,14 +12,18 @@ class initiation_policy
 public:
     virtual ~initiation_policy() {}
 
-    virtual gc_phase check(initiation_point_type ipoint, const gc_state& state) const = 0;
+    virtual gc_phase check(initiation_point_type ipt,
+                           const initiation_point_data& ipd,
+                           const gc_state& state) const = 0;
     virtual void update(const gc_state& state) = 0;
 };
 
 class empty_policy : public initiation_policy
 {
 public:
-    gc_phase check(initiation_point_type ipoint, const gc_state& state) const override
+    gc_phase check(initiation_point_type ipoint,
+                   const initiation_point_data& ipd,
+                   const gc_state& state) const override
     {
         return gc_phase::IDLE;
     }
@@ -39,7 +43,9 @@ public:
                        double increase_factor,
                        size_t max_heap_size = std::numeric_limits<size_t>::max());
 
-    gc_phase check(initiation_point_type ipoint, const gc_state& state) const override;
+    gc_phase check(initiation_point_type ipt,
+                   const initiation_point_data& ipd,
+                   const gc_state& state) const override;
     void update(const gc_state& state) override;
 
     size_t heap_size() const;

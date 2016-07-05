@@ -25,6 +25,14 @@ private:
     std::string m_msg;
 };
 
+class gc_bad_alloc : public gc_exception
+{
+public:
+    gc_bad_alloc()
+        : gc_exception("managed heap failed to allocate memory;")
+    {}
+};
+
 }}
 
 #endif //DIPLOMA_GC_EXCEPTION_HPP

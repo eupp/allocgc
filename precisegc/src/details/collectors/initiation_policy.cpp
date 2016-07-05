@@ -24,9 +24,11 @@ space_based_policy::space_based_policy(size_t start_heap_size,
     }
 }
 
-gc_phase space_based_policy::check(initiation_point_type ipoint, const gc_state& state) const
+gc_phase space_based_policy::check(initiation_point_type ipt,
+                                   const initiation_point_data& ipd,
+                                   const gc_state& state) const
 {
-    if (ipoint == initiation_point_type::HEAP_GROWTH) {
+    if (ipt == initiation_point_type::HEAP_EXPANSION) {
         if (state.heap_size > m_sweeping_threshold * m_heap_size) {
             return gc_phase::SWEEP;
         }
@@ -42,7 +44,7 @@ void space_based_policy::update(const gc_state& state)
     size_t curr_max_heap_size = heap_size();
     if (state.heap_size > m_sweeping_threshold * curr_max_heap_size) {
         if (state.heap_size > m_max_heap_size) {
-            throw gc_bad_alloc("heap size exceeded max size");
+            throw gc_bad_alloc();
         }
         size_t increased_size = m_increase_factor * curr_max_heap_size;
         m_heap_size = std::min(increased_size, m_max_heap_size);

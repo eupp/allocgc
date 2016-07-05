@@ -34,6 +34,7 @@ posix_signal::posix_signal()
     memset(&sa, 0, sizeof(struct sigaction));
     sa.sa_handler = ::precisegc::details::threads::sighandler;
     sa.sa_mask = sigset;
+    sa.sa_flags |= SA_RESTART;
 
     int sa_ret = sigaction(posix_signal::SIGNUM, &sa, nullptr);
     assert(sa_ret == 0);

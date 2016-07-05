@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <vector>
+#include <queue>
 
 #include <libprecisegc/libprecisegc.hpp>
 #include <libprecisegc/details/ptrs/gc_ptr_access.hpp>
@@ -142,11 +143,13 @@ struct marker_test: public ::testing::Test
 {
     marker_test()
         : root(create_tree(TREE_DEPTH))
+        , marker(&packet_manager)
     {}
 
     gc_ptr<node> root;
     test_root_set root_set;
     test_pin_set pin_set;
+    collectors::packet_manager packet_manager;
     collectors::marker marker;
 };
 

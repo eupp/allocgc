@@ -12,7 +12,8 @@ namespace precisegc { namespace details {
 
 enum class initiation_point_type {
       USER_REQUEST
-    , HEAP_GROWTH
+    , GC_BAD_ALLOC
+    , HEAP_EXPANSION
 };
 
 enum class gc_pause_type {
@@ -72,6 +73,48 @@ struct incremental_gc_ops
     }
 };
 
+class initiation_point_data
+{
+    struct heap_expansion_data
+    {
+        size_t alloc_size;
+    };
+
+    struct empty_data {};
+
+    typedef boost::variant<heap_expansion_data, empty_data> variant_t;
+public:
+    initiation_point_data(const initiation_point_data&) = default;
+    initiation_point_data(initiation_point_data&&) = default;
+
+    initiation_point_data& operator=(const initiation_point_data&) = default;
+    initiation_point_data& operator=(initiation_point_data&&) = default;
+
+    static initiation_point_data create_heap_expansion_data(size_t alloc_size)
+    {
+        heap_expansion_data data = { alloc_size };
+        return initiation_point_data(data);
+    }
+
+    static initiation_point_data create_empty_data()
+    {
+        return initiation_point_data(empty_data());
+    }
+
+    size_t alloc_size() const
+    {
+        const heap_expansion_data* data = boost::get<heap_expansion_data>(&m_data);
+        assert(data);
+        return data->alloc_size;
+    }
+private:
+    initiation_point_data(const variant_t& data)
+        : m_data(data)
+    {}
+
+    variant_t m_data;
+};
+
 inline const char* pause_type_to_str(gc_pause_type pause_type)
 {
     if (pause_type == gc_pause_type::GC) {
@@ -121,18 +164,6 @@ inline std::string heapsize_to_str(size_t size)
     }
     return std::string(str);
 }
-
-class gc_bad_alloc : public gc_exception
-{
-public:
-    gc_bad_alloc(const char* msg)
-        : gc_exception(std::string("failed to allocate memory; ") + msg)
-    {}
-
-    gc_bad_alloc(const std::string& msg)
-        : gc_exception("failed to allocate memory; " + msg)
-    {}
-};
 
 }}
 

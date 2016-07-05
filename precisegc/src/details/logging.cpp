@@ -7,7 +7,7 @@
 namespace precisegc { namespace details {
 
 boost::optional<logging::logger> logging::logger_{};
-threads::ass_mutex logging::mutex_{};
+logging::mutex_t logging::mutex_{};
 gc_loglevel logging::loglevel_ = gc_loglevel::OFF;
 const char* logging::prefix_ = "precisegc-";
 
@@ -53,7 +53,7 @@ logging::log_line::log_line(gc_loglevel lv)
     : m_active(lv >= loglevel_)
 {
     if (m_active) {
-        std::unique_lock<threads::ass_mutex> lock(mutex_);
+        std::unique_lock<mutex_t> lock(mutex_);
 
         time_t rawtime;
         struct tm * timeinfo;
@@ -88,7 +88,7 @@ logging::log_line::log_line(gc_loglevel lv)
 logging::log_line::~log_line()
 {
     if (m_active) {
-        std::unique_lock<threads::ass_mutex> lock(mutex_, std::adopt_lock);
+        std::unique_lock<mutex_t> lock(mutex_, std::adopt_lock);
         (*this) << std::endl<char, std::char_traits<char>>;
     }
 }

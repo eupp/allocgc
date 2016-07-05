@@ -17,9 +17,9 @@ managed_ptr gc_allocate(size_t size)
     return gc_instance.allocate(size);
 }
 
-void gc_initiation_point(initiation_point_type ipoint)
+void gc_initiation_point(initiation_point_type ipoint, const initiation_point_data& ipd)
 {
-    gc_instance.initiation_point(ipoint);
+    gc_instance.initiation_point(ipoint, ipd);
 }
 
 gc_info gc_get_info()

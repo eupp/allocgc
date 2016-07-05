@@ -17,13 +17,19 @@ struct space_base_policy_test : public ::testing::Test
 TEST_F(space_base_policy_test, test_check)
 {
     state.heap_size = 0.5 * policy.marking_threshold() * policy.heap_size();
-    ASSERT_EQ(gc_phase::IDLE, policy.check(initiation_point_type::HEAP_GROWTH, state));
+    ASSERT_EQ(gc_phase::IDLE, policy.check(initiation_point_type::HEAP_EXPANSION,
+                                           initiation_point_data::create_empty_data(),
+                                           state));
 
     state.heap_size = policy.heap_size() * policy.marking_threshold() + 1;
-    ASSERT_EQ(gc_phase::MARK, policy.check(initiation_point_type::HEAP_GROWTH, state));
+    ASSERT_EQ(gc_phase::MARK, policy.check(initiation_point_type::HEAP_EXPANSION,
+                                           initiation_point_data::create_empty_data(),
+                                           state));
 
     state.heap_size = policy.heap_size() * policy.sweeping_threshold() + 1;
-    ASSERT_EQ(gc_phase::SWEEP, policy.check(initiation_point_type::HEAP_GROWTH, state));
+    ASSERT_EQ(gc_phase::SWEEP, policy.check(initiation_point_type::HEAP_EXPANSION,
+                                            initiation_point_data::create_empty_data(),
+                                            state));
 }
 
 TEST_F(space_base_policy_test, test_update)

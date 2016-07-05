@@ -40,7 +40,8 @@ public:
 
     bool compare(const gc_handle& a, const gc_handle& b);
 
-    void initiation_point(initiation_point_type ipoint);
+    void initiation_point(initiation_point_type ipt,
+                          const initiation_point_data& ipd = initiation_point_data::create_empty_data());
 
     bool is_printer_enabled() const;
     void set_printer_enabled(bool enabled);

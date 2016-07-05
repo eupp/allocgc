@@ -22,6 +22,8 @@ public:
     static log_line warning();
     static log_line error();
 private:
+    typedef std::mutex mutex_t;
+
     class logger : private utils::noncopyable, private utils::nonmovable
     {
     public:
@@ -61,7 +63,7 @@ private:
     static log_line log(gc_loglevel lv);
 
     static boost::optional<logger> logger_;
-    static threads::ass_mutex mutex_;
+    static mutex_t mutex_;
     static gc_loglevel loglevel_;
     static const char* prefix_;
 };

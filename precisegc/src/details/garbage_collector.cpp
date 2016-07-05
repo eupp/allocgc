@@ -141,7 +141,6 @@ void garbage_collector::set_printer_enabled(bool enabled)
 void garbage_collector::register_page(const byte* page, size_t size)
 {
     m_recorder.register_page(page, size);
-    initiation_point(initiation_point_type::HEAP_EXPANSION);
 }
 
 void garbage_collector::deregister_page(const byte* page, size_t size)

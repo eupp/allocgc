@@ -44,8 +44,8 @@ public:
 
     pointer_type allocate(size_t size)
     {
-        std::unique_lock<Lock> lock_guard(m_lock);
-        return allocate_unsafe(size, lock_guard);
+        std::lock_guard<Lock> lock_guard(m_lock);
+        return allocate_unsafe(size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
@@ -95,10 +95,10 @@ public:
 private:
     typedef typename UpstreamAlloc::pointer_type internal_pointer_type;
 
-    pointer_type allocate_unsafe(size_t size, std::unique_lock<Lock>& lock_guard)
+    pointer_type allocate_unsafe(size_t size)
     {
         if (m_alloc_chunk == m_chunks.end()) {
-            m_alloc_chunk = create_chunk(size, lock_guard);
+            m_alloc_chunk = create_chunk(size);
             return m_alloc_chunk->allocate(size);
         }
         if (m_alloc_chunk->memory_available()) {
@@ -107,14 +107,12 @@ private:
 
         m_alloc_chunk = std::find_if(++m_alloc_chunk, m_chunks.end(),
                                      [] (const Chunk& chk) { return chk.memory_available(); });
-        return allocate_unsafe(size, lock_guard);
+        return allocate_unsafe(size);
     }
 
-    typename list_t::iterator create_chunk(size_t cell_size, std::unique_lock<Lock>& lock_guard)
+    typename list_t::iterator create_chunk(size_t cell_size)
     {
-        lock_guard.unlock();
         auto alloc_res = allocate_block(cell_size);
-        lock_guard.lock();
         bool is_updated_by_other_thread = m_alloc_chunk != m_chunks.end() && m_alloc_chunk->memory_available();
         m_chunks.emplace_back(alloc_res.first, alloc_res.second, cell_size);
         return is_updated_by_other_thread ? m_alloc_chunk : --m_chunks.end();

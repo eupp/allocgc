@@ -230,7 +230,7 @@ int main()
         ops.type        = gc_type::SERIAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::DEBUG;
+        ops.loglevel    = gc_loglevel::OFF;
         ops.print_stat  = false;
         gc_init(ops);
     #elif defined(BDW_GC)
@@ -258,8 +258,8 @@ int main()
     #elif defined(PRECISE_GC)
         gc_stat stat = gc_stats();
         std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
-        std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " msec" << std::endl;
-        std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time / stat.gc_count).count() << " msec" << std::endl;
+        std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time).count() << " us" << std::endl;
+        std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;
     #endif
 }
 

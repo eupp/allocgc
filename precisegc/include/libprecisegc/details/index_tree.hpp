@@ -20,7 +20,7 @@
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include "logging.h"
+#include "logging.hpp"
 
 namespace precisegc { namespace details {
 

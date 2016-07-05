@@ -4,6 +4,8 @@
 #include <iostream>
 #include <memory>
 
+#include <boost/optional.hpp>
+
 #include <libprecisegc/details/threads/ass_sync.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/gc_options.hpp>
@@ -20,10 +22,10 @@ public:
     static log_line warning();
     static log_line error();
 private:
-    class logger: public utils::noncopyable, public utils::nonmovable
+    class logger : private utils::noncopyable, private utils::nonmovable
     {
     public:
-        explicit logger(std::ostream& stream);
+        explicit logger(const std::ostream& stream);
 
         template <typename T>
         logger& operator<<(const T& x)
@@ -35,7 +37,7 @@ private:
         std::ostream m_stream;
     };
 
-    class log_line: public utils::noncopyable
+    class log_line: private utils::noncopyable
     {
     public:
         explicit log_line(gc_loglevel lv);
@@ -58,12 +60,10 @@ private:
 
     static log_line log(gc_loglevel lv);
 
-    static const char* prefix;
-    // to do: switch to optional<logger>
-    static std::unique_ptr<logger> logger_;
-    // to do: switch to optional<gc_signal_safe_mutex>
-    static std::unique_ptr<threads::ass_mutex> mutex_;
+    static boost::optional<logger> logger_;
+    static threads::ass_mutex mutex_;
     static gc_loglevel loglevel_;
+    static const char* prefix_;
 };
 
 }}

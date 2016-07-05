@@ -7,7 +7,7 @@
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 #include <libprecisegc/details/garbage_collector.hpp>
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
 

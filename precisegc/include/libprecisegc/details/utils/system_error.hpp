@@ -4,7 +4,7 @@
 #include <cerrno>
 #include <system_error>
 
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace utils {
 

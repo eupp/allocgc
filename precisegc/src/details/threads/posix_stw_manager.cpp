@@ -2,7 +2,7 @@
 
 #include <atomic>
 
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/threads/posix_signal.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 
@@ -12,7 +12,7 @@ void stw_manager::sighandler()
 {
     stw_manager& stwm = stw_manager::instance();
 
-    logging::debug() << "Thread " << std::this_thread::get_id() << " enters stw signal handler";
+    logging::debug() << "Thread enters stop-the-world signal handler";
 
     ++stwm.m_threads_suspended_cnt;
     std::atomic_thread_fence(std::memory_order_release);
@@ -23,7 +23,7 @@ void stw_manager::sighandler()
     std::atomic_thread_fence(std::memory_order_acquire);
     stwm.m_barrier.notify();
 
-    logging::debug() << "Thread " << std::this_thread::get_id() << " leaves stw signal handler";
+    logging::debug() << "Thread leaves stop-the-world signal handler";
 }
 
 stw_manager& stw_manager::instance()
@@ -46,7 +46,7 @@ bool stw_manager::is_stop_the_world_disabled() const
 
 void stw_manager::suspend_thread(std::thread::native_handle_type thread)
 {
-    logging::debug() << "Sending stw signal to thread " << thread;
+    logging::debug() << "Sending stop-the-world signal to thread " << thread;
 
     ++m_threads_cnt;
     posix_signal::instance().send(thread);

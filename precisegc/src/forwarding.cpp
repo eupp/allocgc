@@ -6,7 +6,7 @@
 #include "managed_ptr.hpp"
 #include "object_meta.h"
 
-#include "logging.h"
+#include "logging.hpp"
 #include "gc_mark.h"
 
 namespace precisegc { namespace details {

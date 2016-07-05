@@ -8,7 +8,7 @@
 #include <libprecisegc/details/utils/static_thread_pool.hpp>
 #include <libprecisegc/details/utils/math.hpp>
 #include <libprecisegc/details/gc_compact.h>
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details {
 

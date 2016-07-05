@@ -10,7 +10,7 @@
 
 #include <libprecisegc/gc_ptr.hpp>
 #include <libprecisegc/details/type_meta.hpp>
-#include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/ptrs/gc_ptr_access.hpp>
 #include <libprecisegc/details/ptrs/gc_new_impl.hpp>

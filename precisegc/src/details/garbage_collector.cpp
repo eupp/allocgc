@@ -5,7 +5,8 @@
 #include <iostream>
 
 #include <libprecisegc/details/utils/scope_guard.hpp>
-#include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details {
 
@@ -99,10 +100,14 @@ void garbage_collector::initiation_point(initiation_point_type ipoint)
     auto guard = utils::make_scope_guard([] { gc_unsafe_scope::leave_safepoint(); });
 
     if (ipoint == initiation_point_type::USER_REQUEST) {
+        logging::debug() << "Thread initiate gc by user's request";
+
         std::lock_guard<std::mutex> lock(m_gc_mutex);
         m_strategy->gc(gc_phase::SWEEP);
     }
     if (check_gc_phase(m_initiation_policy->check(ipoint, state()))) {
+        logging::debug() << "Thread tries to initiate gc";
+
         std::lock_guard<std::mutex> lock(m_gc_mutex);
         gc_phase phase = m_initiation_policy->check(ipoint, state());
         if (check_gc_phase(phase)) {

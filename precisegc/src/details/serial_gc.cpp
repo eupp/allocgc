@@ -3,7 +3,7 @@
 #include <utility>
 
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 

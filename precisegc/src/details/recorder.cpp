@@ -1,6 +1,6 @@
 #include <libprecisegc/details/recorder.hpp>
 
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details {
 

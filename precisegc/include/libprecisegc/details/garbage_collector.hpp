@@ -11,7 +11,7 @@
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/recorder.hpp>
 #include <libprecisegc/details/printer.hpp>
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {

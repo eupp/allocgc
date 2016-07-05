@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 #include "details/managed_ptr.hpp"
 #include "details/barrier_buffer.h"

@@ -2,7 +2,7 @@
 
 #include "managed_ptr.hpp"
 
-#include "logging.h"
+#include "logging.hpp"
 
 namespace precisegc { namespace details {
 

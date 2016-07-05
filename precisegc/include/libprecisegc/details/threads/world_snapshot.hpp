@@ -9,7 +9,7 @@
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -66,7 +66,7 @@ public:
     {
         static stw_manager& stwm = stw_manager::instance();
 
-        logging::info() << "Thread " << std::this_thread::get_id() << " is requesting stop-the-world";
+        logging::info() << "Thread is requesting stop-the-world";
 
         if (stwm.is_stop_the_world_disabled()) {
             throw stop_the_world_disabled();
@@ -92,7 +92,7 @@ public:
     {
         static stw_manager& stwm = stw_manager::instance();
 
-        logging::info() << "Thread " << std::this_thread::get_id() << " is requesting start-the-world";
+        logging::info() << "Thread is requesting start-the-world";
 
         for (auto thread: m_threads) {
             if (thread->native_handle() != managed_thread::this_thread().native_handle()) {

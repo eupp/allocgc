@@ -1,6 +1,6 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/threads_snapshot.hpp>
@@ -25,7 +25,7 @@ void thread_manager::register_main_thread()
     managed_thread& main_thread = managed_thread::this_thread();
 
     std::lock_guard<lock_type> lock(m_lock);
-    logging::info() << "Register main thread " << main_thread.get_id();
+    logging::info() << "Register main thread";
     m_threads[main_thread.get_id()] = &main_thread;
 }
 

@@ -11,7 +11,7 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_unsafe_scope.h>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {

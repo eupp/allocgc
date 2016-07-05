@@ -3,7 +3,7 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/gc_factory.hpp>
-#include <libprecisegc/details/logging.h>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc {
 

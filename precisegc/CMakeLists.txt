@@ -17,10 +17,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_compact.h
         include/libprecisegc/details/ptrs/gc_new_stack.hpp
         include/libprecisegc/details/ptrs/gc_new_impl.hpp
-        include/libprecisegc/details/gc_unsafe_scope.h
+        include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/ptrs/gc_ptr_access.hpp
-        include/libprecisegc/details/logging.h
+        include/libprecisegc/details/logging.hpp
         include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/allocators/page_allocator.hpp
@@ -84,7 +84,7 @@ set(precisegc_LIB_SRCS
         src/gc_heap.cpp
         src/details/ptrs/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
-        src/logging.cpp
+        src/details/logging.cpp
         src/barrier_buffer.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/managed_pool_chunk.cpp

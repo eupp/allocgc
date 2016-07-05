@@ -47,6 +47,14 @@ managed_ptr garbage_collector::allocate(size_t size)
         p = m_strategy->allocate(size);
     } catch (gc_bad_alloc& ) {
         initiation_point(initiation_point_type::GC_BAD_ALLOC);
+        try {
+            p = m_strategy->allocate(size);
+        } catch (gc_bad_alloc& ) {
+            // give another chance to incremental collector
+            if (m_gc_info.incremental) {
+                initiation_point(initiation_point_type::GC_BAD_ALLOC);
+            }
+        }
         p = m_strategy->allocate(size);
     }
     m_recorder.register_allocation(p.cell_size());

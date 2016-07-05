@@ -29,10 +29,11 @@ gc_phase space_based_policy::check(initiation_point_type ipt,
                                    const gc_state& state) const
 {
     if (ipt == initiation_point_type::HEAP_EXPANSION) {
-        if (state.heap_size > m_sweeping_threshold * m_heap_size) {
+        size_t size = state.heap_size + ipd.alloc_size();
+        if (size > m_sweeping_threshold * m_heap_size) {
             return gc_phase::SWEEP;
         }
-        if (state.heap_size > m_marking_threshold * m_heap_size) {
+        if (size > m_marking_threshold * m_heap_size) {
             return gc_phase::MARK;
         }
     }

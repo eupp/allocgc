@@ -113,9 +113,8 @@ private:
     typename list_t::iterator create_chunk(size_t cell_size)
     {
         auto alloc_res = allocate_block(cell_size);
-        bool is_updated_by_other_thread = m_alloc_chunk != m_chunks.end() && m_alloc_chunk->memory_available();
         m_chunks.emplace_back(alloc_res.first, alloc_res.second, cell_size);
-        return is_updated_by_other_thread ? m_alloc_chunk : --m_chunks.end();
+        return --m_chunks.end();
     }
 
     typename list_t::iterator destroy_chunk(typename list_t::iterator chk)

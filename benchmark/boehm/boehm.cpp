@@ -208,8 +208,8 @@ struct GCBench {
         #elif defined(PRECISE_GC)
             gc_stat stat = gc_stats();
             cout << "Completed " << stat.gc_count << " collections" << endl;
-            cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " msec" << endl;
-            cout << "Average pause time " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time / stat.gc_count).count() << " msec" << endl;
+            cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << endl;
+            cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << endl;
         #endif
     }
 };
@@ -226,7 +226,7 @@ int main () {
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();
-//        GC_enable_incremental();
+        GC_enable_incremental();
     #endif
     GCBench x;
     x.main();

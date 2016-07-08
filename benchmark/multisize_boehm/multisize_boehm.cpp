@@ -330,12 +330,12 @@ struct GCBench {
 int main () {
 #if defined(PRECISE_GC)
     gc_options ops;
-    ops.heapsize    = 1024 * 1024 * 1024;      // 1Gb
+//    ops.heapsize    = 900 * 1024 * 1024;      // 1Gb
     ops.type        = gc_type::SERIAL;
     ops.init        = gc_init_strategy::SPACE_BASED;
     ops.compacting  = gc_compacting::DISABLED;
-    ops.loglevel    = gc_loglevel::OFF;
-    ops.print_stat  = false;
+    ops.loglevel    = gc_loglevel::DEBUG;
+    ops.print_stat  = true;
     gc_init(ops);
 #elif defined(BDW_GC)
         GC_INIT();

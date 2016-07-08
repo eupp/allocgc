@@ -134,7 +134,7 @@ private:
         chunk_cnt = std::min((size_t) Chunk::CHUNK_MAXSIZE, chunk_cnt);
         assert(chunk_cnt <= Chunk::CHUNK_MAXSIZE);
         size_t chunk_size = chunk_cnt * cell_size;
-        assert(chunk_size <= PAGE_SIZE);
+//        assert(chunk_size <= PAGE_SIZE);
         return std::make_pair(upstream_allocate(chunk_size), chunk_size);
     }
 

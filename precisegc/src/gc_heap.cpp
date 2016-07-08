@@ -101,14 +101,15 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
     logging::info() << "Fixing pointers (in parallel with " << threads_num << " threads)...";
 
     utils::static_thread_pool thread_pool(threads_num);
-    std::vector<std::function<void()>> tasks;
+    std::array<std::function<void()>, SEGREGATED_STORAGE_SIZE> tasks;
 
-    m_alloc.apply_to_chunks([&tasks, &frwd] (allocators::managed_pool_chunk& chunk) {
-        tasks.emplace_back([&chunk, &frwd] {
-            ::precisegc::details::fix_pointers(chunk.begin(), chunk.end(), chunk.cell_size(), frwd);
-        });
-    });
-
+    for (size_t i = 0; i < SEGREGATED_STORAGE_SIZE; ++i) {
+        tasks[i] = [this, i, &frwd] {
+            auto& bp = m_alloc.get_bucket_policy();
+            auto rng = m_alloc.memory_range(i);
+            ::precisegc::details::fix_pointers(rng.begin(), rng.end(), bp.bucket_size(i), frwd);
+        };
+    }
     thread_pool.run(tasks.begin(), tasks.end());
 }
 

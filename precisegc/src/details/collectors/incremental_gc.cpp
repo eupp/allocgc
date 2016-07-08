@@ -40,7 +40,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_handle_access::store(dst, p, std::memory_order_release);
     if (m_phase == gc_phase::MARK) {
         managed_ptr mp(p);
-        if (!mp.get_mark()) {
+        if (mp /*&& !mp.get_mark()*/) {
             std::unique_ptr<mark_packet>& packet = threads::managed_thread::this_thread().get_mark_packet();
             if (!packet) {
                 packet = m_packet_manager.pop_output_packet();
@@ -117,7 +117,7 @@ void incremental_gc_base::sweep()
     }
     m_phase = gc_phase::SWEEP;
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, /*1*/std::thread::hardware_concurrency());
     gc_pause_stat pause_stat = {
             .type       = pause_type,
             .duration   = snapshot.time_since_stop_the_world()

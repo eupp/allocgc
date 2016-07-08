@@ -5,6 +5,7 @@
 #include <stack>
 #include <mutex>
 #include <memory>
+#include <atomic>
 #include <condition_variable>
 
 #include <libprecisegc/details/collectors/packet_manager.hpp>
@@ -21,7 +22,13 @@ class marker
 public:
     marker(packet_manager* manager)
         : m_packet_manager(manager)
+        , m_done(false)
     {}
+
+    ~marker()
+    {
+        m_done.store(false, std::memory_order_release);
+    }
 
     template <typename Traceable>
     void trace_roots(Traceable&& tracer)
@@ -75,7 +82,7 @@ private:
         auto input_packet = m_packet_manager->pop_input_packet();
         while (true) {
             while (!input_packet) {
-                if (m_packet_manager->is_no_input()) {
+                if (m_packet_manager->is_no_input() || m_done.load(std::memory_order_acquire)) {
                     return;
                 }
                 std::this_thread::yield();
@@ -112,6 +119,7 @@ private:
 
     packet_manager* m_packet_manager;
     std::vector<utils::scoped_thread> m_workers;
+    std::atomic<bool> m_done;
 };
 
 }}}

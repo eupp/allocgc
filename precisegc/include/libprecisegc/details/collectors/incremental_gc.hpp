@@ -28,6 +28,7 @@ public:
 
     void gc(gc_phase) override;
 private:
+    void flush_threads_packets(const threads::world_snapshot& snapshot);
     void start_marking();
     void sweep();
 

@@ -40,7 +40,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_handle_access::store(dst, p, std::memory_order_release);
     if (m_phase == gc_phase::MARK) {
         managed_ptr mp(p);
-        if (mp /*&& !mp.get_mark()*/) {
+        if (mp && !mp.get_mark()) {
             std::unique_ptr<mark_packet>& packet = threads::managed_thread::this_thread().get_mark_packet();
             if (!packet) {
                 packet = m_packet_manager.pop_output_packet();
@@ -71,6 +71,16 @@ void incremental_gc_base::gc(gc_phase phase)
     } else if (phase == gc_phase::SWEEP) {
         sweep();
     }
+}
+
+void incremental_gc_base::flush_threads_packets(const threads::world_snapshot& snapshot)
+{
+    snapshot.apply_to_threads([this] (threads::managed_thread* thread ) {
+        if (thread->get_mark_packet()) {
+            m_packet_manager.push_packet(std::move(thread->get_mark_packet()));
+            thread->get_mark_packet() = nullptr;
+        }
+    });
 }
 
 void incremental_gc_base::start_marking()
@@ -107,12 +117,7 @@ void incremental_gc_base::sweep()
     } else if (m_phase == gc_phase::MARK) {
         pause_type = gc_pause_type::SWEEP_HEAP;
         m_marker.trace_pins(snapshot.get_pin_tracer());
-        snapshot.apply_to_threads([this] (managed_thread* thread ) {
-            if (thread->get_mark_packet()) {
-                m_packet_manager.push_packet(std::move(thread->get_mark_packet()));
-                thread->get_mark_packet() = nullptr;
-            }
-        });
+        flush_threads_packets(snapshot);
         m_marker.mark();
     }
     m_phase = gc_phase::SWEEP;

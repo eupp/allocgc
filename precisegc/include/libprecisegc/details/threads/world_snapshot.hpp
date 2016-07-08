@@ -143,7 +143,7 @@ public:
     }
 
     template <typename Functor>
-    void apply_to_threads(Functor&& f)
+    void apply_to_threads(Functor&& f) const
     {
         for (auto thread: m_threads) {
             f(thread);

@@ -130,7 +130,7 @@ private:
         {
             idxs_t::iterator next_idx = std::next(idx);
 
-            m_data[*idx].m_cnt.fetch_add(1, std::memory_order_relaxed);
+            m_data[*idx].m_cnt.fetch_add(1, std::memory_order_acq_rel);
 
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             if (next_level == &null) {
@@ -152,7 +152,7 @@ private:
 
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             next_level->remove_index(next_idx);
-            if (m_data[*idx].m_cnt.fetch_sub(1, std::memory_order_relaxed) == 1) {
+            if (m_data[*idx].m_cnt.fetch_sub(1, std::memory_order_acq_rel) == 1) {
                 m_data[*idx].m_ptr.store(&null, std::memory_order_release);
                 delete next_level;
             }

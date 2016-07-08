@@ -85,7 +85,8 @@ public:
 
     memory_range_type memory_range()
     {
-        return memory_range_type(utils::flatten_range(m_chunks), std::unique_lock<Lock>(m_lock));
+        std::unique_lock<Lock> lock_guard(m_lock);
+        return memory_range_type(utils::flatten_range(m_chunks), std::move(lock_guard));
     }
 
     const UpstreamAlloc& upstream_allocator() const

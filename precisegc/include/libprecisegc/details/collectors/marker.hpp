@@ -80,15 +80,21 @@ private:
     void worker_routine()
     {
         auto input_packet = m_packet_manager->pop_input_packet();
+        std::unique_ptr<mark_packet> output_packet;
         while (true) {
             while (!input_packet) {
+                if (output_packet) {
+                    m_packet_manager->push_packet(std::move(output_packet));
+                }
                 if (m_packet_manager->is_no_input() || m_done.load(std::memory_order_acquire)) {
                     return;
                 }
                 std::this_thread::yield();
                 input_packet = m_packet_manager->pop_input_packet();
             }
-            auto output_packet = m_packet_manager->pop_output_packet();
+            if (!output_packet) {
+                output_packet = m_packet_manager->pop_output_packet();
+            }
             while (!input_packet->is_empty()) {
                 ptrs::trace_ptr(input_packet->pop(), [this, &output_packet] (const managed_ptr& child) {
                     if (output_packet->is_full()) {
@@ -99,8 +105,6 @@ private:
                     output_packet->push(child);
                 });
             }
-
-            m_packet_manager->push_packet(std::move(output_packet));
 
             auto empty_packet = std::move(input_packet);
             input_packet = m_packet_manager->pop_input_packet();

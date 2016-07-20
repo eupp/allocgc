@@ -86,6 +86,19 @@ class Scanner:
                     action(match)
 
 
+class NumpyDecoder(json.JSONEncoder):
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(NumpyDecoder, self).default(obj)
+
+
 class BoehmTestParser:
 
     def __init__(self):
@@ -107,13 +120,8 @@ class BoehmTestParser:
         def parse_bottom_up_time(match):
             self._context[self._tree_depth]["bp_time"] += [int(match.group("bu_time"))]
 
-        def parse_trace_stw_time(match):
-            self._context["trace_stw"] += [int(match.group("trace_stw"))]
-            self._context["stw_count"][self._i] += 1
-
-        def parse_compact_stw_time(match):
-            self._context["compact_stw"] += [int(match.group("compact_stw"))]
-            self._context["stw_count"][self._i] += 1
+        def parse_stw_time(match):
+            self._context["stw_time"] += [int(match.group("stw_time"))]
 
         def parse_full_time(match):
             self._context["full_time"] += [int(match.group("full_time"))]
@@ -125,8 +133,7 @@ class BoehmTestParser:
             "TREE_INFO": {"cmd": parse_tree_info, "re": "Creating (?P<tree_count>\d*) trees of depth (?P<tree_depth>\d*)"},
             "TOP_DOWN" : {"cmd": parse_top_down_time, "re": "\tTop down construction took (?P<td_time>\d*) msec"},
             "BOTTOM_UP": {"cmd": parse_bottom_up_time, "re": "\tBottom up construction took (?P<bu_time>\d*) msec"},
-            "TRACE_STW": {"cmd": parse_trace_stw_time, "re": "trace roots stw time = (?P<trace_stw>\d*) microsec"},
-            "CMPCT_STW": {"cmd": parse_compact_stw_time, "re": "compact stw time = (?P<compact_stw>\d*) microsec"},
+            "STW_TIME" : {"cmd": parse_stw_time, "re": "Average pause time (?P<stw_time>\d*) us"},
             "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) msec"},
             "GC_COUNT" : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
         }
@@ -141,8 +148,7 @@ class BoehmTestParser:
     def new_context(self, name):
         self._context = {}
         self._context["name"] = name
-        self._context["trace_stw"] = []
-        self._context["compact_stw"] = []
+        self._context["stw_time"] = []
         self._context["full_time"] = []
         self._context["stw_count"] = []
         self._context["gc_count"] = []
@@ -153,13 +159,9 @@ class BoehmTestParser:
 
         res["name"] = self._context["name"]
 
-        res["trace stw mean"] = np.mean(self._context["trace_stw"]) / 1000.0
-        res["trace stw std"]  = np.std(self._context["trace_stw"]) / 1000.0
-        res["trace stw max"]  = np.max(self._context["trace_stw"]) / 1000.0
-
-        res["compact stw mean"] = np.mean(self._context["compact_stw"]) / 1000.0
-        res["compact stw std"]  = np.std(self._context["compact_stw"]) / 1000.0
-        res["compact stw max"]  = np.max(self._context["compact_stw"]) / 1000.0
+        res["stw time mean"] = np.mean(self._context["stw_time"]) if len(self._context["stw_time"]) > 0 else -1
+        res["stw time std"]  = np.std(self._context["stw_time"]) if len(self._context["stw_time"]) > 0 else -1
+        res["stw time max"]  = np.max(self._context["stw_time"]) if len(self._context["stw_time"]) > 0 else -1
 
         res["full time mean"] = np.mean(self._context["full_time"])
         res["full time std"]  = np.std(self._context["full_time"])
@@ -223,7 +225,7 @@ class TestRunner:
                         parser.parse(output)
 
                     parsed = parser.result()
-                    logging.debug("Parsed: \n {}".format(json.dumps(parsed)))
+                    logging.debug("Parsed: \n {}".format(json.dumps(parsed, cls=NumpyDecoder)))
 
                     logging.info("Add parsed output to printer")
                     printer.add_row(parsed)
@@ -236,8 +238,8 @@ class TestRunner:
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 BOEHM_TEST_TARGET   = "boehm"
-BOEHM_TEST_RUNNABLE = os.path.join("test", "boehm", "boehm")
-OUT_FILENAME = "boehm_test_new.tex"
+BOEHM_TEST_RUNNABLE = os.path.join("benchmark", "boehm", "boehm")
+OUT_FILENAME = "boehm_test_incremental.tex"
 
 if __name__ == '__main__':
 
@@ -246,14 +248,13 @@ if __name__ == '__main__':
 
     build_ops = [
         # {"name": "T*", "cmake_options": "NO_GC"},
-        # {"name": "BoehmGC", "cmake_options": "BDW_GC"},
         # {"name": "shared_ptr", "cmake_options": "SHARED_PTR"},
+        # {"name": "BoehmGC", "cmake_options": "BDW_GC"},
         {"name": "gc_ptr", "cmake_options": "PRECISE_GC"}
     ]
     cols = ["name",
             "full time mean", "full time std",
-            "trace stw mean", "trace stw std", "trace stw max",
-            "compact stw mean", "compact stw std", "compact stw max",
+            "stw time mean", "stw time std", "stw time max",
             "stw count", "gc count"]
 
     runner  = TestRunner(PROJECT_DIR, BOEHM_TEST_TARGET, BOEHM_TEST_RUNNABLE, build_ops=build_ops)

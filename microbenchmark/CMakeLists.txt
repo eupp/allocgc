@@ -17,7 +17,7 @@ find_library(BDWGC NAMES gc
         /usr/local/lib64
         )
 
-#add_definitions(-DNONIUS_USE_BOOST_CHRONO)
+add_definitions(-DNONIUS_USE_BOOST_CHRONO)
 
 add_executable(precisegc_microbenchmark ${precisegc_microbenchmark})
 target_link_libraries(precisegc_microbenchmark ${CMAKE_THREAD_LIBS_INIT})

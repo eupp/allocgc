@@ -35,7 +35,7 @@ struct gc_options
     size_t              heapsize    = std::numeric_limits<size_t>::max();
     gc_type             type        = gc_type::SERIAL;
     gc_init_strategy    init        = gc_init_strategy::DEFAULT;
-    gc_compacting       compacting  = gc_compacting::ENABLED;
+    gc_compacting       compacting  = gc_compacting::DISABLED;
     gc_loglevel         loglevel    = gc_loglevel::OFF;
     bool                print_stat  = false;
 };

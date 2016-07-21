@@ -16,16 +16,16 @@ STATS_STW_TIME_MAX      = "stw time max"
 STATS_GC_COUNT          = "gc count"
 
 
-def stat_mean(arr, default=float('NaN')):
-    return np.mean(arr) if len(arr) > 0 else default
+def stat_mean(arr, default=float('NaN'), ndigits=None):
+    return round(np.mean(arr), ndigits) if len(arr) > 0 else default
 
 
-def stat_std(arr, default=float('NaN')):
-    return np.std(arr) if len(arr) > 0 else default
+def stat_std(arr, default=float('NaN'), ndigits=None):
+    return round(np.std(arr), ndigits) if len(arr) > 0 else default
 
 
-def stat_max(arr, default=float('NaN')):
-    return np.max(arr) if len(arr) > 0 else default
+def stat_max(arr, default=float('NaN'), ndigits=None):
+    return round(np.max(arr), ndigits) if len(arr) > 0 else default
 
 
 def call_with_cwd(args, cwd):
@@ -140,12 +140,12 @@ class BoehmTestParser:
 
     def result(self):
         stats = {}
-        stats[STATS_FULL_TIME_MEAN] = stat_mean(self._context["full_time"])
-        stats[STATS_FULL_TIME_STD]  = stat_std(self._context["full_time"])
-        stats[STATS_STW_TIME_MEAN]  = stat_mean(self._context["stw_time"])
-        stats[STATS_STW_TIME_STD]   = stat_std(self._context["stw_time"])
-        stats[STATS_STW_TIME_MAX]   = stat_max(self._context["stw_time"])
-        stats[STATS_GC_COUNT]       = round(stat_mean(self._context["gc_count"], default=0))
+        stats[STATS_FULL_TIME_MEAN] = stat_mean(self._context["full_time"], ndigits=0)
+        stats[STATS_FULL_TIME_STD]  = stat_std(self._context["full_time"], ndigits=3)
+        stats[STATS_STW_TIME_MEAN]  = stat_mean(self._context["stw_time"], ndigits=0)
+        stats[STATS_STW_TIME_STD]   = stat_std(self._context["stw_time"], ndigits=3)
+        stats[STATS_STW_TIME_MAX]   = stat_max(self._context["stw_time"], ndigits=0)
+        stats[STATS_GC_COUNT]       = stat_mean(self._context["gc_count"], default=0, ndigits=0)
         return stats
 
 
@@ -218,8 +218,8 @@ class TestRunner:
 
                 run_ops = build.get("runtime_options", [{}])
                 for run_op in run_ops:
-                    run_name = build_name + run_op.get("suffix", "")
-                    args = run_op.get("args", [])
+                    run_name = build_name + " " + run_op.get("suffix", "")
+                    args = run_op.get("args", "").split()
 
                     parser = create_parser(self._target)
 

@@ -38,9 +38,9 @@
 //      times.
 
 #include <new>
+#include <string>
 #include <iostream>
 #include <type_traits>
-#include <sys/time.h>
 
 #include "../../common/macro.hpp"
 #include "../../common/timer.hpp"
@@ -214,19 +214,33 @@ struct GCBench {
     }
 };
 
-int main () {
+int main (int argc, const char* argv[])
+{
+    bool incremental_flag = false;
+    bool compacting_flag = false;
+    for (int i = 1; i < argc; ++i) {
+        auto arg = std::string(argv[i]);
+        if (arg == "--incremental") {
+            incremental_flag = true;
+        } else if (arg == "--compacting") {
+            compacting_flag = true;
+        }
+    }
+
     #if defined(PRECISE_GC)
         gc_options ops;
         ops.heapsize    = 32 * 1024 * 1024;      // 32 Mb
-        ops.type        = gc_type::INCREMENTAL;
+        ops.type        = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
-        ops.compacting  = gc_compacting::ENABLED;
-        ops.loglevel    = gc_loglevel::DEBUG;
+        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
+        ops.loglevel    = gc_loglevel::SILENT;
         ops.print_stat  = false;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();
-        GC_enable_incremental();
+        if (incremental_flag) {
+            GC_enable_incremental();
+        }
     #endif
     GCBench x;
     x.main();

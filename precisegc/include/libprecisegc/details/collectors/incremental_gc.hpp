@@ -16,7 +16,7 @@ namespace internals {
 class incremental_gc_base : public gc_strategy, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    incremental_gc_base(gc_compacting compacting);
+    incremental_gc_base(gc_compacting compacting, size_t threads_available);
 
     managed_ptr allocate(size_t size) override;
 
@@ -35,6 +35,7 @@ private:
     gc_heap m_heap;
     packet_manager m_packet_manager;
     marker m_marker;
+    size_t m_threads_available;
     gc_phase m_phase;
 };
 
@@ -43,7 +44,7 @@ private:
 class incremental_gc : public internals::incremental_gc_base
 {
 public:
-    incremental_gc();
+    explicit incremental_gc(size_t threads_available);
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
@@ -56,7 +57,7 @@ public:
 class incremental_compacting_gc : public internals::incremental_gc_base
 {
 public:
-    incremental_compacting_gc();
+    explicit incremental_compacting_gc(size_t threads_available);
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 

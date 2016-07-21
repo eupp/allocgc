@@ -226,12 +226,13 @@ int main()
 {
     #if defined(PRECISE_GC)
         gc_options ops;
-        ops.heapsize    = 2 * 1024 * 1024;      // 2 Mb
-        ops.type        = gc_type::SERIAL;
-        ops.init        = gc_init_strategy::SPACE_BASED;
-        ops.compacting  = gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::DEBUG;
-        ops.print_stat  = true;
+        ops.heapsize            = 2 * 1024 * 1024;      // 2 Mb
+        ops.threads_available   = 1;
+        ops.type                = gc_type::INCREMENTAL;
+        ops.init                = gc_init_strategy::SPACE_BASED;
+        ops.compacting          = gc_compacting::ENABLED;
+        ops.loglevel            = gc_loglevel::DEBUG;
+        ops.print_stat          = true;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

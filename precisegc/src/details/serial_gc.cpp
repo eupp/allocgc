@@ -11,9 +11,10 @@ namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
-serial_gc_base::serial_gc_base(gc_compacting compacting)
+serial_gc_base::serial_gc_base(gc_compacting compacting, size_t threads_available)
     : m_heap(compacting)
     , m_marker(&m_packet_manager)
+    , m_threads_available(threads_available)
 {}
 
 managed_ptr serial_gc_base::allocate(size_t size)
@@ -46,10 +47,10 @@ void serial_gc_base::gc(gc_phase phase)
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_marker.trace_pins(snapshot.get_pin_tracer());
-    m_marker.concurrent_mark(std::thread::hardware_concurrency() - 1);
+    m_marker.concurrent_mark(m_threads_available - 1);
     m_marker.mark();
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, m_threads_available);
     gc_pause_stat pause_stat = {
             .type       = gc_pause_type::GC,
             .duration   = snapshot.time_since_stop_the_world()
@@ -60,8 +61,8 @@ void serial_gc_base::gc(gc_phase phase)
 
 }
 
-serial_gc::serial_gc()
-    : serial_gc_base(gc_compacting::DISABLED)
+serial_gc::serial_gc(size_t threads_available)
+    : serial_gc_base(gc_compacting::DISABLED, threads_available)
 {}
 
 void serial_gc::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -88,15 +89,15 @@ void serial_gc::unpin(byte* ptr)
 gc_info serial_gc::info() const
 {
     static gc_info inf = {
-        .incremental_flag                = false,
+        .incremental_flag           = false,
         .support_concurrent_mark    = false,
         .support_concurrent_sweep   = false
     };
     return inf;
 }
 
-serial_compacting_gc::serial_compacting_gc()
-    : serial_gc_base(gc_compacting::ENABLED)
+serial_compacting_gc::serial_compacting_gc(size_t threads_available)
+    : serial_gc_base(gc_compacting::ENABLED, threads_available)
 {}
 
 void serial_compacting_gc::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -132,7 +133,7 @@ void serial_compacting_gc::unpin(byte* ptr)
 gc_info serial_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag                = false,
+            .incremental_flag           = false,
             .support_concurrent_mark    = false,
             .support_concurrent_sweep   = false
     };

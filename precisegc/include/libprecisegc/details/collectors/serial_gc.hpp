@@ -16,7 +16,7 @@ namespace internals {
 class serial_gc_base : public gc_strategy, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    serial_gc_base(gc_compacting compacting);
+    serial_gc_base(gc_compacting compacting, size_t threads_available);
 
     managed_ptr allocate(size_t size) override;
 
@@ -30,6 +30,7 @@ private:
     gc_heap m_heap;
     packet_manager m_packet_manager;
     marker m_marker;
+    size_t m_threads_available;
 };
 
 }
@@ -37,7 +38,7 @@ private:
 class serial_gc : public internals::serial_gc_base
 {
 public:
-    serial_gc();
+    explicit serial_gc(size_t threads_available);
 
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 
@@ -52,7 +53,7 @@ public:
 class serial_compacting_gc : public internals::serial_gc_base
 {
 public:
-    serial_compacting_gc();
+    explicit serial_compacting_gc(size_t threads_available);
 
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 

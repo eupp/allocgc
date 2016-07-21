@@ -51,8 +51,8 @@ public:
     void register_pause(const gc_pause_stat& pause_stat);
     void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
 
-    gc_info info() const;
-    gc_stat stats() const;
+    gc_info  info() const;
+    gc_stat  stats() const;
     gc_state state() const;
 private:
     bool check_gc_phase(gc_phase phase);

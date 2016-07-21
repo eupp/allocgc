@@ -40,15 +40,15 @@ std::unique_ptr<gc_strategy> gc_factory::create_gc(const gc_options& options)
 {
     if (options.type == gc_type::SERIAL) {
         if (options.compacting == gc_compacting::DISABLED) {
-            return utils::make_unique<serial_gc>();
+            return utils::make_unique<serial_gc>(options.threads_available);
         } else if (options.compacting == gc_compacting::ENABLED) {
-            return utils::make_unique<serial_compacting_gc>();
+            return utils::make_unique<serial_compacting_gc>(options.threads_available);
         }
     } else if (options.type == gc_type::INCREMENTAL) {
         if (options.compacting == gc_compacting::DISABLED) {
-            return utils::make_unique<incremental_gc>();
+            return utils::make_unique<incremental_gc>(options.threads_available);
         } else if (options.compacting == gc_compacting::ENABLED) {
-            return utils::make_unique<incremental_compacting_gc>();
+            return utils::make_unique<incremental_compacting_gc>(options.threads_available);
         }
     }
 }

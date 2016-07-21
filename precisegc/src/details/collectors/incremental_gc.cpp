@@ -12,10 +12,11 @@ namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 
-incremental_gc_base::incremental_gc_base(gc_compacting compacting)
+incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t threads_available)
     : m_heap(compacting)
     , m_marker(&m_packet_manager)
     , m_phase(gc_phase::IDLE)
+    , m_threads_available(threads_available)
 {}
 
 managed_ptr incremental_gc_base::allocate(size_t size)
@@ -91,7 +92,7 @@ void incremental_gc_base::start_marking()
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_phase = gc_phase::MARK;
-    m_marker.concurrent_mark(std::thread::hardware_concurrency() - 1);
+    m_marker.concurrent_mark(std::max((size_t) 1, m_threads_available - 1));
 
     gc_pause_stat pause_stat = {
             .type       = gc_pause_type::TRACE_ROOTS,
@@ -112,7 +113,7 @@ void incremental_gc_base::sweep()
         m_marker.trace_roots(snapshot.get_root_tracer());
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_phase = gc_phase::MARK;
-        m_marker.concurrent_mark(std::thread::hardware_concurrency() - 1);
+        m_marker.concurrent_mark(m_threads_available - 1);
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
         pause_type = gc_pause_type::SWEEP_HEAP;
@@ -122,7 +123,7 @@ void incremental_gc_base::sweep()
     }
     m_phase = gc_phase::SWEEP;
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, m_threads_available);
     gc_pause_stat pause_stat = {
             .type       = pause_type,
             .duration   = snapshot.time_since_stop_the_world()
@@ -134,8 +135,8 @@ void incremental_gc_base::sweep()
 
 }
 
-incremental_gc::incremental_gc()
-    : incremental_gc_base(gc_compacting::DISABLED)
+incremental_gc::incremental_gc(size_t threads_available)
+    : incremental_gc_base(gc_compacting::DISABLED, threads_available)
 {}
 
 bool incremental_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -156,7 +157,7 @@ void incremental_gc::unpin(byte* ptr)
 gc_info incremental_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag                = true,
+            .incremental_flag           = true,
             .support_concurrent_mark    = true,
             .support_concurrent_sweep   = false
     };
@@ -164,8 +165,8 @@ gc_info incremental_gc::info() const
     return inf;
 }
 
-incremental_compacting_gc::incremental_compacting_gc()
-        : incremental_gc_base(gc_compacting::ENABLED)
+incremental_compacting_gc::incremental_compacting_gc(size_t threads_available)
+        : incremental_gc_base(gc_compacting::ENABLED, threads_available)
 {}
 
 bool incremental_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
@@ -194,7 +195,7 @@ void incremental_compacting_gc::unpin(byte* ptr)
 gc_info incremental_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag                = true,
+            .incremental_flag           = true,
             .support_concurrent_mark    = true,
             .support_concurrent_sweep   = false
     };

@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <limits>
+#include <thread>
 
 namespace precisegc {
 
@@ -27,17 +28,18 @@ enum class gc_loglevel {
     , INFO
     , WARNING
     , ERROR
-    , OFF
+    , SILENT
 };
 
 struct gc_options
 {
-    size_t              heapsize    = std::numeric_limits<size_t>::max();
-    gc_type             type        = gc_type::SERIAL;
-    gc_init_strategy    init        = gc_init_strategy::DEFAULT;
-    gc_compacting       compacting  = gc_compacting::DISABLED;
-    gc_loglevel         loglevel    = gc_loglevel::OFF;
-    bool                print_stat  = false;
+    size_t              heapsize          = std::numeric_limits<size_t>::max();
+    size_t              threads_available = std::thread::hardware_concurrency();
+    gc_type             type              = gc_type::SERIAL;
+    gc_init_strategy    init              = gc_init_strategy::DEFAULT;
+    gc_compacting       compacting        = gc_compacting::DISABLED;
+    gc_loglevel         loglevel          = gc_loglevel::SILENT;
+    bool                print_stat        = false;
 };
 
 }

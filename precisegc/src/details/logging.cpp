@@ -8,7 +8,7 @@ namespace precisegc { namespace details {
 
 boost::optional<logging::logger> logging::logger_{};
 logging::mutex_t logging::mutex_{};
-gc_loglevel logging::loglevel_ = gc_loglevel::OFF;
+gc_loglevel logging::loglevel_ = gc_loglevel::SILENT;
 const char* logging::prefix_ = "precisegc-";
 
 void logging::init(std::ostream& stream, gc_loglevel lv)

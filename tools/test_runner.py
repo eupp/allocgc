@@ -8,6 +8,26 @@ import tabulate
 
 import numpy as np
 
+STATS_FULL_TIME_MEAN    = "full time mean"
+STATS_FULL_TIME_STD     = "full time std"
+STATS_STW_TIME_MEAN     = "stw time mean"
+STATS_STW_TIME_STD      = "stw time std"
+STATS_STW_TIME_MAX      = "stw time max"
+STATS_GC_COUNT          = "gc count"
+
+
+def stat_mean(arr, default=float('NaN')):
+    return np.mean(arr) if len(arr) > 0 else default
+
+
+def stat_std(arr, default=float('NaN')):
+    return np.std(arr) if len(arr) > 0 else default
+
+
+def stat_max(arr, default=float('NaN')):
+    return np.max(arr) if len(arr) > 0 else default
+
+
 def call_with_cwd(args, cwd):
     proc = subprocess.Popen(args, cwd=cwd)
     proc.wait()
@@ -86,6 +106,86 @@ class Scanner:
                     action(match)
 
 
+class BoehmTestParser:
+
+    def __init__(self):
+
+        def parse_full_time(match):
+            self._context["full_time"] += [int(match.group("full_time"))]
+
+        def parse_stw_time(match):
+            self._context["stw_time"] += [int(match.group("stw_time"))]
+
+        def parse_gc_count(match):
+            self._context["gc_count"] += [int(match.group("gc_count"))]
+
+        token_spec = {
+            # "TREE_INFO": {"cmd": parse_tree_info, "re": "Creating (?P<tree_count>\d*) trees of depth (?P<tree_depth>\d*)"},
+            # "TOP_DOWN" : {"cmd": parse_top_down_time, "re": "\tTop down construction took (?P<td_time>\d*) msec"},
+            # "BOTTOM_UP": {"cmd": parse_bottom_up_time, "re": "\tBottom up construction took (?P<bu_time>\d*) msec"},
+            "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) msec"},
+            "STW_TIME" : {"cmd": parse_stw_time, "re": "Average pause time (?P<stw_time>\d*) us"},
+            "GC_COUNT" : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
+        }
+
+        self._scanner = Scanner(token_spec)
+
+        self._context = {}
+        self._context["full_time"] = []
+        self._context["stw_time"] = []
+        self._context["gc_count"] = []
+
+    def parse(self, test_output):
+        self._scanner.scan(test_output)
+
+    def result(self):
+        stats = {}
+        stats[STATS_FULL_TIME_MEAN] = stat_mean(self._context["full_time"])
+        stats[STATS_FULL_TIME_STD]  = stat_std(self._context["full_time"])
+        stats[STATS_STW_TIME_MEAN]  = stat_mean(self._context["stw_time"])
+        stats[STATS_STW_TIME_STD]   = stat_std(self._context["stw_time"])
+        stats[STATS_STW_TIME_MAX]   = stat_max(self._context["stw_time"])
+        stats[STATS_GC_COUNT]       = round(stat_mean(self._context["gc_count"], default=0))
+        return stats
+
+
+def create_parser(target):
+    if target in ("boehm", "multisize_boehm"):
+        return BoehmTestParser()
+
+
+class TexTableReporter:
+
+    def __init__(self, outfn):
+        self._cols = [
+            "name",
+            STATS_GC_COUNT,
+            STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
+            STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MAX,
+        ]
+        self._rows = []
+        self._outfn = outfn
+
+    def add_stats(self, row):
+        self._rows.append(self._match_columns(row, self._cols))
+
+    def create_report(self):
+        with open(self._outfn, "w") as outfile:
+            outfile.write(tabulate.tabulate(self._rows, self._cols, tablefmt="latex"))
+
+    @staticmethod
+    def _match_columns(row, cols):
+        res = []
+        for col in cols:
+            res.append(row.get(col))
+        return res
+
+
+def create_reporter(reporter_name, outfn):
+    if reporter_name == "tex_table":
+        return TexTableReporter(outfn)
+
+
 class NumpyDecoder(json.JSONEncoder):
 
     def default(self, obj):
@@ -99,122 +199,29 @@ class NumpyDecoder(json.JSONEncoder):
             return super(NumpyDecoder, self).default(obj)
 
 
-class BoehmTestParser:
-
-    def __init__(self):
-
-        def parse_tree_info(match):
-            tree_depth = int(match.group("tree_depth"))
-            self._tree_depth = tree_depth
-            if self._tree_depth not in self._context:
-                self._context[self._tree_depth] = {}
-                self._context[self._tree_depth]["td_time"] = []
-                self._context[self._tree_depth]["bp_time"] = []
-
-            self._context[self._tree_depth]["tree_depth"] = tree_depth
-            self._context[self._tree_depth]["tree_count"] = int(match.group("tree_count"))
-
-        def parse_top_down_time(match):
-            self._context[self._tree_depth]["td_time"] += [int(match.group("td_time"))]
-
-        def parse_bottom_up_time(match):
-            self._context[self._tree_depth]["bp_time"] += [int(match.group("bu_time"))]
-
-        def parse_stw_time(match):
-            self._context["stw_time"] += [int(match.group("stw_time"))]
-
-        def parse_full_time(match):
-            self._context["full_time"] += [int(match.group("full_time"))]
-
-        def parse_gc_count(match):
-            self._context["gc_count"] += [int(match.group("gc_count"))]
-
-        token_spec = {
-            "TREE_INFO": {"cmd": parse_tree_info, "re": "Creating (?P<tree_count>\d*) trees of depth (?P<tree_depth>\d*)"},
-            "TOP_DOWN" : {"cmd": parse_top_down_time, "re": "\tTop down construction took (?P<td_time>\d*) msec"},
-            "BOTTOM_UP": {"cmd": parse_bottom_up_time, "re": "\tBottom up construction took (?P<bu_time>\d*) msec"},
-            "STW_TIME" : {"cmd": parse_stw_time, "re": "Average pause time (?P<stw_time>\d*) us"},
-            "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) msec"},
-            "GC_COUNT" : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
-        }
-
-        self._scanner = Scanner(token_spec)
-
-    def parse(self, test_output):
-        self._context["stw_count"].append(0)
-        self._scanner.scan(test_output)
-        self._i += 1
-
-    def new_context(self, name):
-        self._context = {}
-        self._context["name"] = name
-        self._context["stw_time"] = []
-        self._context["full_time"] = []
-        self._context["stw_count"] = []
-        self._context["gc_count"] = []
-        self._i = 0
-
-    def result(self):
-        res = {}
-
-        res["name"] = self._context["name"]
-
-        res["stw time mean"] = np.mean(self._context["stw_time"]) if len(self._context["stw_time"]) > 0 else -1
-        res["stw time std"]  = np.std(self._context["stw_time"]) if len(self._context["stw_time"]) > 0 else -1
-        res["stw time max"]  = np.max(self._context["stw_time"]) if len(self._context["stw_time"]) > 0 else -1
-
-        res["full time mean"] = np.mean(self._context["full_time"])
-        res["full time std"]  = np.std(self._context["full_time"])
-
-        res["stw count"] = round(np.mean(self._context["stw_count"]))
-        res["gc count"]  = round(np.mean(self._context["gc_count"]))
-
-        return res
-
-
-class TexTablePrinter:
-
-    def __init__(self, cols):
-        self._cols = cols
-        self._rows = []
-
-    def add_row(self, row):
-        res = []
-        for col in self._cols:
-            val = row.get(col)
-            if val is None:
-                continue
-            res.append(val)
-        self._rows.append(res)
-
-    def print(self):
-        return tabulate.tabulate(self._rows, self._cols, tablefmt="latex")
-
-
 class TestRunner:
 
-    def __init__(self, prj_dir, target, runnable, build_ops=[{}], run_ops=[{}]):
+    def __init__(self, prj_dir, target, runnable, builds):
         self._prj_dir = prj_dir
         self._target = target
         self._runnable = runnable
-        self._build_ops = build_ops
-        self._run_ops = run_ops
+        self._builds = builds
 
-    def run(self, parser, printer, nruns):
+    def run(self, reporter, nruns):
 
-        for build_op in self._build_ops:
-            build_name = build_op.get("name")
-            cppflags   = build_op.get("cmake_options")
+        for build in self._builds:
+            build_name = build.get("name")
+            cppflags   = build.get("cmake_options")
 
             logging.info("Build {} with cppflags: {}".format(self._target, cppflags))
-
             with Builder(self._prj_dir, self._target, cppflags) as builder:
-                for run_op in self._run_ops:
-                    run_name = run_op.get("name", "")
+
+                run_ops = build.get("runtime_options", [{}])
+                for run_op in run_ops:
+                    run_name = build_name + run_op.get("suffix", "")
                     args = run_op.get("args", [])
 
-                    context_name = str(build_name) + run_name
-                    parser.new_context(context_name)
+                    parser = create_parser(self._target)
 
                     for n in range(0, nruns):
                         logging.info("Run {} with args: {}".format(self._runnable, args))
@@ -227,41 +234,29 @@ class TestRunner:
                     parsed = parser.result()
                     logging.debug("Parsed: \n {}".format(json.dumps(parsed, cls=NumpyDecoder)))
 
-                    logging.info("Add parsed output to printer")
-                    printer.add_row(parsed)
+                    logging.info("Add parsed output to reporter")
+                    parsed["name"] = run_name
+                    reporter.add_stats(parsed)
 
-        logging.info("Produce results")
-        return printer.print()
+        logging.info("Produce report")
+        return reporter.create_report()
 
 
 
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-BOEHM_TEST_TARGET   = "boehm"
-BOEHM_TEST_RUNNABLE = os.path.join("benchmark", "boehm", "boehm")
-OUT_FILENAME = "boehm_test_incremental.tex"
+CONFIG = "benchcfg.json"
 
 if __name__ == '__main__':
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)
 
-    build_ops = [
-        # {"name": "T*", "cmake_options": "NO_GC"},
-        # {"name": "shared_ptr", "cmake_options": "SHARED_PTR"},
-        # {"name": "BoehmGC", "cmake_options": "BDW_GC"},
-        {"name": "gc_ptr", "cmake_options": "PRECISE_GC"}
-    ]
-    cols = ["name",
-            "full time mean", "full time std",
-            "stw time mean", "stw time std", "stw time max",
-            "stw count", "gc count"]
+    with open(CONFIG) as fd:
+        cfg = json.load(fd)
 
-    runner  = TestRunner(PROJECT_DIR, BOEHM_TEST_TARGET, BOEHM_TEST_RUNNABLE, build_ops=build_ops)
-    parser  = BoehmTestParser()
-    printer = TexTablePrinter(cols)
-
-    result = runner.run(parser, printer, 20)
-
-    outfile = open(OUT_FILENAME, "w")
-    outfile.write(result)
+    for target in cfg["targets"]:
+        runner = TestRunner(PROJECT_DIR, target["name"], target["runnable"], cfg["builds"])
+        for reporter_ops in cfg["reporters"]:
+            reporter = create_reporter(reporter_ops["name"], target["name"] + reporter_ops["output"])
+            result = runner.run(reporter, cfg["nruns"])

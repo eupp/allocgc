@@ -1,0 +1,18 @@
+{
+  "targets":
+    [
+      {"name": "boehm", "runnable": "benchmark/boehm/boehm"}
+
+    ],
+  "builds":
+    [
+      {"name": "new/delete", "cmake_options": "NO_GC"},
+      {"name": "shared_ptr", "cmake_options": "SHARED_PTR"},
+      {"name": "BoehmGC", "cmake_options": "BDW_GC"}
+    ],
+  "reporters":
+    [
+      {"name": "tex_table", "output": ".tex"}
+    ],
+  "nruns" : 20
+}

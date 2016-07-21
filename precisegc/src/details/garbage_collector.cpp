@@ -47,14 +47,14 @@ managed_ptr garbage_collector::allocate(size_t size)
         p = m_strategy->allocate(size);
     } catch (gc_bad_alloc& ) {
         initiation_point(initiation_point_type::GC_BAD_ALLOC);
-        try {
-            p = m_strategy->allocate(size);
-        } catch (gc_bad_alloc& ) {
-            // give another chance to incremental collector
-            if (m_gc_info.incremental) {
-                initiation_point(initiation_point_type::GC_BAD_ALLOC);
-            }
-        }
+//        try {
+//            p = m_strategy->allocate(size);
+//        } catch (gc_bad_alloc& ) {
+//            // give another chance to incremental collector
+//            if (m_gc_info.incremental_flag) {
+//                initiation_point(initiation_point_type::GC_BAD_ALLOC);
+//            }
+//        }
         p = m_strategy->allocate(size);
     }
     m_recorder.register_allocation(p.cell_size());
@@ -113,26 +113,16 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const initia
     gc_unsafe_scope::enter_safepoint();
     auto guard = utils::make_scope_guard([] { gc_unsafe_scope::leave_safepoint(); });
 
+    std::lock_guard<std::mutex> lock(m_gc_mutex);
+
     if (ipt == initiation_point_type::USER_REQUEST) {
-
         logging::info() << "Thread initiates gc by user's request";
-        std::lock_guard<std::mutex> lock(m_gc_mutex);
         m_strategy->gc(gc_phase::SWEEP);
-
     } else if (ipt == initiation_point_type::GC_BAD_ALLOC) {
-
         logging::info() << "GC_BAD_ALLOC received - Thread initiates gc";
-        std::lock_guard<std::mutex> lock(m_gc_mutex);
         m_strategy->gc(gc_phase::SWEEP);
-
-    } else if (ipt == initiation_point_type::HEAP_EXPANSION) {
-
-        gc_phase phase = m_initiation_policy->check(ipt, ipd, state());
-        if (phase == gc_phase::MARK && m_gc_info.incremental && m_gc_info.support_concurrent_mark) {
-            m_strategy->gc(phase);
-        } else if (phase == gc_phase::SWEEP) {
-            throw gc_bad_alloc();
-        }
+    } else {
+        m_initiation_policy->initiation_point(ipt, ipd);
     }
 }
 
@@ -170,7 +160,7 @@ void garbage_collector::register_sweep(const gc_sweep_stat& sweep_stat, const gc
     if (m_printer_enabled) {
         m_printer.print_sweep_stat(sweep_stat, pause_stat);
     }
-    m_initiation_policy->update(state());
+//    m_initiation_policy->update(state());
 }
 
 gc_info garbage_collector::info() const
@@ -195,7 +185,7 @@ gc_state garbage_collector::state() const
 
 bool garbage_collector::check_gc_phase(gc_phase phase)
 {
-    return (phase == gc_phase::MARK && m_gc_info.incremental) || phase == gc_phase::SWEEP;
+    return (phase == gc_phase::MARK && m_gc_info.incremental_flag) || phase == gc_phase::SWEEP;
 }
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)

@@ -88,7 +88,7 @@ void serial_gc::unpin(byte* ptr)
 gc_info serial_gc::info() const
 {
     static gc_info inf = {
-        .incremental                = false,
+        .incremental_flag                = false,
         .support_concurrent_mark    = false,
         .support_concurrent_sweep   = false
     };
@@ -132,7 +132,7 @@ void serial_compacting_gc::unpin(byte* ptr)
 gc_info serial_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental                = false,
+            .incremental_flag                = false,
             .support_concurrent_mark    = false,
             .support_concurrent_sweep   = false
     };

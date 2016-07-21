@@ -31,7 +31,7 @@ enum class gc_phase {
 
 struct gc_info
 {
-    bool    incremental;
+    bool    incremental_flag;
     bool    support_concurrent_mark;
     bool    support_concurrent_sweep;
 };

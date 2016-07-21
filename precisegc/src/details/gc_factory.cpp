@@ -9,7 +9,7 @@ namespace precisegc { namespace details {
 
 using namespace collectors;
 
-std::unique_ptr<initiation_policy> create_space_based_policy(size_t max_heap_size)
+std::unique_ptr<initiation_policy> gc_factory::create_space_based_policy(gc_strategy* gc, size_t max_heap_size)
 {
     static const size_t start_heap_size     = 2 * 1024 * 1024;  // 2 Mb
     static const double increase_factor     = 2.0;
@@ -17,7 +17,8 @@ std::unique_ptr<initiation_policy> create_space_based_policy(size_t max_heap_siz
     static const double sweeping_threshold  = 1.0;
 
     return utils::make_unique<space_based_policy>(
-              max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
+              gc
+            , max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
             , marking_threshold
             , sweeping_threshold
             , increase_factor
@@ -25,12 +26,13 @@ std::unique_ptr<initiation_policy> create_space_based_policy(size_t max_heap_siz
     );
 }
 
-std::unique_ptr<initiation_policy> gc_factory::create_initiation_policy(const gc_options& options)
+std::unique_ptr<initiation_policy> gc_factory::create_initiation_policy(gc_strategy* gc,
+                                                                        const gc_options& options)
 {
     if (options.init == gc_init_strategy::MANUAL) {
         return utils::make_unique<empty_policy>();
     } else if (options.init == gc_init_strategy::SPACE_BASED || options.init == gc_init_strategy::DEFAULT) {
-        return create_space_based_policy(options.heapsize);
+        return create_space_based_policy(gc, options.heapsize);
     }
 }
 

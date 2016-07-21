@@ -13,6 +13,7 @@
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
+#include <libprecisegc/details/utils/safe_scope_lock.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>
 #include <libprecisegc/details/object_meta.h>
@@ -32,7 +33,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
             allocators::page_allocator,
             allocators::default_allocator,
             allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
-            std::mutex
+            utils::safe_scope_lock<std::recursive_mutex>
         > alloc_t;
 
     typedef intrusive_forwarding forwarding;

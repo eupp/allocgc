@@ -12,8 +12,11 @@ namespace precisegc { namespace details {
 class gc_factory
 {
 public:
-    static std::unique_ptr<initiation_policy> create_initiation_policy(const gc_options& options);
+    static std::unique_ptr<initiation_policy> create_initiation_policy(gc_strategy* gc,
+                                                                       const gc_options& options);
     static std::unique_ptr<gc_strategy> create_gc(const gc_options& options);
+private:
+    static std::unique_ptr<initiation_policy> create_space_based_policy(gc_strategy* gc, size_t max_heap_size);
 };
 
 }}

@@ -16,7 +16,9 @@ int gc_init(const gc_options& options)
         logging::init(std::clog, options.loglevel);
         threads::thread_manager::instance().register_main_thread();
 
-        gc_initialize(gc_factory::create_gc(options), gc_factory::create_initiation_policy(options));
+        auto strategy = gc_factory::create_gc(options);
+        auto init_policy = gc_factory::create_initiation_policy(strategy.get(), options);
+        gc_initialize(std::move(strategy), std::move(init_policy));
 
         if (options.print_stat) {
             gc_enable_print_stats();

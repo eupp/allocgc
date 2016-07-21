@@ -32,7 +32,7 @@ public:
     gc_info info() const override
     {
         static gc_info inf = {
-                .incremental                = false,
+                .incremental_flag                = false,
                 .support_concurrent_mark    = false,
                 .support_concurrent_sweep   = false
         };

@@ -18,8 +18,8 @@ managed_ptr gc_allocate(size_t size);
 void gc_initiation_point(initiation_point_type ipoint,
                          const initiation_point_data& ipd = initiation_point_data::create_empty_data());
 
-gc_info gc_get_info();
-gc_stat gc_get_stats();
+gc_info  gc_get_info();
+gc_stat  gc_get_stats();
 gc_state gc_get_state();
 
 void gc_enable_print_stats();

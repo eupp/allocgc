@@ -122,7 +122,7 @@ void incremental_gc_base::sweep()
     }
     m_phase = gc_phase::SWEEP;
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, 1 /*std::thread::hardware_concurrency()*/);
+    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, std::thread::hardware_concurrency());
     gc_pause_stat pause_stat = {
             .type       = pause_type,
             .duration   = snapshot.time_since_stop_the_world()
@@ -156,7 +156,7 @@ void incremental_gc::unpin(byte* ptr)
 gc_info incremental_gc::info() const
 {
     static gc_info inf = {
-            .incremental                = true,
+            .incremental_flag                = true,
             .support_concurrent_mark    = true,
             .support_concurrent_sweep   = false
     };
@@ -194,7 +194,7 @@ void incremental_compacting_gc::unpin(byte* ptr)
 gc_info incremental_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental                = true,
+            .incremental_flag                = true,
             .support_concurrent_mark    = true,
             .support_concurrent_sweep   = false
     };

@@ -26,10 +26,11 @@ class list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopy
 public:
     typedef typename Chunk::pointer_type pointer_type;
     typedef stateful_alloc_tag alloc_tag;
-    typedef utils::locked_range<
-                  utils::flattened_range<boost::iterator_range<typename list_t::iterator>>
-                , Lock
-            > memory_range_type;
+    typedef utils::flattened_range<boost::iterator_range<typename list_t::iterator>> memory_range_type;
+//    typedef utils::locked_range<
+//                  utils::flattened_range<boost::iterator_range<typename list_t::iterator>>
+//                , Lock
+//            > memory_range_type;
 
     list_allocator()
         : m_alloc_chunk(m_chunks.begin())
@@ -85,8 +86,9 @@ public:
 
     memory_range_type memory_range()
     {
-        std::unique_lock<Lock> lock_guard(m_lock);
-        return memory_range_type(utils::flatten_range(m_chunks), std::move(lock_guard));
+//        std::unique_lock<Lock> lock_guard(m_lock);
+//        return memory_range_type(utils::flatten_range(m_chunks), std::move(lock_guard));
+        return utils::flatten_range(m_chunks);
     }
 
     const UpstreamAlloc& upstream_allocator() const

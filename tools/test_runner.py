@@ -254,7 +254,8 @@ class TestRunner:
                             logging.debug("Interrupted (timeout expired)!")
                             run_checker.interrupted_run(run_name)
                             continue
-                        logging.debug("Return code: {}; Output: \n {}".format(rc, output))
+                        logging.info("Return code: {}".format(rc))
+                        logging.debug("Output: \n {}".format(output))
                         if run_checker.check_run(run_name, rc):
                             logging.info("Parse output")
                             parser.parse(output)

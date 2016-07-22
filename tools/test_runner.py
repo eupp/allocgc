@@ -196,15 +196,17 @@ class RunChecker:
     def __init__(self):
         self._runs = collections.defaultdict(lambda: collections.defaultdict(int))
 
-    def check_run(self, run_name, rc):
-        self._runs[run_name]["run count"] += 1
+    def check_run(self, target, run_name, rc):
+        name = self._full_name(target, run_name)
+        self._runs[name]["run count"] += 1
         if rc != 0:
-            self._runs[run_name]["failed count"] += 1
+            self._runs[name]["failed count"] += 1
         return rc == 0
 
-    def interrupted_run(self, run_name):
-        self._runs[run_name]["run count"] += 1
-        self._runs[run_name]["interrupted count"] += 1
+    def interrupted_run(self, target, run_name):
+        name = self._full_name(target, run_name)
+        self._runs[name]["run count"] += 1
+        self._runs[name]["interrupted count"] += 1
 
     def get_results(self):
         str = ""
@@ -213,6 +215,10 @@ class RunChecker:
             str += "\n".join("  %s = %s" % (kk, vv) for (kk, vv) in v.items())
             str += "\n"
         return str
+
+    @staticmethod
+    def _full_name(target, run_name):
+        return target + " " + run_name
 
 
 def run(build_dir, exe, args):
@@ -251,12 +257,12 @@ class TestRunner:
                         try:
                             rc, output = run(builder.build_dir(), self._runnable, args)
                         except subprocess.TimeoutExpired:
-                            logging.debug("Interrupted (timeout expired)!")
-                            run_checker.interrupted_run(run_name)
+                            logging.info("Interrupted (timeout expired)!")
+                            run_checker.interrupted_run(self._target, run_name)
                             continue
                         logging.info("Return code: {}".format(rc))
                         logging.debug("Output: \n {}".format(output))
-                        if run_checker.check_run(run_name, rc):
+                        if run_checker.check_run(self._target, run_name, rc):
                             logging.info("Parse output")
                             parser.parse(output)
                             n += 1
@@ -284,14 +290,15 @@ if __name__ == '__main__':
     with open(CONFIG) as fd:
         cfg = json.load(fd)
 
+    run_checker = RunChecker()
+
     for target in cfg["targets"]:
         runner = TestRunner(PROJECT_DIR, target["name"], target["runnable"], cfg["builds"])
-
-        run_checker = RunChecker()
 
         reporters = []
         for reporter_ops in cfg.get("reporters", []):
             reporters.append(create_reporter(reporter_ops["name"], target["name"] + reporter_ops["output"]))
 
         runner.run(cfg["nruns"], run_checker, reporters)
-        print(run_checker.get_results())
+
+    print(run_checker.get_results())

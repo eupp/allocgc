@@ -201,7 +201,7 @@ struct GCBench {
             // to keep them from being optimized away
         }
 
-        cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
+        cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << endl;
         #if defined(BDW_GC)
             cout << "Completed " << GC_get_gc_no() << " collections" << endl;
             cout << "Heap size is " << GC_get_heap_size() << endl;
@@ -235,6 +235,7 @@ int main (int argc, const char* argv[])
         ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
         ops.loglevel    = gc_loglevel::SILENT;
         ops.print_stat  = false;
+        ops.threads_available = 1;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

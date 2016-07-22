@@ -1,0 +1,20 @@
+{
+  "targets":
+  [
+    {"name": "boehm", "runnable": "benchmark/boehm/boehm"},
+    {"name": "multisize_boehm", "runnable": "benchmark/multisize_boehm/multisize_boehm"},
+    {"name": "parallel_merge_sort", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
+  ],
+  "builds":
+  [
+    {"name": "gc_ptr", "cmake_options": "PRECISE_GC", "runtime_options":
+    [
+      {"suffix": "Serial", "args": ""},
+      {"suffix": "Serial Compacting", "args": "--compacting"},
+      {"suffix": "Incremental", "args": "--incremental"},
+      {"suffix": "Incremental Compacting", "args": "--incremental --compacting"}
+    ]
+    }
+  ],
+  "nruns" : 10
+}

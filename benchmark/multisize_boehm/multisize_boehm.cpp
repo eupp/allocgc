@@ -314,7 +314,7 @@ struct GCBench {
             // to keep them from being optimized away
         }
 
-        cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
+        cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << endl;
         #if defined(BDW_GC)
                 cout << "Completed " << GC_get_gc_no() << " collections" << endl;
                 cout << "Heap size is " << GC_get_heap_size() << endl;
@@ -327,19 +327,34 @@ struct GCBench {
     }
 };
 
-int main () {
+int main (int argc, const char* argv[])
+{
+    bool incremental_flag = false;
+    bool compacting_flag = false;
+    for (int i = 1; i < argc; ++i) {
+        auto arg = std::string(argv[i]);
+        if (arg == "--incremental") {
+            incremental_flag = true;
+        } else if (arg == "--compacting") {
+            compacting_flag = true;
+        }
+    }
+
 #if defined(PRECISE_GC)
     gc_options ops;
 //    ops.heapsize    = 900 * 1024 * 1024;      // 1Gb
-    ops.type        = gc_type::SERIAL;
+    ops.type        = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
     ops.init        = gc_init_strategy::SPACE_BASED;
-    ops.compacting  = gc_compacting::DISABLED;
-    ops.loglevel    = gc_loglevel::DEBUG;
-    ops.print_stat  = true;
+    ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
+    ops.loglevel    = gc_loglevel::SILENT;
+    ops.print_stat  = false;
+    ops.threads_available = 1;
     gc_init(ops);
 #elif defined(BDW_GC)
         GC_INIT();
-        GC_enable_incremental();
+        if (incremental_flag) {
+            GC_enable_incremental();
+        }
 #endif
     GCBench x;
     x.main();

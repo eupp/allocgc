@@ -1,8 +1,9 @@
 {
   "targets":
     [
-      {"name": "boehm", "runnable": "benchmark/boehm/boehm"}
-
+      {"name": "boehm", "runnable": "benchmark/boehm/boehm"},
+      {"name": "multisize_boehm", "runnable": "benchmark/multisize_boehm/multisize_boehm"},
+      {"name": "parallel_merge_sort", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
     ],
   "builds":
     [

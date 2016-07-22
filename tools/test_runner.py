@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import collections
 import tempfile
 import logging
 import json
@@ -34,10 +35,14 @@ def call_with_cwd(args, cwd):
     assert proc.returncode == 0
 
 
-def call_with_cwd_output(args, cwd):
+def call_output(args, cwd=None, timeout=None):
     proc = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    out, err = proc.communicate()
-    return out.decode("utf-8")
+    try:
+        out, err = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        raise
+    return (proc.returncode, out.decode("utf-8"))
 
 
 class Builder:
@@ -84,12 +89,6 @@ class Builder:
         return res
 
 
-def run(build_dir, exe, args):
-    exe = os.path.join(build_dir, exe)
-    call_args = [exe] + args
-    return call_with_cwd_output(call_args, build_dir)
-
-
 class Scanner:
 
     def __init__(self, token_spec):
@@ -106,7 +105,7 @@ class Scanner:
                     action(match)
 
 
-class BoehmTestParser:
+class TestOutputParser:
 
     def __init__(self):
 
@@ -120,20 +119,13 @@ class BoehmTestParser:
             self._context["gc_count"] += [int(match.group("gc_count"))]
 
         token_spec = {
-            # "TREE_INFO": {"cmd": parse_tree_info, "re": "Creating (?P<tree_count>\d*) trees of depth (?P<tree_depth>\d*)"},
-            # "TOP_DOWN" : {"cmd": parse_top_down_time, "re": "\tTop down construction took (?P<td_time>\d*) msec"},
-            # "BOTTOM_UP": {"cmd": parse_bottom_up_time, "re": "\tBottom up construction took (?P<bu_time>\d*) msec"},
-            "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) msec"},
+            "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) ms"},
             "STW_TIME" : {"cmd": parse_stw_time, "re": "Average pause time (?P<stw_time>\d*) us"},
             "GC_COUNT" : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
         }
 
         self._scanner = Scanner(token_spec)
-
-        self._context = {}
-        self._context["full_time"] = []
-        self._context["stw_time"] = []
-        self._context["gc_count"] = []
+        self._context = collections.defaultdict(list)
 
     def parse(self, test_output):
         self._scanner.scan(test_output)
@@ -150,8 +142,8 @@ class BoehmTestParser:
 
 
 def create_parser(target):
-    if target in ("boehm", "multisize_boehm"):
-        return BoehmTestParser()
+    if target in ("boehm", "multisize_boehm", "parallel_merge_sort"):
+        return TestOutputParser()
 
 
 class TexTableReporter:
@@ -199,6 +191,36 @@ class NumpyDecoder(json.JSONEncoder):
             return super(NumpyDecoder, self).default(obj)
 
 
+class RunChecker:
+
+    def __init__(self):
+        self._runs = collections.defaultdict(lambda: collections.defaultdict(int))
+
+    def check_run(self, run_name, rc):
+        self._runs[run_name]["run count"] += 1
+        if rc != 0:
+            self._runs[run_name]["failed count"] += 1
+        return rc == 0
+
+    def interrupted_run(self, run_name):
+        self._runs[run_name]["run count"] += 1
+        self._runs[run_name]["interrupted count"] += 1
+
+    def get_results(self):
+        str = ""
+        for k, v in self._runs.items():
+            str += k + ":\n"
+            str += "\n".join("  %s = %s" % (kk, vv) for (kk, vv) in v.items())
+            str += "\n"
+        return str
+
+
+def run(build_dir, exe, args):
+    exe = os.path.join(build_dir, exe)
+    call_args = [exe] + args
+    return call_output(call_args, cwd=build_dir, timeout=30)
+
+
 class TestRunner:
 
     def __init__(self, prj_dir, target, runnable, builds):
@@ -207,7 +229,7 @@ class TestRunner:
         self._runnable = runnable
         self._builds = builds
 
-    def run(self, reporter, nruns):
+    def run(self, nruns, run_checker, reporters=[]):
 
         for build in self._builds:
             build_name = build.get("name")
@@ -223,40 +245,52 @@ class TestRunner:
 
                     parser = create_parser(self._target)
 
-                    for n in range(0, nruns):
+                    n = 0
+                    while n < nruns:
                         logging.info("Run {} with args: {}".format(self._runnable, args))
-                        output = run(builder.build_dir(), self._runnable, args)
-                        logging.debug("Output: \n {}".format(output))
-
-                        logging.info("Parse output")
-                        parser.parse(output)
+                        try:
+                            rc, output = run(builder.build_dir(), self._runnable, args)
+                        except subprocess.TimeoutExpired:
+                            logging.debug("Interrupted (timeout expired)!")
+                            run_checker.interrupted_run(run_name)
+                            continue
+                        logging.debug("Return code: {}; Output: \n {}".format(rc, output))
+                        if run_checker.check_run(run_name, rc):
+                            logging.info("Parse output")
+                            parser.parse(output)
+                            n += 1
 
                     parsed = parser.result()
                     logging.debug("Parsed: \n {}".format(json.dumps(parsed, cls=NumpyDecoder)))
 
                     logging.info("Add parsed output to reporter")
                     parsed["name"] = run_name
-                    reporter.add_stats(parsed)
+                    for reporter in reporters:
+                        reporter.add_stats(parsed)
 
-        logging.info("Produce report")
-        return reporter.create_report()
-
-
-
+        logging.info("Produce reports")
+        for reporter in reporters:
+            reporter.create_report()
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-CONFIG = "benchcfg.json"
+CONFIG = "testcfg.json"
 
 if __name__ == '__main__':
 
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     with open(CONFIG) as fd:
         cfg = json.load(fd)
 
     for target in cfg["targets"]:
         runner = TestRunner(PROJECT_DIR, target["name"], target["runnable"], cfg["builds"])
-        for reporter_ops in cfg["reporters"]:
-            reporter = create_reporter(reporter_ops["name"], target["name"] + reporter_ops["output"])
-            result = runner.run(reporter, cfg["nruns"])
+
+        run_checker = RunChecker()
+
+        reporters = []
+        for reporter_ops in cfg.get("reporters", []):
+            reporters.append(create_reporter(reporter_ops["name"], target["name"] + reporter_ops["output"]))
+
+        runner.run(cfg["nruns"], run_checker, reporters)
+        print(run_checker.get_results())

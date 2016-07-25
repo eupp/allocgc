@@ -139,14 +139,9 @@ private:
             level->~Level();
             std::lock_guard<std::mutex> lock(mutex);
             level_pool.deallocate(reinterpret_cast<byte*>(level), sizeof(Level));
-            ++freelist_size;
-            if (freelist_size == LEVELS_IN_BLOCK) {
-                level_pool.shrink(sizeof(Level));
-                freelist_size = 0;
-            }
         }
     private:
-        static const size_t LEVELS_IN_BLOCK = 16;
+        static const size_t LEVELS_IN_BLOCK = 32;
 
         typedef allocators::intrusive_list_allocator<
                 allocators::freelist_pool_chunk,
@@ -156,7 +151,6 @@ private:
 
         static level_pool_t level_pool;
         static std::mutex mutex;
-        static size_t freelist_size;
     };
 
     template <typename Level>
@@ -353,10 +347,6 @@ typename index_tree<T>::template level_factory<Level>::level_pool_t index_tree<T
 template <typename T>
 template <typename Level>
 std::mutex index_tree<T>::level_factory<Level>::mutex{};
-
-template <typename T>
-template <typename Level>
-size_t index_tree<T>::level_factory<Level>::freelist_size{};
 
 }}
 

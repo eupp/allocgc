@@ -84,7 +84,7 @@ public:
 
     void deallocate(pointer_type ptr, size_t size)
     {
-        assert(ptr && reinterpret_cast<std::uintptr_t>(ptr) % size == 0);
+        assert(ptr /*&& reinterpret_cast<std::uintptr_t>(ptr) % size == 0*/);
         memcpy(ptr, &m_freelist, sizeof(byte*));
         m_freelist = ptr;
     }
@@ -178,7 +178,7 @@ private:
         std::unique_ptr<byte, decltype(deleter)> memblk_owner(upstream_allocate(block_size), deleter);
         byte* memblk = memblk_owner.get();
 
-        new (&get_chunk_in_block(memblk)) Chunk(get_mem_in_block(memblk), m_blk_size, cell_size);
+        new (&get_chunk_in_block(memblk)) Chunk(get_mem_in_block(memblk), (m_blk_size / cell_size) * cell_size, cell_size);
 
         get_pointers_in_block(memblk).m_next = m_head;
         get_pointers_in_block(memblk).m_prev = get_fake_block();

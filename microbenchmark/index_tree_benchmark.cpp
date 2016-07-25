@@ -10,7 +10,7 @@ using namespace precisegc::details;
 typedef int entry_type;
 typedef index_tree<entry_type> index_tree_type;
 
-NONIUS_BENCHMARK("index ", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("index_tree.index", [](nonius::chronometer meter)
 {
     index_tree_type itree;
     std::vector<entry_type> entries(meter.runs());
@@ -24,7 +24,7 @@ NONIUS_BENCHMARK("index ", [](nonius::chronometer meter)
     });
 });
 
-NONIUS_BENCHMARK("remove_from_index", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("index_tree.remove_from_index", [](nonius::chronometer meter)
 {
     index_tree_type itree;
     std::vector<entry_type> entries(meter.runs());
@@ -39,7 +39,7 @@ NONIUS_BENCHMARK("remove_from_index", [](nonius::chronometer meter)
     });
 });
 
-NONIUS_BENCHMARK("get_entry", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("index_tree.get_entry", [](nonius::chronometer meter)
 {
     index_tree_type itree;
     std::vector<entry_type> entries(meter.runs());

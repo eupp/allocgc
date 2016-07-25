@@ -16,18 +16,23 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Chunk, typename UpstreamAlloc>
+namespace internals {
+struct control_block
+{
+    byte*   m_prev;
+    byte*   m_next;
+};
+}
+
+template <typename Chunk>
+constexpr size_t block_size_for(size_t cell_size, size_t cnt)
+{
+    return cell_size * cnt + sizeof(internals::control_block) + sizeof(Chunk);
+}
+
+template <typename Chunk, typename UpstreamAlloc, size_t BlockSize = 4096>
 class intrusive_list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable, private utils::nonmovable
 {
-    struct control_block
-    {
-        size_t  m_size;
-        byte*   m_prev;
-        byte*   m_next;
-    };
-
-    static const size_t MIN_BLOCK_SIZE = 4096;
-    static const size_t MAX_BLOCK_SIZE = 512 * 1024;
 public:
     static_assert(std::is_same<byte*, typename Chunk::pointer_type>::value,
                   "intrusive_list_allocator works only with raw pointers");
@@ -37,7 +42,6 @@ public:
 
     intrusive_list_allocator()
         : m_head(get_fake_block())
-        , m_blk_size(MIN_BLOCK_SIZE)
         , m_alloc_chunk(m_head)
         , m_freelist(nullptr)
     {
@@ -54,7 +58,6 @@ public:
 
     pointer_type allocate(size_t size)
     {
-        assert(size < this->MAX_BLOCK_SIZE);
         if (m_freelist) {
             byte* p = m_freelist;
             m_freelist = *reinterpret_cast<byte**>(m_freelist);
@@ -78,6 +81,8 @@ public:
             } else {
                 m_alloc_chunk = new_alloc_chunk;
             }
+        } else {
+            m_alloc_chunk = new_alloc_chunk;
         }
 
         return m_alloc_chunk->allocate(size);
@@ -177,18 +182,15 @@ private:
 
     iterator create_chunk(size_t cell_size)
     {
-        size_t blk_size = m_blk_size;
-        auto deleter = [this, blk_size] (byte* p) {
-            upstream_deallocate(p, blk_size);
+        auto deleter = [this] (byte* p) {
+            upstream_deallocate(p, BlockSize);
         };
-        std::unique_ptr<byte, decltype(deleter)> memblk_owner(upstream_allocate(blk_size), deleter);
+        std::unique_ptr<byte, decltype(deleter)> memblk_owner(upstream_allocate(BlockSize), deleter);
         byte* memblk = memblk_owner.get();
 
-        size_t free_mem_in_block = blk_size - sizeof(control_block) - sizeof(Chunk);
+        size_t free_mem_in_block = BlockSize - (sizeof(internals::control_block) + sizeof(Chunk));
         size_t mem_available = std::min((free_mem_in_block / cell_size) * cell_size, get_chunk_mem_max_size(cell_size));
         new (&get_chunk(memblk)) Chunk(get_mem(memblk), mem_available, cell_size);
-
-        get_control_block(memblk).m_size = blk_size;
 
         get_control_block(memblk).m_next = m_head;
         get_control_block(memblk).m_prev = get_fake_block();
@@ -197,8 +199,6 @@ private:
         get_control_block(get_fake_block()).m_next = memblk;
 
         m_head = memblk;
-        m_blk_size = std::min(2 * m_blk_size, (size_t) MAX_BLOCK_SIZE);
-        m_blk_size = std::min(m_blk_size, get_chunk_block_max_size(cell_size));
         memblk_owner.release();
 
         return iterator(memblk);
@@ -217,7 +217,7 @@ private:
         if (chk == begin()) {
             m_head = next.m_memblk;
         }
-        upstream_deallocate(chk.m_memblk, get_control_block(chk.m_memblk).m_size);
+        upstream_deallocate(chk.m_memblk, BlockSize);
         return next;
     }
 
@@ -228,7 +228,7 @@ private:
         if (dealloc_chunk != end()) {
             dealloc_chunk->deallocate(ptr, size);
             if (dealloc_chunk->empty()) {
-                size_t chunk_size = sizeof(control_block) + sizeof(Chunk) + dealloc_chunk->get_mem_size();
+                size_t chunk_size = sizeof(internals::control_block) + sizeof(Chunk) + dealloc_chunk->get_mem_size();
                 destroy_chunk(dealloc_chunk);
                 return chunk_size;
             }
@@ -246,19 +246,19 @@ private:
         this->template get_base<UpstreamAlloc>().deallocate(ptr, size);
     }
 
-    static control_block& get_control_block(byte* memblk)
+    static internals::control_block& get_control_block(byte* memblk)
     {
-        return *reinterpret_cast<control_block*>(memblk);
+        return *reinterpret_cast<internals::control_block*>(memblk);
     }
 
     static Chunk& get_chunk(byte* memblk)
     {
-        return *reinterpret_cast<Chunk*>(memblk + sizeof(control_block));
+        return *reinterpret_cast<Chunk*>(memblk + sizeof(internals::control_block));
     }
 
     static byte* get_mem(byte* memblk)
     {
-        return memblk + sizeof(control_block) + sizeof(Chunk);
+        return memblk + sizeof(internals::control_block) + sizeof(Chunk);
     }
 
     static size_t get_chunk_mem_max_size(size_t cell_size)
@@ -274,12 +274,11 @@ private:
         if (Chunk::CHUNK_MAXSIZE == std::numeric_limits<size_t>::max()) {
             return std::numeric_limits<size_t>::max();
         }
-        return Chunk::CHUNK_MAXSIZE * cell_size + sizeof(control_block) + sizeof(Chunk);
+        return Chunk::CHUNK_MAXSIZE * cell_size + sizeof(internals::control_block) + sizeof(Chunk);
     }
 
-    control_block m_fake;
+    internals::control_block m_fake;
     byte* m_head;
-    size_t m_blk_size;
     iterator m_alloc_chunk;
     byte* m_freelist;
 };

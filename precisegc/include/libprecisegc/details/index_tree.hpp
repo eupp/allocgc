@@ -12,15 +12,15 @@
 #include <memory>
 #include <mutex>
 #include <limits>
-#include <unordered_map>
 
 #include <boost/integer/static_min_max.hpp>
 
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include "logging.hpp"
+#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
 
 namespace precisegc { namespace details {
 
@@ -48,7 +48,6 @@ struct splitter
     static idxs_t split(byte* ptr)
     {
         std::uintptr_t x = reinterpret_cast<std::uintptr_t>(ptr);
-//        auto tmp = ((std::uintptr_t) 1 << (POINTER_BITS_USED)) - 1;
         x &= ((std::uintptr_t) 1 << (POINTER_BITS_USED)) - 1;
 
         size_t shift = POINTER_BITS_USED - LEVEL_BITS_CNT;
@@ -115,6 +114,52 @@ private:
     typedef internals::splitter::idxs_t idxs_t;
 
     template <typename Level>
+    class level_factory
+    {
+        class level_deleter
+        {
+        public:
+            void operator()(Level* level) const
+            {
+                destroy(level);
+            }
+        };
+    public:
+        static std::unique_ptr<Level, level_deleter> create()
+        {
+            std::unique_lock<std::mutex> lock(mutex);
+            auto ptr = std::unique_ptr<Level, level_deleter>(reinterpret_cast<Level*>(level_pool.allocate(sizeof(Level))));
+            lock.unlock();
+            new (ptr.get()) Level();
+            return ptr;
+        }
+
+        static void destroy(Level* level)
+        {
+            level->~Level();
+            std::lock_guard<std::mutex> lock(mutex);
+            level_pool.deallocate(reinterpret_cast<byte*>(level), sizeof(Level));
+            ++freelist_size;
+            if (freelist_size == LEVELS_IN_BLOCK) {
+                level_pool.shrink(sizeof(Level));
+                freelist_size = 0;
+            }
+        }
+    private:
+        static const size_t LEVELS_IN_BLOCK = 16;
+
+        typedef allocators::intrusive_list_allocator<
+                allocators::freelist_pool_chunk,
+                allocators::default_allocator,
+                allocators::block_size_for<allocators::freelist_pool_chunk>(sizeof(Level), LEVELS_IN_BLOCK)
+            > level_pool_t;
+
+        static level_pool_t level_pool;
+        static std::mutex mutex;
+        static size_t freelist_size;
+    };
+
+    template <typename Level>
     class internal_level : private utils::noncopyable, private utils::nonmovable
     {
     public:
@@ -134,7 +179,7 @@ private:
 
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             if (next_level == &null) {
-                auto new_level = utils::make_unique<Level>();
+                auto new_level = level_factory<Level>::create();
                 new_level->index(next_idx, entry);
                 if (m_data[*idx].m_ptr.compare_exchange_strong(next_level, new_level.get(), std::memory_order_acq_rel)) {
                     new_level.release();
@@ -154,7 +199,7 @@ private:
             next_level->remove_index(next_idx);
             if (m_data[*idx].m_cnt.fetch_sub(1, std::memory_order_acq_rel) == 1) {
                 m_data[*idx].m_ptr.store(&null, std::memory_order_release);
-                delete next_level;
+                level_factory<Level>::destroy(next_level);
             }
         }
 
@@ -170,7 +215,7 @@ private:
                 Level* level = hdl.m_ptr.load(std::memory_order_acquire);
                 if (level != &null) {
                     level->clear();
-                    delete level;
+                    level_factory<Level>::destroy(level);
                 }
             }
         }
@@ -299,7 +344,19 @@ struct index_tree_access
 
 template<typename T>
 template<typename Level>
-Level index_tree<T>::internal_level<Level>::null;
+Level index_tree<T>::internal_level<Level>::null{};
+
+template <typename T>
+template <typename Level>
+typename index_tree<T>::template level_factory<Level>::level_pool_t index_tree<T>::level_factory<Level>::level_pool{};
+
+template <typename T>
+template <typename Level>
+std::mutex index_tree<T>::level_factory<Level>::mutex{};
+
+template <typename T>
+template <typename Level>
+size_t index_tree<T>::level_factory<Level>::freelist_size{};
 
 }}
 

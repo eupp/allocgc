@@ -1,0 +1,31 @@
+{
+  "targets":
+    [
+      {"name": "boehm", "runnable": "benchmark/boehm/boehm"},
+      {"name": "multisize_boehm", "runnable": "benchmark/multisize_boehm/multisize_boehm"}
+    ],
+  "builds":
+    [
+      {"name": "new/delete", "cmake_options": "NO_GC"},
+      {"name": "shared_ptr", "cmake_options": "SHARED_PTR"},
+      {"name": "BoehmGC", "cmake_options": "BDW_GC", "runtime_options":
+        [
+          {"args": ""},
+          {"suffix": "Incremental", "args": "--incremental"}
+        ]
+      },
+      {"name": "gc_ptr", "cmake_options": "PRECISE_GC", "runtime_options":
+        [
+          {"suffix": "Serial", "args": ""},
+          {"suffix": "Serial Compacting", "args": "--compacting"},
+          {"suffix": "Incremental", "args": "--incremental"},
+          {"suffix": "Incremental Compacting", "args": "--incremental --compacting"}
+        ]
+      }
+    ],
+  "reporters":
+    [
+      {"name": "tex_table", "output": "_all.tex"}
+    ],
+  "nruns" : 1
+}

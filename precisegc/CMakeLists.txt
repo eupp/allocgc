@@ -77,7 +77,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/utils/base_offset.hpp
         include/libprecisegc/details/gc_factory.hpp
-        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp include/libprecisegc/details/utils/dummy_mutex.hpp include/libprecisegc/details/collectors/packet_manager.hpp include/libprecisegc/details/utils/safe_scope_lock.hpp)
+        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp include/libprecisegc/details/utils/dummy_mutex.hpp include/libprecisegc/details/collectors/packet_manager.hpp include/libprecisegc/details/utils/safe_scope_lock.hpp include/libprecisegc/details/threads/this_managed_thread.hpp include/libprecisegc/details/threads/managed_thread_accessor.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -104,7 +104,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/freelist_pool_chunk.cpp
         src/details/gc_hooks.cpp
         src/details/gc_factory.cpp
-        src/gc.cpp src/details/collectors/packet_manager.cpp)
+        src/gc.cpp src/details/collectors/packet_manager.cpp src/details/threads/this_managed_thread.cpp)
 
 
 find_package(Threads REQUIRED)

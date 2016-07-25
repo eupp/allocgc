@@ -5,9 +5,9 @@
 #include <functional>
 #include <memory>
 
-#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
+#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/stack_map.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 

@@ -19,13 +19,14 @@ namespace precisegc { namespace details { namespace allocators {
 template <typename Chunk, typename UpstreamAlloc>
 class intrusive_list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable, private utils::nonmovable
 {
-    struct pointers_block
+    struct control_block
     {
-        byte* m_prev;
-        byte* m_next;
+        size_t  m_size;
+        byte*   m_prev;
+        byte*   m_next;
     };
 
-    static const size_t MIN_BLOCK_SIZE = 4096 - sizeof(pointers_block) - sizeof(Chunk);
+    static const size_t MIN_BLOCK_SIZE = 4096;
     static const size_t MAX_BLOCK_SIZE = 512 * 1024;
 public:
     static_assert(std::is_same<byte*, typename Chunk::pointer_type>::value,
@@ -130,7 +131,7 @@ private:
 
         Chunk* operator->() const
         {
-            return &get_chunk_in_block(m_memblk);
+            return &get_chunk(m_memblk);
         }
     private:
         friend class intrusive_list_allocator;
@@ -138,17 +139,17 @@ private:
 
         Chunk& dereference() const
         {
-            return get_chunk_in_block(m_memblk);
+            return get_chunk(m_memblk);
         }
 
         void increment() noexcept
         {
-            m_memblk = get_pointers_in_block(m_memblk).m_next;
+            m_memblk = get_control_block(m_memblk).m_next;
         }
 
         void decrement() noexcept
         {
-            m_memblk = get_pointers_in_block(m_memblk).m_prev;
+            m_memblk = get_control_block(m_memblk).m_prev;
         }
 
         bool equal(const iterator& other) const noexcept
@@ -169,25 +170,35 @@ private:
         return iterator(get_fake_block());
     }
 
+    byte* get_fake_block()
+    {
+        return reinterpret_cast<byte*>(&m_fake);
+    }
+
     iterator create_chunk(size_t cell_size)
     {
-        size_t block_size = m_blk_size + sizeof(pointers_block) + sizeof(Chunk);
-        auto deleter = [this, block_size] (byte* p) {
-            upstream_deallocate(p, block_size);
+        size_t blk_size = m_blk_size;
+        auto deleter = [this, blk_size] (byte* p) {
+            upstream_deallocate(p, blk_size);
         };
-        std::unique_ptr<byte, decltype(deleter)> memblk_owner(upstream_allocate(block_size), deleter);
+        std::unique_ptr<byte, decltype(deleter)> memblk_owner(upstream_allocate(blk_size), deleter);
         byte* memblk = memblk_owner.get();
 
-        new (&get_chunk_in_block(memblk)) Chunk(get_mem_in_block(memblk), (m_blk_size / cell_size) * cell_size, cell_size);
+        size_t free_mem_in_block = blk_size - sizeof(control_block) - sizeof(Chunk);
+        size_t mem_available = std::min((free_mem_in_block / cell_size) * cell_size, get_chunk_mem_max_size(cell_size));
+        new (&get_chunk(memblk)) Chunk(get_mem(memblk), mem_available, cell_size);
 
-        get_pointers_in_block(memblk).m_next = m_head;
-        get_pointers_in_block(memblk).m_prev = get_fake_block();
+        get_control_block(memblk).m_size = blk_size;
 
-        get_pointers_in_block(m_head).m_prev = memblk;
-        get_pointers_in_block(get_fake_block()).m_next = memblk;
+        get_control_block(memblk).m_next = m_head;
+        get_control_block(memblk).m_prev = get_fake_block();
+
+        get_control_block(m_head).m_prev = memblk;
+        get_control_block(get_fake_block()).m_next = memblk;
 
         m_head = memblk;
         m_blk_size = std::min(2 * m_blk_size, (size_t) MAX_BLOCK_SIZE);
+        m_blk_size = std::min(m_blk_size, get_chunk_block_max_size(cell_size));
         memblk_owner.release();
 
         return iterator(memblk);
@@ -199,15 +210,14 @@ private:
         if (m_alloc_chunk == chk) {
             ++m_alloc_chunk;
         }
-        m_blk_size = chk->get_mem_size();
         iterator next = std::next(chk);
         iterator prev = std::prev(chk);
-        get_pointers_in_block(prev.m_memblk).m_next = next.m_memblk;
-        get_pointers_in_block(next.m_memblk).m_prev = prev.m_memblk;
+        get_control_block(prev.m_memblk).m_next = next.m_memblk;
+        get_control_block(next.m_memblk).m_prev = prev.m_memblk;
         if (chk == begin()) {
             m_head = next.m_memblk;
         }
-        upstream_deallocate(chk.m_memblk, sizeof(pointers_block) + sizeof(Chunk) + chk->get_mem_size());
+        upstream_deallocate(chk.m_memblk, get_control_block(chk.m_memblk).m_size);
         return next;
     }
 
@@ -218,17 +228,12 @@ private:
         if (dealloc_chunk != end()) {
             dealloc_chunk->deallocate(ptr, size);
             if (dealloc_chunk->empty()) {
-                size_t chunk_size = sizeof(pointers_block) + sizeof(Chunk) + dealloc_chunk->get_mem_size();
+                size_t chunk_size = sizeof(control_block) + sizeof(Chunk) + dealloc_chunk->get_mem_size();
                 destroy_chunk(dealloc_chunk);
                 return chunk_size;
             }
         }
         return 0;
-    }
-
-    byte* get_fake_block()
-    {
-        return reinterpret_cast<byte*>(&m_fake);
     }
 
     byte* upstream_allocate(size_t size)
@@ -241,22 +246,38 @@ private:
         this->template get_base<UpstreamAlloc>().deallocate(ptr, size);
     }
 
-    static pointers_block& get_pointers_in_block(byte* memblk)
+    static control_block& get_control_block(byte* memblk)
     {
-        return *reinterpret_cast<pointers_block*>(memblk);
+        return *reinterpret_cast<control_block*>(memblk);
     }
 
-    static Chunk& get_chunk_in_block(byte* memblk)
+    static Chunk& get_chunk(byte* memblk)
     {
-        return *reinterpret_cast<Chunk*>(memblk + sizeof(pointers_block));
+        return *reinterpret_cast<Chunk*>(memblk + sizeof(control_block));
     }
 
-    static byte* get_mem_in_block(byte* memblk)
+    static byte* get_mem(byte* memblk)
     {
-        return memblk + sizeof(pointers_block) + sizeof(Chunk);
+        return memblk + sizeof(control_block) + sizeof(Chunk);
     }
 
-    pointers_block m_fake;
+    static size_t get_chunk_mem_max_size(size_t cell_size)
+    {
+        if (Chunk::CHUNK_MAXSIZE == std::numeric_limits<size_t>::max()) {
+            return std::numeric_limits<size_t>::max();
+        }
+        return Chunk::CHUNK_MAXSIZE * cell_size;
+    }
+
+    static size_t get_chunk_block_max_size(size_t cell_size)
+    {
+        if (Chunk::CHUNK_MAXSIZE == std::numeric_limits<size_t>::max()) {
+            return std::numeric_limits<size_t>::max();
+        }
+        return Chunk::CHUNK_MAXSIZE * cell_size + sizeof(control_block) + sizeof(Chunk);
+    }
+
+    control_block m_fake;
     byte* m_head;
     size_t m_blk_size;
     iterator m_alloc_chunk;

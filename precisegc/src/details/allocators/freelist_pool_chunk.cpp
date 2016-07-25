@@ -39,7 +39,7 @@ byte* freelist_pool_chunk::allocate(size_t obj_size)
 
 void freelist_pool_chunk::deallocate(byte* ptr, size_t obj_size)
 {
-    assert(ptr && reinterpret_cast<std::uintptr_t>(ptr) % obj_size == 0);
+    assert(ptr /*&& reinterpret_cast<std::uintptr_t>(ptr) % obj_size == 0*/);
     memcpy(ptr, &m_next, sizeof(byte*));
     m_next = ptr;
     --m_alloc_cnt;

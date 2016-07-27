@@ -4,9 +4,6 @@
 #include <iterator>
 #include <algorithm>
 
-#include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/threads/thread_manager.hpp>
-
 #include "forwarding.h"
 #include "object_meta.h"
 #include "gc_mark.h"

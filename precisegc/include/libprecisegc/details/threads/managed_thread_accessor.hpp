@@ -1,9 +1,10 @@
-#ifndef DIPLOMA_MANAGED_THREAD_ACCESS_HPP
-#define DIPLOMA_MANAGED_THREAD_ACCESS_HPP
+#ifndef DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP
+#define DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP
 
+#include <libprecisegc/details/threads/stack_map.hpp>
+#include <libprecisegc/details/threads/tlab.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/threads/stack_map.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -19,6 +20,7 @@ public:
 private:
     static root_stack_map& root_set(managed_thread* thread);
     static pin_stack_map& pin_set(managed_thread* thread);
+    static tlab& lab(managed_thread* thread);
 
     static void set_this_managed_thread_pointer(managed_thread* thread);
 
@@ -30,4 +32,4 @@ private:
 
 }}}
 
-#endif //DIPLOMA_MANAGED_THREAD_ACCESS_HPP
+#endif //DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP

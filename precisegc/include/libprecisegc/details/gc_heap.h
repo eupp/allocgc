@@ -39,22 +39,18 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef intrusive_forwarding forwarding;
 public:
     gc_heap(gc_compacting compacting);
-    gc_heap(const gc_heap&&) = delete;
-    gc_heap& operator=(const gc_heap&&) = delete;
 
     managed_ptr allocate(size_t size);
 
     gc_sweep_stat sweep(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
-    forwarding compact();
-    forwarding parallel_compact(size_t threads_num);
+//    forwarding compact();
+//    forwarding parallel_compact(size_t threads_num);
+//
+//    void fix_pointers(const forwarding& frwd);
+//    void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);
 
-    void fix_pointers(const forwarding& frwd);
-    void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);
-
-    void fix_roots(const threads::world_snapshot& snapshot, const forwarding& frwd);
-
-    alloc_t m_alloc;
+//    alloc_t m_alloc;
     gc_compacting m_compacting;
 };
 

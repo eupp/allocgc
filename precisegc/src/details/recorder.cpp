@@ -39,6 +39,8 @@ void recorder::register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_st
     gc_clock::duration now = gc_clock::now().time_since_epoch();
     size_t freed = sweep_stat.shrunk + sweep_stat.swept;
 
+    assert(freed <= m_heap_size);
+
     // we use std::memory_order_relaxed here because it is expected that this method will be called during stop-the-world pause
     m_heap_size.fetch_sub(freed, std::memory_order_relaxed);
     m_last_heap_size.store(m_heap_size.load(std::memory_order_relaxed), std::memory_order_relaxed);

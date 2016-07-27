@@ -12,6 +12,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/logging.hpp>
+#include <libprecisegc/details/forwarding.h>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -134,11 +135,41 @@ public:
     }
 
     template <typename Forwarding>
-    void fix_roots(const Forwarding& frwd) const
+    size_t sweep_tlabs(gc_compacting compacting, Forwarding& forwarding) const
+    {
+        logging::info() << (compacting == gc_compacting::ENABLED ? "Compacting" : "Sweeping")
+                        << " memory in thread's local allocation buffers...";
+        size_t freed = 0;
+        for (auto thread: m_threads) {
+            freed += managed_thread_accessor::lab(thread).sweep(compacting, forwarding);
+        }
+        return freed;
+    }
+
+    template <typename Forwarding>
+    void fix_pointers_in_tlabs(const Forwarding& forwarding) const
+    {
+        logging::info() << "Fixing pointers in thread's local allocation buffers...";
+        for (auto thread: m_threads) {
+            managed_thread_accessor::lab(thread).fix_pointers(forwarding);
+        }
+    }
+
+    void unmark_tlabs() const
     {
         for (auto thread: m_threads) {
-            managed_thread_accessor::root_set(thread).trace([&frwd] (ptrs::gc_untyped_ptr* p) {
-                frwd.forward(p);
+            managed_thread_accessor::lab(thread).unmark();
+        }
+    }
+
+
+    template <typename Forwarding>
+    void fix_roots(const Forwarding& forwarding) const
+    {
+        logging::info() << "Fixing roots...";
+        for (auto thread: m_threads) {
+            managed_thread_accessor::root_set(thread).trace([&forwarding] (ptrs::gc_untyped_ptr* p) {
+                forwarding.forward(p);
             });
         }
     }

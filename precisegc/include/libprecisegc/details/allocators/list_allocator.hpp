@@ -77,6 +77,8 @@ public:
         return shrunk;
     }
 
+
+
     template <typename Functor>
     void apply_to_chunks(Functor&& f)
     {

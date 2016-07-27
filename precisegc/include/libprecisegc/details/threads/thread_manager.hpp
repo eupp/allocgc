@@ -9,8 +9,8 @@
 #include <boost/range/adaptor/map.hpp>
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
+#include <libprecisegc/details/gc_exception.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

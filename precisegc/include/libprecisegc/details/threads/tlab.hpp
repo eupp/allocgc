@@ -2,6 +2,7 @@
 #define DIPLOMA_TLAB_HPP
 
 #include <cassert>
+#include <mutex>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
@@ -11,6 +12,7 @@
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_compact.h>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -26,6 +28,18 @@ class tlab : public utils::noncopyable, public utils::nonmovable
     > alloc_t;
 public:
     tlab() = default;
+
+    ~tlab()
+    {
+        gc_unsafe_scope unsafe_scope;
+        std::lock_guard<std::mutex> lock(migrate_mutex);
+//        m_alloc.migrate(dead_tlab_.m_alloc);
+    }
+
+    static tlab& dead_tlab()
+    {
+        return dead_tlab_;
+    }
 
     managed_ptr allocate(size_t size)
     {
@@ -64,6 +78,9 @@ public:
         });
     }
 private:
+    static tlab dead_tlab_;
+    static std::mutex migrate_mutex;
+
     alloc_t m_alloc;
 };
 

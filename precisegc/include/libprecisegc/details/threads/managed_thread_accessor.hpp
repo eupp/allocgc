@@ -2,7 +2,6 @@
 #define DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP
 
 #include <libprecisegc/details/threads/stack_map.hpp>
-#include <libprecisegc/details/threads/tlab.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -20,7 +19,6 @@ public:
 private:
     static root_stack_map& root_set(managed_thread* thread);
     static pin_stack_map& pin_set(managed_thread* thread);
-    static tlab& lab(managed_thread* thread);
 
     static void set_this_managed_thread_pointer(managed_thread* thread);
 

@@ -55,6 +55,15 @@ public:
         return shrunk;
     }
 
+    bool empty() const
+    {
+        bool flag = true;
+        for (size_t i = 0; i < BUCKET_COUNT; ++i) {
+            flag &= m_buckets[i].empty();
+        }
+        return flag;
+    }
+
     template <typename Functor>
     void apply_to_chunks(Functor&& f)
     {

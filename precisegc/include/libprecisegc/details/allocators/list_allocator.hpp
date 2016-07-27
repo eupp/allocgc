@@ -77,7 +77,11 @@ public:
         return shrunk;
     }
 
-
+    bool empty() const
+    {
+        std::lock_guard<Lock> lock_guard(m_lock);
+        return m_chunks.empty();
+    }
 
     template <typename Functor>
     void apply_to_chunks(Functor&& f)
@@ -160,7 +164,7 @@ private:
 
     list_t m_chunks;
     typename list_t::iterator m_alloc_chunk;
-    Lock m_lock;
+    mutable Lock m_lock;
 };
 
 }}}

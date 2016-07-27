@@ -135,7 +135,9 @@ private:
         if (next) {
             it->m_next.store(next->m_next.load(std::memory_order_relaxed), std::memory_order_relaxed);
             destroy_node(next);
+            return;
         }
+        assert(false);
     }
 
     node* create_node(T elem)

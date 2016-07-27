@@ -108,7 +108,7 @@ set(precisegc_LIB_SRCS
         src/details/gc_factory.cpp
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/threads/this_managed_thread.cpp
-        src/details/threads/managed_thread_accessor.cpp)
+        src/details/threads/managed_thread_accessor.cpp src/details/threads/tlab.cpp)
 
 
 find_package(Threads REQUIRED)

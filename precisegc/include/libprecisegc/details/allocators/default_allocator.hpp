@@ -29,6 +29,16 @@ public:
     {
         free(ptr);
     }
+
+    friend bool operator==(const default_allocator& a, const default_allocator& b)
+    {
+        return true;
+    }
+
+    friend bool operator!=(const default_allocator& a, const default_allocator& b)
+    {
+        return false;
+    }
 };
 
 }}}

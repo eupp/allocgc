@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <utility>
+#include <algorithm>
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/managed_thread_accessor.hpp>
@@ -135,35 +136,6 @@ public:
     }
 
     template <typename Forwarding>
-    size_t sweep_tlabs(gc_compacting compacting, Forwarding& forwarding) const
-    {
-        logging::info() << (compacting == gc_compacting::ENABLED ? "Compacting" : "Sweeping")
-                        << " memory in thread's local allocation buffers...";
-        size_t freed = 0;
-        for (auto thread: m_threads) {
-            freed += managed_thread_accessor::lab(thread).sweep(compacting, forwarding);
-        }
-        return freed;
-    }
-
-    template <typename Forwarding>
-    void fix_pointers_in_tlabs(const Forwarding& forwarding) const
-    {
-        logging::info() << "Fixing pointers in thread's local allocation buffers...";
-        for (auto thread: m_threads) {
-            managed_thread_accessor::lab(thread).fix_pointers(forwarding);
-        }
-    }
-
-    void unmark_tlabs() const
-    {
-        for (auto thread: m_threads) {
-            managed_thread_accessor::lab(thread).unmark();
-        }
-    }
-
-
-    template <typename Forwarding>
     void fix_roots(const Forwarding& forwarding) const
     {
         logging::info() << "Fixing roots...";
@@ -180,6 +152,14 @@ public:
         for (auto thread: m_threads) {
             f(thread);
         }
+    }
+
+    managed_thread* lookup_thread(std::thread::id thread_id) const
+    {
+        auto it = std::find_if(m_threads.begin(), m_threads.end(), [thread_id] (managed_thread* thread) {
+            return thread->get_id() == thread_id;
+        });
+        return it != m_threads.end() ? *it : nullptr;
     }
 
     gc_clock::time_point time_point() const

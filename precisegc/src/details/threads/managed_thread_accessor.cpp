@@ -15,11 +15,6 @@ pin_stack_map& managed_thread_accessor::pin_set(managed_thread* thread)
     return thread->m_pin_set;
 }
 
-tlab& managed_thread_accessor::lab(managed_thread* thread)
-{
-    return thread->m_tlab;
-}
-
 void managed_thread_accessor::set_this_managed_thread_pointer(managed_thread* thread)
 {
     this_managed_thread::this_thread = thread;

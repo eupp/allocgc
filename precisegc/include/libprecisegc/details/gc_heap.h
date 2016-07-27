@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <mutex>
 #include <memory>
+#include <unordered_map>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
@@ -13,7 +14,7 @@
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
-#include <libprecisegc/details/utils/safe_scope_lock.hpp>
+#include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>
 #include <libprecisegc/details/object_meta.h>
@@ -24,17 +25,15 @@ namespace precisegc { namespace details {
 
 class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
-    static const size_t SEGREGATED_STORAGE_SIZE = (POINTER_BITS_CNT - ALIGN_BITS_CNT - 1);
-    static const size_t MIN_ALLOC_SIZE_BITS = 6;
-    static const size_t MAX_ALLOC_SIZE_BITS = MIN_ALLOC_SIZE_BITS + SEGREGATED_STORAGE_SIZE;
+    typedef allocators::pow2_bucket_policy<MIN_CELL_SIZE_BITS_CNT, LARGE_CELL_SIZE_BITS_CNT> tlab_bucket_policy;
 
     typedef allocators::bucket_allocator<
             allocators::managed_pool_chunk,
             allocators::page_allocator,
             allocators::default_allocator,
-            allocators::pow2_bucket_policy<MIN_ALLOC_SIZE_BITS, MAX_ALLOC_SIZE_BITS>,
-            utils::safe_scope_lock<std::recursive_mutex>
-        > alloc_t;
+            tlab_bucket_policy,
+            utils::dummy_mutex
+        > tlab_t;
 
     typedef intrusive_forwarding forwarding;
 public:
@@ -44,13 +43,24 @@ public:
 
     gc_sweep_stat sweep(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
-//    forwarding compact();
-//    forwarding parallel_compact(size_t threads_num);
-//
-//    void fix_pointers(const forwarding& frwd);
-//    void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);
+    typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
+
+    managed_ptr allocate_on_tlab(size_t size);
+    tlab_t& get_tlab();
+
+    size_t shrink(const threads::world_snapshot& snapshot);
+
+    forwarding compact();
+    forwarding parallel_compact(size_t threads_num);
+
+    void fix_pointers(const forwarding& frwd);
+    void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);
+
+    void unmark();
 
 //    alloc_t m_alloc;
+    tlab_map_t m_tlab_map;
+    std::mutex m_tlab_map_mutex;
     gc_compacting m_compacting;
 };
 

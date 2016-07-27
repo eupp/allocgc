@@ -22,11 +22,6 @@ std::thread::native_handle_type this_managed_thread::get_native_handle()
     return this_thread->native_handle();
 }
 
-managed_ptr this_managed_thread::allocate_on_tlab(size_t size)
-{
-    return managed_thread_accessor::lab(this_thread).allocate(size);
-}
-
 void this_managed_thread::register_root(ptrs::gc_untyped_ptr* root)
 {
     managed_thread_accessor::root_set(this_thread).insert(root);

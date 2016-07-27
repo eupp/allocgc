@@ -5,7 +5,6 @@
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include "managed_thread.hpp"
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -22,8 +21,6 @@ public:
 
     static std::thread::id get_id();
     static std::thread::native_handle_type get_native_handle();
-
-    static managed_ptr allocate_on_tlab(size_t size);
 
     static void register_root(ptrs::gc_untyped_ptr* root);
     static void deregister_root(ptrs::gc_untyped_ptr* root);

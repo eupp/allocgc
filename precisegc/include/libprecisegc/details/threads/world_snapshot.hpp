@@ -5,6 +5,8 @@
 #include <utility>
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/managed_thread_accessor.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -15,7 +17,6 @@ namespace precisegc { namespace details { namespace threads {
 
 class world_snapshot : private utils::noncopyable
 {
-    typedef internals::thread_manager_access::range_type range_type;
 public:
     class stop_the_world_disabled : public gc_exception
     {
@@ -61,7 +62,7 @@ public:
         const world_snapshot& m_snapshot;
     };
 
-    world_snapshot(range_type threads)
+    world_snapshot(thread_manager::threads_range_type threads)
         : m_threads(std::move(threads))
     {
         static stw_manager& stwm = stw_manager::instance();
@@ -73,7 +74,7 @@ public:
         }
 
         for (auto thread: m_threads) {
-            if (thread->native_handle() != managed_thread::this_thread().native_handle()) {
+            if (thread->get_id() != this_managed_thread::get_id()) {
                 stwm.suspend_thread(thread->native_handle());
             }
         }
@@ -95,7 +96,7 @@ public:
         logging::info() << "Thread is requesting start-the-world";
 
         for (auto thread: m_threads) {
-            if (thread->native_handle() != managed_thread::this_thread().native_handle()) {
+            if (thread->get_id() != this_managed_thread::get_id()) {
                 stwm.resume_thread(thread->native_handle());
             }
         }
@@ -118,8 +119,8 @@ public:
     void trace_roots(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            thread->root_set().shrink();
-            thread->root_set().trace(f);
+            managed_thread_accessor::root_set(thread).shrink();
+            managed_thread_accessor::root_set(thread).trace(std::forward<Functor>(f));
         }
     }
 
@@ -127,8 +128,8 @@ public:
     void trace_pins(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            thread->pin_set().shrink();
-            thread->pin_set().trace(f);
+            managed_thread_accessor::pin_set(thread).shrink();
+            managed_thread_accessor::pin_set(thread).trace(std::forward<Functor>(f));
         }
     }
 
@@ -136,7 +137,7 @@ public:
     void fix_roots(const Forwarding& frwd) const
     {
         for (auto thread: m_threads) {
-            thread->root_set().trace([&frwd] (ptrs::gc_untyped_ptr* p) {
+            managed_thread_accessor::root_set(thread).trace([&frwd] (ptrs::gc_untyped_ptr* p) {
                 frwd.forward(p);
             });
         }
@@ -160,7 +161,7 @@ public:
         return gc_clock::now() - m_time_point;
     }
 private:
-    range_type m_threads;
+    thread_manager::threads_range_type m_threads;
     gc_clock::time_point m_time_point;
 };
 

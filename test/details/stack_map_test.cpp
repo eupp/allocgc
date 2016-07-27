@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/stack_map.hpp>
+#include <libprecisegc/details/threads/stack_map.hpp>
 
-using namespace precisegc::details;
+using namespace precisegc::details::threads;
 using namespace precisegc::details::ptrs;
 
 TEST(stack_map_test, test_insert)

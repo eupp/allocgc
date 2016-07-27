@@ -1,9 +1,11 @@
 #ifndef DIPLOMA_THIS_MANAGED_THREAD_HPP
 #define DIPLOMA_THIS_MANAGED_THREAD_HPP
 
+#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
+#include "managed_thread.hpp"
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -15,11 +17,19 @@ class this_managed_thread : private utils::noncopyable, private utils::nonmovabl
 public:
     this_managed_thread() = delete;
 
-    void register_root(ptrs::gc_untyped_ptr* root);
-    void deregister_root(ptrs::gc_untyped_ptr* root);
+    // for testing purpose
+    static managed_thread* thread_ptr();
 
-    void pin(byte* ptr);
-    void unpin(byte* ptr);
+    static std::thread::id get_id();
+    static std::thread::native_handle_type get_native_handle();
+
+    static void register_root(ptrs::gc_untyped_ptr* root);
+    static void deregister_root(ptrs::gc_untyped_ptr* root);
+
+    static void pin(byte* ptr);
+    static void unpin(byte* ptr);
+
+    static std::unique_ptr<collectors::mark_packet>& get_mark_packet();
 
     friend class managed_thread_accessor;
 private:

@@ -14,7 +14,7 @@
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/types.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace threads {
 
 template <typename T>
 class stack_map : private utils::noncopyable, private utils::nonmovable
@@ -161,6 +161,6 @@ private:
 typedef stack_map<ptrs::gc_untyped_ptr*> root_stack_map;
 typedef stack_map<byte*> pin_stack_map;
 
-}}
+}}}
 
 #endif //DIPLOMA_ROOT_SET_HPP

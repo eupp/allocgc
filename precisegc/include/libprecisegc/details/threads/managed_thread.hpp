@@ -2,24 +2,25 @@
 #define DIPLOMA_MANAGED_THREAD_HPP
 
 #include <thread>
-#include <functional>
 #include <memory>
+#include <functional>
 
+#include <libprecisegc/details/threads/managed_thread_accessor.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
-#include <libprecisegc/details/stack_map.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/threads/stack_map.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
 class managed_thread : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static managed_thread& this_thread()
+    static managed_thread& main_thread()
     {
-        static thread_local managed_thread mt;
-        return mt;
+        static managed_thread thread;
+        return thread;
     }
 
     template <typename Function, typename... Args>
@@ -42,30 +43,23 @@ public:
         return m_native_handle;
     }
 
-    root_stack_map& root_set()
-    {
-        return m_root_set;
-    }
-
-    pin_stack_map& pin_set()
-    {
-        return m_pin_set;
-    }
-
     std::unique_ptr<collectors::mark_packet>& get_mark_packet()
     {
         return m_mark_packet;
     }
+
+    friend class managed_thread_accessor;
 private:
     template <typename Functor>
     static void start_routine(std::unique_ptr<Functor> bf)
     {
         static thread_manager& manager = thread_manager::instance();
 
-        managed_thread& mt = this_thread();
-        manager.register_thread(&mt);
+        managed_thread this_thread;
+        managed_thread_accessor::set_this_managed_thread_pointer(&this_thread);
+        manager.register_thread(&this_thread);
         (*bf)();
-        manager.deregister_thread(&mt);
+        manager.deregister_thread(&this_thread);
     }
 
     managed_thread()

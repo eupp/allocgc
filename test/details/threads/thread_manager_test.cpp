@@ -57,10 +57,10 @@ TEST_F(thread_manager_test, test_stop_the_world)
 TEST_F(thread_manager_test, test_get_managed_threads)
 {
     using namespace precisegc::details::threads::internals;
-    thread_manager_access::range_type rng = thread_manager_access::get_managed_threads(thread_manager::instance());
+
     std::unordered_set<std::thread::id> managed_threads;
-    for (auto& mthread: rng) {
-        managed_threads.insert((*mthread).get_id());
+    for (auto thread: thread_manager::instance().threads_snapshot()) {
+        managed_threads.insert((*thread).get_id());
     }
 
     std::unordered_set<std::thread::id> all_threads;

@@ -2,8 +2,9 @@
 
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
+#include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
-#include <libprecisegc/details/threads/stw_manager.hpp>
 
 using namespace precisegc::details::utils;
 using namespace precisegc::details::threads;
@@ -11,12 +12,12 @@ using namespace precisegc::details::threads;
 TEST(managed_thread_test, test_managed_thread)
 {
     auto routine = [] {
-        managed_thread& mt = managed_thread::this_thread();
+        managed_thread* this_thread = this_managed_thread::thread_ptr();
         managed_thread* pmt = thread_manager::instance().lookup_thread(std::this_thread::get_id());
 
-        EXPECT_EQ(&mt, pmt);
-        EXPECT_EQ(std::this_thread::get_id(), mt.get_id());
-        EXPECT_EQ(pthread_self(), mt.native_handle());
+        EXPECT_EQ(this_thread, pmt);
+        EXPECT_EQ(std::this_thread::get_id(), this_thread->get_id());
+        EXPECT_EQ(this_thread_native_handle(), this_thread->native_handle());
     };
 
     scoped_thread thread(managed_thread::create(routine));

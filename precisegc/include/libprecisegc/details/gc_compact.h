@@ -13,7 +13,7 @@
 #include "libprecisegc/gc_ptr.hpp"
 #include "managed_ptr.hpp"
 
-#include "stack_map.hpp"
+#include "libprecisegc/details/threads/stack_map.hpp"
 
 namespace precisegc { namespace details {
 

@@ -4,7 +4,7 @@
 #include <cassert>
 #include <utility>
 
-#include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 #include <libprecisegc/details/garbage_collector.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -118,14 +118,12 @@ void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
 
 void gc_untyped_ptr::register_root()
 {
-    static thread_local root_stack_map& root_set = threads::managed_thread::this_thread().root_set();
-    root_set.insert(this);
+    threads::this_managed_thread::register_root(this);
 }
 
 void gc_untyped_ptr::delete_root()
 {
-    static thread_local root_stack_map& root_set = threads::managed_thread::this_thread().root_set();
-    root_set.remove(this);
+    threads::this_managed_thread::deregister_root(this);
 }
 
 }}}

@@ -6,7 +6,6 @@
 #include <libprecisegc/details/logging.hpp>
 
 #include "details/managed_ptr.hpp"
-#include "details/barrier_buffer.h"
 
 namespace precisegc { namespace details {
 

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <libprecisegc/details/stack_map.hpp>
+#include <libprecisegc/details/threads/stack_map.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 
 using namespace precisegc::details;

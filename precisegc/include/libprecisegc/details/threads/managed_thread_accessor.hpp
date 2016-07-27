@@ -2,11 +2,13 @@
 #define DIPLOMA_MANAGED_THREAD_ACCESS_HPP
 
 #include <libprecisegc/details/collectors/packet_manager.hpp>
-#include <libprecisegc/details/stack_map.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/threads/stack_map.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
+class thread_manager;
+class world_snapshot;
 class managed_thread;
 class this_managed_thread;
 
@@ -20,6 +22,9 @@ private:
 
     static void set_this_managed_thread_pointer(managed_thread* thread);
 
+    friend class thread_manager;
+    friend class world_snapshot;
+    friend class managed_thread;
     friend class this_managed_thread;
 };
 

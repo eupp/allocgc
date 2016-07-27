@@ -6,6 +6,7 @@
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -118,16 +119,14 @@ byte* serial_compacting_gc::pin(const gc_handle& handle)
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::load(handle, std::memory_order_relaxed);
     if (ptr) {
-        static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-        pin_set.insert(ptr);
+        threads::this_managed_thread::pin(ptr);
     }
     return ptr;
 }
 
 void serial_compacting_gc::unpin(byte* ptr)
 {
-    static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-    pin_set.remove(ptr);
+    threads::this_managed_thread::unpin(ptr);
 }
 
 gc_info serial_compacting_gc::info() const

@@ -21,7 +21,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/ptrs/gc_ptr_access.hpp
         include/libprecisegc/details/logging.hpp
-        include/libprecisegc/details/barrier_buffer.h
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/allocators/page_allocator.hpp
         include/libprecisegc/details/index_tree.hpp
@@ -39,7 +38,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
         include/libprecisegc/details/threads/managed_thread.hpp
-        include/libprecisegc/details/stack_map.hpp
+        include/libprecisegc/details/threads/stack_map.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
         include/libprecisegc/details/gc_exception.hpp
         include/libprecisegc/details/threads/thread_manager.hpp
@@ -73,11 +72,15 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_pin.hpp
         include/libprecisegc/gc_ref.hpp
         include/libprecisegc/details/gc_handle.hpp
-        include/libprecisegc/details/threads/threads_snapshot.hpp
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/utils/base_offset.hpp
         include/libprecisegc/details/gc_factory.hpp
-        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp include/libprecisegc/details/utils/dummy_mutex.hpp include/libprecisegc/details/collectors/packet_manager.hpp include/libprecisegc/details/utils/safe_scope_lock.hpp include/libprecisegc/details/threads/this_managed_thread.hpp include/libprecisegc/details/threads/managed_thread_accessor.hpp)
+        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp
+        include/libprecisegc/details/utils/dummy_mutex.hpp
+        include/libprecisegc/details/collectors/packet_manager.hpp
+        include/libprecisegc/details/utils/safe_scope_lock.hpp
+        include/libprecisegc/details/threads/this_managed_thread.hpp
+        include/libprecisegc/details/threads/managed_thread_accessor.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -85,7 +88,6 @@ set(precisegc_LIB_SRCS
         src/details/ptrs/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
         src/details/logging.cpp
-        src/barrier_buffer.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
@@ -104,7 +106,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/freelist_pool_chunk.cpp
         src/details/gc_hooks.cpp
         src/details/gc_factory.cpp
-        src/gc.cpp src/details/collectors/packet_manager.cpp src/details/threads/this_managed_thread.cpp)
+        src/gc.cpp src/details/collectors/packet_manager.cpp src/details/threads/this_managed_thread.cpp src/details/threads/managed_thread_accessor.cpp)
 
 
 find_package(Threads REQUIRED)

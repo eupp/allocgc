@@ -5,8 +5,8 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
-#include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -42,7 +42,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     if (m_phase == gc_phase::MARK) {
         managed_ptr mp(p);
         if (mp && !mp.get_mark()) {
-            std::unique_ptr<mark_packet>& packet = threads::managed_thread::this_thread().get_mark_packet();
+            std::unique_ptr<mark_packet>& packet = threads::this_managed_thread::get_mark_packet();
             if (!packet) {
                 packet = m_packet_manager.pop_output_packet();
             } else if (packet->is_full()) {
@@ -180,16 +180,14 @@ byte* incremental_compacting_gc::pin(const gc_handle& handle)
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::load(handle, std::memory_order_acquire);
     if (ptr) {
-        static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-        pin_set.insert(ptr);
+        threads::this_managed_thread::pin(ptr);
     }
     return ptr;
 }
 
 void incremental_compacting_gc::unpin(byte* ptr)
 {
-    static thread_local pin_stack_map& pin_set = threads::managed_thread::this_thread().pin_set();
-    pin_set.remove(ptr);
+    threads::this_managed_thread::unpin(ptr);
 }
 
 gc_info incremental_compacting_gc::info() const

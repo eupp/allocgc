@@ -46,11 +46,12 @@ std::thread create_thread(Function&& f, Args&&... args)
 template <typename F, typename... Args>
 std::future<typename std::result_of<F(Args...)>::type> launch_task(F&& f, Args&&... args)
 {
+    using precisegc::details::utils::make_scope_guard;
     typedef typename std::result_of<F(Args...)>::type result_type;
 
-    std::function<result_type(Args...)> functor(f);
+    std::function<result_type(Args...)> functor(std::forward<F>(f));
     std::packaged_task<result_type(bool, Args...)> task([functor] (bool parallel_flag, Args&&... task_args) {
-        auto guard = precisegc::details::utils::make_scope_guard([parallel_flag, &threads_mutex, &threads_cond, &threads_count] {
+        auto guard = make_scope_guard([parallel_flag, &threads_mutex, &threads_cond, &threads_count] {
             if (parallel_flag) {
                 std::lock_guard<std::mutex> lock(threads_mutex);
                 assert(threads_count != 0);
@@ -150,6 +151,8 @@ List merge(const List& fst, const List& snd)
     return {.head = res, .length = length};
 }
 
+void merge_sort_helper(const List& list, List& sorted);
+
 List merge_sort(const List& list)
 {
     if (list.length == 0) {
@@ -167,10 +170,17 @@ List merge_sort(const List& list)
     List lpart = {.head = list.head, .length = m};
     List rpart = {.head = mid,       .length = list.length - m};
 
-    std::future<List> lsorted = launch_task(merge_sort, std::ref(lpart));
+    List lsorted;
+    std::future<void> future = launch_task(merge_sort_helper, std::ref(lpart), std::ref(lsorted));
     List rsorted = merge_sort(rpart);
+    future.get();
 
-    return merge(lsorted.get(), rsorted);
+    return merge(lsorted, rsorted);
+}
+
+void merge_sort_helper(const List& list, List& sorted)
+{
+    sorted = merge_sort(list);
 }
 
 List create_list(size_t n, int mod)

@@ -63,6 +63,6 @@ TEST_F(intrusive_list_allocator_test, test_range)
     auto last  = rng.end();
 
     ASSERT_EQ(2, std::distance(first, last));
-    ASSERT_EQ(ptr1, *first);
-    ASSERT_EQ(ptr2, *(++first));
+    ASSERT_EQ(ptr2, *first);
+    ASSERT_EQ(ptr1, *(++first));
 }

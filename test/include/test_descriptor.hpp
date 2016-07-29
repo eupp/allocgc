@@ -15,6 +15,8 @@ public:
     typedef precisegc::details::byte* pointer_type;
 
     test_descriptor(byte* mem, size_t size)
+        : m_mem(mem)
+        , m_empty(false)
     {
         assert(mem);
         assert(size > 0);

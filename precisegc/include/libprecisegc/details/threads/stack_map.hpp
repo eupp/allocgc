@@ -6,7 +6,7 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>

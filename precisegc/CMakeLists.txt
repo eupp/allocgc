@@ -68,7 +68,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
+        include/libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp
         include/libprecisegc/gc_pin.hpp
         include/libprecisegc/gc_ref.hpp
         include/libprecisegc/details/gc_handle.hpp
@@ -80,7 +80,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/packet_manager.hpp
         include/libprecisegc/details/utils/safe_scope_lock.hpp
         include/libprecisegc/details/threads/this_managed_thread.hpp
-        include/libprecisegc/details/threads/managed_thread_accessor.hpp include/libprecisegc/details/threads/tlab.hpp include/libprecisegc/details/allocators/freelist_allocator.hpp)
+        include/libprecisegc/details/threads/managed_thread_accessor.hpp include/libprecisegc/details/threads/tlab.hpp include/libprecisegc/details/allocators/intrusive_list_allocator.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

@@ -41,10 +41,10 @@ set(precisegc_TESTS
         include/incremental_gc_mock.hpp
         details/space_based_policy_test.cpp
         details/utils/dynarray_test.cpp
-        details/allocators/intrusive_list_allocator_test.cpp
+        details/allocators/intrusive_list_pool_allocator_test.cpp
         details/ptrs/trace_ptr_test.cpp
         details/utils/base_offset_test.cpp
-        details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp details/allocators/freelist_allocator_test.cpp include/test_descriptor.hpp)
+        details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp details/allocators/intrusive_list_allocator_test.cpp include/test_descriptor.hpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

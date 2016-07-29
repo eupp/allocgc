@@ -24,7 +24,7 @@ public:
     typedef debug_layer<default_allocator> allocator_t;
     typedef list_allocator<test_chunk, allocator_t, allocator_t, utils::dummy_mutex> list_allocator_t;
 
-    list_allocator_t m_alloc;
+    list_allocator_t alloc;
 };
 
 TEST_F(list_allocator_test, test_sizeof)
@@ -36,25 +36,23 @@ TEST_F(list_allocator_test, test_sizeof)
 
 TEST_F(list_allocator_test, test_allocate_1)
 {
-    size_t* ptr = (size_t*) m_alloc.allocate(OBJ_SIZE);
+    size_t* ptr = (size_t*) alloc.allocate(OBJ_SIZE);
     ASSERT_NE(nullptr, ptr);
     *ptr = 42;
-
-    m_alloc.deallocate((byte*) ptr, OBJ_SIZE);
 }
 
 TEST_F(list_allocator_test, test_allocate_2)
 {
-    byte* ptr = m_alloc.allocate(OBJ_SIZE);
-    m_alloc.deallocate(ptr, OBJ_SIZE);
+    byte* ptr = alloc.allocate(OBJ_SIZE);
+    alloc.deallocate(ptr, OBJ_SIZE);
 
-    ASSERT_EQ(0, m_alloc.upstream_allocator().get_allocated_mem_size());
+    ASSERT_EQ(0, alloc.upstream_allocator().get_allocated_mem_size());
 }
 
 TEST_F(list_allocator_test, test_allocate_3)
 {
-    size_t* ptr1 = (size_t*) m_alloc.allocate(OBJ_SIZE);
-    size_t* ptr2 = (size_t*) m_alloc.allocate(OBJ_SIZE);
+    size_t* ptr1 = (size_t*) alloc.allocate(OBJ_SIZE);
+    size_t* ptr2 = (size_t*) alloc.allocate(OBJ_SIZE);
 
     ASSERT_NE(nullptr, ptr2);
     ASSERT_NE(ptr1, ptr2);
@@ -63,10 +61,10 @@ TEST_F(list_allocator_test, test_allocate_3)
 
 TEST_F(list_allocator_test, test_range)
 {
-    byte* ptr1 = m_alloc.allocate(OBJ_SIZE);
-    byte* ptr2 = m_alloc.allocate(OBJ_SIZE);
+    byte* ptr1 = alloc.allocate(OBJ_SIZE);
+    byte* ptr2 = alloc.allocate(OBJ_SIZE);
 
-    auto rng   = m_alloc.memory_range();
+    auto rng   = alloc.memory_range();
     auto first = rng.begin();
     auto last  = rng.end();
 

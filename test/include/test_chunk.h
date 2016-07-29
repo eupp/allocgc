@@ -71,6 +71,7 @@ public:
             , m_available(true)
     {
         assert(mem);
+        assert(size > 0);
 //        assert(size == obj_size);
     }
 

@@ -31,8 +31,6 @@ TEST_F(intrusive_list_allocator_test, test_allocate_1)
     size_t* ptr = (size_t*) m_alloc.allocate(OBJ_SIZE);
     ASSERT_NE(nullptr, ptr);
     *ptr = 42;
-
-    m_alloc.deallocate((byte*) ptr, OBJ_SIZE);
 }
 
 TEST_F(intrusive_list_allocator_test, test_allocate_2)

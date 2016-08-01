@@ -16,6 +16,7 @@
 #include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -66,8 +67,12 @@ public:
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         size_t shrunk = 0;
+        size_t i = 0;
+        logging::debug() << "chunks count: " << m_chunks.size();
         for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
+            logging::debug() << "shrink chunk #" << ++i;
             if (it->empty()) {
+                logging::debug() << "empty!";
                 shrunk += it->get_mem_size();
                 it = destroy_chunk(it);
             } else {
@@ -131,7 +136,9 @@ private:
         if (m_alloc_chunk == chk) {
             m_alloc_chunk++;
         }
+        logging::debug() << "deallocate_block!";
         deallocate_block(chk->get_mem(), chk->get_mem_size());
+        logging::debug() << "erasing!";
         return m_chunks.erase(chk);
     }
 

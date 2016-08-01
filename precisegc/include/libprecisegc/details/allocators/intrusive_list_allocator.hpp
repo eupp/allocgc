@@ -18,10 +18,6 @@ template <typename Descriptor, typename UpstreamAlloc, typename Lock>
 class intrusive_list_allocator : private utils::ebo<UpstreamAlloc>,
                                  private utils::noncopyable, private utils::nonmovable
 {
-public:
-    typedef typename Descriptor::pointer_type pointer_type;
-    typedef stateful_alloc_tag alloc_tag;
-
     struct control_block
     {
         control_block*   m_next;
@@ -29,6 +25,9 @@ public:
         byte*            m_memblk;
         size_t           m_size;
     };
+public:
+    typedef typename Descriptor::pointer_type pointer_type;
+    typedef stateful_alloc_tag alloc_tag;
 
     class iterator: public boost::iterator_facade<
               iterator

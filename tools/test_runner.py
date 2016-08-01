@@ -280,7 +280,7 @@ class TestRunner:
             reporter.create_report()
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-CONFIG = "benchcfg.json"
+CONFIG = "testcfg.json"
 
 if __name__ == '__main__':
 

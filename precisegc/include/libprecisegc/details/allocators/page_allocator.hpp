@@ -9,6 +9,7 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -39,7 +40,9 @@ public:
     {
         assert(size != 0 && size % PAGE_SIZE == 0);
         gc_deregister_page(ptr, size);
+        logging::debug() << "page_allocator::deallocate";
         free(ptr);
+        logging::debug() << "freed!!!";
     }
 };
 

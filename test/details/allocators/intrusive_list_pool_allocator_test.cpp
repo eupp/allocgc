@@ -21,9 +21,9 @@ class intrusive_list_pool_allocator_test: public ::testing::Test
 {
 public:
     typedef debug_layer<default_allocator> allocator_t;
-    typedef intrusive_list_allocator<test_chunk, allocator_t> intrusive_list_allocator_t;
+    typedef intrusive_list_pool_allocator<test_chunk, allocator_t> intrusive_list_pool_allocator_t;
 
-    intrusive_list_allocator_t m_alloc;
+    intrusive_list_pool_allocator_t m_alloc;
 };
 
 TEST_F(intrusive_list_pool_allocator_test, test_allocate_1)

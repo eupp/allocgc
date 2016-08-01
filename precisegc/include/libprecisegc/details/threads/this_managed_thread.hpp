@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_THIS_MANAGED_THREAD_HPP
 #define DIPLOMA_THIS_MANAGED_THREAD_HPP
 
+#include <thread>
+
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>

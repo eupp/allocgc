@@ -69,7 +69,10 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
     logging::info() << "Clearing empty pages...";
 
     size_t freed = 0;
+    size_t i = 0;
+    logging::debug() << "tlabs count: " << m_tlab_map.size();
     for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
+        logging::debug() << "shrink tlab #" << ++i;
         freed += it->second.shrink();
         if (it->second.empty() && snapshot.lookup_thread(it->first) == nullptr) {
             it = m_tlab_map.erase(it);
@@ -77,6 +80,9 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
             ++it;
         }
     }
+
+    logging::info() << "olololsha";
+
     return freed;
 }
 

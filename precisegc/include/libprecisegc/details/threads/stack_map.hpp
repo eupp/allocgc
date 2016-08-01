@@ -152,7 +152,7 @@ private:
         m_pool.deallocate(reinterpret_cast<byte*>(pnode), sizeof(node));
     }
 
-    typedef allocators::intrusive_list_allocator<
+    typedef allocators::intrusive_list_pool_allocator<
             allocators::freelist_pool_chunk, allocators::default_allocator
         > object_pool_t;
 

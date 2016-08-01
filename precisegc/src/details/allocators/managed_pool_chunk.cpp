@@ -19,6 +19,7 @@ managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_siz
 
 managed_pool_chunk::~managed_pool_chunk()
 {
+    logging::debug() << "managed_pool_chunk destructor";
     managed_ptr::remove_from_index(get_mem(), get_mem_size());
 }
 

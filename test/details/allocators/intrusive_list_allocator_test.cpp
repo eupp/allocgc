@@ -18,9 +18,9 @@ class intrusive_list_allocator_test : public ::testing::Test
 {
 public:
     typedef debug_layer<default_allocator> allocator_t;
-    typedef intrusive_list_allocator<test_descriptor, allocator_t, utils::dummy_mutex> freelist_allocator_t;
+    typedef intrusive_list_allocator<test_descriptor, allocator_t, utils::dummy_mutex> intrusive_list_allocator_t;
 
-    freelist_allocator_t alloc;
+    intrusive_list_allocator_t alloc;
 };
 
 TEST_F(intrusive_list_allocator_test, test_allocate)

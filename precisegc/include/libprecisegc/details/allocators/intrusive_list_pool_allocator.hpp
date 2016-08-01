@@ -31,16 +31,16 @@ constexpr size_t block_size_for(size_t cell_size, size_t cnt)
 }
 
 template <typename Chunk, typename UpstreamAlloc, size_t BlockSize = 4096>
-class intrusive_list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable, private utils::nonmovable
+class intrusive_list_pool_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable, private utils::nonmovable
 {
 public:
     static_assert(std::is_same<byte*, typename Chunk::pointer_type>::value,
-                  "intrusive_list_allocator works only with raw pointers");
+                  "intrusive_list_pool_allocator works only with raw pointers");
 
     typedef byte* pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
-    intrusive_list_allocator()
+    intrusive_list_pool_allocator()
         : m_head(get_fake_block())
         , m_alloc_chunk(m_head)
         , m_freelist(nullptr)
@@ -49,7 +49,7 @@ public:
         m_fake.m_prev = get_fake_block();
     }
 
-    ~intrusive_list_allocator()
+    ~intrusive_list_pool_allocator()
     {
         for (iterator it = begin(), last = end(); it != last; ) {
             it = destroy_chunk(it);
@@ -139,7 +139,7 @@ private:
             return &get_chunk(m_memblk);
         }
     private:
-        friend class intrusive_list_allocator;
+        friend class intrusive_list_pool_allocator;
         friend class boost::iterator_core_access;
 
         Chunk& dereference() const

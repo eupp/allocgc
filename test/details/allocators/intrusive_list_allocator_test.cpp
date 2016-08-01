@@ -3,7 +3,7 @@
 #include <iostream>
 #include <iterator>
 
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/types.hpp>
@@ -21,7 +21,7 @@ class intrusive_list_allocator_test: public ::testing::Test
 {
 public:
     typedef debug_layer<default_allocator> allocator_t;
-    typedef intrusive_list_allocator<test_chunk, allocator_t> intrusive_list_allocator_t;
+    typedef intrusive_list_pool_allocator<test_chunk, allocator_t> intrusive_list_allocator_t;
 
     intrusive_list_allocator_t m_alloc;
 };

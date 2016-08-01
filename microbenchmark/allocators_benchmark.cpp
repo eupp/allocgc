@@ -3,7 +3,7 @@
 #include <vector>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 
 using namespace precisegc::details;
@@ -36,12 +36,12 @@ NONIUS_BENCHMARK("allocators.default_allocator.deallocate", [](nonius::chronomet
 });
 
 namespace {
-typedef intrusive_list_allocator<
+typedef intrusive_list_pool_allocator<
         freelist_pool_chunk, allocators::default_allocator
     > intrusive_list_allocator_t;
 }
 
-NONIUS_BENCHMARK("allocators.intrusive_list_allocator.allocate", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("allocators.intrusive_list_pool_allocator.allocate", [](nonius::chronometer meter)
 {
     intrusive_list_allocator_t allocator;
     std::vector<byte*> ps(meter.runs());
@@ -53,7 +53,7 @@ NONIUS_BENCHMARK("allocators.intrusive_list_allocator.allocate", [](nonius::chro
     }
 });
 
-NONIUS_BENCHMARK("allocators.intrusive_list_allocator.deallocate", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("allocators.intrusive_list_pool_allocator.deallocate", [](nonius::chronometer meter)
 {
     intrusive_list_allocator_t allocator;
     std::vector<byte*> ps(meter.runs());

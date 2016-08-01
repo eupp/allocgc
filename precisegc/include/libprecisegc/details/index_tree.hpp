@@ -20,7 +20,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
 
 namespace precisegc { namespace details {
 
@@ -143,7 +143,7 @@ private:
     private:
         static const size_t LEVELS_IN_BLOCK = 32;
 
-        typedef allocators::intrusive_list_allocator<
+        typedef allocators::intrusive_list_pool_allocator<
                 allocators::freelist_pool_chunk,
                 allocators::default_allocator,
                 allocators::block_size_for<allocators::freelist_pool_chunk>(sizeof(Level), LEVELS_IN_BLOCK)

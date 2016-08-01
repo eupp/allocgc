@@ -28,7 +28,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     static const size_t MIN_ALLOC_SIZE_BITS = 6;
     static const size_t MAX_ALLOC_SIZE_BITS = MIN_ALLOC_SIZE_BITS + SEGREGATED_STORAGE_SIZE;
 
-    typedef allocators::intrusive_list_allocator<
+    typedef allocators::intrusive_list_pool_allocator<
             allocators::freelist_pool_chunk, allocators::default_allocator
     > chunk_pool_t;
 

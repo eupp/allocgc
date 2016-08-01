@@ -80,7 +80,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/packet_manager.hpp
         include/libprecisegc/details/utils/safe_scope_lock.hpp
         include/libprecisegc/details/threads/this_managed_thread.hpp
-        include/libprecisegc/details/threads/managed_thread_accessor.hpp include/libprecisegc/details/threads/tlab.hpp include/libprecisegc/details/allocators/intrusive_list_allocator.hpp)
+        include/libprecisegc/details/threads/managed_thread_accessor.hpp include/libprecisegc/details/threads/tlab.hpp include/libprecisegc/details/allocators/intrusive_list_allocator.hpp include/libprecisegc/details/allocators/managed_large_object_descriptor.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -108,7 +108,7 @@ set(precisegc_LIB_SRCS
         src/details/gc_factory.cpp
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/threads/this_managed_thread.cpp
-        src/details/threads/managed_thread_accessor.cpp src/details/threads/tlab.cpp)
+        src/details/threads/managed_thread_accessor.cpp src/details/threads/tlab.cpp src/details/allocators/managed_large_object_descriptor.cpp)
 
 
 find_package(Threads REQUIRED)

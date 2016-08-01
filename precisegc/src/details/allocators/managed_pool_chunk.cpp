@@ -1,5 +1,6 @@
 #include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
 
+#include <cassert>
 #include <utility>
 
 #include "libprecisegc/details/utils/math.hpp"
@@ -135,7 +136,7 @@ bool managed_pool_chunk::is_live(byte* ptr) const
 
 void managed_pool_chunk::sweep(byte* ptr)
 {
-    deallocate(managed_ptr(get_cell_begin(ptr), this), m_cell_size);
+    deallocate(get_cell_begin(ptr), m_cell_size);
 }
 
 size_t managed_pool_chunk::cell_size() const

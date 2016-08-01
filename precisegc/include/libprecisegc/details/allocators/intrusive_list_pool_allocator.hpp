@@ -120,7 +120,7 @@ private:
     {
     public:
         iterator(byte* memblk) noexcept
-            : m_memblk(memblk)
+            : m_control_block(memblk)
         {}
 
         iterator(const iterator&) noexcept = default;
@@ -131,7 +131,7 @@ private:
 
         Chunk* operator->() const
         {
-            return &get_chunk_in_block(m_memblk);
+            return &get_chunk_in_block(m_control_block);
         }
     private:
         friend class intrusive_list_allocator;
@@ -139,25 +139,25 @@ private:
 
         Chunk& dereference() const
         {
-            return get_chunk_in_block(m_memblk);
+            return get_chunk_in_block(m_control_block);
         }
 
         void increment() noexcept
         {
-            m_memblk = get_pointers_in_block(m_memblk).m_next;
+            m_control_block = get_pointers_in_block(m_control_block).m_next;
         }
 
         void decrement() noexcept
         {
-            m_memblk = get_pointers_in_block(m_memblk).m_prev;
+            m_control_block = get_pointers_in_block(m_control_block).m_prev;
         }
 
         bool equal(const iterator& other) const noexcept
         {
-            return m_memblk == other.m_memblk;
+            return m_control_block == other.m_control_block;
         }
 
-        byte* m_memblk;
+        byte* m_control_block;
     };
 
     iterator begin()
@@ -203,12 +203,12 @@ private:
         m_blk_size = chk->get_mem_size();
         iterator next = std::next(chk);
         iterator prev = std::prev(chk);
-        get_pointers_in_block(prev.m_memblk).m_next = next.m_memblk;
-        get_pointers_in_block(next.m_memblk).m_prev = prev.m_memblk;
+        get_pointers_in_block(prev.m_control_block).m_next = next.m_control_block;
+        get_pointers_in_block(next.m_control_block).m_prev = prev.m_control_block;
         if (chk == begin()) {
-            m_head = next.m_memblk;
+            m_head = next.m_control_block;
         }
-        upstream_deallocate(chk.m_memblk, sizeof(pointers_block) + sizeof(Chunk) + chk->get_mem_size());
+        upstream_deallocate(chk.m_control_block, sizeof(pointers_block) + sizeof(Chunk) + chk->get_mem_size());
         return next;
     }
 

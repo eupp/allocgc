@@ -21,15 +21,16 @@ managed_ptr gc_heap::allocate(size_t size)
 {
     if (size <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(size);
+    } else {
+        return m_loa.allocate(size);
     }
-    throw gc_bad_alloc();
 }
 
 gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot, size_t threads_available)
 {
     gc_sweep_stat stat;
 
-    size_t freed_in_tlabs = shrink(snapshot);
+    size_t freed = shrink(snapshot);
 
     if (m_compacting == gc_compacting::ENABLED) {
         if (threads_available > 1) {
@@ -45,7 +46,7 @@ gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot, size_t thr
 
     unmark();
 
-    stat.shrunk = freed_in_tlabs;
+    stat.shrunk = freed;
     stat.swept  = 0;
 
     return stat;
@@ -68,12 +69,9 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
 {
     logging::info() << "Clearing empty pages...";
 
-    size_t freed = 0;
-    size_t i = 0;
-    logging::debug() << "tlabs count: " << m_tlab_map.size();
+    size_t freed_in_tlabs = 0;
     for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
-        logging::debug() << "shrink tlab #" << ++i;
-        freed += it->second.shrink();
+        freed_in_tlabs += it->second.shrink();
         if (it->second.empty() && snapshot.lookup_thread(it->first) == nullptr) {
             it = m_tlab_map.erase(it);
         } else {
@@ -81,9 +79,9 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
         }
     }
 
-    logging::info() << "olololsha";
+    size_t freed_in_loa = m_loa.shrink();
 
-    return freed;
+    return freed_in_tlabs + freed_in_loa;
 }
 
 gc_heap::forwarding gc_heap::compact()

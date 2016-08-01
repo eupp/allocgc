@@ -94,6 +94,11 @@ managed_ptr managed_large_object_descriptor::get_mem()
     return managed_ptr(m_ptr, get_descriptor());
 }
 
+bool managed_large_object_descriptor::empty() const
+{
+    return !m_mark_bit && !m_pin_bit;
+}
+
 memory_descriptor* managed_large_object_descriptor::get_descriptor()
 {
     return this;

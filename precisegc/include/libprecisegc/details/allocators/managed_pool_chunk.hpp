@@ -29,6 +29,19 @@ private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:
+
+    static size_t get_chunk_size(size_t cell_size)
+    {
+        size_t chunk_size_ub = cell_size * CHUNK_MAXSIZE;
+        if (chunk_size_ub <= PAGE_SIZE) {
+            return PAGE_SIZE;
+        } else if (chunk_size_ub <= 2 * PAGE_SIZE) {
+            return 2 * PAGE_SIZE;
+        } else {
+            return 4 * PAGE_SIZE;
+        }
+    }
+
     class iterator: public boost::iterator_facade<
               iterator
             , const managed_ptr

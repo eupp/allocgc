@@ -252,8 +252,8 @@ int main(int argc, const char* argv[])
         ops.type                = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
         ops.init                = gc_init_strategy::SPACE_BASED;
         ops.compacting          = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel            = gc_loglevel::DEBUG;
-        ops.print_stat          = true;
+        ops.loglevel            = gc_loglevel::SILENT;
+        ops.print_stat          = false;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

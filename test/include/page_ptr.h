@@ -13,7 +13,7 @@ struct page_ptr_deleter
     {
         using namespace precisegc::details;
         using namespace precisegc::details::allocators;
-        page_allocator().deallocate(mem, PAGE_SIZE);
+        page_allocator().deallocate(mem, PAGE_SIZE, PAGE_SIZE);
     }
 };
 
@@ -23,7 +23,7 @@ page_ptr make_page_ptr()
 {
     using namespace precisegc::details;
     using namespace precisegc::details::allocators;
-    byte* p = page_allocator().allocate(PAGE_SIZE);
+    byte* p = page_allocator().allocate(PAGE_SIZE, PAGE_SIZE);
     assert(p);
     return page_ptr(p);
 }

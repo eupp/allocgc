@@ -18,6 +18,7 @@ using namespace precisegc::details::allocators;
 
 namespace {
 static const size_t OBJ_SIZE = 64;      // PAGE_SIZE / OBJECTS_PER_PAGE;
+static const size_t CHUNK_SIZE = managed_pool_chunk::get_chunk_size(OBJ_SIZE);
 static const size_t OBJ_COUNT_1 = 5;    //
 static const size_t OBJ_COUNT_2 = 3 * managed_pool_chunk::CHUNK_MAXSIZE;
 
@@ -37,7 +38,9 @@ class gc_compact_test : public ::testing::Test
 {
 public:
     gc_compact_test()
-        : m_chunk(m_paged_alloc.allocate(managed_pool_chunk::CHUNK_MAXSIZE * OBJ_SIZE), managed_pool_chunk::CHUNK_MAXSIZE * OBJ_SIZE, OBJ_SIZE)
+        : m_chunk(m_paged_alloc.allocate(CHUNK_SIZE, CHUNK_SIZE),
+                  managed_pool_chunk::CHUNK_MAXSIZE * OBJ_SIZE,
+                  OBJ_SIZE)
     {}
 
     ~gc_compact_test()

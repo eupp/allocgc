@@ -20,12 +20,12 @@ public:
     default_allocator(const default_allocator&) = default;
     default_allocator(default_allocator&&) = default;
 
-    byte* allocate(size_t size)
+    byte* allocate(size_t size, size_t alignment = 0)
     {
         return reinterpret_cast<byte*>(malloc(size));
     }
 
-    void deallocate(byte* ptr, size_t size)
+    void deallocate(byte* ptr, size_t size, size_t alignment = 0)
     {
         free(ptr);
     }

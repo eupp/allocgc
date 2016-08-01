@@ -65,8 +65,6 @@ void stw_manager::wait_for_world_stop()
 
 void stw_manager::wait_for_world_start()
 {
-    logging::debug() << "Waiting for world start...";
-
     std::atomic_thread_fence(std::memory_order_release);
     m_event.notify(m_threads_cnt);
     m_barrier.wait(m_threads_cnt);

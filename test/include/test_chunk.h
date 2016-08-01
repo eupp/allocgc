@@ -12,6 +12,11 @@ class test_chunk
 public:
     typedef byte* pointer_type;
 
+    static size_t get_chunk_size(size_t cell_size)
+    {
+        return cell_size;
+    }
+
     static const size_t CHUNK_MINSIZE = 1;
     static const size_t CHUNK_MAXSIZE = 1;
 

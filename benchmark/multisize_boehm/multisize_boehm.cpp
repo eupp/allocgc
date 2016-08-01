@@ -58,17 +58,17 @@
 
 using namespace std;
 
-static const int kStretchTreeDepth    = 18; //18;
-static const int kLongLivedTreeDepth  = 16; //16;
+static const int kStretchTreeDepth    = 14; //18;
+static const int kLongLivedTreeDepth  = 12; //16;
 static const int kArraySize  = 500000;      //500000;
 static const int kMinTreeDepth = 4;         //4
-static const int kMaxTreeDepth = 16;        //16;
+static const int kMaxTreeDepth = 10;        //16;
 
 // distribution of size of nodes
-static const double smallProb  = 0.5;
-static const double mediumProb = 0.25;
-static const double largeProb  = 0.25;
-static const double xlargeProb = 0.00;
+static const double smallProb  = 0.6;
+static const double mediumProb = 0.2;
+static const double largeProb  = 0.15;
+static const double xlargeProb = 0.05;
 
 
 struct NodeBase
@@ -294,24 +294,13 @@ struct GCBench {
         longLivedTree = createNode();
         Populate(kLongLivedTreeDepth, longLivedTree);
 
-        // Create long-lived array, filling half of it
-        cout << " Creating a long-lived array of " << kArraySize << " doubles" << endl;
-
-//        ptr_array_t(double) array = new_array_(double, kArraySize);
-//        for (int i = 0; i < kArraySize/2; ++i) {
-//            array[i] = 1.0/i;
-//        }
-
 
         for (int d = kMinTreeDepth; d <= kMaxTreeDepth; d += 2) {
             TimeConstruction(d);
         }
 
-        if (!longLivedTree /* || array[1000] != 1.0/1000 */) {
+        if (!longLivedTree) {
             cout << "Failed" << endl;
-            // fake reference to LongLivedTree
-            // and array
-            // to keep them from being optimized away
         }
 
         cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << endl;
@@ -321,8 +310,8 @@ struct GCBench {
         #elif defined(PRECISE_GC)
                 gc_stat stat = gc_stats();
                 cout << "Completed " << stat.gc_count << " collections" << endl;
-                cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " msec" << endl;
-                cout << "Average pause time " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time / stat.gc_count).count() << " msec" << endl;
+                cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << endl;
+                cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << endl;
         #endif
     }
 };

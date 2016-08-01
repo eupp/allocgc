@@ -83,6 +83,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
         include/libprecisegc/details/threads/tlab.hpp
         include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
+        include/libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp
         include/libprecisegc/details/allocators/managed_large_object_descriptor.hpp)
 
 set(precisegc_LIB_SRCS

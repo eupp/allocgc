@@ -68,11 +68,8 @@ public:
         std::lock_guard<Lock> lock_guard(m_lock);
         size_t shrunk = 0;
         size_t i = 0;
-        logging::debug() << "chunks count: " << m_chunks.size();
         for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
-            logging::debug() << "shrink chunk #" << ++i;
             if (it->empty()) {
-                logging::debug() << "empty!";
                 shrunk += it->get_mem_size();
                 it = destroy_chunk(it);
             } else {
@@ -136,37 +133,31 @@ private:
         if (m_alloc_chunk == chk) {
             m_alloc_chunk++;
         }
-        logging::debug() << "deallocate_block!";
         deallocate_block(chk->get_mem(), chk->get_mem_size());
-        logging::debug() << "erasing!";
         return m_chunks.erase(chk);
     }
 
     std::pair<internal_pointer_type, size_t> allocate_block(size_t cell_size)
     {
         assert(PAGE_SIZE % cell_size == 0);
-        size_t chunk_cnt = std::max((size_t) Chunk::CHUNK_MINSIZE, PAGE_SIZE / cell_size);
-        chunk_cnt = std::min((size_t) Chunk::CHUNK_MAXSIZE, chunk_cnt);
-        assert(chunk_cnt <= Chunk::CHUNK_MAXSIZE);
-        size_t chunk_size = chunk_cnt * cell_size;
-//        assert(chunk_size <= PAGE_SIZE);
-        return std::make_pair(upstream_allocate(chunk_size), chunk_size);
+        size_t chunk_size = Chunk::get_chunk_size(cell_size);
+        return std::make_pair(upstream_allocate(chunk_size, chunk_size), chunk_size);
     }
 
     void deallocate_block(internal_pointer_type p, size_t size)
     {
         assert(p);
-        upstream_deallocate(p, size);
+        upstream_deallocate(p, size, size);
     }
 
-    byte* upstream_allocate(size_t size)
+    byte* upstream_allocate(size_t size, size_t alignment)
     {
-        return this->template get_base<UpstreamAlloc>().allocate(size);
+        return this->template get_base<UpstreamAlloc>().allocate(size, alignment);
     }
 
-    void upstream_deallocate(byte* ptr, size_t size)
+    void upstream_deallocate(byte* ptr, size_t size, size_t alignment)
     {
-        this->template get_base<UpstreamAlloc>().deallocate(ptr, size);
+        this->template get_base<UpstreamAlloc>().deallocate(ptr, size, alignment);
     }
 
     list_t m_chunks;

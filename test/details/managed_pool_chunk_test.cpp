@@ -15,6 +15,7 @@ using namespace precisegc::details::allocators;
 namespace {
 const size_t CELL_SIZE = 64;
 const size_t CELL_COUNT = 64;
+const size_t CHUNK_SIZE = managed_pool_chunk::get_chunk_size(CELL_COUNT * CELL_SIZE);
 }
 
 class managed_pool_chunk_test : public ::testing::Test
@@ -23,14 +24,14 @@ public:
     typedef debug_layer<page_allocator> allocator_t;
 
     managed_pool_chunk_test()
-        : m_chunk(m_alloc.allocate(CELL_COUNT * CELL_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
+        : m_chunk(m_alloc.allocate(CHUNK_SIZE, CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
         , m_rand(0, PAGE_SIZE - 1)
     {}
 
     ~managed_pool_chunk_test()
     {
         if (m_chunk.get_mem()) {
-            m_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
+            m_alloc.deallocate(m_chunk.get_mem(), CHUNK_SIZE, CHUNK_SIZE);
         }
     }
 

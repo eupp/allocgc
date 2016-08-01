@@ -14,6 +14,11 @@ class test_descriptor : private precisegc::details::utils::noncopyable,
 public:
     typedef precisegc::details::byte* pointer_type;
 
+    static size_t align_size(size_t size)
+    {
+        return size;
+    }
+
     test_descriptor(byte* mem, size_t size)
         : m_mem(mem)
         , m_empty(false)

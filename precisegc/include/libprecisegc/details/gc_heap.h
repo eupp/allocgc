@@ -11,10 +11,13 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
+#include <libprecisegc/details/allocators/managed_large_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
+#include <libprecisegc/details/utils/safe_scope_lock.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>
@@ -30,15 +33,21 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 
     typedef allocators::intrusive_list_pool_allocator<
             allocators::freelist_pool_chunk, allocators::default_allocator
-    > chunk_pool_t;
+        > chunk_pool_t;
 
     typedef allocators::bucket_allocator<
             allocators::managed_pool_chunk,
             allocators::page_allocator,
-            allocators::default_allocator/*chunk_pool_t*/,
+            chunk_pool_t,
             tlab_bucket_policy,
             utils::dummy_mutex
         > tlab_t;
+
+    typedef allocators::intrusive_list_allocator<
+            allocators::managed_large_object_descriptor,
+            allocators::page_allocator,
+            utils::safe_scope_lock<std::recursive_mutex>
+        > loa_t;
 
     typedef intrusive_forwarding forwarding;
 public:
@@ -63,7 +72,7 @@ private:
 
     void unmark();
 
-//    alloc_t m_alloc;
+    loa_t m_loa;
     tlab_map_t m_tlab_map;
     std::mutex m_tlab_map_mutex;
     gc_compacting m_compacting;

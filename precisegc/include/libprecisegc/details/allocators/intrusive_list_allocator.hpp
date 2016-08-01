@@ -11,6 +11,7 @@
 #include <libprecisegc/details/types.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -199,7 +200,8 @@ private:
 
     Descriptor* create_memblk(size_t size)
     {
-        size_t memblk_size = size + sizeof(control_block) + sizeof(Descriptor);
+        size_t aligned_size = Descriptor::align_size(size);
+        size_t memblk_size = aligned_size + sizeof(control_block) + sizeof(Descriptor);
         byte*  memblk = upstream_allocate(memblk_size);
 
         control_block* cblk = get_control_block(memblk, memblk_size);
@@ -215,7 +217,7 @@ private:
 
         m_head = cblk;
 
-        new (descriptor) Descriptor(get_mem(memblk), size);
+        new (descriptor) Descriptor(get_mem(memblk), aligned_size);
 
         return descriptor;
     }
@@ -235,12 +237,12 @@ private:
 
     byte* upstream_allocate(size_t size)
     {
-        return this->template get_base<UpstreamAlloc>().allocate(size);
+        return this->template get_base<UpstreamAlloc>().allocate(size, PAGE_SIZE);
     }
 
     void upstream_deallocate(byte* ptr, size_t size)
     {
-        this->template get_base<UpstreamAlloc>().deallocate(ptr, size);
+        this->template get_base<UpstreamAlloc>().deallocate(ptr, size, PAGE_SIZE);
     }
 
     control_block* get_fake_block()

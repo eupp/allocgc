@@ -6,6 +6,7 @@
 #endif
 
 #ifdef BDW_GC
+    #define GC_THREADS
     #include <gc/gc.h>
 #endif
 

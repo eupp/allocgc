@@ -24,7 +24,6 @@ public:
             m_condvar.wait(lock, [this] { return m_threads_waiting == 0; });
         } else {
             m_threads_waiting = 0;
-            lock.unlock();
             m_condvar.notify_all();
         }
     }

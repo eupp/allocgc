@@ -3,16 +3,16 @@
 #include <thread>
 #include <future>
 #include <mutex>
+#include <vector>
 #include <cassert>
 #include <iostream>
 #include <functional>
 #include <type_traits>
 #include <utility>
 
-#include "../../common/macro.hpp"
-#include "../../common/timer.hpp"
-
+#include <libprecisegc/details/utils/barrier.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 #ifdef BDW_GC
     #define GC_THREADS
@@ -25,62 +25,15 @@
     using namespace precisegc;
 #endif
 
+#include "../../common/macro.hpp"
+#include "../../common/timer.hpp"
+
+static const int threads_cnt        = std::thread::hardware_concurrency();
+static const int nodes_per_thread   = 256;
+
 static const int node_size    = 64;
-static const int lists_count  = 512;
-static const int lists_length = 512;
-
-static std::mutex threads_mutex;
-static std::condition_variable threads_cond;
-static size_t threads_count = 0;
-
-template <typename Function, typename... Args>
-std::thread create_thread(Function&& f, Args&&... args)
-{
-    #ifdef PRECISE_GC
-        return details::threads::managed_thread::create(std::forward<Function>(f), std::forward<Args>(args)...);
-    #else
-        return std::thread(std::forward<Function>(f), std::forward<Args>(args)...);
-    #endif
-};
-
-template <typename F, typename... Args>
-std::future<typename std::result_of<F(Args...)>::type> launch_task(F&& f, Args&&... args)
-{
-    using precisegc::details::utils::make_scope_guard;
-    typedef typename std::result_of<F(Args...)>::type result_type;
-
-    std::function<result_type(Args...)> functor(std::forward<F>(f));
-    std::packaged_task<result_type(bool, Args...)> task([functor] (bool parallel_flag, Args&&... task_args) {
-        auto guard = make_scope_guard([parallel_flag, &threads_mutex, &threads_cond, &threads_count] {
-            if (parallel_flag) {
-                std::lock_guard<std::mutex> lock(threads_mutex);
-                assert(threads_count != 0);
-                --threads_count;
-                threads_cond.notify_one();
-            }
-        });
-        return functor(std::forward<Args>(task_args)...);
-    });
-    auto future = task.get_future();
-
-    std::unique_lock<std::mutex> lock(threads_mutex);
-    if (threads_count < std::thread::hardware_concurrency()) {
-        ++threads_count;
-        std::thread thread = create_thread(std::move(task), true, std::forward<Args>(args)...);
-        thread.detach();
-    } else {
-        lock.unlock();
-        task(false, std::forward<Args>(args)...);
-    }
-
-    return future;
-};
-
-void wait_for_tasks_complete()
-{
-    std::unique_lock<std::mutex> lock(threads_mutex);
-    threads_cond.wait(lock, [&threads_count] { return threads_count == 0; });
-}
+static const int lists_count  = 1024;
+static const int lists_length = threads_cnt * nodes_per_thread;
 
 struct Node
 {
@@ -93,6 +46,64 @@ struct List
     ptr_t(Node) head;
     size_t length;
 };
+
+template <typename Function, typename... Args>
+std::thread create_thread(Function&& f, Args&&... args)
+{
+#ifdef PRECISE_GC
+    return details::threads::managed_thread::create(std::forward<Function>(f), std::forward<Args>(args)...);
+#else
+    return std::thread(std::forward<Function>(f), std::forward<Args>(args)...);
+#endif
+};
+
+static bool tasks_ready_flag;
+static bool done_flag;
+static std::mutex tasks_mutex;
+static std::condition_variable tasks_ready_cv;
+static precisegc::details::utils::barrier tasks_ready_barrier{std::thread::hardware_concur
+};
+
+static std::vector<std::thread> threads{threads_cnt - 1};
+
+static std::vector<List> input_lists;
+static std::vector<List> output_lists;
+
+List merge_sort(const List& list);
+
+void thread_routine(int i)
+{
+    #ifdef BDW_GC
+        GC_stack_base sb;
+        GC_get_stack_base(&sb);
+        GC_register_my_thread(&sb);
+        auto guard = precisegc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
+    #endif
+
+    std::unique_lock<std::mutex> lock(tasks_mutex);
+    while (true) {
+        tasks_ready_cv.wait(lock, [&tasks_ready_flag, &done_flag] { return tasks_ready_flag || done_flag; });
+        if (done_flag) {
+            return;
+        }
+        lock.unlock();
+
+        output_lists[i] = merge_sort(input_lists[i]);
+
+        tasks_ready_barrier.wait();
+        lock.lock();
+        tasks_ready_cv.wait(lock, [&tasks_ready_flag, &done_flag] { return !tasks_ready_flag; });
+    }
+}
+
+void init()
+{
+    for (int i = 0; i < threads_cnt - 1; ++i) {
+        threads[i] = create_thread(thread_routine, i);
+    }
+    input_lists.resize(threads_cnt - 1);
+    output_lists.resize(threads_cnt - 1);
+}
 
 ptr_t(Node) advance(ptr_t(Node) node, size_t n)
 {
@@ -151,8 +162,6 @@ List merge(const List& fst, const List& snd)
     return {.head = res, .length = length};
 }
 
-void merge_sort_helper(const List& list, List& sorted);
-
 List merge_sort(const List& list)
 {
     if (list.length == 0) {
@@ -170,17 +179,40 @@ List merge_sort(const List& list)
     List lpart = {.head = list.head, .length = m};
     List rpart = {.head = mid,       .length = list.length - m};
 
-    List lsorted;
-    std::future<void> future = launch_task(merge_sort_helper, std::ref(lpart), std::ref(lsorted));
+    List lsorted = merge_sort(lpart);
     List rsorted = merge_sort(rpart);
-    future.get();
 
     return merge(lsorted, rsorted);
 }
 
-void merge_sort_helper(const List& list, List& sorted)
+List parallel_merge_sort(const List& list)
 {
-    sorted = merge_sort(list);
+    ptr_t(Node) it = list.head;
+    for (int i = 0; i < threads_cnt - 1; ++i) {
+        List lst = {.head = it, .length = nodes_per_thread};
+        input_lists[i] = lst;
+        it = ::advance(it, nodes_per_thread);
+    }
+
+    std::unique_lock<std::mutex> lock(tasks_mutex);
+    tasks_ready_flag = true;
+    tasks_ready_cv.notify_all();
+    lock.unlock();
+
+    List lst = {.head = it, .length = nodes_per_thread};
+    List sorted = merge_sort(lst);
+
+    tasks_ready_barrier.wait();
+    lock.lock();
+    tasks_ready_flag = false;
+    tasks_ready_cv.notify_all();
+    lock.unlock();
+
+    for (int i = 0; i < threads_cnt - 1; ++i) {
+        sorted = merge(output_lists[i], sorted);
+    }
+
+    return sorted;
 }
 
 List create_list(size_t n, int mod)
@@ -220,7 +252,7 @@ void clear_list(List& list)
 void routine()
 {
     List list = create_list(lists_length, lists_length);
-    List sorted = merge_sort(list);
+    List sorted = parallel_merge_sort(list);
 
     ptr_t(Node) it = sorted.head;
     assert(sorted.length == lists_length);
@@ -257,10 +289,18 @@ int main(int argc, const char* argv[])
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();
+        GC_allow_register_threads();
         if (incremental_flag) {
             GC_enable_incremental();
         }
     #endif
+
+    init();
+    auto guard = precisegc::details::utils::make_scope_guard([&done_flag, &tasks_mutex, &tasks_ready_cv] {
+        std::lock_guard<std::mutex> lock(tasks_mutex);
+        done_flag = true;
+        tasks_ready_cv.notify_all();
+    });
 
     std::cout << "Sorting " << lists_count << " lists with length " << lists_length << std::endl;
     std::cout << "Size of each list " << lists_length * sizeof(Node) << " b" << std::endl;
@@ -273,7 +313,6 @@ int main(int argc, const char* argv[])
         }
         routine();
     }
-    wait_for_tasks_complete();
 
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
     #if defined(BDW_GC)

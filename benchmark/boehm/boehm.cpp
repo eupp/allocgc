@@ -185,16 +185,20 @@ struct GCBench {
         // Create long-lived array, filling half of it
         cout << " Creating a long-lived array of " << kArraySize << " doubles" << endl;
 
-        ptr_array_t(double) array = new_array_(double, kArraySize);
+        #ifdef SHARED_PTR
+            auto array = std::unique_ptr<double[]>(new double[kArraySize]);
+        #else
+            ptr_array_t(double) array = new_array_(double, kArraySize);
+        #endif
         for (int i = 0; i < kArraySize/2; ++i) {
-            array[i] = 1.0/i;
+            array[i] = 1.0 / i;
         }
 
         for (int d = kMinTreeDepth; d <= kMaxTreeDepth; d += 2) {
             TimeConstruction(d);
         }
 
-        if (!longLivedTree || array[1000] != 1.0/1000 ) {
+        if (!longLivedTree || array[1000] != 1.0 / 1000 ) {
             cout << "Failed" << endl;
             // fake reference to LongLivedTree
             // and array

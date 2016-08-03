@@ -13,6 +13,7 @@
 #include <libprecisegc/details/utils/barrier.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/utils/scoped_thread.hpp>
 
 #ifdef BDW_GC
     #define GC_THREADS
@@ -57,14 +58,11 @@ std::thread create_thread(Function&& f, Args&&... args)
 #endif
 };
 
-static bool tasks_ready_flag;
-static bool done_flag;
-static std::mutex tasks_mutex;
-static std::condition_variable tasks_ready_cv;
-static precisegc::details::utils::barrier tasks_ready_barrier{std::thread::hardware_concur
-};
+static std::atomic<bool> done_flag{false};
+static precisegc::details::utils::barrier tasks_ready_barrier{std::thread::hardware_concurrency()};
+static precisegc::details::utils::barrier tasks_done_barrier{std::thread::hardware_concurrency()};
 
-static std::vector<std::thread> threads{threads_cnt - 1};
+static std::vector<precisegc::details::utils::scoped_thread> threads{threads_cnt - 1};
 
 static std::vector<List> input_lists;
 static std::vector<List> output_lists;
@@ -80,19 +78,15 @@ void thread_routine(int i)
         auto guard = precisegc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
     #endif
 
-    std::unique_lock<std::mutex> lock(tasks_mutex);
     while (true) {
-        tasks_ready_cv.wait(lock, [&tasks_ready_flag, &done_flag] { return tasks_ready_flag || done_flag; });
+        tasks_ready_barrier.wait();
         if (done_flag) {
             return;
         }
-        lock.unlock();
 
         output_lists[i] = merge_sort(input_lists[i]);
 
-        tasks_ready_barrier.wait();
-        lock.lock();
-        tasks_ready_cv.wait(lock, [&tasks_ready_flag, &done_flag] { return !tasks_ready_flag; });
+        tasks_done_barrier.wait();
     }
 }
 
@@ -194,19 +188,12 @@ List parallel_merge_sort(const List& list)
         it = ::advance(it, nodes_per_thread);
     }
 
-    std::unique_lock<std::mutex> lock(tasks_mutex);
-    tasks_ready_flag = true;
-    tasks_ready_cv.notify_all();
-    lock.unlock();
+    tasks_ready_barrier.wait();
 
     List lst = {.head = it, .length = nodes_per_thread};
     List sorted = merge_sort(lst);
 
-    tasks_ready_barrier.wait();
-    lock.lock();
-    tasks_ready_flag = false;
-    tasks_ready_cv.notify_all();
-    lock.unlock();
+    tasks_done_barrier.wait();
 
     for (int i = 0; i < threads_cnt - 1; ++i) {
         sorted = merge(output_lists[i], sorted);
@@ -279,7 +266,7 @@ int main(int argc, const char* argv[])
 
     #if defined(PRECISE_GC)
         gc_options ops;
-        ops.heapsize            = 2 * 1024 * 1024;      // 2 Mb
+//        ops.heapsize            = 2 * 1024 * 1024;      // 2 Mb
         ops.threads_available   = 1;
         ops.type                = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
         ops.init                = gc_init_strategy::SPACE_BASED;
@@ -296,10 +283,9 @@ int main(int argc, const char* argv[])
     #endif
 
     init();
-    auto guard = precisegc::details::utils::make_scope_guard([&done_flag, &tasks_mutex, &tasks_ready_cv] {
-        std::lock_guard<std::mutex> lock(tasks_mutex);
+    auto guard = precisegc::details::utils::make_scope_guard([&done_flag, &tasks_ready_barrier] {
         done_flag = true;
-        tasks_ready_cv.notify_all();
+        tasks_ready_barrier.wait();
     });
 
     std::cout << "Sorting " << lists_count << " lists with length " << lists_length << std::endl;

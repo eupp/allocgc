@@ -22,6 +22,7 @@ class stack_map : private utils::noncopyable, private utils::nonmovable
 public:
     stack_map()
         : m_head(nullptr)
+        , m_free_node_cnt(0)
     {};
 
     void insert(T elem)
@@ -44,12 +45,9 @@ public:
     {
         std::for_each(begin(), end(), f);
     }
-
-    void shrink()
-    {
-        m_pool.shrink(sizeof(node));
-    }
 private:
+    static const size_t MAX_FREE_NODE = 4096;
+
     struct node
     {
         T m_value;
@@ -150,6 +148,14 @@ private:
     void destroy_node(node* pnode)
     {
         m_pool.deallocate(reinterpret_cast<byte*>(pnode), sizeof(node));
+        if (++m_free_node_cnt == MAX_FREE_NODE) {
+            shrink_pool();
+        }
+    }
+
+    void shrink_pool()
+    {
+        m_pool.shrink(sizeof(node));
     }
 
     typedef allocators::intrusive_list_pool_allocator<
@@ -158,6 +164,7 @@ private:
 
     std::atomic<node*> m_head;
     object_pool_t m_pool;
+    size_t m_free_node_cnt;
 };
 
 typedef stack_map<ptrs::gc_untyped_ptr*> root_stack_map;

@@ -310,5 +310,12 @@ int main(int argc, const char* argv[])
         std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time).count() << " us" << std::endl;
         std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;
     #endif
+
+    done_flag = true;
+    tasks_ready_barrier.wait();
+    guard.commit();
+    for (auto& thread: threads) {
+        thread.join();
+    }
 }
 

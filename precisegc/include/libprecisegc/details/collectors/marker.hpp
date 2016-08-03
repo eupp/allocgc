@@ -27,7 +27,7 @@ public:
 
     ~marker()
     {
-        m_done.store(false, std::memory_order_release);
+        m_done.store(true, std::memory_order_release);
     }
 
     template <typename Traceable>

@@ -121,7 +121,6 @@ public:
     void trace_roots(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            managed_thread_accessor::root_set(thread).shrink();
             managed_thread_accessor::root_set(thread).trace(std::forward<Functor>(f));
         }
     }
@@ -130,7 +129,6 @@ public:
     void trace_pins(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            managed_thread_accessor::pin_set(thread).shrink();
             managed_thread_accessor::pin_set(thread).trace(std::forward<Functor>(f));
         }
     }

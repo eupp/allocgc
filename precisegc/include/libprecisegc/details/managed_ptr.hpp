@@ -37,7 +37,7 @@ public:
     void set_mark(bool mark) const;
     void set_pin(bool pin) const;
 
-    void set_live(bool live);
+    void set_live(bool live) const;
     bool is_live() const;
 
     void sweep() const;

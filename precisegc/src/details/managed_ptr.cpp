@@ -57,7 +57,7 @@ void managed_ptr::set_pin(bool pin) const
     return m_descr->set_pin(get(), pin);
 }
 
-void managed_ptr::set_live(bool live)
+void managed_ptr::set_live(bool live) const
 {
     assert(m_descr);
     m_descr->set_live(m_ptr, live);

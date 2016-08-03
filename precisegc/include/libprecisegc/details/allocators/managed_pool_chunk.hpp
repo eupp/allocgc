@@ -49,20 +49,6 @@ public:
             , managed_ptr
         >
     {
-        class proxy
-        {
-        public:
-            proxy(const managed_ptr& ptr)
-                : m_ptr(ptr)
-            {}
-
-            managed_ptr* operator->()
-            {
-                return &m_ptr;
-            }
-        private:
-            managed_ptr m_ptr;
-        };
     public:
         iterator() noexcept;
         iterator(const iterator&) noexcept = default;
@@ -71,9 +57,9 @@ public:
         iterator& operator=(const iterator&) noexcept = default;
         iterator& operator=(iterator&&) noexcept = default;
 
-        proxy operator->()
+        const managed_ptr* operator->()
         {
-            return proxy(m_ptr);
+            return &m_ptr;
         }
     private:
         friend class managed_pool_chunk;
@@ -138,7 +124,6 @@ public:
     virtual byte* get_cell_begin(byte* ptr) const override;
 private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
-    static size_t calc_cell_ind(byte* ptr, size_t obj_size, byte* base_ptr, size_t size);
 
     void deallocate(byte* ptr, size_t size);
 

@@ -93,13 +93,6 @@ managed_pool_chunk::range_type managed_pool_chunk::get_range()
     return range_type(begin(), end());
 }
 
-size_t managed_pool_chunk::calc_cell_ind(byte* ptr, size_t log2_cell_size, byte* base_ptr, size_t size)
-{
-    assert(base_ptr <= ptr && ptr < base_ptr + size);
-    assert((ptr - base_ptr) % pow2(log2_cell_size) == 0);
-    return (ptr - base_ptr) >> log2_cell_size;
-}
-
 bool managed_pool_chunk::get_mark(byte* ptr) const
 {
     size_t ind = calc_cell_ind(ptr);
@@ -180,10 +173,10 @@ managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 {
-    return managed_pool_chunk::calc_cell_ind(get_cell_begin(ptr),
-                                             m_log2_cell_size,
-                                             get_mem(),
-                                             get_mem_size());
+    assert(get_mem() <= ptr && ptr < get_mem() + get_mem_size());
+    byte* cell_ptr = get_cell_begin(ptr);
+    assert((cell_ptr - get_mem()) % pow2(m_log2_cell_size) == 0);
+    return (cell_ptr - get_mem()) >> m_log2_cell_size;
 }
 
 size_t managed_pool_chunk::get_log2_cell_size() const

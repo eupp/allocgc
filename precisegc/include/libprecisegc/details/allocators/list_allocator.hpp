@@ -108,17 +108,10 @@ private:
 
     pointer_type allocate_unsafe(size_t size)
     {
-        if (m_alloc_chunk == m_chunks.end()) {
+        if (m_alloc_chunk == m_chunks.end() || !m_alloc_chunk->memory_available()) {
             m_alloc_chunk = create_chunk(size);
-            return m_alloc_chunk->allocate(size);
         }
-        if (m_alloc_chunk->memory_available()) {
-            return m_alloc_chunk->allocate(size);
-        }
-
-        m_alloc_chunk = std::find_if(++m_alloc_chunk, m_chunks.end(),
-                                     [] (const Chunk& chk) { return chk.memory_available(); });
-        return allocate_unsafe(size);
+        return m_alloc_chunk->allocate(size);
     }
 
     typename list_t::iterator create_chunk(size_t cell_size)

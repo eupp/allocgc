@@ -19,15 +19,15 @@ void trace_ptr(managed_ptr p, Functor&& f)
     assert(p.is_live());
 
     object_meta* obj_meta = p.get_meta();
-    const type_meta* cls_meta = obj_meta->get_class_meta();
+    const type_meta* cls_meta = obj_meta->get_type_meta();
     if (cls_meta->is_plain_type()) {
         return;
     }
 
-    size_t obj_size = obj_meta->get_class_meta()->get_type_size(); // sizeof array element
-    auto offsets = cls_meta->offsets_begin();
+    size_t obj_size = obj_meta->get_type_meta()->type_size(); // sizeof array element
+    auto offsets = cls_meta->offsets();
     byte* obj = p.get_cell_begin();
-    size_t obj_count = obj_meta->get_count();
+    size_t obj_count = obj_meta->object_count();
     size_t offsets_size = cls_meta->offsets_count();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {

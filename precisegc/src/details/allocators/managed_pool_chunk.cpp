@@ -155,7 +155,7 @@ byte* managed_pool_chunk::get_obj_begin(byte* ptr) const
 {
     object_meta* meta = get_cell_meta(ptr);
     byte* cell_ptr = get_cell_begin(ptr);
-    size_t obj_size = meta->get_class_meta()->get_type_size();
+    size_t obj_size = meta->get_type_meta()->type_size();
     size_t obj_ind = (ptr - cell_ptr) / obj_size;
     return cell_ptr + obj_ind * obj_size;
 }

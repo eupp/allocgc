@@ -263,9 +263,9 @@ TEST_F(gc_compact_test, test_fix_pointers)
     provider::create_meta(offsets.begin(), offsets.end());
 
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);
-    obj_meta->set_class_meta(provider::get_meta_ptr());
-    obj_meta->set_count(1);
-    obj_meta->set_object_ptr(ptr);
+    obj_meta->set_type_meta(provider::get_meta_ptr());
+    obj_meta->set_object_count(1);
+    obj_meta->set_forward_pointer(ptr);
 
     list_forwarding forwarding;
     forwarding.create(from, to, OBJ_SIZE);

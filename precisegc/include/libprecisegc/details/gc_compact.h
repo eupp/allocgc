@@ -67,11 +67,11 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
         }
         byte* ptr = it->get();
         object_meta* obj_meta = object_meta::get_meta_ptr(ptr, obj_size);
-        const type_meta* cls_meta = obj_meta->get_class_meta();
+        const type_meta* cls_meta = obj_meta->get_type_meta();
         if (cls_meta != nullptr) {
-            size_t obj_size = cls_meta->get_type_size();
-            auto offsets = cls_meta->offsets_begin();
-            size_t obj_count = obj_meta->get_count();
+            size_t obj_size = cls_meta->type_size();
+            auto offsets = cls_meta->offsets().begin();
+            size_t obj_count = obj_meta->object_count();
             size_t offsets_size = cls_meta->offsets_count();
             for (size_t i = 0; i < obj_count; ++i, ptr += obj_size) {
                 for (size_t j = 0; j < offsets_size; ++j) {

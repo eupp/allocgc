@@ -126,8 +126,7 @@ public:
     ~intrusive_list_allocator()
     {
         std::lock_guard<Lock> lock_guard(m_lock);
-        for (iterator it = begin(); it != end(); )
-        {
+        for (iterator it = begin(); it != end(); ) {
             iterator next = std::next(it, 1);
             destroy_memblk(it.cblk());
             it = next;
@@ -171,8 +170,7 @@ public:
     void apply_to_descriptors(Functor&& f)
     {
         std::lock_guard<Lock> lock_guard(m_lock);
-        for (auto it = begin(); it != end(); ++it)
-        {
+        for (auto it = begin(); it != end(); ++it) {
             f(*it.descriptor());
         }
     }

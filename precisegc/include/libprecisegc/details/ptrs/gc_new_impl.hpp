@@ -67,7 +67,7 @@ void* gc_new_impl(size_t n, Args&&... args)
 
     // construct object_meta
     {
-        new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(type_meta_provider<T>::get_meta_ptr(), n, ptr);
+        new (object_meta::get_meta_ptr(ptr, aligned_size)) object_meta(type_meta_provider<T>::get_meta_ptr());
     }
 
     return ptr;

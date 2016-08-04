@@ -1,65 +1,82 @@
 #ifndef DIPLOMA_OBJECT_META_H
 #define DIPLOMA_OBJECT_META_H
 
-#include "type_meta.hpp"
+#include <cstring>
+#include <atomic>
+
+#include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {
 
 class object_meta
 {
 public:
-
     // computes pointer to object_meta by pointer to object and its size
     static object_meta* get_meta_ptr(void* ptr, size_t obj_size)
     {
         return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
     }
 
-    object_meta(const type_meta* cls_meta, size_t count, void* obj_ptr)
-        : m_cls_meta(cls_meta)
-        , m_count(count)
-        , m_obj_ptr(obj_ptr)
+    object_meta(const type_meta* meta = nullptr)
+        : m_type_meta(meta)
+        , m_count(0)
     {}
 
-    size_t size() const noexcept
+    size_t type_size() const noexcept
     {
-        return m_count * m_cls_meta->get_type_size();
+        return m_type_meta->type_size();
     }
 
-    const type_meta* get_class_meta() const noexcept
+    size_t object_count() const noexcept
     {
-        return m_cls_meta;
+        return m_count.load(std::memory_order_relaxed);
     }
 
-    void set_class_meta(const type_meta* cls_meta) noexcept
+    size_t object_size() const noexcept
     {
-        m_cls_meta = cls_meta;
+        return object_count() * type_size();
     }
 
-    size_t get_count() const noexcept
+    void set_object_count(size_t count) noexcept
     {
-        return m_count;
+        m_count.store(count, std::memory_order_relaxed);
     }
 
-    void set_count(size_t count) noexcept
+    const type_meta* get_type_meta() const noexcept
     {
-        m_count = count;
+        return m_type_meta;
     }
 
-    void* get_object_ptr() const noexcept
+    void set_type_meta(const type_meta* cls_meta) noexcept
     {
-        return m_obj_ptr;
+        m_type_meta = cls_meta;
     }
 
-    void set_object_ptr(void* ptr) noexcept
+    byte* forward_pointer() const noexcept
     {
-        m_obj_ptr = ptr;
+        byte* ptr;
+        memcpy(&ptr, get_forward_pointer_address(), sizeof(void*));
+        return ptr;
     }
 
+    void set_forward_pointer(byte* ptr) noexcept
+    {
+        memcpy(get_forward_pointer_address(), &ptr, sizeof(void*));
+    }
 private:
-    const type_meta* m_cls_meta;
-    size_t m_count;
-    void* m_obj_ptr;
+    void* get_forward_pointer_address()
+    {
+        return reinterpret_cast<void*>(reinterpret_cast<byte*>(this) - sizeof(void*));
+    }
+
+    const void* get_forward_pointer_address() const
+    {
+        return reinterpret_cast<const void*>(reinterpret_cast<const byte*>(this) - sizeof(void*));
+    }
+
+    const type_meta* m_type_meta;
+    std::atomic<size_t> m_count;
 };
 
 } }

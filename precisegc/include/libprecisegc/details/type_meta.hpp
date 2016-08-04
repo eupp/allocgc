@@ -23,9 +23,10 @@ class type_meta : private utils::noncopyable, private utils::nonmovable
 {
     typedef utils::dynarray<size_t> dynarray_t;
 public:
-    typedef dynarray_t::const_iterator iterator;
+    typedef dynarray_t::const_iterator offsets_iterator;
+    typedef boost::iterator_range<offsets_iterator> offsets_range;
 
-    size_t get_type_size() const noexcept
+    size_t type_size() const noexcept
     {
         return m_type_size;
     }
@@ -40,14 +41,9 @@ public:
         return m_offsets.size();
     }
 
-    iterator offsets_begin() const
+    offsets_range offsets() const
     {
-        return m_offsets.begin();
-    }
-
-    iterator offsets_end() const
-    {
-        return m_offsets.end();
+        return boost::make_iterator_range(m_offsets.begin(), m_offsets.end());
     }
 private:
     friend class internals::meta_holder;

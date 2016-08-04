@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <thread>
 #include <vector>
 #include <algorithm>
 
 #include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/utils/barrier.hpp>
+#include <libprecisegc/details/utils/scoped_thread.hpp>
 
 using namespace std;
 using namespace precisegc::details;
@@ -23,49 +26,38 @@ TEST(type_meta_test, test_create_meta)
     vector<size_t> offsets({1, 2, 3});
     provider::create_meta(offsets.begin(), offsets.end());
     EXPECT_TRUE(provider::is_created());
-    EXPECT_EQ(sizeof(type_2), provider::get_meta().get_type_size());
+    EXPECT_EQ(sizeof(type_2), provider::get_meta().type_size());
     EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
-    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets_begin()));
-}
-
-static pthread_barrier_t g_barrier_1;
-
-static void* thread_routine(void* arg)
-{
-    typedef type_meta_provider<type_3> provider;
-    vector<size_t>* offsets = reinterpret_cast<vector<size_t>*>(arg);
-    pthread_barrier_wait(&g_barrier_1);
-    provider::create_meta(offsets->begin(), offsets->end());
+    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets().begin()));
 }
 
 TEST(type_meta_test, test_threading)
 {
     typedef type_meta_provider<type_3> provider;
+
+    const int THREADS_COUNT = 100;
+    utils::scoped_thread threads[THREADS_COUNT];
+
+    utils::barrier barrier(THREADS_COUNT);
     vector<size_t> offsets;
     for (int i = 0; i < 1000; ++i) {
         offsets.push_back(i);
     }
-    const int THREAD_COUNT = 100;
-    int b_init = pthread_barrier_init(&g_barrier_1, nullptr, THREAD_COUNT);
-    ASSERT_EQ(0, b_init);
 
-    pthread_t threads[THREAD_COUNT];
-    for (int i = 0; i < THREAD_COUNT; ++i) {
-        int res = pthread_create(&threads[i], nullptr, thread_routine, (void*) &offsets);
-        ASSERT_EQ(0, res);
+    for (auto& thread: threads) {
+        thread = std::thread([&offsets, &barrier] {
+            barrier.wait();
+            provider::create_meta(offsets.begin(), offsets.end());
+        });
     }
 
-    for (int i = 0; i < THREAD_COUNT; ++i) {
-        void* ret;
-        int res = pthread_join(threads[i], &ret);
-        ASSERT_EQ(0, res);
+    for (auto& thread: threads) {
+        thread.join();
     }
-
-    pthread_barrier_destroy(&g_barrier_1);
 
     EXPECT_TRUE(provider::is_created());
-    EXPECT_EQ(sizeof(type_3), provider::get_meta().get_type_size());
+    EXPECT_EQ(sizeof(type_3), provider::get_meta().type_size());
     EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
-    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets_begin()));
+    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets().begin()));
 }
 

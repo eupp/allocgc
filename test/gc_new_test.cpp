@@ -38,15 +38,15 @@ TEST(gc_new_test, test_meta)
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
     object_meta* obj_meta = get_object_header((void*) pin.get());
-    const type_meta* cls_meta = obj_meta->get_class_meta();
+    const type_meta* cls_meta = obj_meta->get_type_meta();
 
-    ASSERT_EQ((void*) pin.get(), obj_meta->get_object_ptr());
-    ASSERT_EQ(1, obj_meta->get_count());
+    ASSERT_EQ((void*) pin.get(), obj_meta->forward_pointer());
+    ASSERT_EQ(1, obj_meta->object_count());
 
     ASSERT_NE(nullptr, cls_meta);
-    ASSERT_EQ(sizeof(node0), cls_meta->get_type_size());
+    ASSERT_EQ(sizeof(node0), cls_meta->type_size());
     ASSERT_EQ(1, cls_meta->offsets_count());
-    ASSERT_EQ(0, cls_meta->offsets_begin()[0]);
+    ASSERT_EQ(0, cls_meta->offsets()[0]);
 }
 
 namespace {
@@ -79,13 +79,13 @@ TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
     object_meta* obj_meta = get_object_header((void*) ptr.pin().get());
-    const type_meta* cls_meta = obj_meta->get_class_meta();
+    const type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_NE(nullptr, cls_meta);
-    ASSERT_EQ(sizeof(node1), cls_meta->get_type_size());
+    ASSERT_EQ(sizeof(node1), cls_meta->type_size());
     ASSERT_EQ(2, cls_meta->offsets_count());
-    ASSERT_EQ(0, cls_meta->offsets_begin()[0]);
-    ASSERT_EQ(sizeof(gc_ptr<node1>), cls_meta->offsets_begin()[1]);
+    ASSERT_EQ(0, cls_meta->offsets()[0]);
+    ASSERT_EQ(sizeof(gc_ptr<node1>), cls_meta->offsets()[1]);
 }
 
 namespace {
@@ -117,16 +117,16 @@ TEST(gc_new_test, test_nested_2)
     ASSERT_TRUE(complex_meta_provider::is_created());
 
     const type_meta& simple_obj_meta = simple_meta_provider::get_meta();
-    ASSERT_EQ(sizeof(simple_object), simple_obj_meta.get_type_size());
+    ASSERT_EQ(sizeof(simple_object), simple_obj_meta.type_size());
     ASSERT_EQ(0, simple_obj_meta.offsets_count());
     ASSERT_TRUE(simple_obj_meta.is_plain_type());
 
     const type_meta& complex_obj_meta = complex_meta_provider::get_meta();
-    ASSERT_EQ(sizeof(complex_object), complex_obj_meta.get_type_size());
+    ASSERT_EQ(sizeof(complex_object), complex_obj_meta.type_size());
     ASSERT_EQ(3, complex_obj_meta.offsets_count());
-    ASSERT_EQ(0, complex_obj_meta.offsets_begin()[0]);
-    ASSERT_EQ(sizeof(gc_ptr<simple_object>), complex_obj_meta.offsets_begin()[1]);
-    ASSERT_EQ(2 * sizeof(gc_ptr<simple_object>), complex_obj_meta.offsets_begin()[2]);
+    ASSERT_EQ(0, complex_obj_meta.offsets()[0]);
+    ASSERT_EQ(sizeof(gc_ptr<simple_object>), complex_obj_meta.offsets()[1]);
+    ASSERT_EQ(2 * sizeof(gc_ptr<simple_object>), complex_obj_meta.offsets()[2]);
 }
 
 namespace {
@@ -151,7 +151,7 @@ TEST(gc_new_test, test_with_ctor)
     ASSERT_TRUE(meta_provider::is_created());
 
     const type_meta& obj_meta = meta_provider::get_meta();
-    ASSERT_EQ(sizeof(simple_object_with_ctor), obj_meta.get_type_size());
+    ASSERT_EQ(sizeof(simple_object_with_ctor), obj_meta.type_size());
     ASSERT_EQ(0, obj_meta.offsets_count());
     ASSERT_TRUE(obj_meta.is_plain_type());
 }

@@ -16,10 +16,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h
         include/libprecisegc/details/ptrs/gc_new_stack.hpp
-        include/libprecisegc/details/ptrs/gc_new_impl.hpp
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
-        include/libprecisegc/details/ptrs/gc_ptr_access.hpp
         include/libprecisegc/details/logging.hpp
         include/libprecisegc/details/gc_mark.h
         include/libprecisegc/details/allocators/page_allocator.hpp

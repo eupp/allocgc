@@ -5,7 +5,6 @@
 #include <queue>
 
 #include <libprecisegc/libprecisegc.hpp>
-#include <libprecisegc/details/ptrs/gc_ptr_access.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/collectors/marker.hpp>
 
@@ -78,7 +77,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
     gc_pin<node> pin = ptr.pin();
     set_object_mark(pin.get(), false);
     if (depth == mark_depth) {
-        root_set.roots.push_back(&gc_ptr_access<node>::get_untyped(ptr));
+        root_set.roots.push_back(&precisegc::internals::gc_ptr_access<node>::get_untyped(ptr));
     }
     mark_tree(ptr->m_left, depth + 1, mark_depth, root_set);
     mark_tree(ptr->m_right, depth + 1, mark_depth, root_set);
@@ -111,7 +110,7 @@ void check_nodes_pinned(const gc_ptr<node>& ptr, size_t depth, size_t pin_depth,
         return;
     };
 
-    node* raw_ptr = gc_ptr_access<node>::get(ptr);
+    node* raw_ptr = precisegc::internals::gc_ptr_access<node>::get(ptr);
     if (depth == pin_depth) {
         EXPECT_TRUE(get_object_pin(raw_ptr)) << "ptr=" << raw_ptr;
     } else {
@@ -222,7 +221,7 @@ TEST_F(marker_test, test_pins)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    pin_set.pins.push_back(gc_ptr_access<node>::get(root));
+    pin_set.pins.push_back(precisegc::internals::gc_ptr_access<node>::get(root));
     marker.trace_pins(pin_set);
     marker.mark();
 

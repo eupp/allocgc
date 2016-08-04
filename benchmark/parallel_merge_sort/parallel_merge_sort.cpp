@@ -92,6 +92,7 @@ void thread_routine(int i)
 
 void init()
 {
+    srand(time(nullptr));
     for (int i = 0; i < threads_cnt - 1; ++i) {
         threads[i] = create_thread(thread_routine, i);
     }
@@ -243,7 +244,7 @@ void routine()
 
     ptr_t(Node) it = sorted.head;
     assert(sorted.length == lists_length);
-    for (size_t i = 0; i < sorted.length - 1; ++i) {
+    for (size_t i = 0; i < sorted.length - 1; ++i, it = it->next) {
         assert(it->data <= it->next->data);
     }
 

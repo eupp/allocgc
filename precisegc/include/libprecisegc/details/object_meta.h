@@ -55,7 +55,6 @@ public:
     {
         m_obj_ptr = ptr;
     }
-
 private:
     const type_meta* m_cls_meta;
     size_t m_count;

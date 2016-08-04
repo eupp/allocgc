@@ -91,7 +91,7 @@ TEST_F(managed_pool_chunk_test, test_get_object_begin)
     object_meta* meta = descr->get_cell_meta(mem);
 
     type_meta_provider<test_type>::create_meta();
-    const type_meta* cls_meta = type_meta_provider<test_type>::get_meta_ptr();
+    const type_meta* cls_meta = type_meta_provider<test_type>::get_meta();
     new (meta) object_meta(cls_meta);
 
     for (size_t i = 0; i < OBJ_CNT; ++i) {

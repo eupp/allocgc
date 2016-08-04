@@ -28,7 +28,7 @@ void trace_ptr(managed_ptr p, Functor&& f)
     auto offsets = cls_meta->offsets();
     byte* obj = p.get_cell_begin();
     size_t obj_count = obj_meta->object_count();
-    size_t offsets_size = cls_meta->offsets_count();
+    size_t offsets_size = cls_meta->offsets().size();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
             gc_untyped_ptr* pchild = (ptrs::gc_untyped_ptr*) ((char*) obj + offsets[j]);

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <unordered_map>
 
-#include "object_meta.h"
+#include "object_meta.hpp"
 #include "memory_descriptor.hpp"
 
 namespace precisegc { namespace details {

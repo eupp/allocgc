@@ -4,7 +4,7 @@
 
 #include "libprecisegc/details/ptrs/gc_untyped_ptr.hpp"
 #include "managed_ptr.hpp"
-#include "object_meta.h"
+#include "object_meta.hpp"
 
 #include "logging.hpp"
 #include "gc_mark.h"

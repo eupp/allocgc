@@ -4,7 +4,7 @@
 #include <mutex>
 
 #include "types.hpp"
-#include "object_meta.h"
+#include "object_meta.hpp"
 
 namespace precisegc { namespace details {
 

@@ -36,11 +36,6 @@ public:
         return m_offsets.empty();
     }
 
-    size_t offsets_count() const noexcept
-    {
-        return m_offsets.size();
-    }
-
     offsets_range offsets() const
     {
         return boost::make_iterator_range(m_offsets.begin(), m_offsets.end());
@@ -102,38 +97,35 @@ template <typename T>
 class type_meta_provider
 {
 public:
-    static bool is_created()
+    static bool is_meta_created()
     {
         return meta.is_initialized();
     }
 
-    static void create_meta()
+    static const type_meta* create_meta()
     {
         utils::dynarray<size_t> empty;
         meta.initialize(sizeof(T), empty.begin(), empty.end());
+        return meta.get();
     }
 
     template <typename Range>
-    static void create_meta(Range&& range)
+    static const type_meta* create_meta(Range&& range)
     {
         static_assert(std::is_same<typename Range::value_type, size_t>::value, "Offsets should have size_t type");
         meta.initialize(sizeof(T), range.begin(), range.end());
+        return meta.get();
     }
 
     template <typename Iter>
-    static void create_meta(Iter offsets_begin, Iter offsets_end)
+    static const type_meta* create_meta(Iter offsets_begin, Iter offsets_end)
     {
         static_assert(std::is_same<typename Iter::value_type, size_t>::value, "Offsets should have size_t type");
         meta.initialize(sizeof(T), offsets_begin, offsets_end);
+        return meta.get();
     }
 
-    static const type_meta& get_meta()
-    {
-        assert(meta.get());
-        return *meta.get();
-    }
-
-    static const type_meta* get_meta_ptr()
+    static const type_meta* get_meta()
     {
         assert(meta.get());
         return meta.get();

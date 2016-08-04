@@ -21,7 +21,7 @@
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/forwarding.h>
-#include <libprecisegc/details/object_meta.h>
+#include <libprecisegc/details/object_meta.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
 

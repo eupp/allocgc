@@ -2,7 +2,7 @@
 #define DIPLOMA_GC_MARK_H
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/object_meta.h>
+#include <libprecisegc/details/object_meta.hpp>
 
 namespace precisegc { namespace details {
 

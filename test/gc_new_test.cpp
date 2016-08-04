@@ -45,7 +45,7 @@ TEST(gc_new_test, test_meta)
 
     ASSERT_NE(nullptr, cls_meta);
     ASSERT_EQ(sizeof(node0), cls_meta->type_size());
-    ASSERT_EQ(1, cls_meta->offsets_count());
+    ASSERT_EQ(1, cls_meta->offsets().size());
     ASSERT_EQ(0, cls_meta->offsets()[0]);
 }
 
@@ -83,7 +83,7 @@ TEST(gc_new_test, test_nested_1)
 
     ASSERT_NE(nullptr, cls_meta);
     ASSERT_EQ(sizeof(node1), cls_meta->type_size());
-    ASSERT_EQ(2, cls_meta->offsets_count());
+    ASSERT_EQ(2, cls_meta->offsets().size());
     ASSERT_EQ(0, cls_meta->offsets()[0]);
     ASSERT_EQ(sizeof(gc_ptr<node1>), cls_meta->offsets()[1]);
 }
@@ -113,20 +113,20 @@ TEST(gc_new_test, test_nested_2)
     typedef type_meta_provider<simple_object> simple_meta_provider;
     typedef type_meta_provider<complex_object> complex_meta_provider;
 
-    ASSERT_TRUE(simple_meta_provider::is_created());
-    ASSERT_TRUE(complex_meta_provider::is_created());
+    ASSERT_TRUE(simple_meta_provider::is_meta_created());
+    ASSERT_TRUE(complex_meta_provider::is_meta_created());
 
-    const type_meta& simple_obj_meta = simple_meta_provider::get_meta();
-    ASSERT_EQ(sizeof(simple_object), simple_obj_meta.type_size());
-    ASSERT_EQ(0, simple_obj_meta.offsets_count());
-    ASSERT_TRUE(simple_obj_meta.is_plain_type());
+    const type_meta* simple_obj_meta = simple_meta_provider::get_meta();
+    ASSERT_EQ(sizeof(simple_object), simple_obj_meta->type_size());
+    ASSERT_EQ(0, simple_obj_meta->offsets().size());
+    ASSERT_TRUE(simple_obj_meta->is_plain_type());
 
-    const type_meta& complex_obj_meta = complex_meta_provider::get_meta();
-    ASSERT_EQ(sizeof(complex_object), complex_obj_meta.type_size());
-    ASSERT_EQ(3, complex_obj_meta.offsets_count());
-    ASSERT_EQ(0, complex_obj_meta.offsets()[0]);
-    ASSERT_EQ(sizeof(gc_ptr<simple_object>), complex_obj_meta.offsets()[1]);
-    ASSERT_EQ(2 * sizeof(gc_ptr<simple_object>), complex_obj_meta.offsets()[2]);
+    const type_meta* complex_obj_meta = complex_meta_provider::get_meta();
+    ASSERT_EQ(sizeof(complex_object), complex_obj_meta->type_size());
+    ASSERT_EQ(3, complex_obj_meta->offsets().size());
+    ASSERT_EQ(0, complex_obj_meta->offsets()[0]);
+    ASSERT_EQ(sizeof(gc_ptr<simple_object>), complex_obj_meta->offsets()[1]);
+    ASSERT_EQ(2 * sizeof(gc_ptr<simple_object>), complex_obj_meta->offsets()[2]);
 }
 
 namespace {
@@ -148,10 +148,10 @@ TEST(gc_new_test, test_with_ctor)
 
     typedef type_meta_provider<simple_object_with_ctor> meta_provider;
 
-    ASSERT_TRUE(meta_provider::is_created());
+    ASSERT_TRUE(meta_provider::is_meta_created());
 
-    const type_meta& obj_meta = meta_provider::get_meta();
-    ASSERT_EQ(sizeof(simple_object_with_ctor), obj_meta.type_size());
-    ASSERT_EQ(0, obj_meta.offsets_count());
-    ASSERT_TRUE(obj_meta.is_plain_type());
+    const type_meta* tmeta = meta_provider::get_meta();
+    ASSERT_EQ(sizeof(simple_object_with_ctor), tmeta->type_size());
+    ASSERT_EQ(0, tmeta->offsets().size());
+    ASSERT_TRUE(tmeta->is_plain_type());
 }

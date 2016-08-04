@@ -5,7 +5,7 @@
 #include <algorithm>
 
 #include "forwarding.h"
-#include "object_meta.h"
+#include "object_meta.hpp"
 #include "gc_mark.h"
 #include "libprecisegc/gc_ptr.hpp"
 #include "managed_ptr.hpp"
@@ -72,7 +72,7 @@ void fix_pointers(const Iterator& first, const Iterator& last, size_t obj_size, 
             size_t obj_size = cls_meta->type_size();
             auto offsets = cls_meta->offsets().begin();
             size_t obj_count = obj_meta->object_count();
-            size_t offsets_size = cls_meta->offsets_count();
+            size_t offsets_size = cls_meta->offsets().size();
             for (size_t i = 0; i < obj_count; ++i, ptr += obj_size) {
                 for (size_t j = 0; j < offsets_size; ++j) {
                     frwd.forward((void*) ptr + offsets[j]);

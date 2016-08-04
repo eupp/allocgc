@@ -43,6 +43,11 @@ public:
         m_count.store(count, std::memory_order_relaxed);
     }
 
+    type_meta::offsets_range offsets() const noexcept
+    {
+        return m_type_meta->offsets();
+    }
+
     const type_meta* get_type_meta() const noexcept
     {
         return m_type_meta;

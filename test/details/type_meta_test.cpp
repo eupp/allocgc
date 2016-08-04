@@ -17,7 +17,7 @@ struct type_3 {};
 
 TEST(type_meta_test, test_is_initialized)
 {
-    EXPECT_FALSE(type_meta_provider<type_1>::is_created());
+    EXPECT_FALSE(type_meta_provider<type_1>::is_meta_created());
 }
 
 TEST(type_meta_test, test_create_meta)
@@ -25,10 +25,10 @@ TEST(type_meta_test, test_create_meta)
     typedef type_meta_provider<type_2> provider;
     vector<size_t> offsets({1, 2, 3});
     provider::create_meta(offsets.begin(), offsets.end());
-    EXPECT_TRUE(provider::is_created());
-    EXPECT_EQ(sizeof(type_2), provider::get_meta().type_size());
-    EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
-    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets().begin()));
+    EXPECT_TRUE(provider::is_meta_created());
+    EXPECT_EQ(sizeof(type_2), provider::get_meta()->type_size());
+    EXPECT_EQ(offsets.size(), provider::get_meta()->offsets().size());
+    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta()->offsets().begin()));
 }
 
 TEST(type_meta_test, test_threading)
@@ -55,9 +55,9 @@ TEST(type_meta_test, test_threading)
         thread.join();
     }
 
-    EXPECT_TRUE(provider::is_created());
-    EXPECT_EQ(sizeof(type_3), provider::get_meta().type_size());
-    EXPECT_EQ(offsets.size(), provider::get_meta().offsets_count());
-    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta().offsets().begin()));
+    EXPECT_TRUE(provider::is_meta_created());
+    EXPECT_EQ(sizeof(type_3), provider::get_meta()->type_size());
+    EXPECT_EQ(offsets.size(), provider::get_meta()->offsets().size());
+    EXPECT_TRUE(std::equal(offsets.begin(), offsets.end(), provider::get_meta()->offsets().begin()));
 }
 

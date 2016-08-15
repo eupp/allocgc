@@ -19,13 +19,13 @@ public:
     }
 
     object_meta(const type_meta* meta = nullptr, size_t count = 0)
-        : m_type_meta(meta)
+        : m_type_meta(reinterpret_cast<std::uintptr_t>(meta))
         , m_count(count)
     {}
 
     size_t type_size() const noexcept
     {
-        return m_type_meta.load(std::memory_order_relaxed)->type_size();
+        return get_type_meta()->type_size();
     }
 
     size_t object_count() const noexcept
@@ -50,21 +50,28 @@ public:
 
     type_meta::offsets_range offsets() const noexcept
     {
-        return m_type_meta.load(std::memory_order_relaxed)->offsets();
+        return get_type_meta()->offsets();
     }
 
     const type_meta* get_type_meta() const noexcept
     {
-        return m_type_meta.load(std::memory_order_relaxed);
+        return reinterpret_cast<const type_meta*>(m_type_meta.load(std::memory_order_relaxed) & ~FORWARD_BIT);
     }
 
     void set_type_meta(const type_meta* cls_meta) noexcept
     {
-        m_type_meta.store(cls_meta, std::memory_order_relaxed);
+        std::uintptr_t frwd_bit = is_forwarded() ? FORWARD_BIT : 0;
+        m_type_meta.store(reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit, std::memory_order_relaxed);
+    }
+
+    bool is_forwarded() const
+    {
+        return m_type_meta.load(std::memory_order_relaxed) & FORWARD_BIT;
     }
 
     byte* forward_pointer() const noexcept
     {
+        assert(is_forwarded());
         byte* ptr;
         memcpy(&ptr, get_forward_pointer_address(), sizeof(void*));
         return ptr;
@@ -72,9 +79,13 @@ public:
 
     void set_forward_pointer(byte* ptr) noexcept
     {
+        std::uintptr_t tmeta = m_type_meta.load(std::memory_order_relaxed);
+        m_type_meta.store(tmeta | FORWARD_BIT, std::memory_order_relaxed);
         memcpy(get_forward_pointer_address(), &ptr, sizeof(void*));
     }
 private:
+    static const std::uintptr_t FORWARD_BIT = 1;
+
     void* get_forward_pointer_address()
     {
         return reinterpret_cast<void*>(reinterpret_cast<byte*>(this) - sizeof(void*));
@@ -85,7 +96,7 @@ private:
         return reinterpret_cast<const void*>(reinterpret_cast<const byte*>(this) - sizeof(void*));
     }
 
-    std::atomic<const type_meta*> m_type_meta;
+    std::atomic<std::uintptr_t> m_type_meta;
     std::atomic<size_t> m_count;
 };
 

@@ -65,8 +65,8 @@ void intrusive_forwarding::forward(void* ptr) const
         try {
             auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from));
             object_meta* meta = cell_ptr.get_meta();
-            void* to = meta->forward_pointer();
-            if (from != to) {
+            if (meta->is_forwarded()) {
+                void* to = meta->forward_pointer();
                 logging::debug() << "fix ptr: from " << from << " to " << to;
                 gcptr->forward(to);
             }

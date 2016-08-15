@@ -28,19 +28,19 @@ struct test_type
 };
 
 typedef list_allocator<managed_pool_chunk,
-                             page_allocator,
-                             default_allocator,
-                             utils::dummy_mutex
-                            > allocator_t;
+                       page_allocator,
+                       default_allocator,
+                       utils::dummy_mutex
+            > allocator_t;
 }
+
+static const type_meta* tmeta = type_meta_provider<test_type>::create_meta(std::vector<size_t>({0}));
 
 class gc_compact_test : public ::testing::Test
 {
 public:
     gc_compact_test()
-        : m_chunk(m_paged_alloc.allocate(CHUNK_SIZE, CHUNK_SIZE),
-                  managed_pool_chunk::CHUNK_MAXSIZE * OBJ_SIZE,
-                  OBJ_SIZE)
+        : m_chunk(m_paged_alloc.allocate(CHUNK_SIZE, CHUNK_SIZE), CHUNK_SIZE, OBJ_SIZE)
     {}
 
     ~gc_compact_test()
@@ -81,6 +81,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_1)
         managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         cell_ptr.set_mark(false);
+        cell_ptr.set_pin(false);
     }
 
     auto rng = m_alloc.memory_range();
@@ -131,7 +132,9 @@ TEST_F(gc_compact_test, test_two_finger_compact_2)
     const size_t CHUNK_SIZE = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
 
     for (size_t i = 0; i < CHUNK_SIZE; ++i) {
-        m_chunk.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
+        cell_ptr.set_mark(false);
+        cell_ptr.set_pin(false);
     }
 
     uniform_rand_generator<size_t> rand_gen(0, CHUNK_SIZE - 1);
@@ -207,14 +210,16 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
 
 TEST_F(gc_compact_test, test_compact_and_sweep)
 {
-    const size_t LIVE_CNT = 5;
-    const size_t CHUNK_SIZE = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
+    const size_t LIVE_CNT = 4;
+    const size_t ALLOC_CNT = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
 
-    for (size_t i = 0; i < CHUNK_SIZE; ++i) {
-        m_chunk.allocate(OBJ_SIZE);
+    for (size_t i = 0; i < ALLOC_CNT; ++i) {
+        managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
+        cell_ptr.set_mark(false);
+        cell_ptr.set_pin(false);
     }
 
-    uniform_rand_generator<size_t> rand_gen(0, CHUNK_SIZE - 1);
+    uniform_rand_generator<size_t> rand_gen(0, ALLOC_CNT - 1);
     auto rng = m_chunk.get_range();
     for (size_t i = 0; i < LIVE_CNT; ++i) {
         size_t rand = rand_gen();
@@ -235,7 +240,7 @@ TEST_F(gc_compact_test, test_compact_and_sweep)
         ASSERT_FALSE(it->get_mark());
     }
 
-    size_t dead_cnt = CHUNK_SIZE - LIVE_CNT;
+    size_t dead_cnt = ALLOC_CNT - LIVE_CNT;
     size_t free_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
     ASSERT_EQ(dead_cnt, sweep_cnt);
     for (size_t i = 0; i < free_cnt; ++i) {
@@ -249,6 +254,7 @@ TEST_F(gc_compact_test, test_fix_pointers)
 {
     managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
     cell_ptr.set_mark(true);
+    cell_ptr.set_pin(false);
     byte* ptr = cell_ptr.get();
 
     test_type val1;
@@ -258,13 +264,8 @@ TEST_F(gc_compact_test, test_fix_pointers)
     void*& from = * (void**) ptr;
     from = &val2;
 
-    auto offsets = std::vector<size_t>({0});
-    typedef type_meta_provider<test_type> provider;
-    provider::create_meta(offsets.begin(), offsets.end());
-
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);
-    obj_meta->set_type_meta(provider::get_meta());
-    obj_meta->set_object_count(1);
+    new (obj_meta) object_meta(tmeta, 1);
     obj_meta->set_forward_pointer(ptr);
 
     list_forwarding forwarding;

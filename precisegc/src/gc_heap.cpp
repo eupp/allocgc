@@ -1,4 +1,4 @@
-#include "gc_heap.h"
+#include "gc_heap.hpp"
 
 #include <cassert>
 #include <vector>

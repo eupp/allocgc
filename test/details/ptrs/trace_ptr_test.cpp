@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/ptrs/trace_ptr.hpp>
-#include <libprecisegc/details/gc_heap.h>
+#include <libprecisegc/details/gc_heap.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;

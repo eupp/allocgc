@@ -8,7 +8,7 @@ set(precisegc_LIB_HDRS
 
         include/libprecisegc/details/type_meta.hpp
         include/libprecisegc/details/object_meta.hpp
-        include/libprecisegc/details/gc_heap.h
+        include/libprecisegc/details/gc_heap.hpp
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.hpp
         include/libprecisegc/details/forwarding.h

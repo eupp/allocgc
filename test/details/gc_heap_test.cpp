@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/details/gc_heap.h"
+#include "libprecisegc/details/gc_heap.hpp"
 
 using namespace precisegc::details;
 

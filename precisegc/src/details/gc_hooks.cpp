@@ -12,9 +12,9 @@ void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initia
     gc_instance.init(std::move(strategy), std::move(init_policy));
 }
 
-managed_ptr gc_allocate(size_t size)
+std::pair<managed_ptr, object_meta*> gc_allocate(size_t size, const type_meta* tmeta)
 {
-    return gc_instance.allocate(size);
+    return gc_instance.allocate(size, tmeta);
 }
 
 void gc_initiation_point(initiation_point_type ipoint, const initiation_point_data& ipd)

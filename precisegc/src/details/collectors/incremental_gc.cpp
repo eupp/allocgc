@@ -21,7 +21,6 @@ incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t thread
 
 managed_ptr incremental_gc_base::allocate(size_t size)
 {
-    gc_unsafe_scope unsafe_scope;
     managed_ptr mp = m_heap.allocate(size);
     if (m_phase == gc_phase::MARK) {
         mp.set_mark(true);

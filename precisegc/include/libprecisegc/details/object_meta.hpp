@@ -25,7 +25,7 @@ public:
 
     size_t type_size() const noexcept
     {
-        return m_type_meta->type_size();
+        return m_type_meta.load(std::memory_order_relaxed)->type_size();
     }
 
     size_t object_count() const noexcept
@@ -50,17 +50,17 @@ public:
 
     type_meta::offsets_range offsets() const noexcept
     {
-        return m_type_meta->offsets();
+        return m_type_meta.load(std::memory_order_relaxed)->offsets();
     }
 
     const type_meta* get_type_meta() const noexcept
     {
-        return m_type_meta;
+        return m_type_meta.load(std::memory_order_relaxed);
     }
 
     void set_type_meta(const type_meta* cls_meta) noexcept
     {
-        m_type_meta = cls_meta;
+        m_type_meta.store(cls_meta, std::memory_order_relaxed);
     }
 
     byte* forward_pointer() const noexcept
@@ -85,7 +85,7 @@ private:
         return reinterpret_cast<const void*>(reinterpret_cast<const byte*>(this) - sizeof(void*));
     }
 
-    const type_meta* m_type_meta;
+    std::atomic<const type_meta*> m_type_meta;
     std::atomic<size_t> m_count;
 };
 

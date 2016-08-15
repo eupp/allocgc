@@ -27,7 +27,7 @@ public:
     void set_strategy(std::unique_ptr<gc_strategy> strategy);
     std::unique_ptr<gc_strategy> reset_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    managed_ptr allocate(size_t size);
+    std::pair<managed_ptr, object_meta*> allocate(size_t size, const type_meta* tmeta);
 
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);

@@ -99,29 +99,25 @@ auto gc_new(Args&&... args)
 
     managed_ptr mptr;
     {
-        gc_unsafe_scope_lock unsafe_scope_lock;
-        std::unique_lock<gc_unsafe_scope_lock> lock(unsafe_scope_lock);
         gc_new_stack::activation_entry activation_entry;
 
-        mptr = gc_allocate(sizeof(T) + sizeof(object_meta));
-        byte* ptr = mptr.get();
-        T* typed_ptr = reinterpret_cast<T*>(ptr);
-        size_t size = mptr.cell_size();
-        object_meta* obj_meta = object_meta::get_meta_ptr(ptr, size);
+        auto alloc_ret = gc_allocate(sizeof(T) + sizeof(object_meta), type_meta_provider<T>::get_meta());
+        mptr = alloc_ret.first;
+        T* typed_ptr = reinterpret_cast<T*>(mptr.get());
+        object_meta* obj_meta = alloc_ret.second;
+
+        auto guard = utils::make_scope_guard([mptr] { mptr.set_pin(false); });
 
         if (!type_meta_provider<T>::is_meta_created()) {
-            gc_new_stack::stack_entry stack_entry(ptr, size);
+            gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
             new (typed_ptr) T(std::forward<Args>(args)...);
-            new (obj_meta) object_meta(type_meta_provider<T>::create_meta(gc_new_stack::offsets()), 1);
+            obj_meta->set_type_meta(type_meta_provider<T>::create_meta(gc_new_stack::offsets()));
         } else {
-            new (obj_meta) object_meta(type_meta_provider<T>::get_meta());
-            mptr.set_pin(true);
-            auto guard = utils::make_scope_guard([mptr] { mptr.set_pin(false); });
-            lock.unlock();
             new (typed_ptr) T(std::forward<Args>(args)...);
-            obj_meta->set_object_count(1);
-            guard.commit();
         }
+
+        obj_meta->set_object_count(1);
+        guard.commit();
     }
 
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(mptr);
@@ -138,29 +134,24 @@ auto gc_new(size_t n)
 
     managed_ptr mptr;
     {
-        gc_unsafe_scope_lock unsafe_scope_lock;
-        std::unique_lock<gc_unsafe_scope_lock> lock(unsafe_scope_lock);
         gc_new_stack::activation_entry activation_entry;
 
-        mptr = gc_allocate(n * sizeof(U) + sizeof(object_meta));
-        byte* ptr = mptr.get();
-        U* typed_ptr = reinterpret_cast<U*>(ptr);
-        size_t size = mptr.cell_size();
-        object_meta* obj_meta = object_meta::get_meta_ptr(ptr, size);
+        auto alloc_ret = gc_allocate(n * sizeof(U) + sizeof(object_meta), type_meta_provider<T>::get_meta());
+        mptr = alloc_ret.first;
+        U* typed_ptr = reinterpret_cast<U*>(mptr.get());
+        object_meta* obj_meta = alloc_ret.second;
+
+        auto guard = utils::make_scope_guard([mptr] { mptr.set_pin(false); });
 
         U* begin = typed_ptr;
         U* end = typed_ptr + n;
 
         if (!type_meta_provider<U>::is_meta_created()) {
-            gc_new_stack::stack_entry stack_entry(ptr, size);
+            gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
             new (begin++) U();
-            type_meta_provider<U>::create_meta(gc_new_stack::offsets());
+            obj_meta->set_type_meta(type_meta_provider<U>::create_meta(gc_new_stack::offsets()));
+            obj_meta->increment_object_count();
         }
-
-        new (obj_meta) object_meta(type_meta_provider<U>::get_meta());
-        mptr.set_pin(true);
-        auto guard = utils::make_scope_guard([mptr] { mptr.set_pin(false); });
-        lock.unlock();
 
         for (U* it = begin; it < end; ++it) {
             new (it) U();

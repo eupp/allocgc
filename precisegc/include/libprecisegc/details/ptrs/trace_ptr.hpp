@@ -20,7 +20,7 @@ void trace_ptr(managed_ptr p, Functor&& f)
 
     object_meta* obj_meta = p.get_meta();
     const type_meta* cls_meta = obj_meta->get_type_meta();
-    if (cls_meta->is_plain_type()) {
+    if (!cls_meta || cls_meta->is_plain_type()) {
         return;
     }
 

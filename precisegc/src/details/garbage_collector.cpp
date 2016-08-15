@@ -39,26 +39,25 @@ std::unique_ptr<gc_strategy> garbage_collector::reset_strategy(std::unique_ptr<g
     return std::move(strategy);
 }
 
-managed_ptr garbage_collector::allocate(size_t size)
+std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t size, const type_meta* tmeta)
 {
     assert(m_strategy);
-    managed_ptr p;
+
+    gc_unsafe_scope unsafe_scope;
+    managed_ptr ptr;
+
     try {
-        p = m_strategy->allocate(size);
+        ptr = m_strategy->allocate(size);
     } catch (gc_bad_alloc& ) {
         initiation_point(initiation_point_type::GC_BAD_ALLOC);
-//        try {
-//            p = m_strategy->allocate(size);
-//        } catch (gc_bad_alloc& ) {
-//            // give another chance to incremental collector
-//            if (m_gc_info.incremental_flag) {
-//                initiation_point(initiation_point_type::GC_BAD_ALLOC);
-//            }
-//        }
-        p = m_strategy->allocate(size);
+        ptr = m_strategy->allocate(size);
     }
-    m_recorder.register_allocation(p.cell_size());
-    return p;
+    m_recorder.register_allocation(ptr.cell_size());
+
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr.get(), ptr.cell_size());
+    new (obj_meta) object_meta(tmeta);
+
+    return std::make_pair(ptr, obj_meta);
 }
 
 byte* garbage_collector::rbarrier(const gc_handle& handle)

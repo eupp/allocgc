@@ -129,7 +129,7 @@ public:
 
     static const type_meta* get_meta()
     {
-        assert(meta.get());
+//        assert(meta.get());
         return meta.get();
     }
 private:

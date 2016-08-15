@@ -15,10 +15,16 @@
 
 namespace precisegc {
 
-namespace details { namespace ptrs {
+namespace internals {
+
+template <typename T>
+class gc_ptr_factory;
+
+// for testing purpose
 template <typename T>
 class gc_ptr_access;
-}}
+
+}
 
 template <typename T>
 class gc_ptr: private details::ptrs::gc_untyped_ptr
@@ -135,7 +141,8 @@ public:
     template <typename U>
     friend class gc_ptr;
 
-    friend class details::ptrs::gc_ptr_access<T>;
+    friend class internals::gc_ptr_factory<T>;
+    friend class internals::gc_ptr_access<T>;
 private:
     gc_ptr(T* ptr)
         : gc_untyped_ptr((void*) ptr)
@@ -208,11 +215,6 @@ public:
         return gc_pin<T[]>(untyped_pin());
     }
 
-    gc_ref<T[]> operator*() const
-    {
-        return gc_ref<T[]>(untyped_pin(), 0);
-    }
-
     gc_ref<T[]> operator[](size_t n) const
     {
         return gc_ref<T[]>(untyped_pin(), n);
@@ -259,24 +261,24 @@ public:
         return !p1.equal(p2);
     }
 
-    friend gc_ptr operator+(const gc_ptr& p, size_t n)
+    friend gc_ptr operator+(gc_ptr p, size_t n)
     {
-        return gc_ptr(p) += n;
+        return p += n;
     }
 
-    friend gc_ptr operator+(size_t n, const gc_ptr& p)
+    friend gc_ptr operator+(size_t n, gc_ptr p)
     {
-        return gc_ptr(p) += n;
+        return p += n;
     }
 
-    friend gc_ptr operator-(const gc_ptr& p, size_t n)
+    friend gc_ptr operator-(gc_ptr p, size_t n)
     {
-        return gc_ptr(p) -= n;
+        return p -= n;
     }
 
-    friend gc_ptr operator-(size_t n, const gc_ptr& p)
+    friend gc_ptr operator-(size_t n, gc_ptr p)
     {
-        return gc_ptr(p) -= n;
+        return p -= n;
     }
 
     void swap(gc_ptr& other)
@@ -289,7 +291,8 @@ public:
         a.swap(b);
     }
 
-    friend class details::ptrs::gc_ptr_access<T[]>;
+    friend class internals::gc_ptr_factory<T[]>;
+    friend class internals::gc_ptr_access<T[]>;
 private:
     gc_ptr(T* ptr)
         : gc_untyped_ptr((void*) ptr)
@@ -298,6 +301,26 @@ private:
 
 template <typename T, size_t N>
 class gc_ptr<T[N]>;
+
+namespace internals {
+
+template <typename T>
+class gc_ptr_access
+{
+    typedef typename std::remove_extent<T>::type U;
+public:
+    static details::ptrs::gc_untyped_ptr& get_untyped(gc_ptr<T>& ptr)
+    {
+        return (details::ptrs::gc_untyped_ptr&) ptr;
+    }
+
+    static U* get(const gc_ptr<T>& ptr)
+    {
+        return reinterpret_cast<U*>(ptr.get());
+    }
+};
+
+}
 
 }
 

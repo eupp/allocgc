@@ -27,10 +27,6 @@ class dynarray
         >
     {
     public:
-        iterator_base() noexcept
-            : m_ptr(nullptr)
-        {}
-
         iterator_base(const iterator_base&) noexcept = default;
         iterator_base(iterator_base&&) noexcept = default;
 
@@ -194,7 +190,9 @@ public:
 
     const_iterator cbegin() const
     {
-        return const_iterator(m_data.get());
+        auto tmp = const_iterator(m_data.get());
+        return tmp;
+//        return const_iterator(m_data;
     }
 
     iterator end()
@@ -209,7 +207,8 @@ public:
 
     const_iterator cend() const
     {
-        return const_iterator(m_data.get() + m_size);
+        auto tmp = const_iterator(m_data.get() + m_size);
+        return tmp;
     }
 
     void swap(dynarray& other)

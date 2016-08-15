@@ -76,7 +76,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp
         include/libprecisegc/details/utils/dummy_mutex.hpp
         include/libprecisegc/details/collectors/packet_manager.hpp
-        include/libprecisegc/details/utils/safe_scope_lock.hpp
+        include/libprecisegc/details/utils/safepoint_lock.hpp
         include/libprecisegc/details/threads/this_managed_thread.hpp
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
         include/libprecisegc/details/threads/tlab.hpp

@@ -19,8 +19,8 @@ gc_untyped_ptr::gc_untyped_ptr()
 //    : gc_untyped_ptr()
 //{}
 
-gc_untyped_ptr::gc_untyped_ptr(void* ptr)
-    : m_handle(reinterpret_cast<byte*>(ptr))
+gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
+    : m_handle(ptr)
     , m_root_flag(!gc_new_stack::is_active())
 {
     if (m_root_flag) {
@@ -30,6 +30,12 @@ gc_untyped_ptr::gc_untyped_ptr(void* ptr)
             gc_new_stack::register_child(this);
         }
     }
+}
+
+gc_untyped_ptr::gc_untyped_ptr(const managed_ptr& ptr)
+    : gc_untyped_ptr(ptr.get())
+{
+    ptr.set_pin(false);
 }
 
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other)

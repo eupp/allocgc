@@ -21,7 +21,9 @@ class meta_holder;
 
 class type_meta : private utils::noncopyable, private utils::nonmovable
 {
-    typedef utils::dynarray<size_t> dynarray_t;
+    // unknown bug with dynarray --> use vector instead
+//    typedef utils::dynarray<size_t> dynarray_t;
+    typedef std::vector<size_t> dynarray_t;
 public:
     typedef dynarray_t::const_iterator offsets_iterator;
     typedef boost::iterator_range<offsets_iterator> offsets_range;
@@ -38,7 +40,7 @@ public:
 
     offsets_range offsets() const
     {
-        return boost::make_iterator_range(m_offsets.begin(), m_offsets.end());
+        return boost::make_iterator_range(m_offsets.cbegin(), m_offsets.cend());
     }
 private:
     friend class internals::meta_holder;

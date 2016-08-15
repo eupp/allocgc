@@ -18,9 +18,9 @@ public:
         return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
     }
 
-    object_meta(const type_meta* meta = nullptr)
+    object_meta(const type_meta* meta = nullptr, size_t count = 0)
         : m_type_meta(meta)
-        , m_count(0)
+        , m_count(count)
     {}
 
     size_t type_size() const noexcept
@@ -41,6 +41,11 @@ public:
     void set_object_count(size_t count) noexcept
     {
         m_count.store(count, std::memory_order_relaxed);
+    }
+
+    void increment_object_count() noexcept
+    {
+        m_count.fetch_add(1, std::memory_order_relaxed);
     }
 
     type_meta::offsets_range offsets() const noexcept

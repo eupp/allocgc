@@ -40,7 +40,6 @@ TEST(gc_new_test, test_meta)
     object_meta* obj_meta = get_object_header((void*) pin.get());
     const type_meta* cls_meta = obj_meta->get_type_meta();
 
-    ASSERT_EQ((void*) pin.get(), obj_meta->forward_pointer());
     ASSERT_EQ(1, obj_meta->object_count());
 
     ASSERT_NE(nullptr, cls_meta);

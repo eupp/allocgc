@@ -110,9 +110,7 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const initia
 {
     assert(m_initiation_policy);
 
-    gc_unsafe_scope::enter_safepoint();
-    auto guard = utils::make_scope_guard([] { gc_unsafe_scope::leave_safepoint(); });
-
+    gc_safe_scope safe_scope;
     std::lock_guard<std::mutex> lock(m_gc_mutex);
 
     if (ipt == initiation_point_type::USER_REQUEST) {

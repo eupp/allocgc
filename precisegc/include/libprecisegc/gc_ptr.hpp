@@ -144,8 +144,8 @@ public:
     friend class internals::gc_ptr_factory<T>;
     friend class internals::gc_ptr_access<T>;
 private:
-    gc_ptr(T* ptr)
-        : gc_untyped_ptr((void*) ptr)
+    gc_ptr(const details::managed_ptr& ptr)
+        : gc_untyped_ptr(ptr)
     {}
 
     template <typename D>
@@ -294,8 +294,8 @@ public:
     friend class internals::gc_ptr_factory<T[]>;
     friend class internals::gc_ptr_access<T[]>;
 private:
-    gc_ptr(T* ptr)
-        : gc_untyped_ptr((void*) ptr)
+    gc_ptr(const details::managed_ptr& ptr)
+        : gc_untyped_ptr(ptr)
     {}
 };
 

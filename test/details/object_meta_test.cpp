@@ -21,22 +21,22 @@ const type_meta* object_meta_test::tmeta = type_meta_provider<test_type>::create
 
 TEST_F(object_meta_test, test_constructor)
 {
-    object_meta ometa(tmeta);
-    ASSERT_EQ(ometa.get_type_meta(), tmeta);
-    ASSERT_EQ(ometa.type_size(), tmeta->type_size());
-    ASSERT_EQ(ometa.offsets(), tmeta->offsets());
-    ASSERT_EQ(0, ometa.object_count());
+    object_meta obj_meta(tmeta);
+    ASSERT_EQ(obj_meta.get_type_meta(), tmeta);
+    ASSERT_EQ(obj_meta.type_size(), tmeta->type_size());
+    ASSERT_EQ(obj_meta.offsets(), tmeta->offsets());
+    ASSERT_EQ(0, obj_meta.object_count());
 }
 
 TEST_F(object_meta_test, test_object_count)
 {
-    object_meta ometa(tmeta);
+    object_meta obj_meta(tmeta);
 
     static const size_t OBJ_COUNT = 4;
-    ometa.set_object_count(4);
+    obj_meta.set_object_count(4);
 
-    ASSERT_EQ(OBJ_COUNT, ometa.object_count());
-    ASSERT_EQ(OBJ_COUNT * sizeof(test_type), ometa.object_size());
+    ASSERT_EQ(OBJ_COUNT, obj_meta.object_count());
+    ASSERT_EQ(OBJ_COUNT * sizeof(test_type), obj_meta.object_size());
 }
 
 TEST_F(object_meta_test, test_forward_pointer)
@@ -46,13 +46,13 @@ TEST_F(object_meta_test, test_forward_pointer)
     byte* pstorage = reinterpret_cast<byte*>(&storage);
     test_type* pvalue = reinterpret_cast<test_type*>(pstorage);
 
-    object_meta* ometa = object_meta::get_meta_ptr(pstorage, STORAGE_SIZE);
-    new (ometa) object_meta(tmeta);
-    ometa->set_object_count(1);
+    object_meta* obj_meta = object_meta::get_meta_ptr(pstorage, STORAGE_SIZE);
+    new (obj_meta) object_meta(tmeta);
+    obj_meta->set_object_count(1);
 
     byte* p;
-    ometa->set_forward_pointer(p);
-    ASSERT_EQ(p, ometa->forward_pointer());
+    obj_meta->set_forward_pointer(p);
+    ASSERT_EQ(p, obj_meta->forward_pointer());
     ASSERT_EQ(p, pvalue->data);
 }
 

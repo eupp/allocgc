@@ -31,16 +31,16 @@ TEST(gc_untyped_ptr_test, test_nullptr_construct)
 
 TEST(gc_untyped_ptr_test, test_raw_ptr_construct)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
     gc_untyped_ptr ptr1(ptr);
     EXPECT_EQ(ptr, ptr1.get());
 }
 
 TEST(gc_untyped_ptr_test, test_copy_construct)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
     gc_untyped_ptr ptr1(ptr);
 
     gc_untyped_ptr ptr2(ptr1);
@@ -49,8 +49,8 @@ TEST(gc_untyped_ptr_test, test_copy_construct)
 
 TEST(gc_untyped_ptr_test, test_move_construct)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
     gc_untyped_ptr ptr1(ptr);
 
     gc_untyped_ptr ptr2(std::move(ptr1));
@@ -59,8 +59,8 @@ TEST(gc_untyped_ptr_test, test_move_construct)
 
 TEST(gc_untyped_ptr_test, test_nullptr_assignment)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
 
     gc_untyped_ptr ptr1(ptr);
     ptr1 = nullptr;
@@ -69,8 +69,8 @@ TEST(gc_untyped_ptr_test, test_nullptr_assignment)
 
 TEST(gc_untyped_ptr_test, test_copy_assignment)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
 
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
@@ -80,8 +80,8 @@ TEST(gc_untyped_ptr_test, test_copy_assignment)
 
 TEST(gc_untyped_ptr_test, test_move_assignment)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
 
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
@@ -101,8 +101,8 @@ TEST(gc_untyped_ptr_test, test_is_root_1)
 
 TEST(gc_untyped_ptr_test, test_is_root_2)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
 
     gc_untyped_ptr ptr1(ptr);
 
@@ -122,8 +122,8 @@ TEST(gc_untyped_ptr_test, test_bool_conversion)
     gc_untyped_ptr ptr1;
     EXPECT_TRUE(ptr1.is_null());
 
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
 
     gc_untyped_ptr ptr2(ptr);
     EXPECT_FALSE(ptr2.is_null());
@@ -131,8 +131,8 @@ TEST(gc_untyped_ptr_test, test_bool_conversion)
 
 TEST(gc_untyped_ptr_test, test_swap)
 {
-    int val;
-    void* ptr = (void*) &val;
+    byte val;
+    byte* ptr = &val;
 
     gc_untyped_ptr ptr1;
     gc_untyped_ptr ptr2(ptr);

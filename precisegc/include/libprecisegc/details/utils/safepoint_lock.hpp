@@ -8,15 +8,14 @@
 namespace precisegc { namespace details { namespace utils {
 
 template <typename Lockable>
-class safe_scope_lock : private noncopyable, private nonmovable
+class safepoint_lock : private noncopyable, private nonmovable
 {
 public:
-    safe_scope_lock() = default;
+    safepoint_lock() = default;
 
     void lock()
     {
-        gc_unsafe_scope::enter_safepoint();
-        auto guard = make_scope_guard([] { gc_unsafe_scope::leave_safepoint(); });
+        gc_safe_scope safe_scope;
         m_lock.lock();
     }
 

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <atomic>
 
+#include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -15,7 +16,9 @@ class gc_untyped_ptr
 public:
     gc_untyped_ptr();
 //    gc_untyped_ptr(nullptr_t) noexcept;
-    gc_untyped_ptr(void* ptr);
+    // for testing purpose
+    gc_untyped_ptr(byte* ptr);
+    gc_untyped_ptr(const managed_ptr& ptr);
     gc_untyped_ptr(const gc_untyped_ptr& other);
     gc_untyped_ptr(gc_untyped_ptr&& other);
     ~gc_untyped_ptr();

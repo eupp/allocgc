@@ -52,7 +52,6 @@
 
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.hpp"
-    #include "libprecisegc/details/gc_heap.h"
     using namespace precisegc;
 #endif
 
@@ -237,7 +236,7 @@ int main (int argc, const char* argv[])
         ops.type        = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::SILENT;
+        ops.loglevel    = gc_loglevel::INFO;
         ops.print_stat  = false;
 //        ops.threads_available = 1;
         gc_init(ops);
@@ -249,6 +248,7 @@ int main (int argc, const char* argv[])
     #endif
     GCBench x;
     x.main();
+
     cout.flush();
     return 0;
 }

@@ -38,7 +38,7 @@ public:
 
     void deallocate(byte* ptr, size_t size, size_t alignment = 0)
     {
-        assert(size != 0 && size % PAGE_SIZE == 0);
+//        assert(size != 0 && size % PAGE_SIZE == 0);
         gc_deregister_page(ptr, size);
         free(ptr);
     }

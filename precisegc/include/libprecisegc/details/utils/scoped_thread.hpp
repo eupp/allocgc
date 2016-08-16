@@ -23,11 +23,15 @@ public:
         : m_thread(std::move(thread))
     {}
 
-    scoped_thread& operator=(scoped_thread&&) = default;
+    scoped_thread& operator=(scoped_thread thread)
+    {
+        thread.swap(*this);
+        return *this;
+    }
 
     scoped_thread& operator=(std::thread&& thread)
     {
-        m_thread = std::move(thread);
+        scoped_thread(std::move(thread)).swap(*this);
         return *this;
     }
 

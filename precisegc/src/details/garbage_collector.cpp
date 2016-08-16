@@ -118,6 +118,9 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const initia
     } else if (ipt == initiation_point_type::GC_BAD_ALLOC) {
         logging::info() << "GC_BAD_ALLOC received - Thread initiates gc";
         m_strategy->gc(gc_phase::SWEEP);
+    } else if (ipt == initiation_point_type::CONCURRENT_MARKING_FINISHED) {
+        logging::info() << "Concurrent marking finished - Thread initiates gc";
+        m_strategy->gc(gc_phase::SWEEP);
     } else {
         m_initiation_policy->initiation_point(ipt, ipd);
     }

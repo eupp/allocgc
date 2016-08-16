@@ -76,7 +76,7 @@ public:
         }
 
         for (auto thread: m_threads) {
-            if (thread->get_id() != this_managed_thread::get_id()) {
+            if (thread->get_id() != std::this_thread::get_id()) {
                 stwm.suspend_thread(thread->native_handle());
             }
         }
@@ -98,7 +98,7 @@ public:
         logging::info() << "Thread is requesting start-the-world";
 
         for (auto thread: m_threads) {
-            if (thread->get_id() != this_managed_thread::get_id()) {
+            if (thread->get_id() != std::this_thread::get_id()) {
                 stwm.resume_thread(thread->native_handle());
             }
         }

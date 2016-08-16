@@ -13,7 +13,7 @@ std::unique_ptr<initiation_policy> gc_factory::create_space_based_policy(gc_stra
 {
     static const size_t start_heap_size     = 2 * 1024 * 1024;  // 2 Mb
     static const double increase_factor     = 2.0;
-    static const double marking_threshold   = 0.6;
+    static const double marking_threshold   = 0.7;
     static const double sweeping_threshold  = 1.0;
 
     return utils::make_unique<space_based_policy>(

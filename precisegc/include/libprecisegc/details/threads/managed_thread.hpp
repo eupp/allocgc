@@ -43,7 +43,7 @@ public:
         return m_native_handle;
     }
 
-    std::unique_ptr<collectors::mark_packet>& get_mark_packet()
+    collectors::packet_manager::mark_packet_handle& get_mark_packet()
     {
         return m_mark_packet;
     }
@@ -71,7 +71,7 @@ private:
     std::thread::id m_id;
     root_stack_map m_root_set;
     pin_stack_map m_pin_set;
-    std::unique_ptr<collectors::mark_packet> m_mark_packet;
+    collectors::packet_manager::mark_packet_handle m_mark_packet;
 };
 
 }}}

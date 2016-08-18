@@ -236,7 +236,7 @@ int main (int argc, const char* argv[])
         ops.type        = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
         ops.init        = gc_init_strategy::SPACE_BASED;
         ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::INFO;
+        ops.loglevel    = gc_loglevel::SILENT;
         ops.print_stat  = false;
 //        ops.threads_available = 1;
         gc_init(ops);

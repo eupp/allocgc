@@ -36,6 +36,21 @@ private:
 
 class packet_manager : private utils::noncopyable, private utils::nonmovable
 {
+public:
+    struct mark_packet_deleter
+    {
+        void operator()(mark_packet* packet) {}
+    };
+
+    typedef std::unique_ptr<mark_packet, mark_packet_deleter> mark_packet_handle;
+
+    packet_manager();
+
+    mark_packet_handle pop_input_packet();
+    mark_packet_handle pop_output_packet();
+    void push_packet(mark_packet_handle packet);
+    bool is_no_input() const;
+private:
     static const size_t PACKETS_COUNT = 256;
 
     class packet_pool : private utils::noncopyable, private utils::nonmovable
@@ -52,21 +67,11 @@ class packet_manager : private utils::noncopyable, private utils::nonmovable
         size_t m_size;
         mutable std::mutex m_mutex;
     };
-public:
-    typedef mark_packet* mark_packet_handle;
 
-    packet_manager();
-
-    mark_packet_handle pop_input_packet();
-    mark_packet_handle pop_output_packet();
-    void push_packet(mark_packet_handle packet);
-    bool is_no_input() const;
-private:
     std::array<mark_packet, PACKETS_COUNT> m_packets_storage;
     packet_pool m_full_packets;
     packet_pool m_partial_packets;
     packet_pool m_empty_packets;
-    std::atomic<size_t> m_packets_count;
 };
 
 }}}

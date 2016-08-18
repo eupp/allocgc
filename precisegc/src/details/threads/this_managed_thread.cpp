@@ -42,7 +42,7 @@ void this_managed_thread::unpin(byte* ptr)
     managed_thread_accessor::pin_set(this_thread).remove(ptr);
 }
 
-std::unique_ptr<collectors::mark_packet>& this_managed_thread::get_mark_packet()
+collectors::packet_manager::mark_packet_handle& this_managed_thread::get_mark_packet()
 {
     return this_thread->get_mark_packet();
 }

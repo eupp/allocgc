@@ -17,6 +17,14 @@
 
 namespace precisegc { namespace details { namespace collectors {
 
+class marking_overflow_exception : public gc_exception
+{
+public:
+    marking_overflow_exception()
+        : gc_exception("Mark stack overflow")
+    {}
+};
+
 class marker
 {
 public:
@@ -77,10 +85,12 @@ public:
         }
     }
 private:
+    static const size_t POP_OUTPUT_ATTEMPTS = 2;
+
     void worker_routine()
     {
         auto input_packet = m_packet_manager->pop_input_packet();
-        std::unique_ptr<mark_packet> output_packet;
+        packet_manager::mark_packet_handle output_packet = nullptr;
         while (true) {
             while (!input_packet) {
                 if (output_packet) {
@@ -97,12 +107,7 @@ private:
             }
             while (!input_packet->is_empty()) {
                 ptrs::trace_ptr(input_packet->pop(), [this, &output_packet] (const managed_ptr& child) {
-                    if (output_packet->is_full()) {
-                        auto new_packet = m_packet_manager->pop_output_packet();
-                        m_packet_manager->push_packet(std::move(output_packet));
-                        output_packet = std::move(new_packet);
-                    }
-                    output_packet->push(child);
+                    push_to_packet(child, output_packet);
                 });
             }
 
@@ -112,11 +117,28 @@ private:
         }
     }
 
-    void push_root_to_packet(const managed_ptr& mp, std::unique_ptr<mark_packet>& output_packet)
+    void push_root_to_packet(const managed_ptr& mp, packet_manager::mark_packet_handle& output_packet)
     {
         if (output_packet->is_full()) {
             m_packet_manager->push_packet(std::move(output_packet));
             output_packet = m_packet_manager->pop_output_packet();
+        }
+        output_packet->push(mp);
+    }
+
+    void push_to_packet(const managed_ptr& mp, packet_manager::mark_packet_handle& output_packet)
+    {
+        if (output_packet->is_full()) {
+            size_t attempts = 0;
+            do {
+                auto new_packet = m_packet_manager->pop_output_packet();
+                m_packet_manager->push_packet(std::move(output_packet));
+                output_packet = std::move(new_packet);
+                ++attempts;
+            } while (!output_packet && attempts < POP_OUTPUT_ATTEMPTS);
+            if (attempts == POP_OUTPUT_ATTEMPTS) {
+                throw marking_overflow_exception();
+            }
         }
         output_packet->push(mp);
     }

@@ -41,7 +41,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     if (m_phase == gc_phase::MARK) {
         managed_ptr mp(p);
         if (mp && !mp.get_mark()) {
-            std::unique_ptr<mark_packet>& packet = threads::this_managed_thread::get_mark_packet();
+            packet_manager::mark_packet_handle& packet = threads::this_managed_thread::get_mark_packet();
             if (!packet) {
                 packet = m_packet_manager.pop_output_packet();
             } else if (packet->is_full()) {

@@ -45,6 +45,7 @@ TEST_F(object_meta_test, test_forward_pointer)
     std::aligned_storage<STORAGE_SIZE> storage;
     byte* pstorage = reinterpret_cast<byte*>(&storage);
     test_type* pvalue = reinterpret_cast<test_type*>(pstorage);
+    memset(&pvalue->data, 0, sizeof(void*));
 
     object_meta* obj_meta = object_meta::get_meta_ptr(pstorage, STORAGE_SIZE);
     new (obj_meta) object_meta(tmeta);
@@ -53,6 +54,6 @@ TEST_F(object_meta_test, test_forward_pointer)
     byte* p;
     obj_meta->set_forward_pointer(p);
     ASSERT_EQ(p, obj_meta->forward_pointer());
-    ASSERT_EQ(p, pvalue->data);
+    ASSERT_EQ(p, (byte*) pvalue->data);
 }
 

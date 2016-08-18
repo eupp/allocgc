@@ -30,7 +30,7 @@ public:
     static void pin(byte* ptr);
     static void unpin(byte* ptr);
 
-    static std::unique_ptr<collectors::mark_packet>& get_mark_packet();
+    static collectors::packet_manager::mark_packet_handle& get_mark_packet();
 
     friend class managed_thread_accessor;
 private:

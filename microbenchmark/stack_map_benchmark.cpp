@@ -5,17 +5,20 @@
 #include <libprecisegc/details/threads/stack_map.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 
-using namespace precisegc::details;
+#include "deoptimize.hpp"
 
-NONIUS_BENCHMARK("stack_map_benchmark.insert", [](nonius::chronometer meter)
+using namespace precisegc::details::threads;
+
+NONIUS_BENCHMARK("stack_map.insert", [](nonius::chronometer meter)
 {
     stack_map<void*> map;
     meter.measure([&map] {
-        map.insert(nullptr);
+        void* p;
+        map.insert(p);
     });
 });
 
-NONIUS_BENCHMARK("stack_map_benchmark.remove", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("stack_map.remove", [](nonius::chronometer meter)
 {
     stack_map<void*> map;
     std::vector<void*> ps(meter.runs());
@@ -25,5 +28,6 @@ NONIUS_BENCHMARK("stack_map_benchmark.remove", [](nonius::chronometer meter)
     }
     meter.measure([&map, &ps, size] (size_t i) {
         map.remove(ps[size - 1 - i]);
+        escape(&map);
     });
 });

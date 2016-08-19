@@ -14,6 +14,9 @@ enum class initiation_point_type {
       USER_REQUEST
     , GC_BAD_ALLOC
     , HEAP_EXPANSION
+    // for debugging
+    , START_MARKING
+    , START_COLLECTING
 };
 
 enum class gc_pause_type {

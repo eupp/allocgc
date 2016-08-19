@@ -3,8 +3,10 @@
 #include <vector>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+
+#include "deoptimize.hpp"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;

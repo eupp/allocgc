@@ -150,6 +150,7 @@ private:
         m_pool.deallocate(reinterpret_cast<byte*>(pnode), sizeof(node));
         if (++m_free_node_cnt == MAX_FREE_NODE) {
             shrink_pool();
+            m_free_node_cnt = 0;
         }
     }
 

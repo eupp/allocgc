@@ -121,6 +121,6 @@ class CSBoehm
 
         sw.Stop();
 
-        Console.WriteLine(String.Format("Completed in  {0} ms", sw.ElapsedMilliseconds));
+        Console.WriteLine(String.Format("Completed in {0} ms", sw.ElapsedMilliseconds));
     }
 }

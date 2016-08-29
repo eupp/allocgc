@@ -6,6 +6,7 @@ import tempfile
 import logging
 import json
 import tabulate
+import shutil
 
 import numpy as np
 
@@ -47,17 +48,10 @@ def call_output(args, cwd=None, timeout=None):
 
 class Builder:
 
-    _tmpdir = None
-
-    def __init__(self, prj_dir, target, cmake_ops):
+    def __init__(self, name, prj_dir):
+        self._name = name
         self._prj_dir = prj_dir
-
         self._tmpdir = tempfile.TemporaryDirectory()
-        cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", self._prj_dir] + self._parse_cmake_options(cmake_ops)
-        make_cmd = ["make", target]
-
-        call_with_cwd(cmake_cmd, self._tmpdir.name)
-        call_with_cwd(make_cmd, self._tmpdir.name)
 
     def __enter__(self):
         self._tmpdir.__enter__()
@@ -66,27 +60,68 @@ class Builder:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._tmpdir.__exit__(exc_type, exc_val, exc_tb)
 
+    def name(self):
+        return self._name
+
     def build_dir(self):
         return self._tmpdir.name
 
     def project_dir(self):
         return self._prj_dir
 
+
+class CMakeBuilder(Builder):
+
+    _tmpdir = None
+
+    def __init__(self, prj_dir, target, runnable, cmake_ops):
+        super(CMakeBuilder, self).__init__("cmake", prj_dir)
+        cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", self._prj_dir] + self._parse_cmake_options(cmake_ops)
+        make_cmd = ["make", target]
+        call_with_cwd(cmake_cmd, self._tmpdir.name)
+        call_with_cwd(make_cmd, self._tmpdir.name)
+
     @staticmethod
     def _parse_cmake_options(flags):
         res = []
-
         if isinstance(flags, str):
             res.append("-D{}=ON".format(flags))
-
         elif isinstance(flags, dict):
             for k, v in flags.items():
                 if v is None:
                     res.append("-D{}=ON".format(k))
                 else:
                     res.append("-D{}={}".format(k, v))
-
         return res
+
+
+class MonoBuilder(Builder):
+
+    def __init__(self, prj_dir, target, runnable, options):
+        super(MonoBuilder, self).__init__("mono", prj_dir)
+        compile_cmd = ["dmcs", os.path.join(self._prj_dir, runnable + ".cs")]
+        call_with_cwd(compile_cmd, self.build_dir())
+        dst = os.path.join(self.build_dir(), os.path.dirname(runnable))
+        os.makedirs(dst)
+        shutil.copy(os.path.join(prj_dir, runnable + ".exe"), dst)
+
+
+class PythonBuilder(Builder):
+
+    def __init__(self, prj_dir, target, runnable, options):
+        super(PythonBuilder, self).__init__("python", prj_dir)
+        dst = os.path.join(self.build_dir(), os.path.dirname(runnable))
+        os.makedirs(dst)
+        shutil.copy(os.path.join(prj_dir, runnable + ".py"), dst)
+
+
+def create_builder(builder_name, *args):
+    if builder_name == "cmake":
+        return CMakeBuilder(*args)
+    elif builder_name == "mono":
+        return MonoBuilder(*args)
+    elif builder_name == "python":
+        return PythonBuilder(*args)
 
 
 class Scanner:
@@ -105,7 +140,7 @@ class Scanner:
                     action(match)
 
 
-class TestOutputParser:
+class BoehmTestOutputParser:
 
     def __init__(self):
 
@@ -142,8 +177,8 @@ class TestOutputParser:
 
 
 def create_parser(target):
-    if target in ("boehm", "multisize_boehm", "parallel_merge_sort"):
-        return TestOutputParser()
+    if target in ("boehm", "multisize_boehm", "parallel_merge_sort", "pyboehm", "csboehm"):
+        return BoehmTestOutputParser()
 
 
 class TexTableReporter:
@@ -221,17 +256,23 @@ class RunChecker:
         return target + " " + run_name
 
 
-def run(build_dir, exe, args):
-    exe = os.path.join(build_dir, exe)
-    call_args = [exe] + args
-    return call_output(call_args, cwd=build_dir, timeout=30)
+def run(builder, runnable, args):
+    runnable = os.path.join(builder.build_dir(), runnable)
+    if builder.name() == "mono":
+        call_args = ["mono", runnable + ".exe"] + args
+    elif builder.name() == "python":
+        call_args = ["python3", runnable + ".py"] + args
+    else:
+        call_args = [runnable] + args
+    return call_output(call_args, cwd=builder.build_dir(), timeout=30)
 
 
 class TestRunner:
 
-    def __init__(self, prj_dir, target, runnable, builds):
+    def __init__(self, prj_dir, target, builder, runnable, builds):
         self._prj_dir = prj_dir
         self._target = target
+        self._builder = builder
         self._runnable = runnable
         self._builds = builds
 
@@ -239,10 +280,10 @@ class TestRunner:
 
         for build in self._builds:
             build_name = build.get("name")
-            cppflags   = build.get("cmake_options")
+            cppflags   = build.get("compile_options")
 
             logging.info("Build {} with cppflags: {}".format(self._target, cppflags))
-            with Builder(self._prj_dir, self._target, cppflags) as builder:
+            with create_builder(self._builder, self._prj_dir, self._target, self._runnable, cppflags) as builder:
 
                 run_ops = build.get("runtime_options", [{}])
                 for run_op in run_ops:
@@ -255,7 +296,7 @@ class TestRunner:
                     while n < nruns:
                         logging.info("Run {} with args: {}".format(self._runnable, args))
                         try:
-                            rc, output = run(builder.build_dir(), self._runnable, args)
+                            rc, output = run(builder, self._runnable, args)
                         except subprocess.TimeoutExpired:
                             logging.info("Interrupted (timeout expired)!")
                             run_checker.interrupted_run(self._target, run_name)
@@ -280,7 +321,7 @@ class TestRunner:
             reporter.create_report()
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-CONFIG = "testcfg.json"
+CONFIG = "boehmallcfg.json"
 
 if __name__ == '__main__':
 
@@ -293,7 +334,8 @@ if __name__ == '__main__':
     run_checker = RunChecker()
 
     for target in cfg["targets"]:
-        runner = TestRunner(PROJECT_DIR, target["name"], target["runnable"], cfg["builds"])
+        builds = target.get("builds", cfg["builds"])
+        runner = TestRunner(PROJECT_DIR, target["name"], target["builder"], target["runnable"], builds)
 
         reporters = []
         for reporter_ops in cfg.get("reporters", []):

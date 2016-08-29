@@ -166,9 +166,10 @@ struct GCBench {
         cout << " Live storage will peak at "
              << 2 * sizeof(Node) * TreeSize(kLongLivedTreeDepth) /*+ sizeof(double) * kArraySize*/
              << " bytes." << endl << endl;
-        cout << " Stretching memory with a binary tree of depth " << kStretchTreeDepth << endl;
 
         timer tm;
+
+        cout << " Stretching memory with a binary tree of depth " << kStretchTreeDepth << endl;
 
         // Stretch the memory space quickly
         tempTree = MakeTree(kStretchTreeDepth);

@@ -14,6 +14,7 @@
 #include <libprecisegc/details/object_meta.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 
 namespace precisegc {
@@ -60,7 +61,7 @@ public:
     class instance
     {
     private:
-        static gc_ptr<T> create(const details::managed_ptr& ptr)
+        static gc_ptr<T> create(T* ptr)
         {
             return create_internal(ptr);
         }
@@ -68,7 +69,7 @@ public:
         friend gc_ptr<T> gc_new<T>(Args&&...);
     };
 private:
-    static gc_ptr<T> create_internal(const details::managed_ptr& ptr)
+    static gc_ptr<T> create_internal(T* ptr)
     {
         return gc_ptr<T>(ptr);
     }
@@ -80,7 +81,7 @@ class gc_ptr_factory<T[]>
     typedef details::byte byte;
     typedef typename std::remove_extent<T>::type U;
 public:
-    static gc_ptr<T[]> create(const details::managed_ptr& ptr)
+    static gc_ptr<T[]> create(U* ptr)
     {
         return gc_ptr<T[]>(ptr);
     }
@@ -97,16 +98,14 @@ auto gc_new(Args&&... args)
     using namespace precisegc::details;
     using namespace precisegc::details::ptrs;
 
-    managed_ptr mptr;
+    T* typed_ptr;
     {
         gc_new_stack::activation_entry activation_entry;
 
         auto alloc_ret = gc_allocate(sizeof(T) + sizeof(object_meta), type_meta_provider<T>::get_meta());
-        mptr = alloc_ret.first;
-        T* typed_ptr = reinterpret_cast<T*>(mptr.get());
+        managed_ptr mptr = alloc_ret.first;
+        typed_ptr = reinterpret_cast<T*>(mptr.get());
         object_meta* obj_meta = alloc_ret.second;
-
-        auto guard = utils::make_scope_guard([mptr] { mptr.set_pin(false); });
 
         if (!type_meta_provider<T>::is_meta_created()) {
             gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
@@ -117,10 +116,9 @@ auto gc_new(Args&&... args)
         }
 
         obj_meta->set_object_count(1);
-        guard.commit();
     }
 
-    return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(mptr);
+    return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(typed_ptr);
 };
 
 template <typename T>
@@ -132,16 +130,14 @@ auto gc_new(size_t n)
 
     typedef typename std::remove_extent<T>::type U;
 
-    managed_ptr mptr;
+    U* typed_ptr;
     {
         gc_new_stack::activation_entry activation_entry;
 
         auto alloc_ret = gc_allocate(n * sizeof(U) + sizeof(object_meta), type_meta_provider<T>::get_meta());
-        mptr = alloc_ret.first;
-        U* typed_ptr = reinterpret_cast<U*>(mptr.get());
+        managed_ptr mptr = alloc_ret.first;
+        typed_ptr = reinterpret_cast<U*>(mptr.get());
         object_meta* obj_meta = alloc_ret.second;
-
-        auto guard = utils::make_scope_guard([mptr] { mptr.set_pin(false); });
 
         U* begin = typed_ptr;
         U* end = typed_ptr + n;
@@ -157,11 +153,9 @@ auto gc_new(size_t n)
             new (it) U();
             obj_meta->increment_object_count();
         }
-
-        guard.commit();
     }
 
-    return precisegc::internals::gc_ptr_factory<U[]>::create(mptr);
+    return precisegc::internals::gc_ptr_factory<U[]>::create(typed_ptr);
 };
 
 template<typename T, typename... Args>

@@ -30,7 +30,7 @@ public:
 
     size_t object_count() const noexcept
     {
-        return m_count.load(std::memory_order_relaxed);
+        return m_count;
     }
 
     size_t object_size() const noexcept
@@ -40,12 +40,12 @@ public:
 
     void set_object_count(size_t count) noexcept
     {
-        m_count.store(count, std::memory_order_relaxed);
+        m_count = count;
     }
 
     void increment_object_count() noexcept
     {
-        m_count.fetch_add(1, std::memory_order_relaxed);
+        ++m_count;
     }
 
     type_meta::offsets_range offsets() const noexcept
@@ -97,7 +97,7 @@ private:
     }
 
     std::atomic<std::uintptr_t> m_type_meta;
-    std::atomic<size_t> m_count;
+    size_t m_count;
 };
 
 } }

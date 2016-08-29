@@ -43,8 +43,8 @@ std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t size, co
 {
     assert(m_strategy);
 
-    gc_unsafe_scope unsafe_scope;
     managed_ptr ptr;
+    gc_unsafe_scope unsafe_scope;
 
     try {
         ptr = m_strategy->allocate(size);

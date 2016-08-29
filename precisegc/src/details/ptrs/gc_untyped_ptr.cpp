@@ -32,12 +32,6 @@ gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
     }
 }
 
-gc_untyped_ptr::gc_untyped_ptr(const managed_ptr& ptr)
-    : gc_untyped_ptr(ptr.get())
-{
-    ptr.set_pin(false);
-}
-
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other)
     : gc_untyped_ptr()
 {

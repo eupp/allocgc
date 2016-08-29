@@ -26,8 +26,6 @@ managed_ptr managed_pool_chunk::allocate(size_t size)
 {
     assert(size == cell_size());
     byte* raw_ptr = m_chunk.allocate(size);
-    size_t idx = (raw_ptr - m_chunk.get_mem()) >> m_log2_cell_size;
-    m_pin_bits.set(idx, true);
     return managed_ptr(raw_ptr, get_descriptor());
 }
 

@@ -58,7 +58,7 @@ private:
               iterator
             , const T
             , boost::forward_traversal_tag
-    >
+        >
     {
     public:
         iterator(node* pnode) noexcept

@@ -114,16 +114,16 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const initia
 
     if (ipt == initiation_point_type::USER_REQUEST) {
         logging::info() << "Thread initiates gc by user's request";
-        m_strategy->gc(gc_phase::SWEEP);
+        m_strategy->gc(gc_phase::COLLECT);
     } else if (ipt == initiation_point_type::GC_BAD_ALLOC) {
         logging::info() << "GC_BAD_ALLOC received - Thread initiates gc";
-        m_strategy->gc(gc_phase::SWEEP);
+        m_strategy->gc(gc_phase::COLLECT);
     } else if (ipt == initiation_point_type::HEAP_EXPANSION) {
         m_initiation_policy->initiation_point(ipt, ipd);
     } else if (ipt == initiation_point_type::START_MARKING) {
         m_strategy->gc(gc_phase::MARK);
     } else if (ipt == initiation_point_type::START_COLLECTING) {
-        m_strategy->gc(gc_phase::SWEEP);
+        m_strategy->gc(gc_phase::COLLECT);
     }
 }
 
@@ -186,7 +186,7 @@ gc_state garbage_collector::state() const
 
 bool garbage_collector::check_gc_phase(gc_phase phase)
 {
-    return (phase == gc_phase::MARK && m_gc_info.incremental_flag) || phase == gc_phase::SWEEP;
+    return (phase == gc_phase::MARK && m_gc_info.incremental_flag) || phase == gc_phase::COLLECT;
 }
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)

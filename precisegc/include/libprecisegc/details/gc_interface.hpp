@@ -29,14 +29,35 @@ enum class gc_pause_type {
 enum class gc_phase {
       IDLE
     , MARK
-    , SWEEP
+    , COLLECT
+};
+
+enum class gc_type {
+      FULL_GC
+    , TRACE_ROOTS
+    , COLLECT_GARBAGE
 };
 
 struct gc_info
 {
     bool    incremental_flag;
-    bool    support_concurrent_mark;
-    bool    support_concurrent_sweep;
+    bool    support_concurrent_marking;
+    bool    support_concurrent_collecting;
+};
+
+struct gc_options
+{
+    gc_phase    phase;
+    bool        concurrent_flag;
+    size_t      threads_available;
+};
+
+struct gc_stats
+{
+    gc_type             type;
+    size_t              mem_swept;
+    size_t              mem_copied;
+    gc_clock::duration  pause_duration;
 };
 
 struct gc_state
@@ -74,6 +95,12 @@ struct incremental_gc_ops
     {
         return !(a == b);
     }
+};
+
+class gc_launcher
+{
+public:
+    virtual void gc(gc_phase phase) = 0;
 };
 
 class initiation_point_data

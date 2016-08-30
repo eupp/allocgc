@@ -37,7 +37,7 @@ void space_based_policy::initiation_point(initiation_point_type ipt, const initi
     if (ipt == initiation_point_type::HEAP_EXPANSION) {
         size_t size = gc_get_state().heap_size + ipd.alloc_size();
         if (size > m_sweeping_threshold * m_heap_size) {
-            m_gc->gc(gc_phase::SWEEP);
+            m_gc->gc(gc_phase::COLLECT);
             size_t new_size = gc_get_state().heap_size + ipd.alloc_size();
             if (new_size > m_max_heap_size) {
                 throw gc_bad_alloc();
@@ -61,7 +61,7 @@ void space_based_policy::initiation_point(initiation_point_type ipt, const initi
 //    if (ipt == initiation_point_type::HEAP_EXPANSION) {
 //        size_t size = state.heap_size + ipd.alloc_size();
 //        if (size > m_sweeping_threshold * m_heap_size) {
-//            return gc_phase::SWEEP;
+//            return gc_phase::COLLECT;
 //        }
 //        if (size > m_marking_threshold * m_heap_size) {
 //            return gc_phase::MARK;

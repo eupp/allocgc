@@ -13,9 +13,9 @@ public:
 
     virtual void SetUp()
     {
-        gc_options gc_ops;
-        gc_ops.type         = gc_type::SERIAL;
-        gc_ops.init         = gc_init_strategy::MANUAL;
+        gc_init_options gc_ops;
+        gc_ops.algo         = gc_algo::SERIAL;
+        gc_ops.initiation         = gc_initiation::MANUAL;
         gc_ops.compacting   = gc_compacting::ENABLED;
         gc_ops.loglevel     = gc_loglevel::DEBUG;
         gc_ops.print_stat   = true;

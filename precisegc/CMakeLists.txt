@@ -3,7 +3,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.hpp
         include/libprecisegc/gc_new.hpp
         include/libprecisegc/gc.hpp
-        include/libprecisegc/gc_options.hpp
+        include/libprecisegc/gc_init_options.hpp
         include/libprecisegc/libprecisegc.hpp
 
         include/libprecisegc/details/type_meta.hpp

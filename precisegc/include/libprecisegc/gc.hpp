@@ -1,12 +1,12 @@
 #ifndef DIPLOMA_GC_H
 #define DIPLOMA_GC_H
 
-#include <libprecisegc/gc_options.hpp>
+#include <libprecisegc/gc_init_options.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc {
 
-int gc_init(const gc_options& options = gc_options());
+int gc_init(const gc_init_options& options = gc_init_options());
 
 gc_stat gc_stats();
 

@@ -3,7 +3,7 @@
 
 #include <chrono>
 
-#include <libprecisegc/gc_options.hpp>
+#include <libprecisegc/gc_init_options.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
@@ -28,7 +28,7 @@ public:
 
     virtual bool compare(const gc_handle& a, const gc_handle& b) = 0;
 
-    virtual void gc(gc_phase) = 0;
+    virtual gc_stats gc(const gc_options&) = 0;
 
     virtual gc_info info() const = 0;
 };

@@ -77,9 +77,9 @@ void intrusive_forwarding::forward(void* ptr) const
     }
 }
 
-void intrusive_forwarding::join(const intrusive_forwarding& other)
-{
-    return;
-}
+//void intrusive_forwarding::join(const intrusive_forwarding& other)
+//{
+//    return;
+//}
 
 }}

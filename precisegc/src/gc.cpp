@@ -9,7 +9,7 @@ namespace precisegc {
 
 using namespace details;
 
-int gc_init(const gc_options& options)
+int gc_init(const gc_init_options& options)
 {
     static bool init_flag = false;
     if (!init_flag) {

@@ -71,6 +71,13 @@ gc_run_stats incremental_gc_base::gc(const gc_options& options)
     } else if (options.phase == gc_phase::COLLECT) {
         return sweep();
     }
+    gc_run_stats stats = {
+            .type           = gc_type::SKIP_GC,
+            .mem_swept      = 0,
+            .mem_copied     = 0,
+            .pause_duration = gc_clock::duration(0)
+    };
+    return stats;
 }
 
 void incremental_gc_base::flush_threads_packets(const threads::world_snapshot& snapshot)
@@ -108,17 +115,17 @@ gc_run_stats incremental_gc_base::sweep()
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
-    gc_pause_type pause_type;
+    gc_type type;
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (m_phase == gc_phase::IDLE) {
-        pause_type = gc_pause_type::GC;
+        type = gc_type::FULL_GC;
         m_marker.trace_roots(snapshot.get_root_tracer());
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_phase = gc_phase::MARK;
         m_marker.concurrent_mark(m_threads_available - 1);
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
-        pause_type = gc_pause_type::SWEEP_HEAP;
+        type = gc_type::COLLECT_GARBAGE;
         m_marker.trace_pins(snapshot.get_pin_tracer());
         flush_threads_packets(snapshot);
         m_marker.mark();
@@ -128,7 +135,7 @@ gc_run_stats incremental_gc_base::sweep()
     m_phase = gc_phase::IDLE;
 
     gc_run_stats stats = gc_run_stats {
-            .type           = gc_type::COLLECT_GARBAGE,
+            .type           = type,
             .mem_swept      = collect_stats.mem_swept,
             .mem_copied     = collect_stats.mem_copied,
             .pause_duration = snapshot.time_since_stop_the_world()
@@ -197,8 +204,8 @@ void incremental_compacting_gc::unpin(byte* ptr)
 gc_info incremental_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag           = true,
-            .support_concurrent_marking    = true,
+            .incremental_flag                = true,
+            .support_concurrent_marking      = true,
             .support_concurrent_collecting   = false
     };
 

@@ -36,6 +36,7 @@ enum class gc_type {
       FULL_GC
     , TRACE_ROOTS
     , COLLECT_GARBAGE
+    , SKIP_GC
 };
 
 struct gc_info

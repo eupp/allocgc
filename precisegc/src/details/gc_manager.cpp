@@ -32,6 +32,9 @@ void gc_manager::gc(gc_phase phase)
             .phase      = phase
     };
     gc_run_stats run_stats = m_strategy->gc(options);
+    if (run_stats.type == gc_type::SKIP_GC) {
+        return;
+    }
 
     logging::info() << "GC pause (" << gc_type_to_str(run_stats.type)
                     << ") duration "<< duration_to_str(run_stats.pause_duration);

@@ -57,16 +57,6 @@ void gc_deregister_page(const byte* page, size_t size)
     gc_instance.deregister_page(page, size);
 }
 
-void gc_register_pause(const gc_pause_stat& pause_stat)
-{
-    gc_instance.register_pause(pause_stat);
-}
-
-void gc_register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
-{
-    gc_instance.register_sweep(sweep_stat, pause_stat);
-}
-
 gc_handle::gc_handle()
     : m_ptr(nullptr)
 {}

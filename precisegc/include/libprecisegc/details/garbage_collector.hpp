@@ -8,6 +8,7 @@
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/initiation_policy.hpp>
+#include <libprecisegc/details/gc_manager.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/recorder.hpp>
 #include <libprecisegc/details/printer.hpp>
@@ -24,8 +25,7 @@ public:
     void init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
 
     gc_strategy* get_strategy() const;
-    void set_strategy(std::unique_ptr<gc_strategy> strategy);
-    std::unique_ptr<gc_strategy> reset_strategy(std::unique_ptr<gc_strategy> strategy);
+    std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
     std::pair<managed_ptr, object_meta*> allocate(size_t size, const type_meta* tmeta);
 
@@ -48,8 +48,6 @@ public:
 
     void register_page(const byte* page, size_t size);
     void deregister_page(const byte* page, size_t size);
-    void register_pause(const gc_pause_stat& pause_stat);
-    void register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat);
 
     gc_info  info() const;
     gc_stat  stats() const;
@@ -62,11 +60,8 @@ private:
 
     std::unique_ptr<gc_strategy> m_strategy;
     std::unique_ptr<initiation_policy> m_initiation_policy;
+    gc_manager m_manager;
     std::mutex m_gc_mutex;
-    recorder m_recorder;
-    printer m_printer;
-    gc_info m_gc_info;
-    bool m_printer_enabled;
 };
 
 }}

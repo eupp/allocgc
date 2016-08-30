@@ -235,10 +235,10 @@ int main (int argc, const char* argv[])
         gc_init_options ops;
         ops.heapsize    = 32 * 1024 * 1024;      // 32 Mb
         ops.algo        = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
-        ops.initiation        = gc_initiation::SPACE_BASED;
+        ops.initiation  = gc_initiation::SPACE_BASED;
         ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::SILENT;
-        ops.print_stat  = false;
+        ops.loglevel    = gc_loglevel::INFO;
+        ops.print_stat  = true;
 //        ops.threads_available = 1;
         gc_init(ops);
     #elif defined(BDW_GC)

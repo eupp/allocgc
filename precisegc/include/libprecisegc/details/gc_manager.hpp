@@ -15,7 +15,7 @@ namespace precisegc { namespace details {
 class gc_manager : public gc_launcher, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_manager(gc_strategy* strategy, bool print_stats_flag, const std::ostream& stream = std::clog);
+    gc_manager(gc_strategy* strategy, bool print_stats_flag = false, const std::ostream& stream = std::clog);
 
     void gc(gc_phase phase) override;
 
@@ -26,9 +26,13 @@ public:
     gc_state state() const override;
     gc_stat stats() const;
 
+    gc_strategy* get_strategy() const;
+    void set_strategy(gc_strategy* strategy);
+
     bool print_stats_flag() const;
     void set_print_stats_flag(bool value);
 private:
+    bool check_gc_phase(gc_phase phase);
     void register_gc_run(const gc_run_stats& stats);
     void print_gc_run_stats(const gc_run_stats& stats);
 

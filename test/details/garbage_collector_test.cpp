@@ -37,7 +37,7 @@ struct garbage_collector_test : public ::testing::Test
 
 TEST_F(garbage_collector_test, test_initiation_point_user_request)
 {
-    EXPECT_CALL(*gc_mock, gc(gc_phase::COLLECT))
+    EXPECT_CALL(*gc_mock, gc(_))
             .Times(Exactly(1));
 
     collector.initiation_point(initiation_point_type::USER_REQUEST);

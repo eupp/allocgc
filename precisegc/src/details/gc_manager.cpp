@@ -1,5 +1,7 @@
 #include <libprecisegc/details/gc_manager.hpp>
 
+#include <cassert>
+
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details {
@@ -20,6 +22,12 @@ gc_manager::gc_manager(gc_strategy* strategy, bool print_stats_flag, const std::
 
 void gc_manager::gc(gc_phase phase)
 {
+    assert(m_strategy);
+
+    if (!check_gc_phase(phase)) {
+        return;
+    }
+
     gc_options options = {
             .phase      = phase
     };
@@ -68,6 +76,16 @@ gc_stat gc_manager::stats() const
     return stats;
 }
 
+gc_strategy* gc_manager::get_strategy() const
+{
+    return m_strategy;
+}
+
+void gc_manager::set_strategy(gc_strategy* strategy)
+{
+    m_strategy = strategy;
+}
+
 bool gc_manager::print_stats_flag() const
 {
     return m_print_stats_flag;
@@ -76,6 +94,27 @@ bool gc_manager::print_stats_flag() const
 void gc_manager::set_print_stats_flag(bool value)
 {
     m_print_stats_flag = value;
+}
+
+bool gc_manager::check_gc_phase(gc_phase phase)
+{
+    return (phase == gc_phase::MARK && m_strategy->info().incremental_flag) || phase == gc_phase::COLLECT;
+}
+
+void gc_manager::register_gc_run(const gc_run_stats& stats)
+{
+    assert(stats.mem_swept <= m_heap_size);
+
+    gc_clock::duration now = gc_clock::now().time_since_epoch();
+
+    // we use std::memory_order_relaxed here because it is expected that this method will be called during stop-the-world pause
+    m_heap_size.fetch_sub(stats.mem_swept, std::memory_order_relaxed);
+    m_last_heap_size.store(m_heap_size.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    m_last_gc_time.store(now, std::memory_order_relaxed);
+    m_last_gc_duration.store(stats.pause_duration, std::memory_order_relaxed);
+
+    m_gc_cnt.fetch_add(1, std::memory_order_relaxed);
+    m_gc_time.fetch_add(stats.pause_duration.count(), std::memory_order_relaxed);
 }
 
 void gc_manager::print_gc_run_stats(const gc_run_stats& stats)
@@ -96,20 +135,20 @@ void gc_manager::print_gc_run_stats(const gc_run_stats& stats)
 
     static const std::string placeholder = "xxxx yy";
 
-    static size_t pause_type_pos = text.find(placeholder, 0);
-    static size_t pause_time_pos = text.find(placeholder, pause_type_pos + placeholder.size());
-    static size_t heap_size_pos  = text.find(placeholder, pause_time_pos + placeholder.size());
-    static size_t swept_pos      = text.find(placeholder, heap_size_pos + placeholder.size());
-    static size_t copied_pos     = text.find(placeholder, swept_pos + placeholder.size());
+    static const size_t pause_type_pos = text.find(placeholder, 0);
+    static const size_t pause_time_pos = text.find(placeholder, pause_type_pos + placeholder.size());
+    static const size_t heap_size_pos  = text.find(placeholder, pause_time_pos + placeholder.size());
+    static const size_t swept_pos      = text.find(placeholder, heap_size_pos + placeholder.size());
+    static const size_t copied_pos     = text.find(placeholder, swept_pos + placeholder.size());
 
     std::string gc_type_str = gc_type_to_str(stats.type);
     gc_type_str.resize(20, ' ');
 
     text.replace(pause_type_pos, gc_type_str.size(), gc_type_str);
-    text.replace(pause_time_pos, placeholder.size(), duration_to_str(stats.pause_duration));
-    text.replace(heap_size_pos, placeholder.size(), heapsize_to_str(m_heap_size.load(std::memory_order_acquire)));
-    text.replace(swept_pos, placeholder.size(), heapsize_to_str(stats.mem_swept));
-    text.replace(copied_pos, placeholder.size(), heapsize_to_str(stats.mem_copied));
+    text.replace(pause_time_pos, placeholder.size(), duration_to_str(stats.pause_duration, 4));
+    text.replace(heap_size_pos, placeholder.size(), heapsize_to_str(m_heap_size.load(std::memory_order_acquire), 4));
+    text.replace(swept_pos, placeholder.size(), heapsize_to_str(stats.mem_swept, 4));
+    text.replace(copied_pos, placeholder.size(), heapsize_to_str(stats.mem_copied, 4));
 
     m_print_stream << text;
 }

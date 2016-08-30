@@ -11,16 +11,14 @@
 namespace precisegc { namespace details {
 
 garbage_collector::garbage_collector()
-    : m_printer(std::clog)
-    , m_printer_enabled(false)
+    : m_manager(nullptr)
 {}
 
 void garbage_collector::init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
 {
     m_strategy = std::move(strategy);
     m_initiation_policy = std::move(init_policy);
-
-    m_gc_info = m_strategy->info();
+    m_manager.set_strategy(m_strategy.get());
 }
 
 gc_strategy* garbage_collector::get_strategy() const
@@ -28,14 +26,10 @@ gc_strategy* garbage_collector::get_strategy() const
     return m_strategy.get();
 }
 
-void garbage_collector::set_strategy(std::unique_ptr<gc_strategy> strategy)
-{
-    m_strategy = std::move(strategy);
-}
-
-std::unique_ptr<gc_strategy> garbage_collector::reset_strategy(std::unique_ptr<gc_strategy> strategy)
+std::unique_ptr<gc_strategy> garbage_collector::set_strategy(std::unique_ptr<gc_strategy> strategy)
 {
     strategy.swap(m_strategy);
+    m_manager.set_strategy(m_strategy.get());
     return std::move(strategy);
 }
 
@@ -52,7 +46,7 @@ std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t size, co
         initiation_point(initiation_point_type::GC_BAD_ALLOC);
         ptr = m_strategy->allocate(size);
     }
-    m_recorder.register_allocation(ptr.cell_size());
+    m_manager.register_allocation(ptr.cell_size());
 
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr.get(), ptr.cell_size());
     new (obj_meta) object_meta(tmeta);
@@ -114,54 +108,37 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const initia
 
     if (ipt == initiation_point_type::USER_REQUEST) {
         logging::info() << "Thread initiates gc by user's request";
-        m_strategy->gc(gc_phase::COLLECT);
+        m_manager.gc(gc_phase::COLLECT);
     } else if (ipt == initiation_point_type::GC_BAD_ALLOC) {
         logging::info() << "GC_BAD_ALLOC received - Thread initiates gc";
-        m_strategy->gc(gc_phase::COLLECT);
+        m_manager.gc(gc_phase::COLLECT);
     } else if (ipt == initiation_point_type::HEAP_EXPANSION) {
-        m_initiation_policy->initiation_point(ipt, ipd);
+        m_initiation_policy->initiation_point(&m_manager, ipt, ipd);
     } else if (ipt == initiation_point_type::START_MARKING) {
-        m_strategy->gc(gc_phase::MARK);
+        m_manager.gc(gc_phase::MARK);
     } else if (ipt == initiation_point_type::START_COLLECTING) {
-        m_strategy->gc(gc_phase::COLLECT);
+        m_manager.gc(gc_phase::COLLECT);
     }
 }
 
 bool garbage_collector::is_printer_enabled() const
 {
-    return m_printer_enabled;
+    return m_manager.print_stats_flag();
 }
 
 void garbage_collector::set_printer_enabled(bool enabled)
 {
-    m_printer_enabled = enabled;
+    m_manager.set_print_stats_flag(enabled);
 }
 
 void garbage_collector::register_page(const byte* page, size_t size)
 {
-    m_recorder.register_page(page, size);
+    m_manager.register_page(page, size);
 }
 
 void garbage_collector::deregister_page(const byte* page, size_t size)
 {
-    return;
-}
-
-void garbage_collector::register_pause(const gc_pause_stat& pause_stat)
-{
-    m_recorder.register_pause(pause_stat);
-    if (m_printer_enabled) {
-        m_printer.print_pause_stat(pause_stat);
-    }
-}
-
-void garbage_collector::register_sweep(const gc_sweep_stat& sweep_stat, const gc_pause_stat& pause_stat)
-{
-    m_recorder.register_sweep(sweep_stat, pause_stat);
-    if (m_printer_enabled) {
-        m_printer.print_sweep_stat(sweep_stat, pause_stat);
-    }
-//    m_initiation_policy->update(state());
+    m_manager.deregister_page(page, size);
 }
 
 gc_info garbage_collector::info() const
@@ -173,20 +150,12 @@ gc_info garbage_collector::info() const
 gc_stat garbage_collector::stats() const
 {
     gc_unsafe_scope unsafe_scope;
-    gc_stat stat;
-    stat.gc_count = m_recorder.gc_cycles_count();
-    stat.gc_time = m_recorder.gc_pause_time();
-    return stat;
+    return m_manager.stats();
 }
 
 gc_state garbage_collector::state() const
 {
-    return m_recorder.state();
-}
-
-bool garbage_collector::check_gc_phase(gc_phase phase)
-{
-    return (phase == gc_phase::MARK && m_gc_info.incremental_flag) || phase == gc_phase::COLLECT;
+    return m_manager.state();
 }
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)

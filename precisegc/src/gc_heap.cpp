@@ -113,7 +113,7 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_
 
     utils::static_thread_pool thread_pool(threads_num);
     std::vector<std::function<void()>> tasks;
-    std::atomic<size_t> mem_copied = 0;
+    std::atomic<size_t> mem_copied{0};
 
     forwarding frwd;
     for (auto& kv: m_tlab_map) {
@@ -122,7 +122,7 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_
             auto rng = tlab.memory_range(i);
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
             if (!rng.empty()) {
-                tasks.emplace_back([this, rng, i, &frwd] {
+                tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd] {
                     size_t copied_cnt = two_finger_compact(rng, bucket_size, frwd);
                     mem_copied += copied_cnt * bucket_size;
                 });

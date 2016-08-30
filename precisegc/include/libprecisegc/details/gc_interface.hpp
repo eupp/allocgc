@@ -48,11 +48,9 @@ struct gc_info
 struct gc_options
 {
     gc_phase    phase;
-    bool        concurrent_flag;
-    size_t      threads_available;
 };
 
-struct gc_stats
+struct gc_run_stats
 {
     gc_type             type;
     size_t              mem_swept;
@@ -100,6 +98,7 @@ struct incremental_gc_ops
 class gc_launcher
 {
 public:
+    virtual gc_state state() const = 0;
     virtual void gc(gc_phase phase) = 0;
 };
 
@@ -158,25 +157,38 @@ inline const char* pause_type_to_str(gc_pause_type pause_type)
     }
 }
 
-inline std::string duration_to_str(gc_clock::duration duration)
+inline const char* gc_type_to_str(gc_type type)
+{
+    if (type == gc_type::FULL_GC) {
+        return "full gc";
+    } else if (type == gc_type::TRACE_ROOTS) {
+        return "trace roots";
+    } else if (type == gc_type::COLLECT_GARBAGE) {
+        return "collect garbage";
+    } else {
+        return "undefined";
+    }
+}
+
+inline std::string duration_to_str(gc_clock::duration duration, int padding = 0)
 {
     static const size_t ms = 1000;
     static const size_t  s = 1000 * ms;
 
-    auto dur_us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+    size_t dur_us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 
     char str[8];
     if (dur_us >= s) {
-        snprintf(str, 8, "%4lu s ", dur_us / s);
+        snprintf(str, 8, "%*lu s ", padding, dur_us / s);
     } else if (dur_us >= ms) {
-        snprintf(str, 8, "%4lu ms", dur_us / ms);
+        snprintf(str, 8, "%*lu ms", padding, dur_us / ms);
     } else {
-        snprintf(str, 8, "%4ld us", dur_us);
+        snprintf(str, 8, "%*lu us", padding, dur_us);
     }
     return std::string(str);
 }
 
-inline std::string heapsize_to_str(size_t size)
+inline std::string heapsize_to_str(size_t size, int padding = 0)
 {
     static const size_t Kb = 1024;
     static const size_t Mb = 1024 * Kb;
@@ -184,13 +196,13 @@ inline std::string heapsize_to_str(size_t size)
 
     char str[8];
     if (size >= Gb) {
-        snprintf(str, 8, "%4lu Gb", size / Gb);
+        snprintf(str, 8, "%*lu Gb", padding, size / Gb);
     } else if (size >= Mb) {
-        snprintf(str, 8, "%4lu Mb", size / Mb);
+        snprintf(str, 8, "%*lu Mb", padding, size / Mb);
     } else if (size >= Kb) {
-        snprintf(str, 8, "%4lu Kb", size / Kb);
+        snprintf(str, 8, "%*lu Kb", padding, size / Kb);
     } else {
-        snprintf(str, 8, "%4lu b ", size);
+        snprintf(str, 8, "%*lu b ", padding, size);
     }
     return std::string(str);
 }

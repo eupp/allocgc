@@ -28,7 +28,7 @@ public:
 
     virtual bool compare(const gc_handle& a, const gc_handle& b) = 0;
 
-    virtual gc_stats gc(const gc_options&) = 0;
+    virtual gc_run_stats gc(const gc_options&) = 0;
 
     virtual gc_info info() const = 0;
 };

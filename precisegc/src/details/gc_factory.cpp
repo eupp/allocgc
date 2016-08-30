@@ -17,8 +17,7 @@ std::unique_ptr<initiation_policy> gc_factory::create_space_based_policy(gc_stra
     static const double sweeping_threshold  = 1.0;
 
     return utils::make_unique<space_based_policy>(
-              gc
-            , max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
+              max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
             , marking_threshold
             , sweeping_threshold
             , increase_factor

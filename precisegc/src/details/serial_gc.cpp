@@ -39,10 +39,9 @@ void serial_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
     gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
 }
 
-gc_stats serial_gc_base::gc(const gc_options& options)
+gc_run_stats serial_gc_base::gc(const gc_options& options)
 {
-    gc_phase phase = options.phase;
-    if (phase != gc_phase::COLLECT) {
+    if (options.phase != gc_phase::COLLECT) {
         throw std::invalid_argument("serial_gc supports only gc_phase::COLLECT option");
     }
 
@@ -54,7 +53,7 @@ gc_stats serial_gc_base::gc(const gc_options& options)
     m_marker.mark();
     auto collect_stats = m_heap.collect(snapshot, m_threads_available);
 
-    gc_stats stats = {
+    gc_run_stats stats = {
             .type           = gc_type::FULL_GC,
             .mem_swept      = collect_stats.mem_swept,
             .mem_copied     = collect_stats.mem_copied,

@@ -25,7 +25,7 @@ public:
     void interior_wbarrier(gc_handle& handle, byte* ptr) override;
     void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
 
-    gc_stats gc(const gc_options& options) override;
+    gc_run_stats gc(const gc_options& options) override;
 private:
     gc_heap m_heap;
     packet_manager m_packet_manager;

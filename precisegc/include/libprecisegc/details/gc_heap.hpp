@@ -51,11 +51,17 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 
     typedef intrusive_forwarding forwarding;
 public:
+    struct collect_stats
+    {
+        size_t      mem_swept;
+        size_t      mem_copied;
+    };
+
     gc_heap(gc_compacting compacting);
 
     managed_ptr allocate(size_t size);
 
-    gc_sweep_stat sweep(const threads::world_snapshot& snapshot, size_t threads_available);
+    collect_stats collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
     typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
 
@@ -64,8 +70,8 @@ private:
 
     size_t shrink(const threads::world_snapshot& snapshot);
 
-    forwarding compact();
-    forwarding parallel_compact(size_t threads_num);
+    std::pair<forwarding, size_t> compact();
+    std::pair<forwarding, size_t> parallel_compact(size_t threads_num);
 
     void fix_pointers(const forwarding& frwd);
     void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);

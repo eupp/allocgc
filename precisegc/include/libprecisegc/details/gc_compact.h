@@ -15,9 +15,10 @@
 namespace precisegc { namespace details {
 
 template <typename Range, typename Forwarding>
-void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
+size_t two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
 {
     typedef std::reverse_iterator<typename Range::iterator> reverse_iterator;
+    size_t copied_cnt = 0;
     auto to = rng.begin();
     auto from = rng.end();
     while (from != to) {
@@ -38,8 +39,10 @@ void two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
             from->set_mark(false);
             to->set_mark(true);
             to->set_live(true);
+            ++copied_cnt;
         }
     }
+    return copied_cnt;
 }
 
 template <typename Range>

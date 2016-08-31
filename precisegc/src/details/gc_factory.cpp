@@ -17,8 +17,7 @@ std::unique_ptr<initiation_policy> gc_factory::create_space_based_policy(gc_stra
     static const double sweeping_threshold  = 1.0;
 
     return utils::make_unique<space_based_policy>(
-              gc
-            , max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
+              max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
             , marking_threshold
             , sweeping_threshold
             , increase_factor
@@ -27,24 +26,24 @@ std::unique_ptr<initiation_policy> gc_factory::create_space_based_policy(gc_stra
 }
 
 std::unique_ptr<initiation_policy> gc_factory::create_initiation_policy(gc_strategy* gc,
-                                                                        const gc_options& options)
+                                                                        const gc_init_options& options)
 {
-    if (options.init == gc_init_strategy::MANUAL) {
+    if (options.initiation == gc_initiation::MANUAL) {
         return utils::make_unique<empty_policy>();
-    } else if (options.init == gc_init_strategy::SPACE_BASED || options.init == gc_init_strategy::DEFAULT) {
+    } else if (options.initiation == gc_initiation::SPACE_BASED || options.initiation == gc_initiation::DEFAULT) {
         return create_space_based_policy(gc, options.heapsize);
     }
 }
 
-std::unique_ptr<gc_strategy> gc_factory::create_gc(const gc_options& options)
+std::unique_ptr<gc_strategy> gc_factory::create_gc(const gc_init_options& options)
 {
-    if (options.type == gc_type::SERIAL) {
+    if (options.algo == gc_algo::SERIAL) {
         if (options.compacting == gc_compacting::DISABLED) {
             return utils::make_unique<serial_gc>(options.threads_available);
         } else if (options.compacting == gc_compacting::ENABLED) {
             return utils::make_unique<serial_compacting_gc>(options.threads_available);
         }
-    } else if (options.type == gc_type::INCREMENTAL) {
+    } else if (options.algo == gc_algo::INCREMENTAL) {
         if (options.compacting == gc_compacting::DISABLED) {
             return utils::make_unique<incremental_gc>(options.threads_available);
         } else if (options.compacting == gc_compacting::ENABLED) {

@@ -26,11 +26,11 @@ public:
     void interior_wbarrier(gc_handle& handle, byte* ptr) override;
     void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
 
-    void gc(gc_phase) override;
+    gc_run_stats gc(const gc_options& options) override;
 private:
     void flush_threads_packets(const threads::world_snapshot& snapshot);
-    void start_marking();
-    void sweep();
+    gc_run_stats start_marking();
+    gc_run_stats sweep();
 
     gc_heap m_heap;
     packet_manager m_packet_manager;

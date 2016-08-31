@@ -2,6 +2,7 @@
 #define DIPLOMA_GC_HANDLE_HPP
 
 #include <cstddef>
+#include <type_traits>
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/types.hpp>
@@ -12,6 +13,13 @@ class gc_handle_access;
 
 class gc_handle : private utils::noncopyable, private utils::nonmovable
 {
+    static_assert(sizeof(byte*) == sizeof(atomic_byte_ptr),
+                  "atomic<byte*> has different size than byte*");
+
+    static_assert(alignof(byte*) == alignof(atomic_byte_ptr),
+                  "atomic<byte*> has different alignment than byte*");
+
+    typedef byte* storage_t;
 public:
     class pin_guard : private utils::noncopyable
     {
@@ -30,8 +38,7 @@ public:
         byte* m_ptr;
     };
 
-    gc_handle();
-    gc_handle(byte* ptr);
+    gc_handle() = default;
 
     byte* rbarrier() const;
     void  wbarrier(const gc_handle& other);
@@ -49,21 +56,18 @@ public:
 private:
     friend class gc_handle_access;
 
-    // these two methods don't invoke read/write barriers,
-    // they are used by garbage collector itself
-    byte* load(std::memory_order order) const;
-    void  store(byte* ptr, std::memory_order order);
-    void  fetch_advance(ptrdiff_t n, std::memory_order order);
-
-    atomic_byte_ptr m_ptr;
+    storage_t m_storage;
 };
 
 class gc_handle_access
 {
 public:
-    static byte* load(const gc_handle& handle, std::memory_order order);
-    static void  store(gc_handle& handle, byte* ptr, std::memory_order order);
-    static void  fetch_advance(gc_handle& handle, ptrdiff_t n, std::memory_order order);
+    static byte* get(const gc_handle& handle);
+    static void  set(gc_handle& handle, byte* ptr);
+    static void  advane(gc_handle& handle, ptrdiff_t n);
+    static byte* get_atomic(const gc_handle& handle, std::memory_order order);
+    static void  set_atomic(gc_handle& handle, byte* ptr, std::memory_order order);
+    static void  advance_atomic(gc_handle& handle, ptrdiff_t n, std::memory_order order);
 };
 
 }}

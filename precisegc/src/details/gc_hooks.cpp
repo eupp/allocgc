@@ -58,11 +58,11 @@ void gc_deregister_page(const byte* page, size_t size)
 }
 
 gc_handle::gc_handle()
-    : m_ptr(nullptr)
+    : m_storage(nullptr)
 {}
 
 gc_handle::gc_handle(byte* ptr)
-    : m_ptr(ptr)
+    : m_storage(ptr)
 {}
 
 byte* gc_handle::rbarrier() const
@@ -105,21 +105,6 @@ bool gc_handle::is_null() const
     return rbarrier() == nullptr;
 }
 
-byte* gc_handle::load(std::memory_order order) const
-{
-    return m_ptr.load(order);
-}
-
-void gc_handle::store(byte* ptr, std::memory_order order)
-{
-    m_ptr.store(ptr, order);
-}
-
-void gc_handle::fetch_advance(ptrdiff_t n, std::memory_order order)
-{
-    m_ptr.fetch_add(n, order);
-}
-
 gc_handle::pin_guard::pin_guard(const gc_handle& handle)
     : m_ptr(gc_instance.pin(handle))
 {}
@@ -148,19 +133,37 @@ byte* gc_handle::pin_guard::get() const noexcept
     return m_ptr;
 }
 
-byte* gc_handle_access::load(const gc_handle& handle, std::memory_order order)
+byte* gc_handle_access::get(const gc_handle& handle)
 {
-    return handle.load(order);
+    return handle.m_storage;
 }
 
-void gc_handle_access::store(gc_handle& handle, byte* ptr, std::memory_order order)
+void gc_handle_access::set(gc_handle& handle, byte* ptr)
 {
-    handle.store(ptr, order);
+    handle.m_storage = ptr;
 }
 
-void gc_handle_access::fetch_advance(gc_handle& handle, ptrdiff_t n, std::memory_order order)
+void gc_handle_access::advane(gc_handle& handle, ptrdiff_t n)
 {
-    handle.fetch_advance(n, order);
+    handle.m_storage += n;
+}
+
+byte* gc_handle_access::get_atomic(const gc_handle& handle, std::memory_order order)
+{
+    atomic_byte_ptr* atomic_ptr = reinterpret_cast<atomic_byte_ptr*>(&handle.m_storage);
+    return atomic_ptr->load(order);
+}
+
+void gc_handle_access::set_atomic(gc_handle& handle, byte* ptr, std::memory_order order)
+{
+    atomic_byte_ptr* atomic_ptr = reinterpret_cast<atomic_byte_ptr*>(&handle.m_storage);
+    atomic_ptr->store(ptr, order);
+}
+
+void gc_handle_access::advance_atomic(gc_handle& handle, ptrdiff_t n, std::memory_order order)
+{
+    atomic_byte_ptr* atomic_ptr = reinterpret_cast<atomic_byte_ptr*>(&handle.m_storage);
+    atomic_ptr->fetch_add(n, order);
 }
 
 }}

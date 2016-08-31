@@ -12,6 +12,8 @@ import numpy as np
 
 STATS_FULL_TIME_MEAN    = "full time mean"
 STATS_FULL_TIME_STD     = "full time std"
+STATS_GC_TIME_MEAN      = "gc time mean"
+STATS_GC_TIME_STD       = "gc time std"
 STATS_STW_TIME_MEAN     = "stw time mean"
 STATS_STW_TIME_STD      = "stw time std"
 STATS_STW_TIME_MAX      = "stw time max"
@@ -147,6 +149,9 @@ class BoehmTestOutputParser:
         def parse_full_time(match):
             self._context["full_time"] += [int(match.group("full_time"))]
 
+        def parse_gc_time(match):
+            self._context["gc_time"] += [int(match.group("gc_time"))]
+
         def parse_stw_time(match):
             self._context["stw_time"] += [int(match.group("stw_time"))]
 
@@ -155,6 +160,7 @@ class BoehmTestOutputParser:
 
         token_spec = {
             "FULL_TIME": {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) ms"},
+            "GC_TIME" : {"cmd": parse_gc_time, "re": "Time spent in gc (?P<gc_time>\d*) ms"},
             "STW_TIME" : {"cmd": parse_stw_time, "re": "Average pause time (?P<stw_time>\d*) us"},
             "GC_COUNT" : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
         }
@@ -169,6 +175,8 @@ class BoehmTestOutputParser:
         stats = {}
         stats[STATS_FULL_TIME_MEAN] = stat_mean(self._context["full_time"], ndigits=0)
         stats[STATS_FULL_TIME_STD]  = stat_std(self._context["full_time"], ndigits=3)
+        stats[STATS_GC_TIME_MEAN]   = stat_mean(self._context["gc_time"], ndigits=0)
+        stats[STATS_GC_TIME_STD]    = stat_std(self._context["gc_time"], ndigits=3)
         stats[STATS_STW_TIME_MEAN]  = stat_mean(self._context["stw_time"], ndigits=0)
         stats[STATS_STW_TIME_STD]   = stat_std(self._context["stw_time"], ndigits=3)
         stats[STATS_STW_TIME_MAX]   = stat_max(self._context["stw_time"], ndigits=0)
@@ -188,6 +196,7 @@ class TexTableReporter:
             "name",
             STATS_GC_COUNT,
             STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
+            STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
             STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MAX,
         ]
         self._rows = []
@@ -321,7 +330,7 @@ class TestRunner:
             reporter.create_report()
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
-CONFIG = "boehmallcfg.json"
+CONFIG = "benchcfg.json"
 
 if __name__ == '__main__':
 

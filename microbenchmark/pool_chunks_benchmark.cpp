@@ -16,7 +16,7 @@ static const size_t OBJ_SIZE = 32;
 template <typename Chunk>
 void chunk_allocate_benchmark(nonius::chronometer meter)
 {
-    size_t chunk_size = std::min((size_t) 64, Chunk::CHUNK_MAXSIZE);
+    size_t chunk_size = std::min((size_t) 64, (size_t) Chunk::CHUNK_MAXSIZE);
     size_t chunks_cnt = (meter.runs() + chunk_size - 1) / chunk_size;
     size_t bytes_cnt = OBJ_SIZE * chunk_size;
 
@@ -39,7 +39,7 @@ void chunk_deallocate_benchmark(nonius::chronometer meter)
 {
     std::vector<typename Chunk::pointer_type> ps(meter.runs());
 
-    size_t chunk_size = std::min((size_t) 64, Chunk::CHUNK_MAXSIZE);
+    size_t chunk_size = std::min((size_t) 64, (size_t) Chunk::CHUNK_MAXSIZE);
     size_t chunks_cnt = (meter.runs() + chunk_size - 1) / chunk_size;
     size_t bytes_cnt = OBJ_SIZE * chunk_size;
 

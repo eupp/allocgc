@@ -64,13 +64,20 @@ void incremental_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
     gc_handle_access::fetch_advance(handle, shift, std::memory_order_acq_rel);
 }
 
-void incremental_gc_base::gc(gc_phase phase)
+gc_run_stats incremental_gc_base::gc(const gc_options& options)
 {
-    if (phase == gc_phase::MARK && m_phase == gc_phase::IDLE) {
-        start_marking();
-    } else if (phase == gc_phase::SWEEP) {
-        sweep();
+    if (options.phase == gc_phase::MARK && m_phase == gc_phase::IDLE) {
+        return start_marking();
+    } else if (options.phase == gc_phase::COLLECT) {
+        return sweep();
     }
+    gc_run_stats stats = {
+            .type           = gc_type::SKIP_GC,
+            .mem_swept      = 0,
+            .mem_copied     = 0,
+            .pause_duration = gc_clock::duration(0)
+    };
+    return stats;
 }
 
 void incremental_gc_base::flush_threads_packets(const threads::world_snapshot& snapshot)
@@ -83,7 +90,7 @@ void incremental_gc_base::flush_threads_packets(const threads::world_snapshot& s
     });
 }
 
-void incremental_gc_base::start_marking()
+gc_run_stats incremental_gc_base::start_marking()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
@@ -93,43 +100,48 @@ void incremental_gc_base::start_marking()
     m_phase = gc_phase::MARK;
     m_marker.concurrent_mark(std::max((size_t) 1, m_threads_available - 1));
 
-    gc_pause_stat pause_stat = {
-            .type       = gc_pause_type::TRACE_ROOTS,
-            .duration   = snapshot.time_since_stop_the_world()
+    gc_run_stats stats = {
+            .type           = gc_type::TRACE_ROOTS,
+            .mem_swept      = 0,
+            .mem_copied     = 0,
+            .pause_duration = snapshot.time_since_stop_the_world()
     };
-    gc_register_pause(pause_stat);
+
+    return stats;
 }
 
-void incremental_gc_base::sweep()
+gc_run_stats incremental_gc_base::sweep()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
-    gc_pause_type pause_type;
+    gc_type type;
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (m_phase == gc_phase::IDLE) {
-        pause_type = gc_pause_type::GC;
+        type = gc_type::FULL_GC;
         m_marker.trace_roots(snapshot.get_root_tracer());
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_phase = gc_phase::MARK;
         m_marker.concurrent_mark(m_threads_available - 1);
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
-        pause_type = gc_pause_type::SWEEP_HEAP;
+        type = gc_type::COLLECT_GARBAGE;
         m_marker.trace_pins(snapshot.get_pin_tracer());
         flush_threads_packets(snapshot);
         m_marker.mark();
     }
-    m_phase = gc_phase::SWEEP;
+    m_phase = gc_phase::COLLECT;
+    auto collect_stats = m_heap.collect(snapshot, m_threads_available);
+    m_phase = gc_phase::IDLE;
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, m_threads_available);
-    gc_pause_stat pause_stat = {
-            .type       = pause_type,
-            .duration   = snapshot.time_since_stop_the_world()
+    gc_run_stats stats = gc_run_stats {
+            .type           = type,
+            .mem_swept      = collect_stats.mem_swept,
+            .mem_copied     = collect_stats.mem_copied,
+            .pause_duration = snapshot.time_since_stop_the_world()
     };
 
-    gc_register_sweep(sweep_stat, pause_stat);
-    m_phase = gc_phase::IDLE;
+    return stats;
 }
 
 }
@@ -157,8 +169,8 @@ gc_info incremental_gc::info() const
 {
     static gc_info inf = {
             .incremental_flag           = true,
-            .support_concurrent_mark    = true,
-            .support_concurrent_sweep   = false
+            .support_concurrent_marking    = true,
+            .support_concurrent_collecting   = false
     };
 
     return inf;
@@ -192,9 +204,9 @@ void incremental_compacting_gc::unpin(byte* ptr)
 gc_info incremental_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag           = true,
-            .support_concurrent_mark    = true,
-            .support_concurrent_sweep   = false
+            .incremental_flag                = true,
+            .support_concurrent_marking      = true,
+            .support_concurrent_collecting   = false
     };
 
     return inf;

@@ -330,10 +330,10 @@ int main (int argc, const char* argv[])
     }
 
 #if defined(PRECISE_GC)
-    gc_options ops;
+    gc_init_options ops;
 //    ops.heapsize    = 900 * 1024 * 1024;      // 1Gb
-    ops.type        = incremental_flag ? gc_type::INCREMENTAL : gc_type::SERIAL;
-    ops.init        = gc_init_strategy::SPACE_BASED;
+    ops.algo        = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
+    ops.initiation        = gc_initiation::SPACE_BASED;
     ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
     ops.loglevel    = gc_loglevel::SILENT;
     ops.print_stat  = false;

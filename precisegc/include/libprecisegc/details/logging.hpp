@@ -8,7 +8,7 @@
 
 #include <libprecisegc/details/threads/ass_sync.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/gc_options.hpp>
+#include <libprecisegc/gc_init_options.hpp>
 
 namespace precisegc { namespace details {
 

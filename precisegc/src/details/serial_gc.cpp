@@ -1,5 +1,6 @@
 #include <libprecisegc/details/collectors/serial_gc.hpp>
 
+#include <stdexcept>
 #include <utility>
 
 #include <libprecisegc/details/gc_hooks.hpp>
@@ -38,10 +39,10 @@ void serial_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
     gc_handle_access::fetch_advance(handle, shift, std::memory_order_relaxed);
 }
 
-void serial_gc_base::gc(gc_phase phase)
+gc_run_stats serial_gc_base::gc(const gc_options& options)
 {
-    if (phase != gc_phase::SWEEP) {
-        return;
+    if (options.phase != gc_phase::COLLECT) {
+        throw std::invalid_argument("serial_gc supports only gc_phase::COLLECT option");
     }
 
     using namespace threads;
@@ -50,14 +51,16 @@ void serial_gc_base::gc(gc_phase phase)
     m_marker.trace_pins(snapshot.get_pin_tracer());
     m_marker.concurrent_mark(m_threads_available - 1);
     m_marker.mark();
+    auto collect_stats = m_heap.collect(snapshot, m_threads_available);
 
-    gc_sweep_stat sweep_stat = m_heap.sweep(snapshot, m_threads_available);
-    gc_pause_stat pause_stat = {
-            .type       = gc_pause_type::GC,
-            .duration   = snapshot.time_since_stop_the_world()
+    gc_run_stats stats = {
+            .type           = gc_type::FULL_GC,
+            .mem_swept      = collect_stats.mem_swept,
+            .mem_copied     = collect_stats.mem_copied,
+            .pause_duration = snapshot.time_since_stop_the_world()
     };
 
-    gc_register_sweep(sweep_stat, pause_stat);
+    return stats;
 }
 
 }
@@ -91,8 +94,8 @@ gc_info serial_gc::info() const
 {
     static gc_info inf = {
         .incremental_flag           = false,
-        .support_concurrent_mark    = false,
-        .support_concurrent_sweep   = false
+        .support_concurrent_marking    = false,
+        .support_concurrent_collecting   = false
     };
     return inf;
 }
@@ -133,8 +136,8 @@ gc_info serial_compacting_gc::info() const
 {
     static gc_info inf = {
             .incremental_flag           = false,
-            .support_concurrent_mark    = false,
-            .support_concurrent_sweep   = false
+            .support_concurrent_marking    = false,
+            .support_concurrent_collecting   = false
     };
     return inf;
 }

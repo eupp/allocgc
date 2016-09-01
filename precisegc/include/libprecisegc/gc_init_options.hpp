@@ -7,7 +7,7 @@
 
 namespace precisegc {
 
-enum class gc_type {
+enum class gc_algo {
       SERIAL
     , INCREMENTAL
 };
@@ -17,7 +17,7 @@ enum class gc_compacting {
     , DISABLED
 };
 
-enum class gc_init_strategy {
+enum class gc_initiation {
       MANUAL
     , SPACE_BASED
     , DEFAULT
@@ -31,12 +31,12 @@ enum class gc_loglevel {
     , SILENT
 };
 
-struct gc_options
+struct gc_init_options
 {
     size_t              heapsize          = std::numeric_limits<size_t>::max();
     size_t              threads_available = std::thread::hardware_concurrency();
-    gc_type             type              = gc_type::SERIAL;
-    gc_init_strategy    init              = gc_init_strategy::DEFAULT;
+    gc_algo             algo              = gc_algo::SERIAL;
+    gc_initiation       initiation        = gc_initiation::DEFAULT;
     gc_compacting       compacting        = gc_compacting::DISABLED;
     gc_loglevel         loglevel          = gc_loglevel::SILENT;
     bool                print_stat        = false;

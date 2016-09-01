@@ -26,19 +26,24 @@ managed_ptr gc_heap::allocate(size_t size)
     }
 }
 
-gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot, size_t threads_available)
+gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot, size_t threads_available)
 {
-    gc_sweep_stat stat;
+    collect_stats stat;
 
     size_t freed = shrink(snapshot);
+    size_t copied = 0;
 
     if (m_compacting == gc_compacting::ENABLED) {
         if (threads_available > 1) {
-            forwarding frwd = parallel_compact(threads_available);
+            auto cmpct_res = parallel_compact(threads_available);
+            forwarding& frwd = cmpct_res.first;
+            copied = cmpct_res.second;
             parallel_fix_pointers(frwd, threads_available);
             snapshot.fix_roots(frwd);
         } else {
-            forwarding frwd = compact();
+            auto cmpct_res = compact();
+            forwarding& frwd = cmpct_res.first;
+            copied = cmpct_res.second;
             fix_pointers(frwd);
             snapshot.fix_roots(frwd);
         }
@@ -46,8 +51,8 @@ gc_sweep_stat gc_heap::sweep(const threads::world_snapshot& snapshot, size_t thr
 
     unmark();
 
-    stat.shrunk = freed;
-    stat.swept  = 0;
+    stat.mem_swept = freed;
+    stat.mem_copied = copied;
 
     return stat;
 }
@@ -84,42 +89,48 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
     return freed_in_tlabs + freed_in_loa;
 }
 
-gc_heap::forwarding gc_heap::compact()
+std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
 {
     logging::info() << "Compacting memory...";
 
     forwarding frwd;
+    size_t mem_copied = 0;
     for (auto& kv: m_tlab_map) {
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
-            two_finger_compact(rng, tlab_bucket_policy::bucket_size(i), frwd);
+            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
+            size_t copied_cnt = two_finger_compact(rng, bucket_size, frwd);
+            mem_copied += copied_cnt * bucket_size;
         }
     }
-    return frwd;
+    return std::make_pair(frwd, mem_copied);
 }
 
-gc_heap::forwarding gc_heap::parallel_compact(size_t threads_num)
+std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_num)
 {
     logging::info() << "Compacting memory (in parallel with " << threads_num << " threads)...";
 
     utils::static_thread_pool thread_pool(threads_num);
     std::vector<std::function<void()>> tasks;
+    std::atomic<size_t> mem_copied{0};
 
     forwarding frwd;
     for (auto& kv: m_tlab_map) {
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
+            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
             if (!rng.empty()) {
-                tasks.emplace_back([this, rng, i, &frwd] {
-                    two_finger_compact(rng, tlab_bucket_policy::bucket_size(i), frwd);
+                tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd] {
+                    size_t copied_cnt = two_finger_compact(rng, bucket_size, frwd);
+                    mem_copied += copied_cnt * bucket_size;
                 });
             }
         }
     }
     thread_pool.run(tasks.begin(), tasks.end());
-    return frwd;
+    return std::make_pair(frwd, mem_copied.load());
 }
 
 void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)

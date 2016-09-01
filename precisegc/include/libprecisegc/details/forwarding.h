@@ -34,7 +34,7 @@ public:
     intrusive_forwarding();
     void create(void* from, void* to, size_t obj_size);
     void forward(void* ptr) const;
-    void join(const intrusive_forwarding& other);
+//    void join(const intrusive_forwarding& other);
 };
 
 }}

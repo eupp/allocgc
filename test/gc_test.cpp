@@ -273,7 +273,7 @@
 //{
 //    incremental_gc_ops ops;
 //
-//    ops.phase           = gc_phase::SWEEP;
+//    ops.phase           = gc_phase::COLLECT;
 //    ops.concurrent_flag = false;
 //    ops.threads_num     = 1;
 //

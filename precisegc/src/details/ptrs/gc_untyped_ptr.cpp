@@ -20,9 +20,9 @@ gc_untyped_ptr::gc_untyped_ptr()
 //{}
 
 gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
-    : m_handle(ptr)
-    , m_root_flag(!gc_new_stack::is_active())
+    : m_root_flag(!gc_new_stack::is_active())
 {
+    gc_handle_access::set(m_handle, ptr, std::memory_order_relaxed);
     if (m_root_flag) {
         register_root();
     } else {
@@ -97,11 +97,6 @@ void gc_untyped_ptr::advance(ptrdiff_t n)
 void* gc_untyped_ptr::get() const
 {
     return m_handle.rbarrier();
-}
-
-void gc_untyped_ptr::forward(void* ptr)
-{
-    gc_handle_access::store(m_handle, (byte*) ptr, std::memory_order_relaxed);
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other)

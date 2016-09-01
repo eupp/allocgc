@@ -37,8 +37,6 @@ public:
 
     void* get() const;
 
-    void forward(void* ptr);
-
     void swap(gc_untyped_ptr& other);
     friend void swap(gc_untyped_ptr& a, gc_untyped_ptr& b);
 private:

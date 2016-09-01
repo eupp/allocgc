@@ -13,13 +13,6 @@ class gc_handle_access;
 
 class gc_handle : private utils::noncopyable, private utils::nonmovable
 {
-    static_assert(sizeof(byte*) == sizeof(atomic_byte_ptr),
-                  "atomic<byte*> has different size than byte*");
-
-    static_assert(alignof(byte*) == alignof(atomic_byte_ptr),
-                  "atomic<byte*> has different alignment than byte*");
-
-    typedef byte* storage_t;
 public:
     class pin_guard : private utils::noncopyable
     {
@@ -56,18 +49,15 @@ public:
 private:
     friend class gc_handle_access;
 
-    storage_t m_storage;
+    atomic_byte_ptr m_ptr;
 };
 
 class gc_handle_access
 {
 public:
-    static byte* get(const gc_handle& handle);
-    static void  set(gc_handle& handle, byte* ptr);
-    static void  advane(gc_handle& handle, ptrdiff_t n);
-    static byte* get_atomic(const gc_handle& handle, std::memory_order order);
-    static void  set_atomic(gc_handle& handle, byte* ptr, std::memory_order order);
-    static void  advance_atomic(gc_handle& handle, ptrdiff_t n, std::memory_order order);
+    static byte* get(const gc_handle& handle, std::memory_order order);
+    static void  set(gc_handle& handle, byte* ptr, std::memory_order order);
+    static void  advance(gc_handle& handle, ptrdiff_t n, std::memory_order order);
 };
 
 }}

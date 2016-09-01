@@ -31,8 +31,8 @@ void trace_ptr(managed_ptr p, Functor&& f)
     size_t offsets_size = cls_meta->offsets().size();
     for (size_t i = 0; i < obj_count; i++) {
         for (size_t j = 0; j < offsets_size; j++) {
-            gc_untyped_ptr* pchild = (ptrs::gc_untyped_ptr*) ((char*) obj + offsets[j]);
-            managed_ptr child = managed_ptr(reinterpret_cast<byte*>(pchild->get()));
+            gc_handle* pchild = reinterpret_cast<gc_handle*>((char*) obj + offsets[j]);
+            managed_ptr child = managed_ptr(pchild->rbarrier());
             if (child && !child.get_mark()) {
                 child.set_mark(true);
                 f(child);

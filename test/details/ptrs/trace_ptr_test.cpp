@@ -43,8 +43,8 @@ public:
         child2 = heap.allocate(OBJ_SIZE).get();
 
         complex_object* p = reinterpret_cast<complex_object*>(complex_object_ptr.get());
-        p->m_ptr1.forward(child1);
-        p->m_ptr2.forward(child2);
+        p->m_ptr1 = gc_untyped_ptr(child1);
+        p->m_ptr2 = gc_untyped_ptr(child2);
     }
 
     managed_ptr simple_object_ptr;

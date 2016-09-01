@@ -33,6 +33,10 @@ public:
 
     gc_handle() = default;
 
+    constexpr gc_handle(byte* ptr)
+        : m_ptr(ptr)
+    {}
+
     byte* rbarrier() const;
     void  wbarrier(const gc_handle& other);
 

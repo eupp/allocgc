@@ -19,7 +19,7 @@ serial_gc_base::serial_gc_base(gc_compacting compacting, size_t threads_availabl
     , m_threads_available(threads_available)
 {}
 
-managed_ptr serial_gc_base::allocate(size_t size)
+utils::block_ptr<managed_ptr> serial_gc_base::allocate(size_t size)
 {
     return m_heap.allocate(size);
 }

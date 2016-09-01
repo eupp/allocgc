@@ -59,13 +59,13 @@ public:
 
     gc_heap(gc_compacting compacting);
 
-    managed_ptr allocate(size_t size);
+    utils::block_ptr<managed_ptr> allocate(size_t size);
 
     collect_stats collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
     typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
 
-    managed_ptr allocate_on_tlab(size_t size);
+    utils::block_ptr<managed_ptr> allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
 
     size_t shrink(const threads::world_snapshot& snapshot);

@@ -177,4 +177,24 @@ bool garbage_collector::is_interior_shift(const gc_handle& handle, ptrdiff_t shi
     return is_interior_pointer(handle, handle.rbarrier() + shift);
 }
 
+garbage_collector::alloc_descriptor::alloc_descriptor(const utils::block_ptr<managed_ptr>& ptr, object_meta* meta)
+    : m_ptr(ptr)
+    , m_meta(meta)
+{}
+
+byte* garbage_collector::alloc_descriptor::ptr() const
+{
+    return m_ptr.decorated().get();
+}
+
+size_t garbage_collector::alloc_descriptor::size() const
+{
+    return m_ptr.size();
+}
+
+object_meta* garbage_collector::alloc_descriptor::meta() const
+{
+    return m_meta;
+}
+
 }}

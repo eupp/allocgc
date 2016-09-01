@@ -18,7 +18,7 @@ class incremental_gc_base : public gc_strategy, private utils::noncopyable, priv
 public:
     incremental_gc_base(gc_compacting compacting, size_t threads_available);
 
-    managed_ptr allocate(size_t size) override;
+    utils::block_ptr<managed_ptr> allocate(size_t size) override;
 
     byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;

@@ -7,6 +7,7 @@
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/utils/block_ptr.hpp>
 
 namespace precisegc { namespace details {
 
@@ -15,7 +16,7 @@ class gc_strategy
 public:
     virtual ~gc_strategy() {}
 
-    virtual managed_ptr allocate(size_t size) = 0;
+    virtual utils::block_ptr<managed_ptr> allocate(size_t size) = 0;
 
     virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;

@@ -27,7 +27,8 @@ public:
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    std::pair<managed_ptr, object_meta*> allocate(size_t size, const type_meta* tmeta);
+    std::pair<managed_ptr, object_meta*> allocate(size_t obj_size, size_t obj_count,
+                                                      const type_meta* tmeta);
 
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
@@ -53,7 +54,7 @@ public:
     gc_stat  stats() const;
     gc_state state() const;
 private:
-    bool check_gc_phase(gc_phase phase);
+    std::pair<managed_ptr, object_meta*> try_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
 
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
     static bool is_interior_shift(const gc_handle& handle, ptrdiff_t shift);

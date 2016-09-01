@@ -13,7 +13,7 @@ namespace precisegc { namespace details {
 
 void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
 
-std::pair<managed_ptr, object_meta*> gc_allocate(size_t size, const type_meta* tmeta);
+std::pair<managed_ptr, object_meta*> gc_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
 
 void gc_initiation_point(initiation_point_type ipoint,
                          const initiation_point_data& ipd = initiation_point_data::create_empty_data());

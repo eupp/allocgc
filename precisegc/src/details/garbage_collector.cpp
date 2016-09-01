@@ -33,23 +33,29 @@ std::unique_ptr<gc_strategy> garbage_collector::set_strategy(std::unique_ptr<gc_
     return std::move(strategy);
 }
 
-std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t size, const type_meta* tmeta)
+std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t obj_size, size_t obj_count,
+                                                                 const type_meta* tmeta)
+{
+    try {
+        return try_allocate(obj_size, obj_count, tmeta);
+    } catch (gc_bad_alloc& ) {
+        initiation_point(initiation_point_type::GC_BAD_ALLOC);
+        return try_allocate(obj_size, obj_count, tmeta);
+    }
+}
+
+std::pair<managed_ptr, object_meta*> garbage_collector::try_allocate(size_t obj_size, size_t obj_count,
+                                                                    const type_meta* tmeta)
 {
     assert(m_strategy);
 
-    managed_ptr ptr;
-    gc_unsafe_scope unsafe_scope;
+    size_t size = obj_count * obj_size + sizeof(object_meta);
+    managed_ptr ptr = m_strategy->allocate(size);
 
-    try {
-        ptr = m_strategy->allocate(size);
-    } catch (gc_bad_alloc& ) {
-        initiation_point(initiation_point_type::GC_BAD_ALLOC);
-        ptr = m_strategy->allocate(size);
-    }
     m_manager.register_allocation(ptr.cell_size());
 
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr.get(), ptr.cell_size());
-    new (obj_meta) object_meta(tmeta);
+    new(obj_meta) object_meta(obj_count, tmeta);
 
     return std::make_pair(ptr, obj_meta);
 }

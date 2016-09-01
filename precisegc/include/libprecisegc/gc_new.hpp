@@ -99,13 +99,20 @@ auto gc_new(Args&&... args)
     using namespace precisegc::details::ptrs;
 
     T* typed_ptr;
+    gc_unsafe_scope unsafe_scope;
     {
         gc_new_stack::activation_entry activation_entry;
 
-        auto alloc_ret = gc_allocate(sizeof(T) + sizeof(object_meta), type_meta_provider<T>::get_meta());
+        auto alloc_ret = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
         managed_ptr mptr = alloc_ret.first;
-        typed_ptr = reinterpret_cast<T*>(mptr.get());
+        byte* ptr = mptr.get();
+        typed_ptr = reinterpret_cast<T*>(ptr);
         object_meta* obj_meta = alloc_ret.second;
+
+        threads::this_managed_thread::pin(ptr);
+        auto guard = utils::make_scope_guard([ptr] {
+            threads::this_managed_thread::unpin(ptr);
+        });
 
         if (!type_meta_provider<T>::is_meta_created()) {
             gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
@@ -114,8 +121,6 @@ auto gc_new(Args&&... args)
         } else {
             new (typed_ptr) T(std::forward<Args>(args)...);
         }
-
-        obj_meta->set_object_count(1);
     }
 
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(typed_ptr);
@@ -131,27 +136,32 @@ auto gc_new(size_t n)
     typedef typename std::remove_extent<T>::type U;
 
     U* typed_ptr;
+    gc_unsafe_scope unsafe_scope;
     {
         gc_new_stack::activation_entry activation_entry;
 
-        auto alloc_ret = gc_allocate(n * sizeof(U) + sizeof(object_meta), type_meta_provider<T>::get_meta());
+        auto alloc_ret = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
         managed_ptr mptr = alloc_ret.first;
-        typed_ptr = reinterpret_cast<U*>(mptr.get());
+        byte* ptr = mptr.get();
+        typed_ptr = reinterpret_cast<U*>(ptr);
         object_meta* obj_meta = alloc_ret.second;
 
         U* begin = typed_ptr;
         U* end = typed_ptr + n;
 
+        threads::this_managed_thread::pin(ptr);
+        auto guard = utils::make_scope_guard([ptr] {
+            threads::this_managed_thread::unpin(ptr);
+        });
+
         if (!type_meta_provider<U>::is_meta_created()) {
             gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
             new (begin++) U();
             obj_meta->set_type_meta(type_meta_provider<U>::create_meta(gc_new_stack::offsets()));
-            obj_meta->increment_object_count();
         }
 
         for (U* it = begin; it < end; ++it) {
             new (it) U();
-            obj_meta->increment_object_count();
         }
     }
 

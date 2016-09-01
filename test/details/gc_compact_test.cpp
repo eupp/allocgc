@@ -265,7 +265,7 @@ TEST_F(gc_compact_test, test_fix_pointers)
     from = &val2;
 
     object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);
-    new (obj_meta) object_meta(tmeta, 1);
+    new(obj_meta) object_meta(1, tmeta);
     obj_meta->set_forward_pointer(ptr);
 
     list_forwarding forwarding;

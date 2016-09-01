@@ -21,7 +21,7 @@ const type_meta* object_meta_test::tmeta = type_meta_provider<test_type>::create
 
 TEST_F(object_meta_test, test_constructor)
 {
-    object_meta obj_meta(tmeta);
+    object_meta obj_meta(0, tmeta);
     ASSERT_EQ(obj_meta.get_type_meta(), tmeta);
     ASSERT_EQ(obj_meta.type_size(), tmeta->type_size());
     ASSERT_EQ(obj_meta.offsets(), tmeta->offsets());
@@ -30,7 +30,7 @@ TEST_F(object_meta_test, test_constructor)
 
 TEST_F(object_meta_test, test_object_count)
 {
-    object_meta obj_meta(tmeta);
+    object_meta obj_meta(0, tmeta);
 
     static const size_t OBJ_COUNT = 4;
     obj_meta.set_object_count(4);
@@ -48,7 +48,7 @@ TEST_F(object_meta_test, test_forward_pointer)
     memset(&pvalue->data, 0, sizeof(void*));
 
     object_meta* obj_meta = object_meta::get_meta_ptr(pstorage, STORAGE_SIZE);
-    new (obj_meta) object_meta(tmeta);
+    new(obj_meta) object_meta(0, tmeta);
     obj_meta->set_object_count(1);
 
     byte* p;

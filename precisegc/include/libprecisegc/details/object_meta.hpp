@@ -18,7 +18,7 @@ public:
         return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
     }
 
-    object_meta(const type_meta* meta = nullptr, size_t count = 0)
+    object_meta(size_t count, const type_meta* meta)
         : m_type_meta(reinterpret_cast<std::uintptr_t>(meta))
         , m_count(count)
     {}

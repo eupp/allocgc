@@ -32,6 +32,7 @@ public:
         gc_initiation_point(initiation_point_type::HEAP_EXPANSION,
                             initiation_point_data::create_heap_expansion_data(size));
         byte* page = reinterpret_cast<byte*>(aligned_alloc(alignment, size));
+        memset(page, 0, size);
         gc_register_page(page, size);
         return page;
     }

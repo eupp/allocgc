@@ -127,4 +127,7 @@ target_link_libraries(libprecisegc "${CMAKE_THREAD_LIBS_INIT}")
 
 set_target_properties(libprecisegc PROPERTIES VERSION 1.0.0 SOVERSION 1)
 install(TARGETS libprecisegc ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
-install(FILES ${precisegc_LIB_HDRS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/libprecisegc)
+foreach ( file ${precisegc_LIB_HDRS} )
+    get_filename_component( dir ${file} DIRECTORY )
+    install( FILES ${file} DESTINATION ${CMAKE_INSTALL_PREFIX}/${dir} )
+endforeach()

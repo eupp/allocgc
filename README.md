@@ -1,7 +1,7 @@
 ## Precise GC for C++
 
 Precise garbage collection for C++ based on smart pointers. 
-The project is still in development. Everything could change in the future
+The project is still in development. Everything could change in the future.
 
 ### Build
 
@@ -26,7 +26,7 @@ make libprecisegc
 ### Description
 
 This is a precise garbage collector for C++. 
-Like `std::shared_ptr` it uses smart pointers (called gc_ptr) to add automatic memory management into language, 
+Like `std::shared_ptr` it uses smart pointers (called `gc_ptr`) to add automatic memory management into language, 
 but our library implements tracing garbage collection instead of reference counting. 
 Unlike famous Boehm-Demers-Weiser garbage collector our library doesn't scan thread's stacks conservatively
 but maintains the root set dynamically during program execution. 
@@ -55,7 +55,7 @@ struct A {
     gc_ptr<A> p;
     
     A(int x_, int y_) : x(x_), y(y_) {}
-}
+};
 
 int main() {
     gc_init();
@@ -84,7 +84,6 @@ Library user should "pin" object in order to inform the collector that this obje
 gc_ptr<A> pA = gc_new<A>();
 gc_pin<A> pin = pa.pin();
 A* ptr = pin.get();
-}
 ```
 
 It is important that raw pointer should not outlive corresponding `gc_pin` object. 
@@ -95,14 +94,12 @@ Similar rule applies to references.
 ```C++
 gc_ref<A> rA = *pA;
 A& ref = ra; 
-}
 ```
 
 Compare with following code:
 
 ```C++
 A& ref = *pA;  // ERROR
-}
 ```
 
 ### Tunning GC
@@ -133,22 +130,22 @@ int main() {
 }
 ```
 
-* heapsize - upper limit for managed heap size in bytes
-* threads_available - number of threads that collector could use internally
-* algo - gc algorithm
-    * gc_algo::SERIAL - serial stop-the-world collector
-    * gc_algo::INCREMENTAL - collector with concurrent marking and stop-the-world sweeping/compacting
-* initiation - policy of gc initiation
-    * MANUAL - gc is launched only by user's request
-    * SPACE_BASED - gc is launched when heap size exceeded
-    * DEFAULT - default policy
-* compacting - enables/disables heap compactification
-    * gc_compacting::ENABLED 
-    * gc_compacting::DISABLED
-* loglevel - logging
-    * DEBUG
-    * INFO
-    * WARNING
-    * ERROR
-    * SILENT
-* print_stat - when true short statistic is printed to stderr
+* **heapsize** - upper limit for managed heap size in bytes
+* **threads_available** - number of threads that collector could use internally
+* **algo** - gc algorithm
+    * **gc_algo::SERIAL** - serial stop-the-world collector
+    * **gc_algo::INCREMENTAL** - collector with concurrent marking and stop-the-world sweeping/compacting
+* **initiation** - policy of gc initiation
+    * **MANUAL** - gc is launched only by user's request
+    * **SPACE_BASED** - gc is launched when heap size exceeded
+    * **DEFAULT** - default policy
+* **compacting** - enables/disables heap compactification
+    * **gc_compacting::ENABLED**
+    * **gc_compacting::DISABLED**
+* **loglevel** - logging
+    * **DEBUG**
+    * **INFO**
+    * **WARNING**
+    * **ERROR**
+    * **SILENT**
+* **print_stat** - when true short statistic is printed to stderr

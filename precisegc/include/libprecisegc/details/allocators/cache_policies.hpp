@@ -1,0 +1,8 @@
+//
+// Created by evgeniy on 02.09.16.
+//
+
+#ifndef DIPLOMA_CACHE_POLICIES_HPP
+#define DIPLOMA_CACHE_POLICIES_HPP
+
+#endif //DIPLOMA_CACHE_POLICIES_HPP

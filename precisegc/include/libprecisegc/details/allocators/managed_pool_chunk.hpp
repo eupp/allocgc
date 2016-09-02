@@ -86,7 +86,9 @@ public:
     typedef utils::block_ptr<managed_ptr> pointer_type;
     typedef boost::iterator_range<iterator> range_type;
 
+    managed_pool_chunk();
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
+
     ~managed_pool_chunk();
 
     pointer_type allocate(size_t size);

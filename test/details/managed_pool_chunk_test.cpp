@@ -13,7 +13,7 @@ using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
 namespace {
-const size_t CELL_SIZE = 64;
+const size_t CELL_SIZE  = 64;
 const size_t CELL_COUNT = 64;
 const size_t CHUNK_SIZE = managed_pool_chunk::get_chunk_size(CELL_COUNT * CELL_SIZE);
 }
@@ -92,7 +92,7 @@ TEST_F(managed_pool_chunk_test, test_get_object_begin)
 
     type_meta_provider<test_type>::create_meta();
     const type_meta* cls_meta = type_meta_provider<test_type>::get_meta();
-    new(meta) object_meta(0, cls_meta);
+    new (meta) object_meta(0, cls_meta);
 
     for (size_t i = 0; i < OBJ_CNT; ++i) {
         byte* obj_begin = mem + i * OBJ_SIZE;

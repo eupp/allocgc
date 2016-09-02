@@ -20,7 +20,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Chunk, typename UpstreamAlloc, typename InternalAlloc, typename Lock>
+template <typename Chunk, typename UpstreamAlloc, typename InternalAlloc, typename Lock, typename CachePolicy>
 class list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable, private utils::nonmovable
 {
     typedef std::list<Chunk, stl_adapter<Chunk, InternalAlloc>> list_t;
@@ -35,7 +35,9 @@ public:
 
     list_allocator()
         : m_alloc_chunk(m_chunks.begin())
-    {}
+    {
+
+    }
 
     ~list_allocator()
     {
@@ -106,6 +108,11 @@ public:
 private:
     typedef typename UpstreamAlloc::pointer_type internal_pointer_type;
 
+    static Chunk create_empty_chunk(size_t cell_size)
+    {
+        return Chunk(0, 0, cell_size);
+    }
+
     pointer_type allocate_unsafe(size_t size)
     {
         if (m_alloc_chunk == m_chunks.end() || !m_alloc_chunk->memory_available()) {
@@ -154,6 +161,7 @@ private:
     }
 
     list_t m_chunks;
+//    CachePolicy m_cache;
     typename list_t::iterator m_alloc_chunk;
     mutable Lock m_lock;
 };

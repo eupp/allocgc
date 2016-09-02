@@ -6,6 +6,15 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
+freelist_pool_chunk::freelist_pool_chunk()
+    : m_chunk(nullptr)
+    , m_size(0)
+    , m_next(nullptr)
+    , m_init(nullptr)
+    , m_gain(0)
+    , m_alloc_cnt(0)
+{}
+
 freelist_pool_chunk::freelist_pool_chunk(byte* chunk, size_t size, size_t obj_size)
     : m_chunk(chunk)
     , m_size(size)

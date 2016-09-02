@@ -1,12 +1,20 @@
 #include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
 
 #include <cassert>
+#include <limits>
 #include <utility>
 
-#include "libprecisegc/details/utils/math.hpp"
-#include "logging.hpp"
+#include <libprecisegc/details/utils/math.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
+
+managed_pool_chunk::managed_pool_chunk()
+    : m_chunk()
+    , m_cell_size(0)
+    , m_log2_cell_size(0)
+    , m_mask(0)
+{}
 
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
     : m_chunk(chunk, size, cell_size)
@@ -166,11 +174,8 @@ managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
                                                           size_t chunk_size,
                                                           size_t cell_size)
 {
-    size_t chunk_size_bits = log2(chunk_size);
     size_t cell_size_bits = log2(cell_size);
-    size_t bit_diff = chunk_size_bits - cell_size_bits;
-    uintptr ptr = reinterpret_cast<uintptr>(chunk);
-    return (ptr | (((1 << bit_diff) - 1) << cell_size_bits));
+    return std::numeric_limits<uintptr>::max() << cell_size_bits;
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const

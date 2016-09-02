@@ -81,7 +81,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
         include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
         include/libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp
-        include/libprecisegc/details/allocators/managed_large_object_descriptor.hpp include/libprecisegc/details/gc_manager.hpp include/libprecisegc/details/utils/block_ptr.hpp)
+        include/libprecisegc/details/allocators/managed_large_object_descriptor.hpp include/libprecisegc/details/gc_manager.hpp include/libprecisegc/details/utils/block_ptr.hpp include/libprecisegc/details/allocators/cache_policies.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

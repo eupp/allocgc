@@ -17,7 +17,11 @@ public:
 
     static const size_t CHUNK_MAXSIZE = std::numeric_limits<size_t>::max();
 
+    freelist_pool_chunk();
     freelist_pool_chunk(byte* chunk, size_t size, size_t obj_size);
+
+    freelist_pool_chunk(freelist_pool_chunk&&) = default;
+    freelist_pool_chunk& operator=(freelist_pool_chunk&&) = default;
 
     byte* allocate(size_t obj_size);
     void  deallocate(byte* ptr, size_t obj_size);

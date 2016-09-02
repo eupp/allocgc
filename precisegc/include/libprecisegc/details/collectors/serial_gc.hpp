@@ -18,7 +18,7 @@ class serial_gc_base : public gc_strategy, private utils::noncopyable, private u
 public:
     serial_gc_base(gc_compacting compacting, size_t threads_available);
 
-    utils::block_ptr<managed_ptr> allocate(size_t size) override;
+    gc_pointer_type allocate(size_t size) override;
 
     byte* rbarrier(const gc_handle& handle) override;
 

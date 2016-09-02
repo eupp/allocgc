@@ -4,6 +4,7 @@
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -11,7 +12,7 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_large_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef managed_ptr pointer_type;
+    typedef utils::block_ptr<managed_ptr> pointer_type;
 
     static size_t align_size(size_t size)
     {
@@ -40,7 +41,7 @@ public:
     byte* get_cell_begin(byte* ptr) const override;
     byte* get_obj_begin(byte* ptr) const override;
 
-    managed_ptr get_mem();
+    pointer_type get_mem();
 
     bool empty() const;
 

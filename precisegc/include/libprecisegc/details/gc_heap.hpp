@@ -49,6 +49,9 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
             utils::safepoint_lock<std::recursive_mutex>
         > loa_t;
 
+    static_assert(std::is_same<typename tlab_t::pointer_type, typename loa_t::pointer_type>::value,
+                  "Large and small object allocators should have same pointer_type");
+
     typedef intrusive_forwarding forwarding;
 public:
     struct collect_stats
@@ -59,13 +62,13 @@ public:
 
     gc_heap(gc_compacting compacting);
 
-    utils::block_ptr<managed_ptr> allocate(size_t size);
+    gc_pointer_type allocate(size_t size);
 
     collect_stats collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
     typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
 
-    utils::block_ptr<managed_ptr> allocate_on_tlab(size_t size);
+    gc_pointer_type allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
 
     size_t shrink(const threads::world_snapshot& snapshot);

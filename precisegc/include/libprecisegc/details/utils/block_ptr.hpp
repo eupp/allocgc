@@ -13,12 +13,12 @@ public:
         : m_size(0)
     {}
 
-    block_ptr(const Ptr& ptr, size_t size = 0)
+    explicit block_ptr(const Ptr& ptr, size_t size = 0)
         : m_ptr(ptr)
         , m_size(size)
     {}
 
-    block_ptr(Ptr&& ptr, size_t size = 0)
+    explicit block_ptr(Ptr&& ptr, size_t size = 0)
         : m_ptr(ptr)
         , m_size(size)
     {}
@@ -43,10 +43,21 @@ public:
     {
         return m_ptr;
     }
+
+    const Ptr& decorated() const
+    {
+        return m_ptr;
+    }
 private:
     Ptr m_ptr;
     size_t m_size;
 };
+
+template <typename Ptr>
+block_ptr<Ptr> make_block_ptr(const Ptr& ptr, size_t size)
+{
+    return block_ptr<Ptr>(ptr, size);
+}
 
 }}}
 

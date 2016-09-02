@@ -89,9 +89,9 @@ byte * managed_large_object_descriptor::get_obj_begin(byte* ptr) const
     return cell_ptr + obj_ind * obj_size;
 }
 
-managed_ptr managed_large_object_descriptor::get_mem()
+managed_large_object_descriptor::pointer_type managed_large_object_descriptor::get_mem()
 {
-    return managed_ptr(m_ptr, get_descriptor());
+    return utils::make_block_ptr(managed_ptr(m_ptr, get_descriptor()), m_size);
 }
 
 bool managed_large_object_descriptor::empty() const

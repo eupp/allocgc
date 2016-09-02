@@ -31,14 +31,14 @@ public:
         type_meta_provider<simple_object>::create_meta();
         type_meta_provider<complex_object>::create_meta(std::vector<size_t>({0, sizeof(gc_untyped_ptr)}));
 
-        simple_object_ptr = heap.allocate(OBJ_SIZE);
+        simple_object_ptr = heap.allocate(OBJ_SIZE).decorated();
         new(simple_object_ptr.get_meta()) object_meta(1, type_meta_provider<simple_object>::get_meta());
 
-        complex_object_ptr = heap.allocate(OBJ_SIZE);
+        complex_object_ptr = heap.allocate(OBJ_SIZE).decorated();
         new(complex_object_ptr.get_meta()) object_meta(1, type_meta_provider<complex_object>::get_meta());
 
-        child1 = heap.allocate(OBJ_SIZE).get();
-        child2 = heap.allocate(OBJ_SIZE).get();
+        child1 = heap.allocate(OBJ_SIZE).decorated().get();
+        child2 = heap.allocate(OBJ_SIZE).decorated().get();
 
         complex_object* p = reinterpret_cast<complex_object*>(complex_object_ptr.get());
         p->m_ptr1 = gc_untyped_ptr(child1);

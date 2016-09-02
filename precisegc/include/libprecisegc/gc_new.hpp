@@ -103,11 +103,11 @@ auto gc_new(Args&&... args)
     {
         gc_new_stack::activation_entry activation_entry;
 
-        auto alloc_ret = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
-        managed_ptr mptr = alloc_ret.first;
-        byte* ptr = mptr.get();
+        gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
+        byte* ptr = descr.first.decorated().get();
         typed_ptr = reinterpret_cast<T*>(ptr);
-        object_meta* obj_meta = alloc_ret.second;
+        size_t size = descr.first.size();
+        object_meta* obj_meta = descr.second;
 
         threads::this_managed_thread::pin(ptr);
         auto guard = utils::make_scope_guard([ptr] {
@@ -115,7 +115,7 @@ auto gc_new(Args&&... args)
         });
 
         if (!type_meta_provider<T>::is_meta_created()) {
-            gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
+            gc_new_stack::stack_entry stack_entry(ptr, size);
             new (typed_ptr) T(std::forward<Args>(args)...);
             obj_meta->set_type_meta(type_meta_provider<T>::create_meta(gc_new_stack::offsets()));
         } else {
@@ -140,11 +140,11 @@ auto gc_new(size_t n)
     {
         gc_new_stack::activation_entry activation_entry;
 
-        auto alloc_ret = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
-        managed_ptr mptr = alloc_ret.first;
-        byte* ptr = mptr.get();
+        gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
+        byte* ptr = descr.first.decorated().get();
         typed_ptr = reinterpret_cast<U*>(ptr);
-        object_meta* obj_meta = alloc_ret.second;
+        size_t size = descr.first.size();
+        object_meta* obj_meta = descr.second;
 
         U* begin = typed_ptr;
         U* end = typed_ptr + n;
@@ -155,7 +155,7 @@ auto gc_new(size_t n)
         });
 
         if (!type_meta_provider<U>::is_meta_created()) {
-            gc_new_stack::stack_entry stack_entry(mptr.get(), mptr.cell_size());
+            gc_new_stack::stack_entry stack_entry(ptr, size);
             new (begin++) U();
             obj_meta->set_type_meta(type_meta_provider<U>::create_meta(gc_new_stack::offsets()));
         }

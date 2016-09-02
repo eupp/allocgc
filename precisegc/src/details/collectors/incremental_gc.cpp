@@ -19,9 +19,9 @@ incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t thread
     , m_threads_available(threads_available)
 {}
 
-utils::block_ptr<managed_ptr> incremental_gc_base::allocate(size_t size)
+gc_pointer_type incremental_gc_base::allocate(size_t size)
 {
-    utils::block_ptr<managed_ptr> ptr = m_heap.allocate(size);
+    gc_pointer_type ptr = m_heap.allocate(size);
     if (m_phase == gc_phase::MARK) {
         ptr.decorated().set_mark(true);
     }

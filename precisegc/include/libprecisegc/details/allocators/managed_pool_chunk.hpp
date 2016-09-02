@@ -14,6 +14,7 @@
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -82,16 +83,16 @@ public:
         managed_ptr m_ptr;
     };
 
-    typedef managed_ptr pointer_type;
+    typedef utils::block_ptr<managed_ptr> pointer_type;
     typedef boost::iterator_range<iterator> range_type;
 
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
     ~managed_pool_chunk();
 
-    managed_ptr allocate(size_t size);
-    void deallocate(const managed_ptr& ptr, size_t cell_size);
+    pointer_type allocate(size_t size);
+    void deallocate(const pointer_type& ptr, size_t size);
 
-    bool contains(const managed_ptr& ptr) const noexcept;
+    bool contains(const pointer_type& ptr) const noexcept;
     bool memory_available() const noexcept;
     bool empty() const noexcept;
 

@@ -20,21 +20,6 @@ namespace precisegc { namespace details {
 class garbage_collector : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    class alloc_descriptor
-    {
-    public:
-        byte* ptr() const;
-        size_t size() const;
-        object_meta* meta() const;
-
-        friend class garbage_collector;
-    private:
-        alloc_descriptor(const utils::block_ptr<managed_ptr>& ptr, object_meta* meta);
-
-        utils::block_ptr<managed_ptr> m_ptr;
-        object_meta* m_meta;
-    };
-
     garbage_collector();
 
     void init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
@@ -42,8 +27,7 @@ public:
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    std::pair<managed_ptr, object_meta*> allocate(size_t obj_size, size_t obj_count,
-                                                      const type_meta* tmeta);
+    gc_alloc_descriptor allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
 
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
@@ -69,7 +53,7 @@ public:
     gc_stat  stats() const;
     gc_state state() const;
 private:
-    std::pair<managed_ptr, object_meta*> try_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
+    gc_alloc_descriptor try_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
 
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
     static bool is_interior_shift(const gc_handle& handle, ptrdiff_t shift);

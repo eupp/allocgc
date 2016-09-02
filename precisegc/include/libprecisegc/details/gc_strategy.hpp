@@ -16,7 +16,7 @@ class gc_strategy
 public:
     virtual ~gc_strategy() {}
 
-    virtual utils::block_ptr<managed_ptr> allocate(size_t size) = 0;
+    virtual gc_pointer_type allocate(size_t size) = 0;
 
     virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;

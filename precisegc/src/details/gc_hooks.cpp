@@ -12,7 +12,7 @@ void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initia
     gc_instance.init(std::move(strategy), std::move(init_policy));
 }
 
-std::pair<managed_ptr, object_meta*> gc_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta)
+gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta)
 {
     return gc_instance.allocate(obj_size, obj_count, tmeta);
 }

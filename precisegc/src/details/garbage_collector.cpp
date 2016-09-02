@@ -33,8 +33,8 @@ std::unique_ptr<gc_strategy> garbage_collector::set_strategy(std::unique_ptr<gc_
     return std::move(strategy);
 }
 
-std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t obj_size, size_t obj_count,
-                                                                 const type_meta* tmeta)
+gc_alloc_descriptor garbage_collector::allocate(size_t obj_size, size_t obj_count,
+                                                                const type_meta* tmeta)
 {
     try {
         return try_allocate(obj_size, obj_count, tmeta);
@@ -44,17 +44,17 @@ std::pair<managed_ptr, object_meta*> garbage_collector::allocate(size_t obj_size
     }
 }
 
-std::pair<managed_ptr, object_meta*> garbage_collector::try_allocate(size_t obj_size, size_t obj_count,
-                                                                    const type_meta* tmeta)
+gc_alloc_descriptor garbage_collector::try_allocate(size_t obj_size, size_t obj_count,
+                                                    const type_meta* tmeta)
 {
     assert(m_strategy);
 
     size_t size = obj_count * obj_size + sizeof(object_meta);
-    managed_ptr ptr = m_strategy->allocate(size);
+    gc_pointer_type ptr = m_strategy->allocate(size);
 
-    m_manager.register_allocation(ptr.cell_size());
+    m_manager.register_allocation(ptr.size());
 
-    object_meta* obj_meta = object_meta::get_meta_ptr(ptr.get(), ptr.cell_size());
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr.decorated().get(), ptr.size());
     new(obj_meta) object_meta(obj_count, tmeta);
 
     return std::make_pair(ptr, obj_meta);
@@ -175,26 +175,6 @@ bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)
 bool garbage_collector::is_interior_shift(const gc_handle& handle, ptrdiff_t shift)
 {
     return is_interior_pointer(handle, handle.rbarrier() + shift);
-}
-
-garbage_collector::alloc_descriptor::alloc_descriptor(const utils::block_ptr<managed_ptr>& ptr, object_meta* meta)
-    : m_ptr(ptr)
-    , m_meta(meta)
-{}
-
-byte* garbage_collector::alloc_descriptor::ptr() const
-{
-    return m_ptr.decorated().get();
-}
-
-size_t garbage_collector::alloc_descriptor::size() const
-{
-    return m_ptr.size();
-}
-
-object_meta* garbage_collector::alloc_descriptor::meta() const
-{
-    return m_meta;
 }
 
 }}

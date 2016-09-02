@@ -23,7 +23,7 @@ class bucket_allocator : private utils::ebo<BucketPolicy>, private utils::noncop
     typedef std::array<fixed_size_allocator_t, BUCKET_COUNT> array_t;
     typedef std::array<Lock, BUCKET_COUNT> lock_array_t;
 public:
-    typedef utils::block_ptr<typename Chunk::pointer_type> pointer_type;
+    typedef typename Chunk::pointer_type pointer_type;
     typedef typename fixed_size_allocator_t::memory_range_type memory_range_type;
 
     bucket_allocator() = default;
@@ -34,14 +34,14 @@ public:
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
-        return utils::block_ptr(m_buckets[ind].allocate(aligned_size), aligned_size);
+        return m_buckets[ind].allocate(aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
     {
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
-        size_t aligned_size = ptr.size() != 0 ? ptr.size() : bp.bucket_size(ind);
+        size_t aligned_size = bp.bucket_size(ind);
         m_buckets[ind].deallocate(ptr, aligned_size);
     }
 

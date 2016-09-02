@@ -22,16 +22,18 @@ managed_pool_chunk::~managed_pool_chunk()
     managed_ptr::remove_from_index(get_mem(), get_mem_size());
 }
 
-managed_ptr managed_pool_chunk::allocate(size_t size)
+managed_pool_chunk::pointer_type managed_pool_chunk::allocate(size_t size)
 {
     assert(size == cell_size());
     byte* raw_ptr = m_chunk.allocate(size);
-    return managed_ptr(raw_ptr, get_descriptor());
+    return utils::make_block_ptr(managed_ptr(raw_ptr, get_descriptor()), size);
 }
 
-void managed_pool_chunk::deallocate(const managed_ptr& ptr, size_t cell_size)
+void managed_pool_chunk::deallocate(const pointer_type& ptr, size_t size)
 {
-    deallocate(ptr.get(), cell_size);
+    assert(ptr.size() == size);
+    assert(ptr.size() == cell_size());
+    deallocate(ptr.decorated().get(), size);
 }
 
 void managed_pool_chunk::deallocate(byte* ptr, size_t size)
@@ -40,9 +42,9 @@ void managed_pool_chunk::deallocate(byte* ptr, size_t size)
     m_chunk.deallocate(ptr, size);
 }
 
-bool managed_pool_chunk::contains(const managed_ptr& ptr) const noexcept
+bool managed_pool_chunk::contains(const pointer_type& ptr) const noexcept
 {
-    return m_chunk.contains(ptr.get());
+    return m_chunk.contains(ptr.decorated().get());
 }
 
 bool managed_pool_chunk::memory_available() const noexcept

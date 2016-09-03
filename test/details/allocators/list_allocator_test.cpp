@@ -6,6 +6,7 @@
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
+#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -22,14 +23,24 @@ class list_allocator_test: public ::testing::Test
 {
 public:
     typedef debug_layer<default_allocator> allocator_t;
-    typedef list_allocator<test_chunk, allocator_t, allocator_t, utils::dummy_mutex> list_allocator_t;
+    typedef list_allocator<
+            test_chunk,
+            allocator_t,
+            allocator_t,
+            single_chunk_cache,
+            utils::dummy_mutex> list_allocator_t;
 
     list_allocator_t alloc;
 };
 
 TEST_F(list_allocator_test, test_sizeof)
 {
-    typedef list_allocator<test_chunk, default_allocator, default_allocator, utils::dummy_mutex> alloc_t;
+    typedef list_allocator<
+            test_chunk,
+            default_allocator,
+            default_allocator,
+            always_expand,
+            utils::dummy_mutex> alloc_t;
     RecordProperty("size", sizeof(alloc_t));
     std::cout << "[          ] sizeof(list_allocator) = " << sizeof(alloc_t) << std::endl;
 }

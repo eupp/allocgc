@@ -4,8 +4,10 @@
 #include <mutex>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -50,7 +52,13 @@ class bucket_allocator_test : public ::testing::Test
 {
 public:
 //    typedef debug_layer<page_allocator> allocator_t;
-    typedef bucket_allocator<test_chunk, default_allocator, default_allocator, test_bucket_policy, std::mutex> bucket_allocator_t;
+    typedef list_allocator<
+            test_chunk,
+            default_allocator,
+            default_allocator,
+            single_chunk_cache,
+            std::mutex> list_alloc_t;
+    typedef bucket_allocator<list_alloc_t, test_bucket_policy> bucket_allocator_t;
 
     bucket_allocator_t m_alloc;
 };

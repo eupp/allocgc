@@ -6,92 +6,71 @@
 #include <utility>
 
 #include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Container>
-class single_chunk_cache
+template <typename Iterator>
+class single_chunk_cache : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef typename Container::value_type chunk_type;
-    typedef typename Container::iterator iterator;
-    typedef typename Container::const_iterator const_iterator;
+    typedef typename Iterator::value_type chunk_type;
+    typedef typename chunk_type::pointer_type pointer_type;
 
-    single_chunk_cache()
-        : m_cache(m_chunks.begin())
+    explicit single_chunk_cache(const Iterator& init)
+        : m_chunk(init)
     {}
 
-    template <typename Alloc>
-    iterator destroy(Alloc& alloc, iterator it)
+    pointer_type allocate(size_t size)
     {
-        return destroy_chunk(alloc, it);
+        return m_chunk->allocate(size);
     }
 
-    iterator begin()
+    bool memory_available(const Iterator& first, const Iterator& last) const
     {
-        return m_chunks.begin();
+        return m_chunk != last && m_chunk->memory_available();
     }
 
-    const_iterator begin() const
+    void update(const Iterator& it)
     {
-        return m_chunks.begin();
+        m_chunk = it;
     }
 
-    const_iterator cbegin() const
+    void invalidate(const Iterator& it, const Iterator& deflt)
     {
-        return m_chunks.cbegin();
-    }
-
-    iterator end()
-    {
-        return m_chunks.end();
-    }
-
-    const_iterator end() const
-    {
-        return m_chunks.end();
-    }
-
-    const_iterator cend() const
-    {
-        return m_chunks.cend();
+        if (m_chunk == it) {
+            m_chunk = deflt;
+        }
     }
 private:
-    template <typename Alloc>
-    typename iterator create_chunk(Alloc& alloc, size_t cell_size)
+    Iterator m_chunk;
+};
+
+template <typename Iterator>
+class always_expand : private utils::noncopyable, private utils::nonmovable
+{
+public:
+    typedef typename Iterator::value_type chunk_type;
+    typedef typename chunk_type::pointer_type pointer_type;
+
+    explicit always_expand(const Iterator& init)
+    {}
+
+    pointer_type allocate(size_t size)
     {
-        auto alloc_res = allocate_blk(alloc, cell_size);
-        m_chunks.emplace_back(alloc_res.first, alloc_res.second, cell_size);
-        return --m_chunks.end();
+        return nullptr;
     }
 
-    template <typename Alloc>
-    typename iterator destroy_chunk(Alloc& alloc, iterator chk)
+    bool memory_available(const Iterator& first, const Iterator& last) const
     {
-        if (m_cache == chk) {
-            m_cache++;
-        }
-        deallocate_blk(alloc, chk->get_mem(), chk->get_mem_size());
-        return m_chunks.erase(chk);
+        return false;
     }
 
-    template <typename Alloc>
-    std::pair<typename Alloc::pointer_type, size_t> allocate_blk(Alloc& alloc, size_t cell_size)
-    {
-        assert(PAGE_SIZE % cell_size == 0);
-        size_t chunk_size = chunk_type::get_chunk_size(cell_size);
-        return std::make_pair(alloc.allocate(chunk_size, chunk_size), chunk_size);
-    }
+    void update(const Iterator& it)
+    {}
 
-    template <typename Alloc>
-    void deallocate_blk(Alloc& alloc, typename Alloc::pointer_type ptr, size_t size)
-    {
-        assert(ptr);
-        alloc.deallocate(ptr, size, size);
-    }
-
-    Container m_chunks;
-    iterator m_cache;
+    void invalidate(const Iterator& it, const Iterator& deflt)
+    {}
 };
 
 }}}

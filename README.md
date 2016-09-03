@@ -61,8 +61,8 @@ int main() {
     gc_init();
     
     gc_ptr<A> pA = gc_new<A>();
-    a->x = 0;
-    a->p = gc_new<A>(1, 0);
+    pA->x = 0;
+    pA->p = gc_new<A>(1, 0);
     
     return 0;
 }
@@ -82,7 +82,7 @@ Library user should "pin" object in order to inform the collector that this obje
 
 ```C++
 gc_ptr<A> pA = gc_new<A>();
-gc_pin<A> pin = pa.pin();
+gc_pin<A> pin = pA.pin();
 A* ptr = pin.get();
 ```
 

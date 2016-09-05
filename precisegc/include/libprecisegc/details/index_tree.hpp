@@ -50,13 +50,16 @@ struct splitter
         std::uintptr_t x = reinterpret_cast<std::uintptr_t>(ptr);
         x &= ((std::uintptr_t) 1 << (POINTER_BITS_USED)) - 1;
 
-        size_t shift = POINTER_BITS_USED - LEVEL_BITS_CNT;
-        idxs_t idxs;
-        idxs[0] = x >> shift;
+        static const size_t shifts[] = {
+                  POINTER_BITS_USED - LAST_LEVEL_BITS_CNT
+                , POINTER_BITS_USED - LAST_LEVEL_BITS_CNT - LEVEL_BITS_CNT
+                , POINTER_BITS_USED - LAST_LEVEL_BITS_CNT - 2 * LEVEL_BITS_CNT
+        };
 
+        idxs_t idxs;
+        idxs[0] = x >> shifts[0];
         for (size_t i = 1; i < LEVEL_CNT; ++i) {
-            shift -= LEVEL_BITS_CNT;
-            idxs[i] = (x >> shift) & (((std::uintptr_t) 1 << (LEVEL_BITS_CNT)) - 1);
+            idxs[i] = (x >> shifts[i]) & (((std::uintptr_t) 1 << (LEVEL_BITS_CNT)) - 1);
         }
 
         for (int i = 0; i < idxs.size() - 1; ++i) {

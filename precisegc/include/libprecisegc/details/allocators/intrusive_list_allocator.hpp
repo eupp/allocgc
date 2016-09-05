@@ -18,7 +18,10 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Chunk, typename UpstreamAlloc, typename Lock>
+template <typename Chunk,
+          typename UpstreamAlloc,
+          template <typename> class CachePolicy,
+          typename Lock>
 class intrusive_list_allocator : private utils::ebo<UpstreamAlloc>,
                                  private utils::noncopyable, private utils::nonmovable
 {
@@ -94,7 +97,7 @@ private:
         control_block* m_control_block;
     };
 
-    class mem_iterator : boost::iterator_adaptor<
+    class mem_iterator : public boost::iterator_adaptor<
               mem_iterator
             , chunk_iterator
             , typename std::iterator_traits<typename Chunk::iterator>::value_type
@@ -117,7 +120,7 @@ private:
             pointer_type m_ptr;
         };
     public:
-        typedef typename mem_iterator::iterator_adaptor_::value_type       value_type;
+//        typedef typename mem_iterator::iterator_adaptor_::value_type       value_type;
         typedef typename mem_iterator::iterator_adaptor_::reference        reference;
         typedef typename mem_iterator::iterator_adaptor_::pointer          pointer;
         typedef typename mem_iterator::iterator_adaptor_::difference_type  difference_type;
@@ -151,6 +154,8 @@ private:
             , utils::flattened_range<boost::iterator_range<chunk_iterator>>
             , boost::iterator_range<mem_iterator>
         >::type memory_range_unlocked_type;
+
+    typedef CachePolicy<chunk_iterator> cache_t;
 public:
     typedef stateful_alloc_tag alloc_tag;
     typedef utils::locked_range<
@@ -160,6 +165,7 @@ public:
 
     intrusive_list_allocator()
         : m_head(get_fake_block())
+        , m_cache(begin())
     {
         m_fake.m_next   = get_fake_block();
         m_fake.m_prev   = get_fake_block();
@@ -178,7 +184,12 @@ public:
     pointer_type allocate(size_t size)
     {
         std::lock_guard<Lock> lock_guard(m_lock);
-        return create_memblk(size)->get_mem();
+        if (!m_cache.memory_available(begin(), end())) {
+            auto new_chunk = create_memblk(size);
+            m_cache.update(new_chunk);
+            return new_chunk->allocate(size);
+        }
+        return m_cache.allocate(size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
@@ -188,7 +199,7 @@ public:
                                           [&ptr] (const Chunk& chk) { return chk.contains(ptr); });
         dealloc_chunk->deallocate(ptr, size);
         if (dealloc_chunk->empty()) {
-            destroy_memblk(dealloc_chunk.cblk());
+            destroy_memblk(dealloc_chunk);
         }
     }
 
@@ -252,7 +263,7 @@ private:
         return chunk_iterator(get_fake_block());
     }
 
-    Chunk* create_memblk(size_t size)
+    chunk_iterator create_memblk(size_t size)
     {
         size_t aligned_size = Chunk::align_size(size);
         size_t memblk_size = aligned_size + sizeof(control_block) + sizeof(Chunk);
@@ -271,11 +282,14 @@ private:
 
         new (chunk) Chunk(get_mem(memblk), aligned_size);
 
-        return chunk;
+        return chunk_iterator(cblk);
     }
 
-    void destroy_memblk(control_block* cblk)
+    void destroy_memblk(chunk_iterator it)
     {
+        m_cache.invalidate(it, end());
+
+        control_block* cblk = it.cblk();
         if (cblk == m_head) {
             m_head = cblk->m_next;
         }
@@ -329,6 +343,7 @@ private:
 
     control_block m_fake;
     control_block* m_head;
+    cache_t m_cache;
     Lock m_lock;
 };
 

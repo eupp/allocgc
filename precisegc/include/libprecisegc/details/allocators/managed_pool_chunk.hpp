@@ -48,6 +48,7 @@ public:
         }
     }
 
+    managed_pool_chunk();
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
 
     ~managed_pool_chunk();

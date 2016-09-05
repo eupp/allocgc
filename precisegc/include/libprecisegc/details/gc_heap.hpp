@@ -53,6 +53,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef allocators::intrusive_list_allocator<
             allocators::managed_large_object_descriptor,
             allocators::page_allocator,
+            allocators::always_expand,
             utils::safepoint_lock<std::recursive_mutex>
         > loa_t;
 

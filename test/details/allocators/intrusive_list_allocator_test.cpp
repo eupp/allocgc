@@ -3,9 +3,10 @@
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 
-#include "test_descriptor.hpp"
+#include "test_chunk.h"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
@@ -18,7 +19,12 @@ class intrusive_list_allocator_test : public ::testing::Test
 {
 public:
     typedef debug_layer<default_allocator> allocator_t;
-    typedef intrusive_list_allocator<test_descriptor, allocator_t, utils::dummy_mutex> intrusive_list_allocator_t;
+    typedef intrusive_list_allocator<
+              test_chunk
+            , allocator_t
+            , always_expand
+            , utils::dummy_mutex
+        > intrusive_list_allocator_t;
 
     intrusive_list_allocator_t alloc;
 };
@@ -44,8 +50,8 @@ TEST_F(intrusive_list_allocator_test, test_shrink)
         alloc.allocate(OBJ_SIZE);
     }
 
-    alloc.apply_to_descriptors([] (test_descriptor& descriptor) {
-        descriptor.set_empty(true);
+    alloc.apply_to_chunks([] (test_chunk& chk) {
+        chk.set_empty();
     });
 
     alloc.shrink();

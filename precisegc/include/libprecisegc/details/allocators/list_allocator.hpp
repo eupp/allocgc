@@ -113,7 +113,9 @@ private:
     pointer_type allocate_unsafe(size_t size)
     {
         if (!m_cache.memory_available(m_chunks.begin(), m_chunks.end())) {
-            m_cache.update(create_chunk(size));
+            auto new_chunk = create_chunk(size);
+            m_cache.update(new_chunk);
+            return new_chunk->allocate(size);
         }
         return m_cache.allocate(size);
     }

@@ -10,6 +10,7 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
@@ -30,6 +31,10 @@ private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:
+    typedef allocators::multi_block_chunk_tag chunk_tag;
+    typedef utils::block_ptr<managed_ptr> pointer_type;
+    typedef managed_ptr_iterator<managed_pool_chunk> iterator;
+    typedef boost::iterator_range<iterator> range_type;
 
     static size_t get_chunk_size(size_t cell_size)
     {
@@ -43,50 +48,6 @@ public:
         }
     }
 
-    class iterator: public boost::iterator_facade<
-              iterator
-            , const managed_ptr
-            , boost::random_access_traversal_tag
-            , managed_ptr
-        >
-    {
-    public:
-        iterator() noexcept;
-        iterator(const iterator&) noexcept = default;
-        iterator(iterator&&) noexcept = default;
-
-        iterator& operator=(const iterator&) noexcept = default;
-        iterator& operator=(iterator&&) noexcept = default;
-
-        const managed_ptr* operator->()
-        {
-            return &m_ptr;
-        }
-    private:
-        friend class managed_pool_chunk;
-        friend class boost::iterator_core_access;
-
-        iterator(byte* ptr, memory_descriptor* descr) noexcept;
-
-        managed_ptr dereference() const;
-
-        void increment() noexcept;
-        void decrement() noexcept;
-
-        bool equal(const iterator& other) const noexcept;
-
-        void advance(ptrdiff_t n);
-        ptrdiff_t distance_to(const iterator& other) const;
-
-        size_t cell_size() const;
-
-        managed_ptr m_ptr;
-    };
-
-    typedef utils::block_ptr<managed_ptr> pointer_type;
-    typedef boost::iterator_range<iterator> range_type;
-
-    managed_pool_chunk();
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
 
     ~managed_pool_chunk();

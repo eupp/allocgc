@@ -94,14 +94,57 @@ managed_large_object_descriptor::pointer_type managed_large_object_descriptor::g
     return utils::make_block_ptr(managed_ptr(m_ptr, get_descriptor()), m_size);
 }
 
+managed_large_object_descriptor::pointer_type managed_large_object_descriptor::allocate(size_t size)
+{
+    assert(size <= m_size);
+    return utils::make_block_ptr(managed_ptr(m_ptr), m_size);
+}
+
+void managed_large_object_descriptor::deallocate(const pointer_type& ptr, size_t size)
+{
+    assert(ptr.decorated().get() == m_ptr && size == m_size);
+    return;
+}
+
+bool managed_large_object_descriptor::contains(const pointer_type& ptr) const
+{
+    byte* raw_ptr = ptr.decorated().get();
+    return m_ptr <= raw_ptr && raw_ptr < m_ptr + m_size;
+}
+
+bool managed_large_object_descriptor::memory_available() const
+{
+    return false;
+}
+
 bool managed_large_object_descriptor::empty() const
 {
     return !m_mark_bit && !m_pin_bit;
 }
 
+byte* managed_large_object_descriptor::get_mem() const
+{
+    return m_ptr;
+}
+
+size_t managed_large_object_descriptor::get_mem_size() const
+{
+    return m_size;
+}
+
 memory_descriptor* managed_large_object_descriptor::get_descriptor()
 {
     return this;
+}
+
+managed_large_object_descriptor::iterator managed_large_object_descriptor::begin()
+{
+    return iterator(m_ptr, get_descriptor());
+}
+
+managed_large_object_descriptor::iterator managed_large_object_descriptor::end()
+{
+    return iterator(m_ptr + m_size, get_descriptor());
 }
 
 bool managed_large_object_descriptor::check_ptr(byte* ptr) const

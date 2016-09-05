@@ -42,8 +42,8 @@ public:
 
     intrusive_list_pool_allocator()
             : m_head(get_fake_block())
-              , m_alloc_chunk(m_head)
-              , m_freelist(nullptr)
+            , m_alloc_chunk(m_head)
+            , m_freelist(nullptr)
     {
         m_fake.m_next = get_fake_block();
         m_fake.m_prev = get_fake_block();

@@ -191,47 +191,4 @@ size_t managed_pool_chunk::get_log2_cell_size() const
     return m_log2_cell_size;
 }
 
-managed_pool_chunk::iterator::iterator() noexcept
-{}
-
-managed_pool_chunk::iterator::iterator(byte* ptr, memory_descriptor* descr) noexcept
-    : m_ptr(ptr, descr)
-{}
-
-managed_ptr managed_pool_chunk::iterator::dereference() const
-{
-    return m_ptr;
-}
-
-bool managed_pool_chunk::iterator::equal(const managed_pool_chunk::iterator& other) const noexcept
-{
-    return m_ptr.get() == other.m_ptr.get();
-}
-
-void managed_pool_chunk::iterator::increment() noexcept
-{
-    m_ptr.advance(cell_size());
-}
-
-void managed_pool_chunk::iterator::decrement() noexcept
-{
-    m_ptr.advance(-cell_size());
-}
-
-void managed_pool_chunk::iterator::advance(ptrdiff_t n)
-{
-    m_ptr.advance(n * cell_size());
-}
-
-ptrdiff_t managed_pool_chunk::iterator::distance_to(const iterator& other) const
-{
-    return other.m_ptr.get() - m_ptr.get();
-}
-
-size_t managed_pool_chunk::iterator::cell_size() const
-{
-    managed_pool_chunk* chunk = static_cast<managed_pool_chunk*>(m_ptr.get_descriptor());
-    return chunk->cell_size();
-}
-
 }}}

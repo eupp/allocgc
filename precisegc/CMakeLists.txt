@@ -84,7 +84,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/managed_large_object_descriptor.hpp
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
-        include/libprecisegc/details/allocators/cache_policies.hpp)
+        include/libprecisegc/details/allocators/cache_policies.hpp
         include/libprecisegc/details/allocators/managed_ptr_iterator.hpp)
 
 set(precisegc_LIB_SRCS

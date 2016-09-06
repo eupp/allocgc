@@ -7,12 +7,12 @@ namespace precisegc { namespace details {
 
 managed_ptr::index_type managed_ptr::indexer;
 
-managed_ptr::managed_ptr()
+managed_ptr::managed_ptr() noexcept
     : m_ptr(nullptr)
     , m_descr(nullptr)
 {}
 
-managed_ptr::managed_ptr(nullptr_t)
+managed_ptr::managed_ptr(nullptr_t) noexcept
     : m_ptr(nullptr)
     , m_descr(nullptr)
 {}

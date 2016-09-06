@@ -9,6 +9,7 @@
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 
 #include "rand_util.h"
@@ -18,7 +19,7 @@ using namespace precisegc::details::allocators;
 
 namespace {
 static const size_t OBJ_SIZE = 64;      // PAGE_SIZE / OBJECTS_PER_PAGE;
-static const size_t CHUNK_SIZE = managed_pool_chunk::get_chunk_size(OBJ_SIZE);
+static const size_t CHUNK_SIZE = managed_pool_chunk::chunk_size(OBJ_SIZE);
 static const size_t OBJ_COUNT_1 = 5;    //
 static const size_t OBJ_COUNT_2 = 3 * managed_pool_chunk::CHUNK_MAXSIZE;
 
@@ -30,6 +31,7 @@ struct test_type
 typedef list_allocator<managed_pool_chunk,
                        page_allocator,
                        default_allocator,
+                       single_chunk_cache,
                        utils::dummy_mutex
             > allocator_t;
 }

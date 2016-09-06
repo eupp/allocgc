@@ -5,6 +5,13 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
+bitmap_pool_chunk::bitmap_pool_chunk()
+    : m_chunk(nullptr)
+    , m_size(0)
+    , m_cnt(0)
+    , m_bits(calc_bitset(0))
+{}
+
 bitmap_pool_chunk::bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size) 
     : m_chunk(chunk)
     , m_size(size)

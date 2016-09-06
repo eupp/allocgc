@@ -14,7 +14,7 @@
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_large_object_descriptor.hpp>
+#include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
@@ -51,7 +51,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
         > tlab_t;
 
     typedef allocators::intrusive_list_allocator<
-            allocators::managed_large_object_descriptor,
+            allocators::managed_object_descriptor,
             allocators::page_allocator,
             allocators::always_expand,
             utils::safepoint_lock<std::recursive_mutex>

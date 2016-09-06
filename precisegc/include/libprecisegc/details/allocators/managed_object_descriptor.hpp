@@ -11,20 +11,20 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class managed_large_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
+class managed_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
     typedef utils::block_ptr<managed_ptr> pointer_type;
     typedef allocators::single_block_chunk_tag chunk_tag;
-    typedef managed_ptr_iterator<managed_large_object_descriptor> iterator;
+    typedef managed_ptr_iterator<managed_object_descriptor> iterator;
 
     static size_t chunk_size(size_t size)
     {
         return ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
     }
 
-    managed_large_object_descriptor(byte* ptr, size_t size, size_t obj_size);
-    ~managed_large_object_descriptor();
+    managed_object_descriptor(byte* ptr, size_t size, size_t obj_size);
+    ~managed_object_descriptor();
 
     pointer_type allocate(size_t size);
     void deallocate(const pointer_type& ptr, size_t size);

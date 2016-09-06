@@ -8,7 +8,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 class managed_pool_chunk;
-class managed_large_object_descriptor;
+class managed_object_descriptor;
 
 template <typename Chunk>
 class managed_ptr_iterator : public boost::iterator_facade<
@@ -32,7 +32,7 @@ public:
     }
 private:
     friend class managed_pool_chunk;
-    friend class managed_large_object_descriptor;
+    friend class managed_object_descriptor;
     friend class boost::iterator_core_access;
 
     managed_ptr_iterator(byte* ptr, memory_descriptor* descr) noexcept

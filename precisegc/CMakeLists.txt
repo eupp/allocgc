@@ -81,7 +81,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
         include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
         include/libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp
-        include/libprecisegc/details/allocators/managed_large_object_descriptor.hpp
+        include/libprecisegc/details/allocators/managed_object_descriptor.hpp
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
@@ -114,7 +114,7 @@ set(precisegc_LIB_SRCS
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
-        src/details/allocators/managed_large_object_descriptor.cpp
+        src/details/allocators/managed_object_descriptor.cpp
         src/details/gc_manager.cpp)
 
 

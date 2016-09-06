@@ -137,7 +137,7 @@ private:
     std::pair<internal_pointer_type, size_t> allocate_block(size_t cell_size)
     {
         assert(PAGE_SIZE % cell_size == 0);
-        size_t chunk_size = Chunk::get_chunk_size(cell_size);
+        size_t chunk_size = Chunk::chunk_size(cell_size);
         return std::make_pair(upstream_allocate(chunk_size, chunk_size), chunk_size);
     }
 

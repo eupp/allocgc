@@ -15,7 +15,7 @@ using namespace precisegc::details::allocators;
 namespace {
 const size_t CELL_SIZE  = 64;
 const size_t CELL_COUNT = 64;
-const size_t CHUNK_SIZE = managed_pool_chunk::get_chunk_size(CELL_COUNT * CELL_SIZE);
+const size_t CHUNK_SIZE = managed_pool_chunk::chunk_size(CELL_COUNT * CELL_SIZE);
 }
 
 class managed_pool_chunk_test : public ::testing::Test

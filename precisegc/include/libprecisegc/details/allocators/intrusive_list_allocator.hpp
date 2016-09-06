@@ -181,15 +181,15 @@ public:
         }
     }
 
-    pointer_type allocate(size_t size)
+    pointer_type allocate(size_t cell_size)
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         if (!m_cache.memory_available(begin(), end())) {
-            auto new_chunk = create_memblk(size);
+            auto new_chunk = create_memblk(cell_size);
             m_cache.update(new_chunk);
-            return new_chunk->allocate(size);
+            return new_chunk->allocate(cell_size);
         }
-        return m_cache.allocate(size);
+        return m_cache.allocate(cell_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
@@ -250,7 +250,7 @@ private:
     auto memory_range_unlocked()
         -> typename std::enable_if<!is_multi_block_chunk<C>::value, memory_range_unlocked_type>::type
     {
-        return boost::make_iterator_range(begin(), end());
+        return boost::make_iterator_range(mem_iterator(m_head), mem_iterator(get_fake_block()));
     }
 
     chunk_iterator begin()
@@ -263,10 +263,10 @@ private:
         return chunk_iterator(get_fake_block());
     }
 
-    chunk_iterator create_memblk(size_t size)
+    chunk_iterator create_memblk(size_t cell_size)
     {
-        size_t aligned_size = Chunk::align_size(size);
-        size_t memblk_size = aligned_size + sizeof(control_block) + sizeof(Chunk);
+        size_t chunk_size = Chunk::chunk_size(cell_size);
+        size_t memblk_size = chunk_size + sizeof(control_block) + sizeof(Chunk);
         byte*  memblk = upstream_allocate(memblk_size);
 
         control_block* cblk = get_control_block(memblk, memblk_size);
@@ -280,7 +280,7 @@ private:
 
         m_head = cblk;
 
-        new (chunk) Chunk(get_mem(memblk), aligned_size);
+        new (chunk) Chunk(get_mem(memblk), chunk_size, cell_size);
 
         return chunk_iterator(cblk);
     }

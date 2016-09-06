@@ -18,12 +18,12 @@ public:
     typedef allocators::single_block_chunk_tag chunk_tag;
     typedef managed_ptr_iterator<managed_large_object_descriptor> iterator;
 
-    static size_t align_size(size_t size)
+    static size_t chunk_size(size_t size)
     {
         return ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
     }
 
-    managed_large_object_descriptor(byte* ptr, size_t size);
+    managed_large_object_descriptor(byte* ptr, size_t size, size_t obj_size);
     ~managed_large_object_descriptor();
 
     pointer_type allocate(size_t size);

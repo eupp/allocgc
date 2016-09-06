@@ -36,7 +36,7 @@ public:
     typedef managed_ptr_iterator<managed_pool_chunk> iterator;
     typedef boost::iterator_range<iterator> range_type;
 
-    static size_t get_chunk_size(size_t cell_size)
+    static size_t chunk_size(size_t cell_size)
     {
         size_t chunk_size_ub = cell_size * CHUNK_MAXSIZE;
         if (chunk_size_ub <= PAGE_SIZE) {

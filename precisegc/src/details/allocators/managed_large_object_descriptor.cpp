@@ -4,7 +4,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-managed_large_object_descriptor::managed_large_object_descriptor(byte* ptr, size_t size)
+managed_large_object_descriptor::managed_large_object_descriptor(byte* ptr, size_t size, size_t obj_size)
     : m_ptr(ptr)
     , m_size(size)
     , m_live_bit(true)
@@ -13,6 +13,7 @@ managed_large_object_descriptor::managed_large_object_descriptor(byte* ptr, size
 {
     assert(ptr);
     assert(size > LARGE_CELL_SIZE);
+    assert(obj_size <= size);
     managed_ptr::add_to_index(ptr, size, get_descriptor());
 }
 

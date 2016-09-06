@@ -167,29 +167,29 @@ public:
         : m_head(get_fake_block())
         , m_cache(begin())
     {
-        m_fake.m_next   = get_fake_block();
-        m_fake.m_prev   = get_fake_block();
+        m_fake.m_next = get_fake_block();
+        m_fake.m_prev = get_fake_block();
     }
 
     ~intrusive_list_allocator()
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         for (auto it = begin(); it != end(); ) {
-            auto next = std::next(it, 1);
+            auto next = std::next(it);
             destroy_memblk(it.cblk());
             it = next;
         }
     }
 
-    pointer_type allocate(size_t cell_size)
+    pointer_type allocate(size_t size)
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         if (!m_cache.memory_available(begin(), end())) {
-            auto new_chunk = create_memblk(cell_size);
+            auto new_chunk = create_memblk(size);
             m_cache.update(new_chunk);
-            return new_chunk->allocate(cell_size);
+            return new_chunk->allocate(size);
         }
-        return m_cache.allocate(cell_size);
+        return m_cache.allocate(size);
     }
 
     void deallocate(pointer_type ptr, size_t size)

@@ -60,7 +60,7 @@ void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 void intrusive_forwarding::forward(void* ptr) const
 {
     gc_handle* gcptr = reinterpret_cast<gc_handle*>(ptr);
-    void* from = gc_handle_access::get(*gcptr, std::memory_order_relaxed);
+    void* from = gc_handle_access::get<std::memory_order_relaxed>(*gcptr);
     if (from) {
         try {
             auto cell_ptr = managed_ptr(reinterpret_cast<byte*>(from));
@@ -68,7 +68,7 @@ void intrusive_forwarding::forward(void* ptr) const
             if (meta->is_forwarded()) {
                 void* to = meta->forward_pointer();
                 logging::debug() << "fix ptr: from " << from << " to " << to;
-                gc_handle_access::set(*gcptr, (byte*) to, std::memory_order_relaxed);
+                gc_handle_access::set<std::memory_order_relaxed>(*gcptr, (byte*) to);
             }
         } catch (unindexed_memory_exception& exc) {
             logging::error() << "Unindexed memory discovered: " << from;

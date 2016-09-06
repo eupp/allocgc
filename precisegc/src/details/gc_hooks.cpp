@@ -125,22 +125,4 @@ byte* gc_handle::pin_guard::get() const noexcept
     return m_ptr;
 }
 
-byte* gc_handle_access::get(const gc_handle& handle, std::memory_order order)
-{
-    const atomic_byte_ptr* atomic_ptr = reinterpret_cast<const atomic_byte_ptr*>(&handle.m_ptr);
-    return atomic_ptr->load(order);
-}
-
-void gc_handle_access::set(gc_handle& handle, byte* ptr, std::memory_order order)
-{
-    atomic_byte_ptr* atomic_ptr = reinterpret_cast<atomic_byte_ptr*>(&handle.m_ptr);
-    atomic_ptr->store(ptr, order);
-}
-
-void gc_handle_access::advance(gc_handle& handle, ptrdiff_t n, std::memory_order order)
-{
-    atomic_byte_ptr* atomic_ptr = reinterpret_cast<atomic_byte_ptr*>(&handle.m_ptr);
-    atomic_ptr->fetch_add(n, order);
-}
-
 }}

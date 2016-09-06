@@ -45,7 +45,7 @@ public:
         size_t shrunk = 0;
         auto& bp = get_bucket_policy();
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            shrunk += m_buckets[i].shrink(bp.bucket_size(i));
+            shrunk += m_buckets[i].shrink();
         }
         return shrunk;
     }

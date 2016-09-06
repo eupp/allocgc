@@ -267,20 +267,28 @@ private:
     {
         size_t chunk_size = Chunk::chunk_size(cell_size);
         size_t memblk_size = chunk_size + sizeof(control_block) + sizeof(Chunk);
-        byte*  memblk = upstream_allocate(memblk_size);
 
+        auto deleter = [this, memblk_size] (byte* p) {
+            upstream_deallocate(p, memblk_size);
+        };
+        std::unique_ptr<byte, decltype(deleter)> memblk_owner(upstream_allocate(memblk_size), deleter);
+        byte*  memblk = memblk_owner.get();
+
+        control_block* fake = get_fake_block();
         control_block* cblk = get_control_block(memblk, memblk_size);
         Chunk* chunk = get_chunk(memblk, memblk_size);
-
-        cblk->m_next = m_head;
-        cblk->m_prev = get_fake_block();
-
-        m_head->m_prev = cblk;
-        get_fake_block()->m_next = cblk;
-
-        m_head = cblk;
-
         new (chunk) Chunk(get_mem(memblk), chunk_size, cell_size);
+
+        cblk->m_next = fake;
+        cblk->m_prev = fake->m_prev;
+
+        fake->m_prev->m_next = cblk;
+        fake->m_prev = cblk;
+
+        if (m_head == fake) {
+            m_head = cblk;
+        }
+        memblk_owner.release();
 
         return chunk_iterator(cblk);
     }

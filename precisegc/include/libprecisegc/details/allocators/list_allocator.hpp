@@ -70,7 +70,7 @@ public:
         }
     }
 
-    size_t shrink(size_t cell_size)
+    size_t shrink()
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         size_t shrunk = 0;

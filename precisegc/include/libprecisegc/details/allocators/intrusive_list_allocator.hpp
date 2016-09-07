@@ -120,7 +120,7 @@ private:
             pointer_type m_ptr;
         };
     public:
-//        typedef typename mem_iterator::iterator_adaptor_::value_type       value_type;
+        typedef typename mem_iterator::iterator_adaptor_::value_type       value_type;
         typedef typename mem_iterator::iterator_adaptor_::reference        reference;
         typedef typename mem_iterator::iterator_adaptor_::pointer          pointer;
         typedef typename mem_iterator::iterator_adaptor_::difference_type  difference_type;

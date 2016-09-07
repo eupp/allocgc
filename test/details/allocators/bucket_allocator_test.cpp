@@ -68,8 +68,6 @@ TEST_F(bucket_allocator_test, test_allocate_1)
     size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_1));
     ASSERT_NE(nullptr, ptr);
     *ptr = 42;
-
-    m_alloc.deallocate((byte*) ptr, OBJ_SIZE_1);
 }
 
 TEST_F(bucket_allocator_test, test_allocate_2)

@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
+#include <libprecisegc/details/utils/get_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -20,14 +21,16 @@ public:
     typedef typename UpstreamAlloc::memory_range_type memory_range_type;
     typedef stateful_alloc_tag alloc_tag;
 
-    fixsize_freelist_allocator() = default;
+    fixsize_freelist_allocator()
+        : m_head(nullptr)
+    {}
 
     pointer_type allocate(size_t size)
     {
         assert(sizeof(pointer_type) <= size);
         if (m_head) {
             pointer_type ptr = m_head;
-            m_head = *reinterpret_cast<pointer_type*>(m_head.get());
+            m_head = *reinterpret_cast<pointer_type*>(utils::get_ptr(ptr));
             return ptr;
         }
         return mutable_upstream_allocator().allocate(size);
@@ -37,7 +40,7 @@ public:
     {
         assert(ptr);
         assert(sizeof(pointer_type) <= size);
-        pointer_type* next = reinterpret_cast<pointer_type*>(ptr.get());
+        pointer_type* next = reinterpret_cast<pointer_type*>(utils::get_ptr(ptr));
         *next = m_head;
         m_head = ptr;
     }
@@ -56,7 +59,7 @@ public:
     {
         size_t freed = 0;
         while (m_head) {
-            pointer_type* next = reinterpret_cast<pointer_type*>(m_head.get());
+            pointer_type next = *reinterpret_cast<pointer_type*>(utils::get_ptr(m_head));
             mutable_upstream_allocator().deallocate(m_head, size);
             m_head = next;
         }

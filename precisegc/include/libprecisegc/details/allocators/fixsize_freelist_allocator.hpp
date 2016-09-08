@@ -66,6 +66,11 @@ public:
         return mutable_upstream_allocator().shrink();
     }
 
+    bool empty() const
+    {
+        return upstream_allocator().empty();
+    }
+
     template <typename Functor>
     void apply_to_chunks(Functor&& f)
     {

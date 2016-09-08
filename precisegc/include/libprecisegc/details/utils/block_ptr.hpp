@@ -45,7 +45,7 @@ public:
         m_size = size;
     }
 
-    auto get()
+    auto get() const
         -> decltype(get_ptr(std::declval<Ptr>()))
     {
         return get_ptr(m_ptr);
@@ -59,6 +59,11 @@ public:
     const Ptr& decorated() const
     {
         return m_ptr;
+    }
+
+    explicit operator bool() const
+    {
+        return m_ptr.operator bool();
     }
 private:
     Ptr m_ptr;

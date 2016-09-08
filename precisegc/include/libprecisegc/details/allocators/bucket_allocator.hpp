@@ -37,7 +37,12 @@ public:
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
-        m_buckets[ind].deallocate(ptr, aligned_size);
+        m_buckets[ind].deallocate(ptr, size);
+    }
+
+    void deallocate(pointer_type ptr, size_t bucket_ind, size_t bucket_size)
+    {
+        m_buckets[bucket_ind].deallocate(ptr, bucket_size);
     }
 
     size_t shrink()

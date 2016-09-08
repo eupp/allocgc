@@ -97,13 +97,14 @@ size_t gc_heap::sweep()
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
+            if (rng.empty()) {
+                continue;
+            }
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            if (!rng.empty()) {
-                for (auto it = rng.begin(), end = rng.end(); it != end; ++it) {
-                    if (!it->get_mark()) {
-                        tlab.deallocate(utils::make_block_ptr(*it, bucket_size), bucket_size);
-                        freed += bucket_size;
-                    }
+            for (auto it = rng.begin(), end = rng.end(); it != end; ++it) {
+                if (!it->get_mark()) {
+                    tlab.deallocate(utils::make_block_ptr(*it, bucket_size), i, bucket_size);
+                    freed += bucket_size;
                 }
             }
         }

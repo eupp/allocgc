@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <type_traits>
 #include <utility>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
@@ -12,10 +13,14 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename UpstreamAlloc>
+struct zeroing_enabled {};
+struct zeroing_disabled {};
+
+template <typename UpstreamAlloc, typename ZeroingPolicy = zeroing_disabled>
 class fixsize_freelist_allocator : private utils::ebo<UpstreamAlloc>,
                                    private utils::noncopyable, private utils::nonmovable
 {
+    static const bool is_zeroing_enabled = std::is_same<ZeroingPolicy, zeroing_enabled>::value;
 public:
     typedef typename UpstreamAlloc::pointer_type pointer_type;
     typedef typename UpstreamAlloc::memory_range_type memory_range_type;
@@ -31,6 +36,9 @@ public:
         if (m_head) {
             pointer_type ptr = m_head;
             m_head = *reinterpret_cast<pointer_type*>(utils::get_ptr(ptr));
+            if (is_zeroing_enabled) {
+                memset(utils::get_ptr(ptr), 0, size);
+            }
             return ptr;
         }
         return mutable_upstream_allocator().allocate(size);

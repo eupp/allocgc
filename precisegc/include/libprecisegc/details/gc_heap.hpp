@@ -11,10 +11,11 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/page_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
+#include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_large_object_descriptor.hpp>
+#include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/safepoint_lock.hpp>
@@ -31,21 +32,30 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
     typedef allocators::pow2_bucket_policy<MIN_CELL_SIZE_BITS_CNT, LARGE_CELL_SIZE_BITS_CNT> tlab_bucket_policy;
 
-    typedef allocators::intrusive_list_pool_allocator<
-            allocators::freelist_pool_chunk, allocators::default_allocator
+    typedef allocators::intrusive_list_allocator<
+              allocators::freelist_pool_chunk
+            , allocators::default_allocator
+            , allocators::single_chunk_with_search_cache
+            , utils::dummy_mutex
         > chunk_pool_t;
 
-    typedef allocators::bucket_allocator<
+    typedef allocators::list_allocator<
             allocators::managed_pool_chunk,
             allocators::page_allocator,
             chunk_pool_t,
-            tlab_bucket_policy,
+            allocators::single_chunk_cache,
             utils::dummy_mutex
+        > fixsize_alloc_t;
+
+    typedef allocators::bucket_allocator<
+            fixsize_alloc_t,
+            tlab_bucket_policy
         > tlab_t;
 
     typedef allocators::intrusive_list_allocator<
-            allocators::managed_large_object_descriptor,
+            allocators::managed_object_descriptor,
             allocators::page_allocator,
+            allocators::always_expand,
             utils::safepoint_lock<std::recursive_mutex>
         > loa_t;
 

@@ -20,10 +20,17 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Chunk, typename UpstreamAlloc, typename InternalAlloc, typename Lock>
+template <typename Chunk,
+          typename UpstreamAlloc,
+          typename InternalAlloc,
+          template <typename> class CachePolicy,
+          typename Lock>
 class list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopyable, private utils::nonmovable
 {
     typedef std::list<Chunk, stl_adapter<Chunk, InternalAlloc>> list_t;
+    typedef typename list_t::iterator iterator_t;
+    typedef typename UpstreamAlloc::pointer_type internal_pointer_type;
+    typedef CachePolicy<iterator_t> cache_t;
 public:
     typedef typename Chunk::pointer_type pointer_type;
     typedef stateful_alloc_tag alloc_tag;
@@ -34,7 +41,7 @@ public:
 //            > memory_range_type;
 
     list_allocator()
-        : m_alloc_chunk(m_chunks.begin())
+        : m_cache(m_chunks.begin())
     {}
 
     ~list_allocator()
@@ -63,11 +70,10 @@ public:
         }
     }
 
-    size_t shrink(size_t cell_size)
+    size_t shrink()
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         size_t shrunk = 0;
-        size_t i = 0;
         for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
             if (it->empty()) {
                 shrunk += it->get_mem_size();
@@ -104,14 +110,14 @@ public:
         return this->template get_base<UpstreamAlloc>();
     }
 private:
-    typedef typename UpstreamAlloc::pointer_type internal_pointer_type;
-
     pointer_type allocate_unsafe(size_t size)
     {
-        if (m_alloc_chunk == m_chunks.end() || !m_alloc_chunk->memory_available()) {
-            m_alloc_chunk = create_chunk(size);
+        if (!m_cache.memory_available(m_chunks.begin(), m_chunks.end())) {
+            auto new_chunk = create_chunk(size);
+            m_cache.update(new_chunk);
+            return new_chunk->allocate(size);
         }
-        return m_alloc_chunk->allocate(size);
+        return m_cache.allocate(size);
     }
 
     typename list_t::iterator create_chunk(size_t cell_size)
@@ -123,9 +129,7 @@ private:
 
     typename list_t::iterator destroy_chunk(typename list_t::iterator chk)
     {
-        if (m_alloc_chunk == chk) {
-            m_alloc_chunk++;
-        }
+        m_cache.invalidate(chk, m_chunks.end());
         deallocate_block(chk->get_mem(), chk->get_mem_size());
         return m_chunks.erase(chk);
     }
@@ -133,7 +137,7 @@ private:
     std::pair<internal_pointer_type, size_t> allocate_block(size_t cell_size)
     {
         assert(PAGE_SIZE % cell_size == 0);
-        size_t chunk_size = Chunk::get_chunk_size(cell_size);
+        size_t chunk_size = Chunk::chunk_size(cell_size);
         return std::make_pair(upstream_allocate(chunk_size, chunk_size), chunk_size);
     }
 
@@ -154,7 +158,7 @@ private:
     }
 
     list_t m_chunks;
-    typename list_t::iterator m_alloc_chunk;
+    cache_t m_cache;
     mutable Lock m_lock;
 };
 

@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <cassert>
 
+#include <boost/range/iterator_range.hpp>
+
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/constants.hpp>
@@ -21,6 +23,7 @@ class page_allocator
 public:
     typedef byte* pointer_type;
     typedef stateless_alloc_tag alloc_tag;
+    typedef boost::iterator_range<byte*> memory_range_type;
 
     page_allocator() = default;
     page_allocator(const page_allocator&) = default;
@@ -42,6 +45,11 @@ public:
         assert(size != 0 && size % PAGE_SIZE == 0);
         gc_deregister_page(ptr, size);
         free(ptr);
+    }
+
+    memory_range_type memory_range()
+    {
+        return memory_range_type(nullptr, nullptr);
     }
 };
 

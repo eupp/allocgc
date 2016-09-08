@@ -6,9 +6,7 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/default_allocator.hpp>
+#include <libprecisegc/details/allocators/pool.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
@@ -22,7 +20,7 @@ class stack_map : private utils::noncopyable, private utils::nonmovable
 public:
     stack_map()
         : m_head(nullptr)
-        , m_free_node_cnt(0)
+        , m_pool(sizeof(node))
     {};
 
     void insert(T elem)
@@ -140,32 +138,18 @@ private:
 
     node* create_node(T elem)
     {
-        node* pnode = reinterpret_cast<node*>(m_pool.allocate(sizeof(node)));
+        node* pnode = reinterpret_cast<node*>(m_pool.allocate());
         pnode->m_value = elem;
         return pnode;
     }
 
     void destroy_node(node* pnode)
     {
-        m_pool.deallocate(reinterpret_cast<byte*>(pnode), sizeof(node));
-        if (++m_free_node_cnt == MAX_FREE_NODE) {
-            shrink_pool();
-            m_free_node_cnt = 0;
-        }
+        m_pool.deallocate(reinterpret_cast<byte*>(pnode));
     }
-
-    void shrink_pool()
-    {
-        m_pool.shrink(sizeof(node));
-    }
-
-    typedef allocators::intrusive_list_pool_allocator<
-            allocators::freelist_pool_chunk, allocators::default_allocator
-        > object_pool_t;
 
     std::atomic<node*> m_head;
-    object_pool_t m_pool;
-    size_t m_free_node_cnt;
+    allocators::pool<utils::dummy_mutex> m_pool;
 };
 
 typedef stack_map<ptrs::gc_untyped_ptr*> root_stack_map;

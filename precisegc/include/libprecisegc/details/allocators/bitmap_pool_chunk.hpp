@@ -10,14 +10,18 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class bitmap_pool_chunk: private utils::noncopyable, private utils::nonmovable
+class bitmap_pool_chunk: private utils::noncopyable
 {
 public:
     typedef byte* pointer_type;
 
     static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;
 
+    bitmap_pool_chunk();
     bitmap_pool_chunk(byte* chunk, size_t size, size_t obj_size);
+
+    bitmap_pool_chunk(bitmap_pool_chunk&&) = default;
+    bitmap_pool_chunk& operator=(bitmap_pool_chunk&&) = default;
 
     byte* allocate(size_t obj_size);
     void  deallocate(byte* ptr, size_t obj_size);

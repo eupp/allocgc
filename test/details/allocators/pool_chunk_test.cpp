@@ -13,9 +13,8 @@ using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 
 template <typename Chunk>
-class pool_chunk_test: public ::testing::Test
+struct pool_chunk_test : public ::testing::Test
 {
-public:
     static const int CHUNK_SIZE = boost::static_unsigned_min<(size_t) 64, Chunk::CHUNK_MAXSIZE>::value;
     static const int OBJ_SIZE = sizeof(size_t);
 

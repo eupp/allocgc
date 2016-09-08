@@ -3,8 +3,7 @@
 #include <vector>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/pool.hpp>
 
 #include "deoptimize.hpp"
 
@@ -37,32 +36,22 @@ NONIUS_BENCHMARK("allocators.default_allocator.deallocate", [](nonius::chronomet
     });
 });
 
-namespace {
-typedef intrusive_list_pool_allocator<
-        freelist_pool_chunk, allocators::default_allocator
-    > intrusive_list_allocator_t;
-}
-
-NONIUS_BENCHMARK("allocators.intrusive_list_pool_allocator.allocate", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("allocators.pool.allocate", [](nonius::chronometer meter)
 {
-    intrusive_list_allocator_t allocator;
-    std::vector<byte*> ps(meter.runs());
-    meter.measure([&allocator, &ps] (size_t i) {
-        ps[i] = allocator.allocate(OBJ_SIZE);
+    pool<utils::dummy_mutex> allocator(OBJ_SIZE);
+    meter.measure([&allocator] {
+        return allocator.allocate();
     });
-    for (auto p: ps) {
-        allocator.deallocate(p, OBJ_SIZE);
-    }
 });
 
-NONIUS_BENCHMARK("allocators.intrusive_list_pool_allocator.deallocate", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("allocators.pool.deallocate", [](nonius::chronometer meter)
 {
-    intrusive_list_allocator_t allocator;
+    pool<utils::dummy_mutex> allocator(OBJ_SIZE);
     std::vector<byte*> ps(meter.runs());
     for (auto& p: ps) {
-        p = allocator.allocate(OBJ_SIZE);
+        p = allocator.allocate();
     }
     meter.measure([&allocator, &ps] (size_t i) {
-        allocator.deallocate(ps[i], OBJ_SIZE);
+        allocator.deallocate(ps[i]);
     });
 });

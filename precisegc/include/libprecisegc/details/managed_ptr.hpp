@@ -20,8 +20,10 @@ public:
 class managed_ptr
 {
 public:
-    managed_ptr();
-    managed_ptr(nullptr_t);
+    typedef byte element_type;
+
+    managed_ptr() noexcept;
+    managed_ptr(nullptr_t) noexcept;
     managed_ptr(byte* ptr);
     managed_ptr(byte* ptr, memory_descriptor* descriptor);
 

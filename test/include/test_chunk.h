@@ -4,6 +4,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/types.hpp>
 
 class test_chunk
@@ -11,8 +12,9 @@ class test_chunk
     typedef precisegc::details::byte byte;
 public:
     typedef byte* pointer_type;
+    typedef precisegc::details::allocators::single_block_chunk_tag chunk_tag;
 
-    static size_t get_chunk_size(size_t cell_size)
+    static size_t chunk_size(size_t cell_size)
     {
         return cell_size;
     }
@@ -117,6 +119,11 @@ public:
     bool empty() const noexcept
     {
         return m_available;
+    }
+
+    void set_empty() noexcept
+    {
+        m_available = true;
     }
 
     byte* get_mem() const

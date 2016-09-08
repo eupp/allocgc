@@ -15,12 +15,10 @@
 
 #include <boost/integer/static_min_max.hpp>
 
-#include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_pool_allocator.hpp>
+#include <libprecisegc/details/allocators/pool.hpp>
 
 namespace precisegc { namespace details {
 
@@ -130,9 +128,7 @@ private:
     public:
         static std::unique_ptr<Level, level_deleter> create()
         {
-            std::unique_lock<std::mutex> lock(mutex);
-            auto ptr = std::unique_ptr<Level, level_deleter>(reinterpret_cast<Level*>(level_pool.allocate(sizeof(Level))));
-            lock.unlock();
+            auto ptr = std::unique_ptr<Level, level_deleter>(reinterpret_cast<Level*>(level_pool.allocate()));
             new (ptr.get()) Level();
             return ptr;
         }
@@ -140,20 +136,10 @@ private:
         static void destroy(Level* level)
         {
             level->~Level();
-            std::lock_guard<std::mutex> lock(mutex);
-            level_pool.deallocate(reinterpret_cast<byte*>(level), sizeof(Level));
+            level_pool.deallocate(reinterpret_cast<byte*>(level));
         }
     private:
-        static const size_t LEVELS_IN_BLOCK = 32;
-
-        typedef allocators::intrusive_list_pool_allocator<
-                allocators::freelist_pool_chunk,
-                allocators::default_allocator,
-                allocators::block_size_for<allocators::freelist_pool_chunk>(sizeof(Level), LEVELS_IN_BLOCK)
-            > level_pool_t;
-
-        static level_pool_t level_pool;
-        static std::mutex mutex;
+        static allocators::pool<std::mutex> level_pool;
     };
 
     template <typename Level>
@@ -345,11 +331,7 @@ Level index_tree<T>::internal_level<Level>::null{};
 
 template <typename T>
 template <typename Level>
-typename index_tree<T>::template level_factory<Level>::level_pool_t index_tree<T>::level_factory<Level>::level_pool{};
-
-template <typename T>
-template <typename Level>
-std::mutex index_tree<T>::level_factory<Level>::mutex{};
+allocators::pool<std::mutex> index_tree<T>::level_factory<Level>::level_pool{sizeof(Level)};
 
 }}
 

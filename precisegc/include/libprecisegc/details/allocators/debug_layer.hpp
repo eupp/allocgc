@@ -7,14 +7,15 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Alloc>
+template <typename UpstreamAlloc>
 class debug_layer
 {
-    static_assert(std::is_same<typename Alloc::pointer_type, byte*>::value,
+    static_assert(std::is_same<typename UpstreamAlloc::pointer_type, byte*>::value,
                   "debug_layer should be used with raw memory allocator");
 public:
     typedef byte* pointer_type;
-    typedef typename Alloc::alloc_tag alloc_tag;
+    typedef typename UpstreamAlloc::alloc_tag alloc_tag;
+    typedef typename UpstreamAlloc::memory_range_type memory_range_type;
 
     debug_layer()
         : m_allocated_mem(0)
@@ -35,13 +36,22 @@ public:
         m_allocator.deallocate(ptr, size, alignment);
     }
 
+    size_t shrink()
+    {
+        return m_allocator.shrink();
+    }
+
+    memory_range_type memory_range()
+    {
+        return m_allocator.memory_range();
+    }
+
     size_t get_allocated_mem_size() const
     {
         return m_allocated_mem;
     }
-
 private:
-    Alloc m_allocator;
+    UpstreamAlloc m_allocator;
     size_t m_allocated_mem;
 };
 

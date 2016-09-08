@@ -3,6 +3,8 @@
 
 #include <cstddef>
 
+#include <libprecisegc/details/utils/get_ptr.hpp>
+
 namespace precisegc { namespace details { namespace utils {
 
 template <typename Ptr>
@@ -10,6 +12,10 @@ class block_ptr
 {
 public:
     block_ptr()
+        : m_size(0)
+    {}
+
+    block_ptr(nullptr_t)
         : m_size(0)
     {}
 
@@ -37,6 +43,12 @@ public:
     void set_size(size_t size)
     {
         m_size = size;
+    }
+
+    auto get()
+        -> decltype(get_ptr(std::declval<Ptr>()))
+    {
+        return get_ptr(m_ptr);
     }
 
     Ptr& decorated()

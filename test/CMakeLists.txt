@@ -17,7 +17,6 @@ set(precisegc_TESTS
         gc_environment.cpp
         details/index_tree_test.cpp
         details/allocators/pool_chunk_test.cpp
-        details/allocators/list_allocator_test.cpp
         details/allocators/bucket_allocator_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         details/managed_ptr_test.cpp
@@ -41,10 +40,14 @@ set(precisegc_TESTS
         include/incremental_gc_mock.hpp
         details/space_based_policy_test.cpp
         details/utils/dynarray_test.cpp
-        details/allocators/intrusive_list_pool_allocator_test.cpp
         details/ptrs/trace_ptr_test.cpp
         details/utils/base_offset_test.cpp
-        details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp details/allocators/intrusive_list_allocator_test.cpp include/test_descriptor.hpp details/utils/barrier_test.cpp details/object_meta_test.cpp details/gc_handle_test.cpp)
+        details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp
+        include/test_descriptor.hpp
+        details/utils/barrier_test.cpp
+        details/object_meta_test.cpp
+        details/gc_handle_test.cpp
+        details/allocators/list_allocators_test.cpp details/allocators/fixsize_freelist_allocator_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

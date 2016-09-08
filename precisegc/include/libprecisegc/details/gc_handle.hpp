@@ -59,9 +59,23 @@ private:
 class gc_handle_access
 {
 public:
-    static byte* get(const gc_handle& handle, std::memory_order order);
-    static void  set(gc_handle& handle, byte* ptr, std::memory_order order);
-    static void  advance(gc_handle& handle, ptrdiff_t n, std::memory_order order);
+    template <int MemoryOrder>
+    static byte* get(const gc_handle& handle)
+    {
+        return handle.m_ptr.load(static_cast<std::memory_order>(MemoryOrder));
+    }
+
+    template <int MemoryOrder>
+    static void  set(gc_handle& handle, byte* ptr)
+    {
+        handle.m_ptr.store(ptr, static_cast<std::memory_order>(MemoryOrder));
+    }
+
+    template <int MemoryOrder>
+    static void  advance(gc_handle& handle, ptrdiff_t n)
+    {
+        handle.m_ptr.fetch_add(n, static_cast<std::memory_order>(MemoryOrder));
+    }
 };
 
 }}

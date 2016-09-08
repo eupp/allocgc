@@ -30,14 +30,14 @@ gc_pointer_type incremental_gc_base::allocate(size_t size)
 
 byte* incremental_gc_base::rbarrier(const gc_handle& handle)
 {
-    return gc_handle_access::get(handle, std::memory_order_acquire);
+    return gc_handle_access::get<std::memory_order_acquire>(handle);
 }
 
 void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* p = gc_handle_access::get(src, std::memory_order_acquire);
-    gc_handle_access::set(dst, p, std::memory_order_release);
+    byte* p = gc_handle_access::get<std::memory_order_acquire>(src);
+    gc_handle_access::set<std::memory_order_release>(dst, p);
     if (m_phase == gc_phase::MARK) {
         managed_ptr mp(p);
         if (mp && !mp.get_mark()) {
@@ -56,12 +56,12 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 
 void incremental_gc_base::interior_wbarrier(gc_handle& handle, byte* ptr)
 {
-    gc_handle_access::set(handle, ptr, std::memory_order_release);
+    gc_handle_access::set<std::memory_order_release>(handle, ptr);
 }
 
 void incremental_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
 {
-    gc_handle_access::advance(handle, shift, std::memory_order_acq_rel);
+    gc_handle_access::advance<std::memory_order_acq_rel>(handle, shift);
 }
 
 gc_run_stats incremental_gc_base::gc(const gc_options& options)
@@ -152,12 +152,12 @@ incremental_gc::incremental_gc(size_t threads_available)
 
 bool incremental_gc::compare(const gc_handle& a, const gc_handle& b)
 {
-    return gc_handle_access::get(a, std::memory_order_acquire) == gc_handle_access::get(b, std::memory_order_acquire);
+    return gc_handle_access::get<std::memory_order_acquire>(a) == gc_handle_access::get<std::memory_order_acquire>(b);
 }
 
 byte* incremental_gc::pin(const gc_handle& handle)
 {
-    return gc_handle_access::get(handle, std::memory_order_acquire);
+    return gc_handle_access::get<std::memory_order_acquire>(handle);
 }
 
 void incremental_gc::unpin(byte* ptr)
@@ -183,13 +183,13 @@ incremental_compacting_gc::incremental_compacting_gc(size_t threads_available)
 bool incremental_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
 {
     gc_unsafe_scope unsafe_scope;
-    return gc_handle_access::get(a, std::memory_order_acquire) == gc_handle_access::get(b, std::memory_order_acquire);
+    return gc_handle_access::get<std::memory_order_acquire>(a) == gc_handle_access::get<std::memory_order_acquire>(b);
 }
 
 byte* incremental_compacting_gc::pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* ptr = gc_handle_access::get(handle, std::memory_order_acquire);
+    byte* ptr = gc_handle_access::get<std::memory_order_acquire>(handle);
     if (ptr) {
         threads::this_managed_thread::pin(ptr);
     }

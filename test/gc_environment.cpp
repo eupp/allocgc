@@ -15,8 +15,8 @@ public:
     {
         gc_init_options gc_ops;
         gc_ops.algo         = gc_algo::SERIAL;
-        gc_ops.initiation         = gc_initiation::MANUAL;
-        gc_ops.compacting   = gc_compacting::ENABLED;
+        gc_ops.initiation   = gc_initiation::MANUAL;
+        gc_ops.compacting   = gc_compacting::DISABLED;
         gc_ops.loglevel     = gc_loglevel::DEBUG;
         gc_ops.print_stat   = true;
 

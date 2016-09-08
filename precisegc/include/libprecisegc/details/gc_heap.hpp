@@ -85,6 +85,7 @@ private:
     tlab_t& get_tlab();
 
     size_t shrink(const threads::world_snapshot& snapshot);
+    size_t sweep();
 
     std::pair<forwarding, size_t> compact();
     std::pair<forwarding, size_t> parallel_compact(size_t threads_num);

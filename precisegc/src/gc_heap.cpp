@@ -49,6 +49,7 @@ gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot,
         }
     }
 
+    freed += sweep();
     unmark();
 
     stat.mem_swept = freed;
@@ -87,6 +88,27 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
     size_t freed_in_loa = m_loa.shrink();
 
     return freed_in_tlabs + freed_in_loa;
+}
+
+size_t gc_heap::sweep()
+{
+    size_t freed = 0;
+    for (auto& kv: m_tlab_map) {
+        auto& tlab = kv.second;
+        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
+            auto rng = tlab.memory_range(i);
+            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
+            if (!rng.empty()) {
+                for (auto it = rng.begin(), end = rng.end(); it != end; ++it) {
+                    if (!it->get_mark()) {
+                        tlab.deallocate(utils::make_block_ptr(*it, bucket_size), bucket_size);
+                        freed += bucket_size;
+                    }
+                }
+            }
+        }
+    }
+    return freed;
 }
 
 std::pair<gc_heap::forwarding, size_t> gc_heap::compact()

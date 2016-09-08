@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_FREELIST_ALLOCATOR_HPP
 #define DIPLOMA_FREELIST_ALLOCATOR_HPP
 
+#include <cassert>
 #include <cstddef>
 #include <type_traits>
 

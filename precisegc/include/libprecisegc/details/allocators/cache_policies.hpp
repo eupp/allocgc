@@ -97,7 +97,7 @@ public:
         if (m_chunk == last || !m_chunk->memory_available()) {
             m_chunk = std::find_if(first, last,
                                    [] (const chunk_type& chk) { return chk.memory_available(); });
-            return m_chunk == last;
+            return m_chunk != last;
         }
         return true;
     }
@@ -114,7 +114,7 @@ public:
         }
     }
 private:
-    Iterator m_chunk;
+    mutable Iterator m_chunk;
 };
 
 }}}

@@ -34,13 +34,12 @@ public:
         std::lock_guard<Lock> lock_guard(m_lock);
         m_alloc.deallocate(ptr, m_alloc_size);
         ++m_dealloc_cnt;
-        if (m_alloc_cnt <= 2 * m_dealloc_cnt) {
+        if (m_alloc_cnt > SHRINK_LOWER_BOUND && m_alloc_cnt <= 2 * m_dealloc_cnt) {
             m_alloc.shrink(m_alloc_size);
             m_alloc_cnt >>= 1;
             m_dealloc_cnt = 0;
         }
     }
-
 private:
     typedef fixsize_freelist_allocator<
             intrusive_list_allocator<
@@ -51,7 +50,7 @@ private:
                 >
         > alloc_t;
 
-//    static const size_t SHRINK_LOWER_BOUND =
+    static const size_t SHRINK_LOWER_BOUND = freelist_pool_chunk::DEFAULT_CHUNK_SIZE;
 
     alloc_t m_alloc;
     size_t m_alloc_size;

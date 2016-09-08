@@ -5,8 +5,9 @@
 #include <limits>
 
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/allocators/allocator_tag.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -14,8 +15,15 @@ class freelist_pool_chunk : private utils::noncopyable, private utils::nonmovabl
 {
 public:
     typedef byte* pointer_type;
+    typedef allocators::multi_block_chunk_tag chunk_tag;
 
     static const size_t CHUNK_MAXSIZE = std::numeric_limits<size_t>::max();
+    static const size_t DEFAULT_CHUNK_SIZE = 32;
+
+    static size_t chunk_size(size_t cell_size)
+    {
+        return DEFAULT_CHUNK_SIZE * cell_size;
+    }
 
     freelist_pool_chunk();
     freelist_pool_chunk(byte* chunk, size_t size, size_t obj_size);

@@ -13,6 +13,7 @@
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/fixsize_freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
@@ -39,12 +40,15 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
             , utils::dummy_mutex
         > chunk_pool_t;
 
-    typedef allocators::list_allocator<
-            allocators::managed_pool_chunk,
-            allocators::page_allocator,
-            chunk_pool_t,
-            allocators::single_chunk_cache,
-            utils::dummy_mutex
+    typedef allocators::fixsize_freelist_allocator<
+                  allocators::list_allocator<
+                        allocators::managed_pool_chunk
+                      , allocators::page_allocator
+                      , chunk_pool_t
+                      , allocators::single_chunk_cache
+                      , utils::dummy_mutex
+                  >
+                , allocators::zeroing_enabled
         > fixsize_alloc_t;
 
     typedef allocators::bucket_allocator<
@@ -82,6 +86,7 @@ private:
     tlab_t& get_tlab();
 
     size_t shrink(const threads::world_snapshot& snapshot);
+    size_t sweep();
 
     std::pair<forwarding, size_t> compact();
     std::pair<forwarding, size_t> parallel_compact(size_t threads_num);

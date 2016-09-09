@@ -103,6 +103,7 @@ size_t gc_heap::sweep()
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
             for (auto it = rng.begin(), end = rng.end(); it != end; ++it) {
                 if (!it->get_mark()) {
+                    logging::debug() << "Deallocate cell: addr=" << (void*) it->get() << ", size=" << bucket_size;
                     tlab.deallocate(*it, i, bucket_size);
                     freed += bucket_size;
                 }

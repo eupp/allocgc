@@ -157,6 +157,7 @@ bool incremental_gc::compare(const gc_handle& a, const gc_handle& b)
 
 byte* incremental_gc::pin(const gc_handle& handle)
 {
+    gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::get<std::memory_order_acquire>(handle);
     if (ptr) {
         threads::this_managed_thread::pin(ptr);

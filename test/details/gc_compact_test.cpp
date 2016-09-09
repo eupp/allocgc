@@ -210,47 +210,47 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
     EXPECT_EQ(exp_pin_cnt, pin_cnt);
 }
 
-TEST_F(gc_compact_test, test_compact_and_sweep)
-{
-    const size_t LIVE_CNT = 4;
-    const size_t ALLOC_CNT = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
-
-    for (size_t i = 0; i < ALLOC_CNT; ++i) {
-        managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE).decorated();
-        cell_ptr.set_mark(false);
-        cell_ptr.set_pin(false);
-    }
-
-    uniform_rand_generator<size_t> rand_gen(0, ALLOC_CNT - 1);
-    auto rng = m_chunk.get_range();
-    for (size_t i = 0; i < LIVE_CNT; ++i) {
-        size_t rand = rand_gen();
-        auto it = std::next(rng.begin(), rand);
-        while (it->get_mark()) {
-            rand = rand_gen();
-            it = std::next(rng.begin(), rand);
-        }
-        it->set_mark(true);
-    }
-
-    list_forwarding frwd;
-    two_finger_compact(rng, OBJ_SIZE, frwd);
-
-    size_t sweep_cnt = sweep(rng);
-
-    for (auto it = rng.begin(); it != rng.end(); ++it) {
-        ASSERT_FALSE(it->get_mark());
-    }
-
-    size_t dead_cnt = ALLOC_CNT - LIVE_CNT;
-    size_t free_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
-    ASSERT_EQ(dead_cnt, sweep_cnt);
-    for (size_t i = 0; i < free_cnt; ++i) {
-        ASSERT_TRUE(m_chunk.memory_available());
-        m_chunk.allocate(OBJ_SIZE);
-    }
-    ASSERT_FALSE(m_chunk.memory_available());
-}
+//TEST_F(gc_compact_test, test_compact_and_sweep)
+//{
+//    const size_t LIVE_CNT = 4;
+//    const size_t ALLOC_CNT = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
+//
+//    for (size_t i = 0; i < ALLOC_CNT; ++i) {
+//        managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE).decorated();
+//        cell_ptr.set_mark(false);
+//        cell_ptr.set_pin(false);
+//    }
+//
+//    uniform_rand_generator<size_t> rand_gen(0, ALLOC_CNT - 1);
+//    auto rng = m_chunk.get_range();
+//    for (size_t i = 0; i < LIVE_CNT; ++i) {
+//        size_t rand = rand_gen();
+//        auto it = std::next(rng.begin(), rand);
+//        while (it->get_mark()) {
+//            rand = rand_gen();
+//            it = std::next(rng.begin(), rand);
+//        }
+//        it->set_mark(true);
+//    }
+//
+//    list_forwarding frwd;
+//    two_finger_compact(rng, OBJ_SIZE, frwd);
+//
+//    size_t sweep_cnt = sweep(rng);
+//
+//    for (auto it = rng.begin(); it != rng.end(); ++it) {
+//        ASSERT_FALSE(it->get_mark());
+//    }
+//
+//    size_t dead_cnt = ALLOC_CNT - LIVE_CNT;
+//    size_t free_cnt = std::distance(rng.begin(), rng.end()) - LIVE_CNT;
+//    ASSERT_EQ(dead_cnt, sweep_cnt);
+//    for (size_t i = 0; i < free_cnt; ++i) {
+//        ASSERT_TRUE(m_chunk.memory_available());
+//        m_chunk.allocate(OBJ_SIZE);
+//    }
+//    ASSERT_FALSE(m_chunk.memory_available());
+//}
 
 TEST_F(gc_compact_test, test_fix_pointers)
 {

@@ -47,11 +47,6 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
-    bool is_live(byte* ptr) const override;
-    void set_live(byte* ptr, bool live) override;
-
-    void sweep(byte* ptr) override;
-
     size_t cell_size() const override;
 
     object_meta* get_cell_meta(byte* ptr) const override;

@@ -80,7 +80,7 @@ public:
 TEST_F(gc_compact_test, test_two_finger_compact_1)
 {
     for (int i = 0; i < OBJ_COUNT_1; ++i) {
-        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE).decorated();
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         cell_ptr.set_mark(false);
         cell_ptr.set_pin(false);
@@ -134,7 +134,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_2)
     const size_t CHUNK_SIZE = std::max(4 * LIVE_CNT, (size_t) managed_pool_chunk::CHUNK_MINSIZE);
 
     for (size_t i = 0; i < CHUNK_SIZE; ++i) {
-        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE).decorated();
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         cell_ptr.set_mark(false);
         cell_ptr.set_pin(false);
     }
@@ -175,7 +175,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
     size_t exp_pin_cnt = 0;
     std::unordered_set<byte*> pinned;
     for (int i = 0; i < OBJ_COUNT_2; ++i) {
-        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE).decorated();
+        managed_ptr cell_ptr = m_alloc.allocate(OBJ_SIZE);
         m_allocated.insert(cell_ptr.get());
         bool mark = mark_gen();
         bool pin = pin_gen();
@@ -254,7 +254,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
 
 TEST_F(gc_compact_test, test_fix_pointers)
 {
-    managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE).decorated();
+    managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
     cell_ptr.set_mark(true);
     cell_ptr.set_pin(false);
     byte* ptr = cell_ptr.get();

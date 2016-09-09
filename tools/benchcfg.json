@@ -2,7 +2,7 @@
   "targets":
   [
     {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-    {"name": "multisize_boehm", "builder": "cmake", "runnable": "benchmark/multisize_boehm/multisize_boehm"},
+
     {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
   ],
   "builds":

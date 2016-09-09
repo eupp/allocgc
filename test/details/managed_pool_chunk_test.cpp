@@ -49,7 +49,7 @@ TEST_F(managed_pool_chunk_test, test_construct)
 
 TEST_F(managed_pool_chunk_test, test_allocate)
 {
-    managed_ptr cell_ptr = m_chunk.allocate(CELL_SIZE).decorated();
+    managed_ptr cell_ptr = m_chunk.allocate(CELL_SIZE);
 
     EXPECT_NE(nullptr, cell_ptr.get());
     EXPECT_EQ(cell_ptr.get_descriptor(), m_chunk.get_descriptor());

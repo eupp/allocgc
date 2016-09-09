@@ -65,15 +65,15 @@ public:
 
 TEST_F(bucket_allocator_test, test_allocate_1)
 {
-    size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_1));
+    size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_1).decorated());
     ASSERT_NE(nullptr, ptr);
     *ptr = 42;
 }
 
 TEST_F(bucket_allocator_test, test_allocate_2)
 {
-    size_t* ptr1 = (size_t*) (m_alloc.allocate(OBJ_SIZE_1));
-    size_t* ptr2 = (size_t*) (m_alloc.allocate(OBJ_SIZE_2));
+    size_t* ptr1 = (size_t*) (m_alloc.allocate(OBJ_SIZE_1).decorated());
+    size_t* ptr2 = (size_t*) (m_alloc.allocate(OBJ_SIZE_2).decorated());
     ASSERT_NE(nullptr, ptr2);
     ASSERT_NE(ptr1, ptr2);
     *ptr2 = 42;
@@ -85,14 +85,14 @@ TEST_F(bucket_allocator_test, test_allocate_2)
 TEST_F(bucket_allocator_test, test_allocate_3)
 {
     for (size_t size = 1; size <= OBJ_SIZE_1; ++size) {
-        size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_1));
+        size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_1).decorated());
         ASSERT_NE(nullptr, ptr);
         *ptr = 42;
         m_alloc.deallocate((byte*) ptr, OBJ_SIZE_1);
     }
 
     for (size_t size = OBJ_SIZE_1 + 1; size <= OBJ_SIZE_2; ++size) {
-        size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_2));
+        size_t* ptr = (size_t*) (m_alloc.allocate(OBJ_SIZE_2).decorated());
         ASSERT_NE(nullptr, ptr);
         ptr[0] = 42;
         ptr[1] = 42;

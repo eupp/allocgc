@@ -82,12 +82,16 @@ bool serial_gc::compare(const gc_handle& a, const gc_handle& b)
 
 byte* serial_gc::pin(const gc_handle& handle)
 {
-    return gc_handle_access::get<std::memory_order_relaxed>(handle);
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
+    if (ptr) {
+        threads::this_managed_thread::pin(ptr);
+    }
+    return ptr;
 }
 
 void serial_gc::unpin(byte* ptr)
 {
-    return;
+    threads::this_managed_thread::unpin(ptr);
 }
 
 gc_info serial_gc::info() const

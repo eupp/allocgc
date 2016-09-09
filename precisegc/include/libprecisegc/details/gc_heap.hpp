@@ -40,15 +40,12 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
             , utils::dummy_mutex
         > chunk_pool_t;
 
-    typedef allocators::fixsize_freelist_allocator<
-                  allocators::list_allocator<
-                        allocators::managed_pool_chunk
-                      , allocators::page_allocator
-                      , chunk_pool_t
-                      , allocators::single_chunk_cache
-                      , utils::dummy_mutex
-                  >
-                , allocators::zeroing_enabled
+    typedef allocators::list_allocator<
+                allocators::managed_pool_chunk
+              , allocators::page_allocator
+              , chunk_pool_t
+              , allocators::single_chunk_cache
+              , utils::dummy_mutex
         > fixsize_alloc_t;
 
     typedef allocators::bucket_allocator<

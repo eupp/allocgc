@@ -38,27 +38,26 @@ size_t two_finger_compact(Range& rng, size_t obj_size, Forwarding& frwd)
             frwd.create(from->get(), to->get(), obj_size);
             from->set_mark(false);
             to->set_mark(true);
-            to->set_live(true);
             ++copied_cnt;
         }
     }
     return copied_cnt;
 }
 
-template <typename Range>
-size_t sweep(Range& rng)
-{
-    size_t sweep_cnt = 0;
-    for (managed_ptr cell_ptr: rng) {
-        if (cell_ptr.get_mark()) {
-            cell_ptr.set_mark(false);
-        } else if (cell_ptr.is_live() && !cell_ptr.get_pin()) {
-            cell_ptr.sweep();
-            sweep_cnt++;
-        }
-    }
-    return sweep_cnt;
-}
+//template <typename Range>
+//size_t sweep(Range& rng)
+//{
+//    size_t sweep_cnt = 0;
+//    for (managed_ptr cell_ptr: rng) {
+//        if (cell_ptr.get_mark()) {
+//            cell_ptr.set_mark(false);
+//        } else if (cell_ptr.is_live() && !cell_ptr.get_pin()) {
+//            cell_ptr.sweep();
+//            sweep_cnt++;
+//        }
+//    }
+//    return sweep_cnt;
+//}
 
 
 template <typename Iterator, typename Forwarding>

@@ -39,11 +39,6 @@ public:
     void set_mark(bool mark) const;
     void set_pin(bool pin) const;
 
-    void set_live(bool live) const;
-    bool is_live() const;
-
-    void sweep() const;
-
     size_t cell_size() const;
 
     object_meta* get_meta() const;

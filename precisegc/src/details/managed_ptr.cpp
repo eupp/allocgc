@@ -36,43 +36,25 @@ managed_ptr::managed_ptr(byte* ptr, memory_descriptor* descriptor)
 bool managed_ptr::get_mark() const
 {
     assert(m_descr);
-    return m_descr->get_mark(get());
+    return m_descr->get_mark(m_ptr);
 }
 
 bool managed_ptr::get_pin() const
 {
     assert(m_descr);
-    return m_descr->get_pin(get());
+    return m_descr->get_pin(m_ptr);
 }
 
 void managed_ptr::set_mark(bool mark) const
 {
     assert(m_descr);
-    return m_descr->set_mark(get(), mark);
+    return m_descr->set_mark(m_ptr, mark);
 }
 
 void managed_ptr::set_pin(bool pin) const
 {
     assert(m_descr);
-    return m_descr->set_pin(get(), pin);
-}
-
-void managed_ptr::set_live(bool live) const
-{
-    assert(m_descr);
-    m_descr->set_live(m_ptr, live);
-}
-
-bool managed_ptr::is_live() const
-{
-    assert(m_descr);
-    return m_descr->is_live(get());
-}
-
-void managed_ptr::sweep() const
-{
-    assert(m_descr);
-    m_descr->sweep(get());
+    return m_descr->set_pin(m_ptr, pin);
 }
 
 size_t managed_ptr::cell_size() const
@@ -84,19 +66,19 @@ size_t managed_ptr::cell_size() const
 object_meta* managed_ptr::get_meta() const
 {
     assert(m_descr);
-    return m_descr->get_cell_meta(get());
+    return m_descr->get_cell_meta(m_ptr);
 }
 
 byte* managed_ptr::get_cell_begin() const
 {
     assert(m_descr);
-    return m_descr->get_cell_begin(get());
+    return m_descr->get_cell_begin(m_ptr);
 }
 
 byte* managed_ptr::get_obj_begin() const
 {
     assert(m_descr);
-    return m_descr->get_obj_begin(get());
+    return m_descr->get_obj_begin(m_ptr);
 }
 
 byte* managed_ptr::get() const
@@ -145,7 +127,7 @@ void managed_ptr::remove_from_index(byte* ptr, size_t size)
 
 void managed_ptr::remove_from_index(managed_ptr& ptr, size_t size)
 {
-    indexer.remove_index(ptr.get(), size);
+    indexer.remove_index(ptr.m_ptr, size);
     managed_ptr().swap(ptr);
 }
 

@@ -46,24 +46,6 @@ void managed_object_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bit = pin;
 }
 
-bool managed_object_descriptor::is_live(byte* ptr) const
-{
-    assert(check_ptr(ptr));
-    return m_live_bit;
-}
-
-void managed_object_descriptor::set_live(byte* ptr, bool live)
-{
-    assert(check_ptr(ptr));
-    m_live_bit = live;
-}
-
-void managed_object_descriptor::sweep(byte* ptr)
-{
-    assert(check_ptr(ptr));
-    m_live_bit = false;
-}
-
 size_t managed_object_descriptor::cell_size() const
 {
     return m_size;

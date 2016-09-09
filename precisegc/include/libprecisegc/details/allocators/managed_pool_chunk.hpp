@@ -9,6 +9,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
@@ -23,11 +24,11 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_pool_chunk : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = allocators::bitmap_pool_chunk::CHUNK_MAXSIZE;
+    static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;;
     static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;
-    typedef allocators::bitmap_pool_chunk plain_pool_chunk;
+    typedef allocators::freelist_pool_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:
@@ -38,14 +39,7 @@ public:
 
     static size_t chunk_size(size_t cell_size)
     {
-        size_t chunk_size_ub = cell_size * CHUNK_MAXSIZE;
-        if (chunk_size_ub <= PAGE_SIZE) {
-            return PAGE_SIZE;
-        } else if (chunk_size_ub <= 2 * PAGE_SIZE) {
-            return 2 * PAGE_SIZE;
-        } else {
-            return 4 * PAGE_SIZE;
-        }
+        return cell_size * CHUNK_MAXSIZE;
     }
 
     managed_pool_chunk();
@@ -76,11 +70,6 @@ public:
 
     virtual void set_mark(byte* ptr, bool mark) override;
     virtual void set_pin(byte* ptr, bool pin) override;
-
-    virtual bool is_live(byte* ptr) const override;
-    virtual void set_live(byte* ptr, bool live) override;
-
-    virtual void sweep(byte* ptr) override;
 
     virtual size_t cell_size() const override;
 

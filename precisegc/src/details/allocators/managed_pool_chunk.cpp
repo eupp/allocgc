@@ -62,7 +62,7 @@ bool managed_pool_chunk::memory_available() const noexcept
 
 bool managed_pool_chunk::empty() const noexcept
 {
-    return m_mark_bits.none() && m_pin_bits.none();
+    return m_mark_bits.none();
 }
 
 byte* managed_pool_chunk::get_mem() const
@@ -125,21 +125,6 @@ void managed_pool_chunk::set_pin(byte* ptr, bool pin)
 {
     size_t ind = calc_cell_ind(ptr);
     m_pin_bits.set(ind, pin);
-}
-
-void managed_pool_chunk::set_live(byte* ptr, bool live)
-{
-    m_chunk.set_live(ptr, m_cell_size, live);
-}
-
-bool managed_pool_chunk::is_live(byte* ptr) const
-{
-    return m_chunk.is_live(ptr, m_cell_size);
-}
-
-void managed_pool_chunk::sweep(byte* ptr)
-{
-    deallocate(get_cell_begin(ptr), m_cell_size);
 }
 
 size_t managed_pool_chunk::cell_size() const

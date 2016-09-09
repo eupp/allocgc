@@ -16,11 +16,13 @@ namespace precisegc { namespace details { namespace allocators {
 struct zeroing_enabled {};
 struct zeroing_disabled {};
 
-template <typename UpstreamAlloc, typename ZeroingPolicy = zeroing_disabled>
+struct shrinking_enabled {};
+struct shrinking_disabled {};
+
+template <typename UpstreamAlloc, typename ShrinkingPolicy = shrinking_enabled, typename ZeroingPolicy = zeroing_disabled>
 class fixsize_freelist_allocator : private utils::ebo<UpstreamAlloc>,
                                    private utils::noncopyable, private utils::nonmovable
 {
-    static const bool is_zeroing_enabled = std::is_same<ZeroingPolicy, zeroing_enabled>::value;
 public:
     typedef typename UpstreamAlloc::pointer_type pointer_type;
     typedef typename UpstreamAlloc::memory_range_type memory_range_type;
@@ -65,11 +67,17 @@ public:
 
     size_t shrink(size_t size)
     {
-        size_t freed = 0;
-        while (m_head) {
-            pointer_type next = *reinterpret_cast<pointer_type*>(utils::get_ptr(m_head));
-            mutable_upstream_allocator().deallocate(m_head, size);
-            m_head = next;
+        if (is_shrinking_enabled) {
+            while (m_head) {
+                pointer_type next = *reinterpret_cast<pointer_type*>(utils::get_ptr(m_head));
+                mutable_upstream_allocator().deallocate(m_head, size);
+                m_head = next;
+            }
+        } else {
+            // we just throw away whole freelist,
+            // because it will be recreated during sweeping
+            // (we use this strategy only in managed_heap)
+            m_head = nullptr;
         }
         return mutable_upstream_allocator().shrink();
     }
@@ -95,6 +103,9 @@ public:
         return this->template get_base<UpstreamAlloc>();
     }
 private:
+    static const bool is_zeroing_enabled = std::is_same<ZeroingPolicy, zeroing_enabled>::value;
+    static const bool is_shrinking_enabled = std::is_same<ShrinkingPolicy, shrinking_enabled>::value;
+
     UpstreamAlloc& mutable_upstream_allocator()
     {
         return this->template get_base<UpstreamAlloc>();

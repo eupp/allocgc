@@ -9,6 +9,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/details/allocators/stack_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
@@ -28,7 +29,7 @@ public:
     static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;
-    typedef allocators::freelist_pool_chunk plain_pool_chunk;
+    typedef allocators::stack_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:

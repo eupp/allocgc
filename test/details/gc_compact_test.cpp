@@ -47,9 +47,9 @@ public:
 
     ~gc_compact_test()
     {
-        for (auto ptr: m_allocated) {
-            m_alloc.deallocate(gc_pointer_type(managed_ptr(ptr), OBJ_SIZE), OBJ_SIZE);
-        }
+//        for (auto ptr: m_allocated) {
+//            m_alloc.deallocate(gc_pointer_type(managed_ptr(ptr), OBJ_SIZE), OBJ_SIZE);
+//        }
         m_paged_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
     }
 

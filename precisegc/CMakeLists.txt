@@ -84,7 +84,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
-        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/fixsize_freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp)
+        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/fixsize_freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp include/libprecisegc/details/allocators/stack_chunk.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -114,7 +114,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
         src/details/allocators/managed_object_descriptor.cpp
-        src/details/gc_manager.cpp)
+        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp)
 
 
 find_package(Threads REQUIRED)

@@ -49,7 +49,7 @@ gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot,
         }
     }
 
-//    freed += sweep();
+    sweep();
     unmark();
 
     stat.mem_swept = freed;

@@ -75,18 +75,18 @@ byte * managed_object_descriptor::get_obj_begin(byte* ptr) const
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)
 {
     assert(size <= m_size);
-    return utils::make_block_ptr(managed_ptr(m_ptr), m_size);
+    return managed_ptr(m_ptr);
 }
 
 void managed_object_descriptor::deallocate(const pointer_type& ptr, size_t size)
 {
-    assert(ptr.decorated().get() == m_ptr && size == m_size);
+    assert(ptr.get() == m_ptr && size == m_size);
     return;
 }
 
 bool managed_object_descriptor::contains(const pointer_type& ptr) const noexcept
 {
-    byte* raw_ptr = ptr.decorated().get();
+    byte* raw_ptr = ptr.get();
     return m_ptr <= raw_ptr && raw_ptr < m_ptr + m_size;
 }
 

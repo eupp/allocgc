@@ -55,18 +55,18 @@ public:
 
     const type_meta* get_type_meta() const noexcept
     {
-        return reinterpret_cast<const type_meta*>(m_type_meta.load(std::memory_order_relaxed) & ~FORWARD_BIT);
+        return reinterpret_cast<const type_meta*>(m_type_meta & ~FORWARD_BIT);
     }
 
     void set_type_meta(const type_meta* cls_meta) noexcept
     {
         std::uintptr_t frwd_bit = is_forwarded() ? FORWARD_BIT : 0;
-        m_type_meta.store(reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit, std::memory_order_relaxed);
+        m_type_meta = reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit;
     }
 
     bool is_forwarded() const
     {
-        return m_type_meta.load(std::memory_order_relaxed) & FORWARD_BIT;
+        return m_type_meta & FORWARD_BIT;
     }
 
     byte* forward_pointer() const noexcept
@@ -79,8 +79,7 @@ public:
 
     void set_forward_pointer(byte* ptr) noexcept
     {
-        std::uintptr_t tmeta = m_type_meta.load(std::memory_order_relaxed);
-        m_type_meta.store(tmeta | FORWARD_BIT, std::memory_order_relaxed);
+        m_type_meta |= FORWARD_BIT;
         memcpy(get_forward_pointer_address(), &ptr, sizeof(void*));
     }
 private:
@@ -96,7 +95,7 @@ private:
         return reinterpret_cast<const void*>(reinterpret_cast<const byte*>(this) - sizeof(void*));
     }
 
-    std::atomic<std::uintptr_t> m_type_meta;
+    std::uintptr_t m_type_meta;
     size_t m_count;
 };
 

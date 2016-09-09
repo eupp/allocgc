@@ -22,7 +22,7 @@ gc_pointer_type gc_heap::allocate(size_t size)
     if (size <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(size);
     } else {
-        return m_loa.allocate(size);
+        return utils::make_block_ptr(m_loa.allocate(size), size);
     }
 }
 
@@ -103,7 +103,7 @@ size_t gc_heap::sweep()
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
             for (auto it = rng.begin(), end = rng.end(); it != end; ++it) {
                 if (!it->get_mark()) {
-                    tlab.deallocate(utils::make_block_ptr(*it, bucket_size), i, bucket_size);
+                    tlab.deallocate(*it, i, bucket_size);
                     freed += bucket_size;
                 }
             }

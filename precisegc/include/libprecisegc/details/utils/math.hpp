@@ -36,37 +36,29 @@ inline size_t log2(size_t n)
 }
 
 
-// implementation is taken from http://stackoverflow.com/a/7767592/4676150
+// implementation is taken from http://stackoverflow.com/a/11398748/4676150
 inline size_t msb(unsigned long long n)
 {
-    static const unsigned long long maskv[] = {
-            0x000000007FFFFFFF,
-            0x000000000000FFFF,
-            0x00000000000000FF,
-            0x000000000000000F,
-            0x0000000000000003,
-            0x0000000000000001
+    static const std::int8_t tab64[64] = {
+            63,  0, 58,  1, 59, 47, 53,  2,
+            60, 39, 48, 27, 54, 33, 42,  3,
+            61, 51, 37, 40, 49, 18, 28, 20,
+            55, 30, 34, 11, 43, 14, 22,  4,
+            62, 57, 46, 52, 38, 26, 32, 41,
+            50, 36, 17, 19, 29, 10, 13, 21,
+            56, 45, 25, 31, 35, 16,  9, 12,
+            44, 24, 15,  8, 23,  7,  6,  5
     };
-    const unsigned long long *mask = maskv;
 
     assert(n != 0);
 
-    size_t hi = 64;
-    size_t lo = 0;
-
-    do {
-        size_t m = lo + (hi - lo) / 2;
-        if ((n >> m) != 0) {
-            lo = m;
-        }
-        else if ((n & (*mask << lo)) != 0) {
-            hi = m;
-        }
-
-        mask++;
-    } while (lo < hi - 1);
-
-    return lo;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n |= n >> 32;
+    return tab64[((uint64_t)((n - (n >> 1))*0x07EDD5E59A4E28C2)) >> 58];
 }
 
 /**

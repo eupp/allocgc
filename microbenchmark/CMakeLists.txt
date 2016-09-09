@@ -2,7 +2,7 @@ set(precisegc_microbenchmark
         main.cpp
         index_tree_benchmark.cpp
         pointers_benchmark.cpp
-        ../common/macro.hpp stack_map_benchmark.cpp allocators_benchmark.cpp deoptimize.hpp pool_chunks_benchmark.cpp)
+        ../common/macro.hpp stack_map_benchmark.cpp allocators_benchmark.cpp deoptimize.hpp pool_chunks_benchmark.cpp math_benchmark.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 

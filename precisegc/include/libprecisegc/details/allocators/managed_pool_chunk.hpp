@@ -34,7 +34,7 @@ private:
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
-    typedef utils::block_ptr<managed_ptr> pointer_type;
+    typedef managed_ptr pointer_type;
     typedef managed_ptr_iterator<managed_pool_chunk> iterator;
     typedef boost::iterator_range<iterator> range_type;
 

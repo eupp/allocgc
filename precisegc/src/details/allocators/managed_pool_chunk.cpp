@@ -34,14 +34,13 @@ managed_pool_chunk::pointer_type managed_pool_chunk::allocate(size_t size)
 {
     assert(size == cell_size());
     byte* raw_ptr = m_chunk.allocate(size);
-    return utils::make_block_ptr(managed_ptr(raw_ptr, get_descriptor()), size);
+    return managed_ptr(raw_ptr, get_descriptor());
 }
 
 void managed_pool_chunk::deallocate(const pointer_type& ptr, size_t size)
 {
-    assert(ptr.size() == size);
-    assert(ptr.size() == cell_size());
-    deallocate(ptr.decorated().get(), size);
+    assert(size == cell_size());
+    deallocate(ptr.get(), size);
 }
 
 void managed_pool_chunk::deallocate(byte* ptr, size_t size)
@@ -52,7 +51,7 @@ void managed_pool_chunk::deallocate(byte* ptr, size_t size)
 
 bool managed_pool_chunk::contains(const pointer_type& ptr) const noexcept
 {
-    return m_chunk.contains(ptr.decorated().get());
+    return m_chunk.contains(ptr.get());
 }
 
 bool managed_pool_chunk::memory_available() const noexcept

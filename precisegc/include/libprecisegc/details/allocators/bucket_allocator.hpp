@@ -6,8 +6,9 @@
 #include <utility>
 #include <mutex>
 
-#include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/utils/block_ptr.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -24,12 +25,12 @@ public:
     bucket_allocator() = default;
     bucket_allocator(bucket_allocator&&) = default;
 
-    pointer_type allocate(size_t size)
+    utils::block_ptr<pointer_type> allocate(size_t size)
     {
         auto& bp = get_bucket_policy();
         size_t ind = bp.bucket(size);
         size_t aligned_size = bp.bucket_size(ind);
-        return m_buckets[ind].allocate(aligned_size);
+        return utils::make_block_ptr(m_buckets[ind].allocate(aligned_size), aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
@@ -50,7 +51,7 @@ public:
         size_t shrunk = 0;
         auto& bp = get_bucket_policy();
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            shrunk += m_buckets[i].shrink();
+            shrunk += m_buckets[i].shrink(bp.bucket_size(i));
         }
         return shrunk;
     }

@@ -14,7 +14,7 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef utils::block_ptr<managed_ptr> pointer_type;
+    typedef managed_ptr pointer_type;
     typedef allocators::single_block_chunk_tag chunk_tag;
     typedef managed_ptr_iterator<managed_object_descriptor> iterator;
 

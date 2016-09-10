@@ -10,6 +10,7 @@ class incremental_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_handle gc_handle;
+    typedef precisegc::details::managed_ptr managed_ptr;
     typedef precisegc::details::gc_pointer_type gc_pointer_type;
     typedef precisegc::details::initiation_point_type initation_point_type;
     typedef precisegc::details::gc_options gc_options;
@@ -18,6 +19,7 @@ class incremental_gc_mock : public precisegc::details::gc_strategy
     typedef precisegc::details::gc_info gc_info;
 public:
     MOCK_METHOD1(allocate, gc_pointer_type(size_t));
+    MOCK_METHOD1(new_cell, void(const managed_ptr&));
 
     MOCK_METHOD1(rbarrier, byte*(const gc_handle&));
     MOCK_METHOD2(wbarrier, void(gc_handle&, const gc_handle&));

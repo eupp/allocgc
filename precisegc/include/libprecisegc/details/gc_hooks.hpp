@@ -15,6 +15,8 @@ void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initia
 
 gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
 
+void gc_new_cell(const managed_ptr& ptr);
+
 void gc_initiation_point(initiation_point_type ipoint,
                          const initiation_point_data& ipd = initiation_point_data::create_empty_data());
 

@@ -91,6 +91,11 @@ public:
         return m_chunks.empty();
     }
 
+    void reset_cache()
+    {
+        m_cache.update(m_chunks.end());
+    }
+
     template <typename Functor>
     void apply_to_chunks(Functor&& f)
     {

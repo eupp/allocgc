@@ -60,6 +60,12 @@ gc_alloc_descriptor garbage_collector::try_allocate(size_t obj_size, size_t obj_
     return std::make_pair(ptr, obj_meta);
 }
 
+void garbage_collector::new_cell(const managed_ptr& ptr)
+{
+    assert(m_strategy);
+    m_strategy->new_cell(ptr);
+}
+
 byte* garbage_collector::rbarrier(const gc_handle& handle)
 {
     assert(m_strategy);

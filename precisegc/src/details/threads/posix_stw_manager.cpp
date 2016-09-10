@@ -15,12 +15,12 @@ void stw_manager::sighandler()
 //    logging::debug() << "Thread enters stop-the-world signal handler";
 
     ++stwm.m_threads_suspended_cnt;
-    std::atomic_thread_fence(std::memory_order_release);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     stwm.m_barrier.notify();
 
     stwm.m_event.wait();
     --stwm.m_threads_suspended_cnt;
-    std::atomic_thread_fence(std::memory_order_acquire);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     stwm.m_barrier.notify();
 
 //    logging::debug() << "Thread leaves stop-the-world signal handler";
@@ -60,12 +60,12 @@ void stw_manager::resume_thread(std::thread::native_handle_type thread)
 void stw_manager::wait_for_world_stop()
 {
     m_barrier.wait(m_threads_cnt);
-    std::atomic_thread_fence(std::memory_order_acquire);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
 }
 
 void stw_manager::wait_for_world_start()
 {
-    std::atomic_thread_fence(std::memory_order_release);
+    std::atomic_thread_fence(std::memory_order_seq_cst);
     m_event.notify(m_threads_cnt);
     m_barrier.wait(m_threads_cnt);
     m_threads_cnt = 0;

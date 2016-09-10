@@ -17,6 +17,11 @@ gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_count, const type_me
     return gc_instance.allocate(obj_size, obj_count, tmeta);
 }
 
+void gc_new_cell(const managed_ptr& ptr)
+{
+    gc_instance.new_cell(ptr);
+}
+
 void gc_initiation_point(initiation_point_type ipoint, const initiation_point_data& ipd)
 {
     gc_instance.initiation_point(ipoint, ipd);
@@ -118,6 +123,7 @@ gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)
 {
     m_ptr = other.m_ptr;
     other.m_ptr = nullptr;
+    return *this;
 }
 
 byte* gc_handle::pin_guard::get() const noexcept

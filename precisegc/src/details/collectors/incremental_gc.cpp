@@ -21,11 +21,14 @@ incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t thread
 
 gc_pointer_type incremental_gc_base::allocate(size_t size)
 {
-    gc_pointer_type ptr = m_heap.allocate(size);
+    return m_heap.allocate(size);
+}
+
+void incremental_gc_base::new_cell(const managed_ptr& ptr)
+{
     if (m_phase == gc_phase::MARK) {
-        ptr.decorated().set_mark(true);
+        ptr.set_mark(true);
     }
-    return ptr;
 }
 
 byte* incremental_gc_base::rbarrier(const gc_handle& handle)

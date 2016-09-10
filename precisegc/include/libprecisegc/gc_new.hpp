@@ -16,6 +16,7 @@
 #include <libprecisegc/details/ptrs/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc {
 
@@ -121,6 +122,8 @@ auto gc_new(Args&&... args)
         } else {
             new (typed_ptr) T(std::forward<Args>(args)...);
         }
+
+        gc_new_cell(descr.first.decorated());
     }
 
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(typed_ptr);
@@ -163,6 +166,8 @@ auto gc_new(size_t n)
         for (U* it = begin; it < end; ++it) {
             new (it) U();
         }
+
+        gc_new_cell(descr.first.decorated());
     }
 
     return precisegc::internals::gc_ptr_factory<U[]>::create(typed_ptr);

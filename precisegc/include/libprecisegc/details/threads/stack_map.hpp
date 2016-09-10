@@ -43,6 +43,11 @@ public:
     {
         std::for_each(begin(), end(), f);
     }
+
+    size_t count() const
+    {
+        return std::distance(begin(), end());
+    }
 private:
     static const size_t MAX_FREE_NODE = 4096;
 

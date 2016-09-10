@@ -58,7 +58,7 @@ public:
         friend class world_snapshot;
     private:
         pin_tracer(const world_snapshot& snapshot)
-                : m_snapshot(snapshot)
+            : m_snapshot(snapshot)
         {}
 
         const world_snapshot& m_snapshot;
@@ -121,7 +121,9 @@ public:
     void trace_roots(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            managed_thread_accessor::root_set(thread).trace(std::forward<Functor>(f));
+            auto& rs = managed_thread_accessor::root_set(thread);
+            logging::debug() << "Thread " << thread->get_id() << " roots count = " << rs.count();
+            rs.trace(std::forward<Functor>(f));
         }
     }
 
@@ -129,7 +131,9 @@ public:
     void trace_pins(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            managed_thread_accessor::pin_set(thread).trace(std::forward<Functor>(f));
+            auto& ps = managed_thread_accessor::pin_set(thread);
+            logging::debug() << "Thread " << thread->get_id() << " pins count = " << ps.count();
+            ps.trace(std::forward<Functor>(f));
         }
     }
 

@@ -87,6 +87,11 @@ public:
         return upstream_allocator().empty();
     }
 
+    void reset_cache()
+    {
+        mutable_upstream_allocator().reset_cache();
+    }
+
     template <typename Functor>
     void apply_to_chunks(Functor&& f)
     {

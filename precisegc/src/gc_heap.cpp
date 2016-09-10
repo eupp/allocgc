@@ -108,6 +108,7 @@ size_t gc_heap::sweep()
                     freed += bucket_size;
                 }
             }
+            tlab.reset_cache();
         }
     }
     return freed;

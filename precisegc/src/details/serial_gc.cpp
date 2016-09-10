@@ -24,6 +24,11 @@ gc_pointer_type serial_gc_base::allocate(size_t size)
     return m_heap.allocate(size);
 }
 
+void serial_gc_base::new_cell(const managed_ptr& ptr)
+{
+    return;
+}
+
 byte* serial_gc_base::rbarrier(const gc_handle& handle)
 {
     return gc_handle_access::get<std::memory_order_relaxed>(handle);

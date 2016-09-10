@@ -44,9 +44,28 @@ struct Node
 
 struct List
 {
+    List()
+        : head(nullptr)
+        , length(0)
+    {}
+
+    List(ptr_in(Node) head_, size_t length_)
+        : head(head_)
+        , length(length_)
+    {}
+
     ptr_t(Node) head;
     size_t length;
 };
+
+ptr_t(Node) advance(ptr_t(Node) node, size_t n)
+{
+    while (n > 0) {
+        node = node->next;
+        --n;
+    }
+    return node;
+}
 
 template <typename Function, typename... Args>
 std::thread create_thread(Function&& f, Args&&... args)
@@ -59,8 +78,8 @@ std::thread create_thread(Function&& f, Args&&... args)
 };
 
 static std::atomic<bool> done_flag{false};
-static precisegc::details::utils::barrier tasks_ready_barrier{std::thread::hardware_concurrency()};
-static precisegc::details::utils::barrier tasks_done_barrier{std::thread::hardware_concurrency()};
+static precisegc::details::utils::barrier tasks_ready_barrier{threads_cnt};
+static precisegc::details::utils::barrier tasks_done_barrier{threads_cnt};
 
 static std::vector<precisegc::details::utils::scoped_thread> threads{threads_cnt - 1};
 
@@ -100,19 +119,10 @@ void init()
     output_lists.resize(threads_cnt - 1);
 }
 
-ptr_t(Node) advance(ptr_t(Node) node, size_t n)
-{
-    while (n > 0) {
-        node = node->next;
-        --n;
-    }
-    return node;
-}
-
 List merge(const List& fst, const List& snd)
 {
     if (fst.length == 0 && snd.length == 0) {
-        return {.head = null_ptr(Node), .length = 0};
+        return List();
     }
 
     ptr_t(Node) res;
@@ -134,6 +144,7 @@ List merge(const List& fst, const List& snd)
 
     ptr_t(Node) dst = res;
     while (l1 > 0 && l2 > 0) {
+        assert(it1 && it2);
         if (it1->data < it2->data) {
             dst->next = it1;
             dst = dst->next;
@@ -154,25 +165,25 @@ List merge(const List& fst, const List& snd)
         dst->next = it2;
     }
 
-    return {.head = res, .length = length};
+    return List(res, length);
 }
 
 List merge_sort(const List& list)
 {
     if (list.length == 0) {
-        return {.head = null_ptr(Node), .length = 0};
+        return List();
     } else if (list.length == 1) {
         ptr_t(Node) node = new_(Node);
         node->data = list.head->data;
         set_null(node->next);
-        return {.head = node, .length = 1};
+        return List(node, 1);
     }
 
     size_t m = list.length / 2;
     ptr_t(Node) mid = advance(list.head, m);
 
-    List lpart = {.head = list.head, .length = m};
-    List rpart = {.head = mid,       .length = list.length - m};
+    List lpart(list.head, m);
+    List rpart(mid, list.length - m);
 
     List lsorted = merge_sort(lpart);
     List rsorted = merge_sort(rpart);
@@ -184,14 +195,13 @@ List parallel_merge_sort(const List& list)
 {
     ptr_t(Node) it = list.head;
     for (int i = 0; i < threads_cnt - 1; ++i) {
-        List lst = {.head = it, .length = nodes_per_thread};
-        input_lists[i] = lst;
+        input_lists[i] = List(it, nodes_per_thread);
         it = ::advance(it, nodes_per_thread);
     }
 
     tasks_ready_barrier.wait();
 
-    List lst = {.head = it, .length = nodes_per_thread};
+    List lst(it, nodes_per_thread);
     List sorted = merge_sort(lst);
 
     tasks_done_barrier.wait();
@@ -206,7 +216,7 @@ List parallel_merge_sort(const List& list)
 List create_list(size_t n, int mod)
 {
     if (n == 0) {
-        return {.head = null_ptr(Node), .length = 0};
+        return List();
     }
     size_t length = n;
     ptr_t(Node) head = new_(Node);
@@ -219,7 +229,7 @@ List create_list(size_t n, int mod)
         it->data = rand() % mod;
         --n;
     }
-    return {.head = head, .length = length};
+    return List(head, length);
 }
 
 void clear_list(List& list)
@@ -267,13 +277,13 @@ int main(int argc, const char* argv[])
 
     #if defined(PRECISE_GC)
         gc_init_options ops;
-//        ops.heapsize            = 2 * 1024 * 1024;      // 2 Mb
+//        ops.heapsize            = 16 * 4096;      // 2 Mb
         ops.threads_available   = 1;
         ops.algo                = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
-        ops.initiation                = gc_initiation::SPACE_BASED;
+        ops.initiation          = gc_initiation::SPACE_BASED;
         ops.compacting          = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel            = gc_loglevel::DEBUG;
-        ops.print_stat          = true;
+        ops.loglevel            = gc_loglevel::SILENT;
+        ops.print_stat          = false;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

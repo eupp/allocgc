@@ -29,6 +29,8 @@ public:
 
     gc_alloc_descriptor allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
 
+    void new_cell(const managed_ptr& ptr);
+
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 

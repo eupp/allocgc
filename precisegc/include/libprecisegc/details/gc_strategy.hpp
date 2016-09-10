@@ -17,6 +17,7 @@ public:
     virtual ~gc_strategy() {}
 
     virtual gc_pointer_type allocate(size_t size) = 0;
+    virtual void new_cell(const managed_ptr& ptr) = 0;
 
     virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;

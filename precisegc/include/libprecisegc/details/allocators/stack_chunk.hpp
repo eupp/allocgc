@@ -38,6 +38,8 @@ public:
 
     byte* get_mem() const;
     size_t get_mem_size() const;
+
+    byte* get_top();
 private:
     byte*  m_mem;
     byte*  m_top;

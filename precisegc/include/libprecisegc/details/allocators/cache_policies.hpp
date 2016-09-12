@@ -117,6 +117,51 @@ private:
     mutable Iterator m_chunk;
 };
 
+template <typename Iterator>
+class single_chunk_with_forward_search_cache
+{
+public:
+    typedef typename Iterator::value_type chunk_type;
+    typedef typename chunk_type::pointer_type pointer_type;
+
+    explicit single_chunk_with_forward_search_cache(const Iterator& init)
+        : m_chunk(init)
+    {}
+
+    pointer_type allocate(size_t size)
+    {
+        return m_chunk->allocate(size);
+    }
+
+    bool memory_available(const Iterator& first, const Iterator& last) const
+    {
+        typedef typename std::iterator_traits<Iterator>::value_type chunk_type;
+        if (m_chunk == last) {
+            return false;
+        }
+        if (!m_chunk->memory_available()) {
+            m_chunk = std::find_if(std::next(m_chunk), last,
+                                   [] (const chunk_type& chk) { return chk.memory_available(); });
+            return m_chunk != last;
+        }
+        return true;
+    }
+
+    void update(const Iterator& it)
+    {
+        m_chunk = it;
+    }
+
+    void invalidate(const Iterator& it, const Iterator& deflt)
+    {
+        if (m_chunk == it) {
+            m_chunk = deflt;
+        }
+    }
+private:
+    mutable Iterator m_chunk;
+};
+
 }}}
 
 #endif //DIPLOMA_CACHE_POLICIES_HPP

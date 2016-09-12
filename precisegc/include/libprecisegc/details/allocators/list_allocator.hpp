@@ -93,7 +93,7 @@ public:
 
     void reset_cache()
     {
-        m_cache.update(m_chunks.end());
+        m_cache.update(m_chunks.begin());
     }
 
     template <typename Functor>
@@ -119,8 +119,8 @@ private:
     {
         if (!m_cache.memory_available(m_chunks.begin(), m_chunks.end())) {
             auto new_chunk = create_chunk(size);
-            m_cache.update(new_chunk);
-            return new_chunk->allocate(size);
+            auto first = m_chunks.begin();
+            m_cache.update(first->memory_available() ? first : new_chunk);
         }
         return m_cache.allocate(size);
     }
@@ -134,7 +134,7 @@ private:
 
     typename list_t::iterator destroy_chunk(typename list_t::iterator chk)
     {
-        m_cache.invalidate(chk, m_chunks.end());
+        m_cache.invalidate(chk, std::next(chk));
         deallocate_block(chk->get_mem(), chk->get_mem_size());
         return m_chunks.erase(chk);
     }

@@ -296,14 +296,14 @@ private:
 
     void destroy_memblk(chunk_iterator it)
     {
-        m_cache.invalidate(it, end());
-
         control_block* cblk = it.cblk();
         if (cblk == m_head) {
             m_head = cblk->m_next;
         }
         cblk->m_next->m_prev = cblk->m_prev;
         cblk->m_prev->m_next = cblk->m_next;
+
+        m_cache.invalidate(it, begin());
 
         Chunk* chunk = get_chunk(cblk);
         get_chunk(cblk)->~Chunk();

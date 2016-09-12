@@ -4,7 +4,7 @@
 #include <mutex>
 
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/fixsize_freelist_allocator.hpp>
+#include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
@@ -41,7 +41,7 @@ public:
         }
     }
 private:
-    typedef fixsize_freelist_allocator<
+    typedef freelist_allocator<
               intrusive_list_allocator<
                       freelist_pool_chunk
                     , default_allocator

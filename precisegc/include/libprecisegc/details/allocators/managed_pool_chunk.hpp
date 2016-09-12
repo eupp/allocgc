@@ -10,8 +10,8 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/stack_chunk.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/freelist_allocator.hpp>
+#include <libprecisegc/details/allocators/null_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
@@ -32,6 +32,7 @@ private:
     typedef allocators::stack_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
+    typedef freelist_allocator<null_allocator, fixsize_policy> freelist_t;
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
     typedef managed_ptr pointer_type;
@@ -60,6 +61,7 @@ public:
 
     memory_descriptor* get_descriptor();
 
+    size_t sweep();
     void unmark();
 
     iterator begin();
@@ -86,6 +88,7 @@ private:
     size_t get_log2_cell_size() const;
 
     plain_pool_chunk m_chunk;
+    freelist_t m_freelist;
     size_t m_cell_size;
     size_t m_log2_cell_size;
     uintptr m_mask;

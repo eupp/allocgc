@@ -84,7 +84,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
-        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/fixsize_freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp include/libprecisegc/details/allocators/stack_chunk.hpp include/libprecisegc/details/allocators/sys_allocator.hpp)
+        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp include/libprecisegc/details/allocators/stack_chunk.hpp include/libprecisegc/details/allocators/sys_allocator.hpp include/libprecisegc/details/allocators/null_allocator.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp

@@ -33,7 +33,13 @@ managed_pool_chunk::~managed_pool_chunk()
 managed_pool_chunk::pointer_type managed_pool_chunk::allocate(size_t size)
 {
     assert(size == cell_size());
-    byte* raw_ptr = m_chunk.allocate(size);
+    byte* raw_ptr = nullptr;
+    if (m_chunk.memory_available()) {
+        raw_ptr = m_chunk.allocate(size);
+    } else {
+        raw_ptr = m_freelist.allocate(size);
+        memset(raw_ptr, 0, m_cell_size);
+    }
     return managed_ptr(raw_ptr, get_descriptor());
 }
 
@@ -56,7 +62,7 @@ bool managed_pool_chunk::contains(const pointer_type& ptr) const noexcept
 
 bool managed_pool_chunk::memory_available() const noexcept
 {
-    return m_chunk.memory_available();
+    return m_chunk.memory_available() || !m_freelist.empty();
 }
 
 bool managed_pool_chunk::empty() const noexcept
@@ -77,6 +83,20 @@ size_t managed_pool_chunk::get_mem_size() const
 memory_descriptor* managed_pool_chunk::get_descriptor()
 {
     return this;
+}
+
+size_t managed_pool_chunk::sweep()
+{
+    size_t freed = 0;
+    size_t i = 0;
+    byte* mem_end = m_chunk.get_top();
+    for (byte *it = get_mem(); it < mem_end; it += m_cell_size, ++i) {
+        if (!m_mark_bits.get(i)) {
+            m_freelist.deallocate(it, m_cell_size);
+            freed += m_cell_size;
+        }
+    }
+    return freed;
 }
 
 void managed_pool_chunk::unmark()

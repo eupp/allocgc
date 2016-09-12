@@ -20,14 +20,8 @@ struct varsize_policy {};
 template <typename SizePolicy>
 using is_varsize_policy = std::is_same<SizePolicy, varsize_policy>;
 
-struct zeroing_enabled {};
-struct zeroing_disabled {};
-
-struct shrinking_enabled {};
-struct shrinking_disabled {};
-
-template <typename UpstreamAlloc, typename SizePolicy, typename ShrinkingPolicy = shrinking_enabled, typename ZeroingPolicy = zeroing_disabled>
-class fixsize_freelist_allocator : private utils::ebo<UpstreamAlloc>,
+template <typename UpstreamAlloc, typename SizePolicy>
+class freelist_allocator : private utils::ebo<UpstreamAlloc>,
                                    private utils::noncopyable, private utils::nonmovable
 {
 public:
@@ -41,7 +35,7 @@ private:
             , pointer_type
         >::type internal_pointer_type;
 public:
-    fixsize_freelist_allocator()
+    freelist_allocator()
         : m_head(nullptr)
     {}
 
@@ -51,9 +45,6 @@ public:
         if (m_head) {
             internal_pointer_type ptr = m_head;
             m_head = *reinterpret_cast<internal_pointer_type*>(utils::get_ptr(ptr));
-            if (is_zeroing_enabled) {
-                memset(utils::get_ptr(ptr), 0, size);
-            }
             return from_internal_pointer(ptr);
         }
         return mutable_upstream_allocator().allocate(size);
@@ -94,7 +85,7 @@ public:
 
     bool empty() const
     {
-        return upstream_allocator().empty();
+        return !m_head && upstream_allocator().empty();
     }
 
     void reset_cache()
@@ -118,9 +109,6 @@ public:
         return this->template get_base<UpstreamAlloc>();
     }
 private:
-    static const bool is_zeroing_enabled = std::is_same<ZeroingPolicy, zeroing_enabled>::value;
-    static const bool is_shrinking_enabled = std::is_same<ShrinkingPolicy, shrinking_enabled>::value;
-
     template <typename SP = SizePolicy>
     auto to_internal_pointer(const pointer_type& ptr, size_t size)
         -> typename std::enable_if<is_varsize_policy<SP>::value, internal_pointer_type>::type

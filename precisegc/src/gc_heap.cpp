@@ -49,8 +49,8 @@ gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot,
         }
     }
 
-//    sweep();
-    unmark();
+    freed += sweep();
+//    unmark();
 
     stat.mem_swept = freed;
     stat.mem_copied = copied;
@@ -94,22 +94,11 @@ size_t gc_heap::sweep()
 {
     size_t freed = 0;
     for (auto& kv: m_tlab_map) {
-        auto& tlab = kv.second;
-        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
-            auto rng = tlab.memory_range(i);
-            if (rng.empty()) {
-                continue;
-            }
-            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            for (auto it = rng.begin(), end = rng.end(); it != end; ++it) {
-                if (!it->get_mark()) {
-                    logging::debug() << "Deallocate cell: addr=" << (void*) it->get() << ", size=" << bucket_size;
-                    tlab.deallocate(*it, i, bucket_size);
-                    freed += bucket_size;
-                }
-            }
-            tlab.reset_cache();
-        }
+        kv.second.apply_to_chunks([&freed] (allocators::managed_pool_chunk& chunk) {
+            freed += chunk.sweep();
+            chunk.unmark();
+        });
+        kv.second.reset_cache();
     }
     return freed;
 }
@@ -192,13 +181,13 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
     thread_pool.run(tasks.begin(), tasks.end());
 }
 
-void gc_heap::unmark()
-{
-    for (auto& kv: m_tlab_map) {
-        kv.second.apply_to_chunks([] (allocators::managed_pool_chunk& chunk) {
-            chunk.unmark();
-        });
-    }
-}
+//void gc_heap::unmark()
+//{
+//    for (auto& kv: m_tlab_map) {
+//        kv.second.apply_to_chunks([] (allocators::managed_pool_chunk& chunk) {
+//            chunk.unmark();
+//        });
+//    }
+//}
 
 }}

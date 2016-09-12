@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/fixsize_freelist_allocator.hpp>
+#include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 
@@ -11,15 +11,15 @@ namespace {
 static const size_t OBJ_SIZE = sizeof(size_t);
 }
 
-struct fixsize_freelist_allocator_test : public ::testing::Test
+struct freelist_allocator_test : public ::testing::Test
 {
-    typedef fixsize_freelist_allocator<debug_layer<default_allocator>, fixsize_policy> alloc_t;
+    typedef freelist_allocator<debug_layer<default_allocator>, fixsize_policy> alloc_t;
 
     alloc_t alloc;
 };
 
 
-TEST_F(fixsize_freelist_allocator_test, test_allocate_1)
+TEST_F(freelist_allocator_test, test_allocate_1)
 {
     size_t* ptr = (size_t*) alloc.allocate(OBJ_SIZE);
     ASSERT_NE(nullptr, ptr);
@@ -28,7 +28,7 @@ TEST_F(fixsize_freelist_allocator_test, test_allocate_1)
     ASSERT_EQ(OBJ_SIZE, alloc.upstream_allocator().get_allocated_mem_size());
 }
 
-TEST_F(fixsize_freelist_allocator_test, test_allocate_2)
+TEST_F(freelist_allocator_test, test_allocate_2)
 {
     byte* ptr1 = alloc.allocate(OBJ_SIZE);
     alloc.deallocate(ptr1, OBJ_SIZE);
@@ -39,7 +39,7 @@ TEST_F(fixsize_freelist_allocator_test, test_allocate_2)
     ASSERT_EQ(OBJ_SIZE, alloc.upstream_allocator().get_allocated_mem_size());
 }
 
-TEST_F(fixsize_freelist_allocator_test, test_shrink)
+TEST_F(freelist_allocator_test, test_shrink)
 {
     byte* ptr = alloc.allocate(OBJ_SIZE);
     alloc.deallocate(ptr, OBJ_SIZE);

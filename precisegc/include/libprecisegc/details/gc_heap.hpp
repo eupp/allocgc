@@ -13,7 +13,7 @@
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/fixsize_freelist_allocator.hpp>
+#include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
@@ -44,7 +44,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
                           allocators::managed_pool_chunk
                         , allocators::core_allocator
                         , chunk_pool_t
-                        , allocators::single_chunk_cache
+                        , allocators::single_chunk_with_forward_search_cache
                         , utils::dummy_mutex
         > fixsize_alloc_t;
 
@@ -91,7 +91,7 @@ private:
     void fix_pointers(const forwarding& frwd);
     void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);
 
-    void unmark();
+//    void unmark();
 
     loa_t m_loa;
     tlab_map_t m_tlab_map;

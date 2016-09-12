@@ -9,7 +9,7 @@
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/sys_allocator.hpp>
-#include <libprecisegc/details/allocators/fixsize_freelist_allocator.hpp>
+#include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/types.hpp>
@@ -39,7 +39,7 @@ public:
 
     static memory_range_type memory_range();
 private:
-    typedef fixsize_freelist_allocator<sys_allocator, varsize_policy> freelist_t;
+    typedef freelist_allocator<sys_allocator, varsize_policy> freelist_t;
     
     static freelist_t freelist;
 };

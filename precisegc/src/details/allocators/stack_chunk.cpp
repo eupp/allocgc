@@ -60,4 +60,9 @@ size_t stack_chunk::get_mem_size() const
     return m_size;
 }
 
+byte* stack_chunk::get_top()
+{
+    return m_top;
+}
+
 }}}

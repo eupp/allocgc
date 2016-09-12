@@ -7,7 +7,7 @@
 #include "libprecisegc/details/forwarding.h"
 
 #include <libprecisegc/details/allocators/list_allocator.hpp>
-#include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
@@ -29,7 +29,7 @@ struct test_type
 };
 
 typedef list_allocator<managed_pool_chunk,
-                       page_allocator,
+                       core_allocator,
                        default_allocator,
                        single_chunk_cache,
                        utils::dummy_mutex
@@ -42,7 +42,7 @@ class gc_compact_test : public ::testing::Test
 {
 public:
     gc_compact_test()
-        : m_chunk(m_paged_alloc.allocate(CHUNK_SIZE, CHUNK_SIZE), CHUNK_SIZE, OBJ_SIZE)
+        : m_chunk(m_paged_alloc.allocate(CHUNK_SIZE), CHUNK_SIZE, OBJ_SIZE)
     {}
 
     ~gc_compact_test()
@@ -53,7 +53,7 @@ public:
         m_paged_alloc.deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
     }
 
-    page_allocator m_paged_alloc;
+    core_allocator m_paged_alloc;
     allocator_t m_alloc;
     managed_pool_chunk m_chunk;
     std::unordered_set<byte*> m_allocated;

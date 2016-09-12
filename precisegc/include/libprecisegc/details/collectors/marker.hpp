@@ -91,7 +91,6 @@ private:
 
     void worker_routine()
     {
-        size_t cnt = 0;
         auto input_packet = m_packet_manager->pop_input_packet();
         packet_manager::mark_packet_handle output_packet = nullptr;
         while (true) {
@@ -100,7 +99,6 @@ private:
                     m_packet_manager->push_packet(std::move(output_packet));
                 }
                 if (m_packet_manager->is_no_input() || m_done.load(std::memory_order_acquire)) {
-                    logging::debug() << "Count of traced objects: " << cnt;
                     return;
                 }
                 std::this_thread::yield();
@@ -110,8 +108,7 @@ private:
                 output_packet = m_packet_manager->pop_output_packet();
             }
             while (!input_packet->is_empty()) {
-                ptrs::trace_ptr(input_packet->pop(), [this, &output_packet, &cnt] (const managed_ptr& child) {
-                    ++cnt;
+                ptrs::trace_ptr(input_packet->pop(), [this, &output_packet] (const managed_ptr& child) {
                     push_to_packet(child, output_packet);
                 });
             }

@@ -6,7 +6,7 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
-#include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/types.hpp>
@@ -51,7 +51,7 @@ struct test_bucket_policy
 class bucket_allocator_test : public ::testing::Test
 {
 public:
-//    typedef debug_layer<page_allocator> allocator_t;
+//    typedef debug_layer<core_allocator> allocator_t;
     typedef list_allocator<
             test_chunk,
             default_allocator,

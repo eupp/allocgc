@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/page_allocator.hpp>
+#include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
@@ -40,16 +40,12 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
             , utils::dummy_mutex
         > chunk_pool_t;
 
-    typedef allocators::fixsize_freelist_allocator<
-                  allocators::list_allocator<
+    typedef allocators::list_allocator<
                           allocators::managed_pool_chunk
-                        , allocators::page_allocator
+                        , allocators::core_allocator
                         , chunk_pool_t
                         , allocators::single_chunk_cache
                         , utils::dummy_mutex
-                  >
-                , allocators::shrinking_disabled
-                , allocators::zeroing_enabled
         > fixsize_alloc_t;
 
     typedef allocators::bucket_allocator<
@@ -59,7 +55,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 
     typedef allocators::intrusive_list_allocator<
             allocators::managed_object_descriptor,
-            allocators::page_allocator,
+            allocators::core_allocator,
             allocators::always_expand,
             utils::safepoint_lock<std::recursive_mutex>
         > loa_t;

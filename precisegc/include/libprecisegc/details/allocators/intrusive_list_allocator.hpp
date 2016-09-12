@@ -314,12 +314,12 @@ private:
 
     byte* upstream_allocate(size_t size)
     {
-        return this->template get_base<UpstreamAlloc>().allocate(size, PAGE_SIZE);
+        return this->template get_base<UpstreamAlloc>().allocate(size);
     }
 
     void upstream_deallocate(byte* ptr, size_t size)
     {
-        this->template get_base<UpstreamAlloc>().deallocate(ptr, size, PAGE_SIZE);
+        this->template get_base<UpstreamAlloc>().deallocate(ptr, size);
     }
 
     control_block* get_fake_block()

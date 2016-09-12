@@ -42,12 +42,13 @@ public:
     }
 private:
     typedef fixsize_freelist_allocator<
-            intrusive_list_allocator<
+              intrusive_list_allocator<
                       freelist_pool_chunk
                     , default_allocator
                     , single_chunk_with_search_cache
                     , utils::dummy_mutex
                 >
+            , fixsize_policy
         > alloc_t;
 
     static const size_t SHRINK_LOWER_BOUND = freelist_pool_chunk::DEFAULT_CHUNK_SIZE;

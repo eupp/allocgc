@@ -13,7 +13,7 @@ static const size_t OBJ_SIZE = sizeof(size_t);
 
 struct fixsize_freelist_allocator_test : public ::testing::Test
 {
-    typedef fixsize_freelist_allocator<debug_layer<default_allocator>> alloc_t;
+    typedef fixsize_freelist_allocator<debug_layer<default_allocator>, fixsize_policy> alloc_t;
 
     alloc_t alloc;
 };

@@ -20,7 +20,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
         include/libprecisegc/details/gc_mark.h
-        include/libprecisegc/details/allocators/page_allocator.hpp
+        include/libprecisegc/details/allocators/core_allocator.hpp
         include/libprecisegc/details/index_tree.hpp
         include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/debug_layer.hpp
@@ -84,7 +84,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
-        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/fixsize_freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp include/libprecisegc/details/allocators/stack_chunk.hpp)
+        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/fixsize_freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp include/libprecisegc/details/allocators/stack_chunk.hpp include/libprecisegc/details/allocators/sys_allocator.hpp)
 
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
@@ -114,7 +114,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
         src/details/allocators/managed_object_descriptor.cpp
-        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp)
+        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp include/libprecisegc/details/allocators/sys_allocator.hpp src/details/allocators/core_allocator.cpp)
 
 
 find_package(Threads REQUIRED)

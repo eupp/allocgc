@@ -24,16 +24,16 @@ public:
     debug_layer(const debug_layer&) = default;
     debug_layer(debug_layer&&) = default;
 
-    byte* allocate(size_t size, size_t alignment = 0)
+    byte* allocate(size_t size)
     {
         m_allocated_mem += size;
-        return m_allocator.allocate(size, alignment);
+        return m_allocator.allocate(size);
     }
 
-    void deallocate(byte* ptr, size_t size, size_t alignment = 0)
+    void deallocate(byte* ptr, size_t size)
     {
         m_allocated_mem -= size;
-        m_allocator.deallocate(ptr, size, alignment);
+        m_allocator.deallocate(ptr, size);
     }
 
     size_t shrink()

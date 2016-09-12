@@ -143,23 +143,23 @@ private:
     {
         assert(PAGE_SIZE % cell_size == 0);
         size_t chunk_size = Chunk::chunk_size(cell_size);
-        return std::make_pair(upstream_allocate(chunk_size, chunk_size), chunk_size);
+        return std::make_pair(upstream_allocate(chunk_size), chunk_size);
     }
 
     void deallocate_block(internal_pointer_type p, size_t size)
     {
         assert(p);
-        upstream_deallocate(p, size, size);
+        upstream_deallocate(p, size);
     }
 
-    byte* upstream_allocate(size_t size, size_t alignment)
+    byte* upstream_allocate(size_t size)
     {
-        return this->template get_base<UpstreamAlloc>().allocate(size, alignment);
+        return this->template get_base<UpstreamAlloc>().allocate(size);
     }
 
-    void upstream_deallocate(byte* ptr, size_t size, size_t alignment)
+    void upstream_deallocate(byte* ptr, size_t size)
     {
-        this->template get_base<UpstreamAlloc>().deallocate(ptr, size, alignment);
+        this->template get_base<UpstreamAlloc>().deallocate(ptr, size);
     }
 
     list_t m_chunks;

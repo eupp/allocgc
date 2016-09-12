@@ -63,7 +63,7 @@ public:
 
     explicit operator bool() const
     {
-        return m_ptr.operator bool();
+        return static_cast<bool>(m_ptr);
     }
 private:
     Ptr m_ptr;

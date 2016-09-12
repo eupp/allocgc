@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include <libprecisegc/details/logging.hpp>
+#include <libprecisegc/details/allocators/core_allocator.hpp>
 
 namespace precisegc { namespace details {
 
@@ -35,6 +36,7 @@ void gc_manager::gc(gc_phase phase)
     if (run_stats.type == gc_type::SKIP_GC) {
         return;
     }
+    allocators::core_allocator::shrink();
 
     logging::info() << "GC pause (" << gc_type_to_str(run_stats.type)
                     << ") duration "<< duration_to_str(run_stats.pause_duration);

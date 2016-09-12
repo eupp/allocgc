@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
-#include "libprecisegc/details/allocators/page_allocator.hpp"
+#include "libprecisegc/details/allocators/core_allocator.hpp"
 #include "libprecisegc/details/allocators/debug_layer.hpp"
 
 #include "rand_util.h"
@@ -21,17 +21,17 @@ const size_t CHUNK_SIZE = managed_pool_chunk::chunk_size(CELL_COUNT * CELL_SIZE)
 class managed_pool_chunk_test : public ::testing::Test
 {
 public:
-    typedef debug_layer<page_allocator> allocator_t;
+    typedef debug_layer<core_allocator> allocator_t;
 
     managed_pool_chunk_test()
-        : m_chunk(m_alloc.allocate(CHUNK_SIZE, CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
+        : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
         , m_rand(0, PAGE_SIZE - 1)
     {}
 
     ~managed_pool_chunk_test()
     {
         if (m_chunk.get_mem()) {
-            m_alloc.deallocate(m_chunk.get_mem(), CHUNK_SIZE, CHUNK_SIZE);
+            m_alloc.deallocate(m_chunk.get_mem(), CHUNK_SIZE);
         }
     }
 

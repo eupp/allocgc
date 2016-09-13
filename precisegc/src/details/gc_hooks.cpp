@@ -87,6 +87,11 @@ gc_handle::pin_guard gc_handle::pin() const
     return pin_guard(*this);
 }
 
+gc_handle::stack_pin_guard gc_handle::push_pin() const
+{
+    return stack_pin_guard(*this);
+}
+
 void gc_handle::reset()
 {
     gc_instance.interior_wbarrier(*this, nullptr);
@@ -125,6 +130,26 @@ gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)
 }
 
 byte* gc_handle::pin_guard::get() const noexcept
+{
+    return m_ptr;
+}
+
+gc_handle::stack_pin_guard::stack_pin_guard(const gc_handle& handle)
+    : m_ptr(gc_instance.push_pin(handle))
+{}
+
+gc_handle::stack_pin_guard::stack_pin_guard(stack_pin_guard&& other)
+    : m_ptr(other.m_ptr)
+{
+    other.m_ptr = nullptr;
+}
+
+gc_handle::stack_pin_guard::~stack_pin_guard()
+{
+    gc_instance.pop_pin(m_ptr);
+}
+
+byte* gc_handle::stack_pin_guard::get() const noexcept
 {
     return m_ptr;
 }

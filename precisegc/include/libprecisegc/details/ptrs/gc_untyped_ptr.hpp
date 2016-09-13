@@ -27,6 +27,7 @@ public:
     gc_untyped_ptr& operator=(gc_untyped_ptr&& other);
 
     gc_handle::pin_guard untyped_pin() const;
+    gc_handle::stack_pin_guard push_untyped_pin() const;
 
     bool is_null() const;
     bool is_root() const;

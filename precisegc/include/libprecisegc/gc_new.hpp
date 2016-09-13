@@ -110,9 +110,9 @@ auto gc_new(Args&&... args)
         size_t size = descr.first.size();
         object_meta* obj_meta = descr.second;
 
-        threads::this_managed_thread::pin(ptr);
-        auto guard = utils::make_scope_guard([ptr] {
-            threads::this_managed_thread::unpin(ptr);
+        threads::this_managed_thread::push_pin(ptr);
+        auto guard = utils::make_scope_guard([] {
+            threads::this_managed_thread::pop_pin();
         });
 
         if (!type_meta_provider<T>::is_meta_created()) {

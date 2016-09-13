@@ -74,6 +74,11 @@ gc_handle::pin_guard gc_untyped_ptr::untyped_pin() const
     return m_handle.pin();
 }
 
+gc_handle::stack_pin_guard gc_untyped_ptr::push_untyped_pin() const
+{
+    return m_handle.push_pin();
+}
+
 bool gc_untyped_ptr::is_null() const
 {
     return m_handle.is_null();

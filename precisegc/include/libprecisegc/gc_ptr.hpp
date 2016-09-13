@@ -108,9 +108,9 @@ public:
         return gc_ref<T>(pin());
     }
 
-    gc_pin<T> operator->() const
+    gc_stack_pin<T> operator->() const
     {
-        return pin();
+        return gc_stack_pin<T>(push_untyped_pin());
     }
 
     explicit operator bool() const

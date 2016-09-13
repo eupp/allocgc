@@ -24,22 +24,32 @@ std::thread::native_handle_type this_managed_thread::get_native_handle()
 
 void this_managed_thread::register_root(ptrs::gc_untyped_ptr* root)
 {
-    managed_thread_accessor::root_set(this_thread).insert(root);
+    managed_thread_accessor::get_root_set(this_thread).insert(root);
 }
 
 void this_managed_thread::deregister_root(ptrs::gc_untyped_ptr* root)
 {
-    managed_thread_accessor::root_set(this_thread).remove(root);
+    managed_thread_accessor::get_root_set(this_thread).remove(root);
 }
 
 void this_managed_thread::pin(byte* ptr)
 {
-    managed_thread_accessor::pin_set(this_thread).insert(ptr);
+    managed_thread_accessor::get_pin_set(this_thread).insert(ptr);
 }
 
 void this_managed_thread::unpin(byte* ptr)
 {
-    managed_thread_accessor::pin_set(this_thread).remove(ptr);
+    managed_thread_accessor::get_pin_set(this_thread).remove(ptr);
+}
+
+void this_managed_thread::push_pin(byte* ptr)
+{
+    managed_thread_accessor::get_pin_stack(this_thread).push_pin(ptr);
+}
+
+void this_managed_thread::pop_pin()
+{
+    managed_thread_accessor::get_pin_stack(this_thread).pop_pin();
 }
 
 collectors::packet_manager::mark_packet_handle& this_managed_thread::get_mark_packet()

@@ -31,6 +31,23 @@ public:
         byte* m_ptr;
     };
 
+    class stack_pin_guard : private utils::noncopyable
+    {
+    public:
+        stack_pin_guard(stack_pin_guard&& other);
+        ~stack_pin_guard();
+
+        stack_pin_guard& operator=(stack_pin_guard&& other) = delete;
+
+        byte* get() const noexcept;
+
+        friend class gc_handle;
+    private:
+        stack_pin_guard(const gc_handle& handle);
+
+        byte* m_ptr;
+    };
+
     gc_handle() = default;
 
     constexpr gc_handle(byte* ptr)
@@ -45,6 +62,7 @@ public:
     void interior_shift(ptrdiff_t shift);
 
     pin_guard pin() const;
+    stack_pin_guard push_pin() const;
 
     void reset();
 

@@ -78,9 +78,9 @@ private:
         auto new_stack = std::unique_ptr<byte*[]>(new byte*[new_capacity]);
         std::copy(stack, stack + size, new_stack.get());
 
-        stack = new_stack.get();
-        m_stack.store(stack, std::memory_order_relaxed);
+        m_stack.store(new_stack.get(), std::memory_order_relaxed);
         m_capacity.store(new_capacity, std::memory_order_relaxed);
+        delete[] stack;
         return new_stack.release();
     }
 

@@ -2,6 +2,7 @@
 #define DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP
 
 #include <libprecisegc/details/threads/stack_map.hpp>
+#include <libprecisegc/details/threads/pin_stack.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -17,8 +18,9 @@ class managed_thread_accessor : private utils::noncopyable, private utils::nonmo
 public:
     managed_thread_accessor() = delete;
 private:
-    static root_stack_map& root_set(managed_thread* thread);
-    static pin_stack_map& pin_set(managed_thread* thread);
+    static root_stack_map& get_root_set(managed_thread* thread);
+    static pin_stack_map& get_pin_set(managed_thread* thread);
+    static pin_stack& get_pin_stack(managed_thread* thread);
 
     static void set_this_managed_thread_pointer(managed_thread* thread);
 

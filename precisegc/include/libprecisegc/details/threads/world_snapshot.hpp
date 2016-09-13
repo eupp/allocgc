@@ -121,8 +121,8 @@ public:
     void trace_roots(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            auto& rs = managed_thread_accessor::root_set(thread);
-            logging::debug() << "Thread " << thread->get_id() << " roots count = " << rs.count();
+            auto& rs = managed_thread_accessor::get_root_set(thread);
+            logging::info() << "Thread " << thread->get_id() << " roots count = " << rs.count();
             rs.trace(std::forward<Functor>(f));
         }
     }
@@ -131,9 +131,12 @@ public:
     void trace_pins(Functor&& f) const
     {
         for (auto thread: m_threads) {
-            auto& ps = managed_thread_accessor::pin_set(thread);
-            logging::debug() << "Thread " << thread->get_id() << " pins count = " << ps.count();
-            ps.trace(std::forward<Functor>(f));
+            auto& pset = managed_thread_accessor::get_pin_set(thread);
+            auto& pstack = managed_thread_accessor::get_pin_stack(thread);
+            logging::info() << "Thread " << thread->get_id()
+                             << " pins count = " << pset.count() + pstack.count();
+            pset.trace(std::forward<Functor>(f));
+            pstack.trace(std::forward<Functor>(f));
         }
     }
 
@@ -142,7 +145,7 @@ public:
     {
         logging::info() << "Fixing roots...";
         for (auto thread: m_threads) {
-            managed_thread_accessor::root_set(thread).trace([&forwarding] (ptrs::gc_untyped_ptr* p) {
+            managed_thread_accessor::get_root_set(thread).trace([&forwarding] (ptrs::gc_untyped_ptr* p) {
                 forwarding.forward(p);
             });
         }

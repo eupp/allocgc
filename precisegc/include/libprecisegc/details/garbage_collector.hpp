@@ -40,6 +40,9 @@ public:
     byte* pin(const gc_handle& handle);
     void  unpin(byte* ptr);
 
+    byte* push_pin(const gc_handle& handle);
+    void  pop_pin(byte* ptr);
+
     bool compare(const gc_handle& a, const gc_handle& b);
 
     void initiation_point(initiation_point_type ipt,

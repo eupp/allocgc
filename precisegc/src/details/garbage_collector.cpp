@@ -95,7 +95,6 @@ void garbage_collector::interior_shift(gc_handle& handle, ptrdiff_t shift)
 
 byte* garbage_collector::pin(const gc_handle& handle)
 {
-    assert(m_strategy);
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
     if (ptr) {
@@ -106,9 +105,23 @@ byte* garbage_collector::pin(const gc_handle& handle)
 
 void garbage_collector::unpin(byte* ptr)
 {
-    assert(m_strategy);
     if (ptr) {
         threads::this_managed_thread::unpin(ptr);
+    }
+}
+
+byte* garbage_collector::push_pin(const gc_handle& handle)
+{
+    gc_unsafe_scope unsafe_scope;
+    byte* ptr = handle.rbarrier();
+    threads::this_managed_thread::push_pin(ptr);
+    return ptr;
+}
+
+void garbage_collector::pop_pin(byte* ptr)
+{
+    if (ptr) {
+        threads::this_managed_thread::pop_pin();
     }
 }
 

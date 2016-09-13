@@ -3,6 +3,7 @@
 
 #include <cstddef>
 
+#include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -69,7 +70,7 @@ public:
     friend class gc_ptr<T[]>;
 private:
     gc_pin(details::gc_handle::pin_guard pin)
-            : m_pin(std::move(pin))
+        : m_pin(std::move(pin))
     {}
 
     details::gc_handle::pin_guard m_pin;
@@ -77,6 +78,33 @@ private:
 
 template <typename T, size_t N>
 class gc_pin<T[N]>;
+
+template <typename T>
+class gc_stack_pin : private details::utils::noncopyable
+{
+public:
+    gc_stack_pin(gc_stack_pin&& other) = default;
+
+    gc_stack_pin& operator=(gc_stack_pin&&) = delete;
+
+    T* get() const
+    {
+        return reinterpret_cast<T*>(m_pin.get());
+    }
+
+    T* operator->() const
+    {
+        return get();
+    }
+
+    friend class gc_ptr<T>;
+private:
+    gc_stack_pin(details::gc_handle::stack_pin_guard pin)
+        : m_pin(std::move(pin))
+    {}
+
+    details::gc_handle::stack_pin_guard m_pin;
+};
 
 }
 

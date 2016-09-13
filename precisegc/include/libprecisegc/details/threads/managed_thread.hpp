@@ -9,6 +9,7 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/threads/stack_map.hpp>
+#include <libprecisegc/details/threads/pin_stack.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -71,6 +72,7 @@ private:
     std::thread::id m_id;
     root_stack_map m_root_set;
     pin_stack_map m_pin_set;
+    pin_stack m_pin_stack;
     collectors::packet_manager::mark_packet_handle m_mark_packet;
 };
 

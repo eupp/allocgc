@@ -5,14 +5,19 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-root_stack_map& managed_thread_accessor::root_set(managed_thread* thread)
+root_stack_map& managed_thread_accessor::get_root_set(managed_thread* thread)
 {
     return thread->m_root_set;
 }
 
-pin_stack_map& managed_thread_accessor::pin_set(managed_thread* thread)
+pin_stack_map& managed_thread_accessor::get_pin_set(managed_thread* thread)
 {
     return thread->m_pin_set;
+}
+
+pin_stack& managed_thread_accessor::get_pin_stack(managed_thread* thread)
+{
+    return thread->m_pin_stack;
 }
 
 void managed_thread_accessor::set_this_managed_thread_pointer(managed_thread* thread)

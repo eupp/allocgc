@@ -114,9 +114,7 @@ gc_handle::pin_guard::pin_guard(pin_guard&& other)
 
 gc_handle::pin_guard::~pin_guard()
 {
-    if (m_ptr) {
-        gc_instance.unpin(m_ptr);
-    }
+    gc_instance.unpin(m_ptr);
 }
 
 gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)

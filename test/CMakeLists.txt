@@ -47,7 +47,7 @@ set(precisegc_TESTS
         details/utils/barrier_test.cpp
         details/object_meta_test.cpp
         details/gc_handle_test.cpp
-        details/allocators/list_allocators_test.cpp details/allocators/freelist_allocator_test.cpp)
+        details/allocators/list_allocators_test.cpp details/allocators/freelist_allocator_test.cpp details/threads/pin_stack_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

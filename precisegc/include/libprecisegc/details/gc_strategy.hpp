@@ -25,9 +25,6 @@ public:
     virtual void interior_wbarrier(gc_handle& handle, byte* ptr) = 0;
     virtual void interior_shift(gc_handle& handle, ptrdiff_t shift) = 0;
 
-    virtual byte* pin(const gc_handle& handle) = 0;
-    virtual void  unpin(byte* ptr) = 0;
-
     virtual bool compare(const gc_handle& a, const gc_handle& b) = 0;
 
     virtual gc_run_stats gc(const gc_options&) = 0;

@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
-#include <libprecisegc/details/gc_heap.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
 
 #include "deoptimize.hpp"
 
@@ -60,8 +60,7 @@ NONIUS_BENCHMARK("allocators.pool.deallocate", [](nonius::chronometer meter)
 
 NONIUS_BENCHMARK("allocators.gc_heap.allocate", [](nonius::chronometer meter)
 {
-    gc_heap heap(gc_compacting::DISABLED);
-    meter.measure([&heap] () {
-        return heap.allocate(OBJ_SIZE);
+    meter.measure([] {
+        return gc_allocate(OBJ_SIZE, 0, nullptr);
     });
 });

@@ -85,19 +85,19 @@ bool serial_gc::compare(const gc_handle& a, const gc_handle& b)
     return gc_handle_access::get<std::memory_order_relaxed>(a) == gc_handle_access::get<std::memory_order_relaxed>(b);
 }
 
-byte* serial_gc::pin(const gc_handle& handle)
-{
-    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
-    if (ptr) {
-        threads::this_managed_thread::pin(ptr);
-    }
-    return ptr;
-}
-
-void serial_gc::unpin(byte* ptr)
-{
-    threads::this_managed_thread::unpin(ptr);
-}
+//byte* serial_gc::pin(const gc_handle& handle)
+//{
+//    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
+//    if (ptr) {
+//        threads::this_managed_thread::pin(ptr);
+//    }
+//    return ptr;
+//}
+//
+//void serial_gc::unpin(byte* ptr)
+//{
+//    threads::this_managed_thread::unpin(ptr);
+//}
 
 gc_info serial_gc::info() const
 {
@@ -124,21 +124,6 @@ bool serial_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
 {
     gc_unsafe_scope unsafe_scope;
     return gc_handle_access::get<std::memory_order_relaxed>(a) == gc_handle_access::get<std::memory_order_relaxed>(b);
-}
-
-byte* serial_compacting_gc::pin(const gc_handle& handle)
-{
-    gc_unsafe_scope unsafe_scope;
-    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
-    if (ptr) {
-        threads::this_managed_thread::pin(ptr);
-    }
-    return ptr;
-}
-
-void serial_compacting_gc::unpin(byte* ptr)
-{
-    threads::this_managed_thread::unpin(ptr);
 }
 
 gc_info serial_compacting_gc::info() const

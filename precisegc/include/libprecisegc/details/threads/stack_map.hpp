@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <algorithm>
+#include <utility>
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -41,7 +42,7 @@ public:
     template <typename Functor>
     void trace(Functor&& f) const
     {
-        std::for_each(begin(), end(), f);
+        std::for_each(begin(), end(), std::forward<Functor>(f));
     }
 
     size_t count() const

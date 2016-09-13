@@ -4,6 +4,7 @@
 #include <memory>
 #include <iostream>
 
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -95,14 +96,20 @@ void garbage_collector::interior_shift(gc_handle& handle, ptrdiff_t shift)
 byte* garbage_collector::pin(const gc_handle& handle)
 {
     assert(m_strategy);
-    return m_strategy->pin(handle);
+    gc_unsafe_scope unsafe_scope;
+    byte* ptr = handle.rbarrier();
+    if (ptr) {
+        threads::this_managed_thread::pin(ptr);
+    }
+    return ptr;
 }
 
 void garbage_collector::unpin(byte* ptr)
 {
-    assert(ptr);
     assert(m_strategy);
-    m_strategy->unpin(ptr);
+    if (ptr) {
+        threads::this_managed_thread::unpin(ptr);
+    }
 }
 
 bool garbage_collector::compare(const gc_handle& a, const gc_handle& b)

@@ -45,9 +45,6 @@ public:
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
-    byte* pin(const gc_handle& handle) override;
-    void  unpin(byte* ptr) override;
-
     gc_info info() const override;
 };
 
@@ -59,9 +56,6 @@ public:
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
-
-    byte* pin(const gc_handle& handle) override;
-    void  unpin(byte* ptr) override;
 
     gc_info info() const override;
 };

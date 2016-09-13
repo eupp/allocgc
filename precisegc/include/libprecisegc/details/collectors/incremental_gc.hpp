@@ -49,9 +49,6 @@ public:
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
 
-    byte* pin(const gc_handle& handle) override;
-    void  unpin(byte* ptr) override;
-
     gc_info info() const override;
 };
 
@@ -61,9 +58,6 @@ public:
     explicit incremental_compacting_gc(size_t threads_available);
 
     bool compare(const gc_handle& a, const gc_handle& b) override;
-
-    byte* pin(const gc_handle& handle) override;
-    void  unpin(byte* ptr) override;
 
     gc_info info() const override;
 };

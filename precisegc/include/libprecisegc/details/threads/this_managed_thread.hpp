@@ -17,6 +17,8 @@ class managed_thread_accessor;
 class this_managed_thread : private utils::noncopyable, private utils::nonmovable
 {
 public:
+    typedef gc_new_stack::offsets_range gc_ptr_offsets_range;
+
     this_managed_thread() = delete;
 
     // for testing purpose
@@ -25,11 +27,18 @@ public:
     static std::thread::id get_id();
     static std::thread::native_handle_type get_native_handle();
 
+    static bool is_heap_ptr(byte* ptr);
+    static bool is_type_meta_requested();
+
+    static void register_managed_object_child(byte* child);
+    static gc_ptr_offsets_range gc_ptr_offsets();
+
     static void push_on_gc_new_stack(gc_new_stack::stack_entry* top);
     static void pop_from_gc_new_stack();
 
     static void register_root(ptrs::gc_untyped_ptr* root);
     static void deregister_root(ptrs::gc_untyped_ptr* root);
+    static bool is_root(const ptrs::gc_untyped_ptr* ptr);
 
     static void pin(byte* ptr);
     static void unpin(byte* ptr);

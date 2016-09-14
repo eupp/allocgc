@@ -19,11 +19,18 @@ class managed_thread_accessor : private utils::noncopyable, private utils::nonmo
 public:
     managed_thread_accessor() = delete;
 private:
+    static bool is_heap_ptr(const managed_thread* thread, byte* ptr);
+    static bool is_type_meta_requested(const managed_thread* thread);
+
+    static void register_managed_object_child(managed_thread* thread, byte* child);
+    static managed_thread::gc_ptr_offsets_range gc_ptr_offsets(managed_thread* thread);
+
     static void push_on_gc_new_stack(managed_thread* thread, gc_new_stack::stack_entry* entry);
     static void pop_from_gc_new_stack(managed_thread* thread);
 
     static void register_root(managed_thread* thread, ptrs::gc_untyped_ptr* root);
     static void deregister_root(managed_thread* thread, ptrs::gc_untyped_ptr* root);
+    static bool is_root(const managed_thread* thread, const ptrs::gc_untyped_ptr* ptr);
 
     static size_t roots_count(const managed_thread* thread);
 

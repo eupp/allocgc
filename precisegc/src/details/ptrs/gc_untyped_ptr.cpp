@@ -21,14 +21,15 @@ gc_untyped_ptr::gc_untyped_ptr()
 
 gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
     : m_handle(ptr)
-    , m_root_flag(!gc_new_stack::is_active())
 {
-    if (m_root_flag) {
-        register_root();
-    } else {
-        if (gc_new_stack::is_meta_requsted()) {
-            gc_new_stack::register_child(this);
+    using namespace threads;
+    byte* untyped_this = reinterpret_cast<byte*>(this);
+    if (this_managed_thread::is_heap_ptr(untyped_this)) {
+        if (this_managed_thread::is_type_meta_requested()) {
+            this_managed_thread::register_managed_object_child(untyped_this);
         }
+    } else {
+        register_root();
     }
 }
 
@@ -46,9 +47,7 @@ gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other)
 
 gc_untyped_ptr::~gc_untyped_ptr()
 {
-    if (is_root()) {
-        delete_root();
-    }
+    delete_root();
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t)
@@ -86,7 +85,7 @@ bool gc_untyped_ptr::is_null() const
 
 bool gc_untyped_ptr::is_root() const
 {
-    return m_root_flag;
+    return threads::this_managed_thread::is_root(this);
 }
 
 bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const

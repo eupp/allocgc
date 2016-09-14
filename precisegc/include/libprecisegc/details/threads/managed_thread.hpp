@@ -21,6 +21,8 @@ class managed_thread_accessor;
 class managed_thread : private utils::noncopyable, private utils::nonmovable
 {
 public:
+    typedef gc_new_stack::offsets_range gc_ptr_offsets_range;
+
     static managed_thread& main_thread()
     {
         static managed_thread thread;
@@ -71,6 +73,26 @@ private:
         , m_native_handle(this_thread_native_handle())
     {}
 
+    bool is_heap_ptr(byte* ptr) const
+    {
+        return m_new_stack.is_heap_ptr(ptr);
+    }
+
+    bool is_type_meta_requested() const
+    {
+        return m_new_stack.is_meta_requsted();
+    }
+
+    void register_managed_object_child(byte* child) const
+    {
+        m_new_stack.register_child(child);
+    }
+
+    gc_ptr_offsets_range gc_ptr_offsets() const
+    {
+        return m_new_stack.offsets();
+    }
+
     void push_on_gc_new_stack(gc_new_stack::stack_entry* entry)
     {
         m_new_stack.push_entry(entry);
@@ -89,6 +111,13 @@ private:
     void deregister_root(ptrs::gc_untyped_ptr* root)
     {
         m_root_set.remove(root);
+    }
+
+    bool is_root(const ptrs::gc_untyped_ptr* ptr) const
+    {
+        // dirty hack with const_cast here
+        // should be refactored
+        return m_root_set.contains(const_cast<ptrs::gc_untyped_ptr*>(ptr));
     }
 
     size_t roots_count() const
@@ -124,7 +153,7 @@ private:
 
     size_t pins_count() const
     {
-        return m_pin_set.count() + m_pin_stack.count();
+        return m_pin_set.count() + m_pin_stack.count() + m_new_stack.depth();
     }
 
     template <typename Functor>
@@ -132,6 +161,7 @@ private:
     {
         m_pin_set.trace(std::forward<Functor>(f));
         m_pin_stack.trace(std::forward<Functor>(f));
+        m_new_stack.trace_pointers(std::forward<Functor>(f));
     }
 
     std::thread::native_handle_type m_native_handle;

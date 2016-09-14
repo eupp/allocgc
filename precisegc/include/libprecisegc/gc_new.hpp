@@ -97,34 +97,26 @@ auto gc_new(Args&&... args)
     -> typename internals::gc_new_if<T>::single_object
 {
     using namespace precisegc::details;
-    using namespace precisegc::details::ptrs;
+    using namespace precisegc::details::threads;
 
-    T* typed_ptr;
     gc_unsafe_scope unsafe_scope;
-    {
-        gc_new_stack::activation_entry activation_entry;
 
-        gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
-        byte* ptr = descr.first.decorated().get();
-        typed_ptr = reinterpret_cast<T*>(ptr);
-        size_t size = descr.first.size();
-        object_meta* obj_meta = descr.second;
+    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
+    byte* ptr = descr.first.decorated().get();
+    T* typed_ptr = reinterpret_cast<T*>(ptr);
+    size_t size = descr.first.size();
+    object_meta* obj_meta = descr.second;
 
-        threads::this_managed_thread::push_pin(ptr);
-        auto guard = utils::make_scope_guard([ptr] {
-            threads::this_managed_thread::pop_pin(ptr);
-        });
-
-        if (!type_meta_provider<T>::is_meta_created()) {
-            gc_new_stack::stack_entry stack_entry(ptr, size);
-            new (typed_ptr) T(std::forward<Args>(args)...);
-            obj_meta->set_type_meta(type_meta_provider<T>::create_meta(gc_new_stack::offsets()));
-        } else {
-            new (typed_ptr) T(std::forward<Args>(args)...);
-        }
-
-        gc_new_cell(descr.first.decorated());
+    if (!type_meta_provider<T>::is_meta_created()) {
+        gc_new_stack::stack_entry stack_entry(ptr, size, true);
+        new (typed_ptr) T(std::forward<Args>(args)...);
+        obj_meta->set_type_meta(type_meta_provider<T>::create_meta(this_managed_thread::gc_ptr_offsets()));
+    } else {
+        gc_new_stack::stack_entry stack_entry(ptr, size, false);
+        new (typed_ptr) T(std::forward<Args>(args)...);
     }
+
+    gc_new_cell(descr.first.decorated());
 
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(typed_ptr);
 };
@@ -134,41 +126,35 @@ auto gc_new(size_t n)
     -> typename internals::gc_new_if<T>::unknown_bound
 {
     using namespace precisegc::details;
-    using namespace precisegc::details::ptrs;
+    using namespace precisegc::details::threads;
 
     typedef typename std::remove_extent<T>::type U;
 
-    U* typed_ptr;
     gc_unsafe_scope unsafe_scope;
-    {
-        gc_new_stack::activation_entry activation_entry;
 
-        gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
-        byte* ptr = descr.first.decorated().get();
-        typed_ptr = reinterpret_cast<U*>(ptr);
-        size_t size = descr.first.size();
-        object_meta* obj_meta = descr.second;
+    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
+    byte* ptr = descr.first.decorated().get();
+    U* typed_ptr = reinterpret_cast<U*>(ptr);
+    size_t size = descr.first.size();
+    object_meta* obj_meta = descr.second;
 
-        U* begin = typed_ptr;
-        U* end = typed_ptr + n;
+    U* begin = typed_ptr;
+    U* end = typed_ptr + n;
 
-        threads::this_managed_thread::pin(ptr);
-        auto guard = utils::make_scope_guard([ptr] {
-            threads::this_managed_thread::unpin(ptr);
-        });
-
-        if (!type_meta_provider<U>::is_meta_created()) {
-            gc_new_stack::stack_entry stack_entry(ptr, size);
-            new (begin++) U();
-            obj_meta->set_type_meta(type_meta_provider<U>::create_meta(gc_new_stack::offsets()));
-        }
-
-        for (U* it = begin; it < end; ++it) {
-            new (it) U();
-        }
-
-        gc_new_cell(descr.first.decorated());
+    if (!type_meta_provider<U>::is_meta_created()) {
+        gc_new_stack::stack_entry stack_entry(ptr, size, true);
+        new (begin++) U();
+        obj_meta->set_type_meta(type_meta_provider<U>::create_meta(this_managed_thread::gc_ptr_offsets()));
+    } else {
+        gc_new_stack::stack_entry stack_entry(ptr, size, false);
+        new (begin++) U();
     }
+
+    for (U* it = begin; it < end; ++it) {
+        new (it) U();
+    }
+
+    gc_new_cell(descr.first.decorated());
 
     return precisegc::internals::gc_ptr_factory<U[]>::create(typed_ptr);
 };

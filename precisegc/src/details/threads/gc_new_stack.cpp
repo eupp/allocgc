@@ -25,14 +25,12 @@ void gc_new_stack::pop_entry()
     --m_depth;
 }
 
-void gc_new_stack::register_child(ptrs::gc_untyped_ptr* child) const
+void gc_new_stack::register_child(byte* child) const
 {
     assert(m_stack_top);
     std::uintptr_t top  = reinterpret_cast<std::uintptr_t>(m_stack_top->m_ptr);
     std::uintptr_t curr = reinterpret_cast<std::uintptr_t>(child);
-    if (top <= curr && curr < top + m_stack_top->m_size) {
-        m_stack_top->m_offsets.push_back(curr - top);
-    }
+    m_stack_top->m_offsets.push_back(curr - top);
 }
 
 gc_new_stack::offsets_range gc_new_stack::offsets() const
@@ -55,6 +53,11 @@ bool gc_new_stack::is_meta_requsted() const noexcept
 {
     assert(m_stack_top);
     return m_stack_top->m_meta_requested;
+}
+
+bool gc_new_stack::is_heap_ptr(byte* ptr) const noexcept
+{
+    return m_stack_top && (m_stack_top->m_ptr <= ptr) && (ptr < m_stack_top->m_ptr + m_stack_top->m_size);
 }
 
 gc_new_stack::stack_entry::stack_entry(byte* ptr, size_t size, bool meta_requested)

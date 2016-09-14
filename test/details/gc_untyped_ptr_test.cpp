@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <utility>
+#include <type_traits>
 
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/utils/make_unique.hpp>
@@ -13,6 +14,7 @@
 
 using namespace precisegc::details;
 using namespace precisegc::details::ptrs;
+using namespace precisegc::details::threads;
 
 using ::testing::_;
 using ::testing::Exactly;
@@ -89,14 +91,23 @@ TEST(gc_untyped_ptr_test, test_move_assignment)
     EXPECT_EQ(ptr, ptr2.get());
 }
 
+namespace {
+struct test_type
+{
+    gc_untyped_ptr p;
+};
+}
+
 TEST(gc_untyped_ptr_test, test_is_root_1)
 {
     gc_untyped_ptr ptr1;
     EXPECT_TRUE(ptr1.is_root());
 
-    gc_new_stack::activation_entry activation_entry;
-    gc_untyped_ptr ptr2;
-    EXPECT_FALSE(ptr2.is_root());
+    std::aligned_storage<sizeof(test_type)> storage;
+    test_type* obj = reinterpret_cast<test_type*>(&storage);
+    gc_new_stack::stack_entry stack_entry(reinterpret_cast<byte*>(&storage), sizeof(test_type), false);
+    new (obj) test_type();
+    EXPECT_FALSE(obj->p.is_root());
 }
 
 TEST(gc_untyped_ptr_test, test_is_root_2)
@@ -105,16 +116,19 @@ TEST(gc_untyped_ptr_test, test_is_root_2)
     byte* ptr = &val;
 
     gc_untyped_ptr ptr1(ptr);
-
     gc_untyped_ptr ptr2;
-    gc_new_stack::activation_entry activation_entry;
-    gc_untyped_ptr ptr3;
+
+
+    std::aligned_storage<sizeof(test_type)> storage;
+    test_type* obj = reinterpret_cast<test_type*>(&storage);
+    gc_new_stack::stack_entry stack_entry(reinterpret_cast<byte*>(&storage), sizeof(test_type), false);
+    new (obj) test_type();
 
     ptr2 = ptr1;
     EXPECT_TRUE(ptr2.is_root());
 
-    ptr3 = ptr1;
-    EXPECT_FALSE(ptr3.is_root());
+    obj->p = ptr1;
+    EXPECT_FALSE(obj->p.is_root());
 }
 
 TEST(gc_untyped_ptr_test, test_bool_conversion)

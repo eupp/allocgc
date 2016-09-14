@@ -45,7 +45,6 @@ private:
     void delete_root();
 
     gc_handle m_handle;
-    const bool m_root_flag;
 };
 
 }}}

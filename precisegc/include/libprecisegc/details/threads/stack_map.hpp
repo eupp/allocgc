@@ -34,7 +34,7 @@ public:
         remove_first(elem);
     }
 
-    bool contains(T elem)
+    bool contains(T elem) const
     {
         return std::find(begin(), end(), elem) != end();
     }

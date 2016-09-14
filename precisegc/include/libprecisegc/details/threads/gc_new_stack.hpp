@@ -40,13 +40,24 @@ public:
     void push_entry(gc_new_stack::stack_entry* entry);
     void pop_entry();
 
-    void register_child(ptrs::gc_untyped_ptr* child) const;
+    void register_child(byte* child) const;
 
     offsets_range offsets() const;
 
     size_t depth() const noexcept;
     bool is_active() const noexcept;
     bool is_meta_requsted() const noexcept;
+    bool is_heap_ptr(byte* ptr) const noexcept;
+
+    template <typename Functor>
+    void trace_pointers(Functor&& f) const
+    {
+        stack_entry* curr = m_stack_top;
+        while (curr) {
+            f(curr->m_ptr);
+            curr = curr->m_prev;
+        }
+    }
 private:
     static const size_t START_OFFSETS_STORAGE_SIZE = 64;
 

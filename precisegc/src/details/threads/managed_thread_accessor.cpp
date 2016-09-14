@@ -4,6 +4,26 @@
 
 namespace precisegc { namespace details { namespace threads {
 
+bool managed_thread_accessor::is_heap_ptr(const managed_thread* thread, byte* ptr)
+{
+    return thread->is_heap_ptr(ptr);
+}
+
+bool managed_thread_accessor::is_type_meta_requested(const managed_thread* thread)
+{
+    return thread->is_type_meta_requested();
+}
+
+void managed_thread_accessor::register_managed_object_child(managed_thread* thread, byte* child)
+{
+    thread->register_managed_object_child(child);
+}
+
+managed_thread::gc_ptr_offsets_range managed_thread_accessor::gc_ptr_offsets(managed_thread* thread)
+{
+    return thread->gc_ptr_offsets();
+}
+
 void managed_thread_accessor::push_on_gc_new_stack(managed_thread* thread, gc_new_stack::stack_entry* entry)
 {
     thread->push_on_gc_new_stack(entry);
@@ -22,6 +42,11 @@ void managed_thread_accessor::register_root(managed_thread* thread, ptrs::gc_unt
 void managed_thread_accessor::deregister_root(managed_thread* thread, ptrs::gc_untyped_ptr* root)
 {
     thread->deregister_root(root);
+}
+
+bool managed_thread_accessor::is_root(const managed_thread* thread, const ptrs::gc_untyped_ptr* ptr)
+{
+    return thread->is_root(ptr);
 }
 
 size_t managed_thread_accessor::roots_count(const managed_thread* thread)

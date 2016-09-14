@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <libprecisegc/libprecisegc.hpp>
-#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/threads/gc_new_stack.hpp>
 
 #include "deoptimize.hpp"
 

@@ -22,6 +22,16 @@ std::thread::native_handle_type this_managed_thread::get_native_handle()
     return this_thread->native_handle();
 }
 
+void this_managed_thread::push_on_gc_new_stack(gc_new_stack::stack_entry* top)
+{
+    managed_thread_accessor::push_on_gc_new_stack(this_thread, top);
+}
+
+void this_managed_thread::pop_from_gc_new_stack()
+{
+    managed_thread_accessor::pop_from_gc_new_stack(this_thread);
+}
+
 void this_managed_thread::register_root(ptrs::gc_untyped_ptr* root)
 {
     managed_thread_accessor::register_root(this_thread, root);

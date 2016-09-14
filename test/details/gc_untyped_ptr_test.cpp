@@ -6,7 +6,7 @@
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 
 #include "serial_gc_mock.hpp"

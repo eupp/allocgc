@@ -10,6 +10,7 @@
 #include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/threads/stack_map.hpp>
 #include <libprecisegc/details/threads/pin_stack.hpp>
+#include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -70,6 +71,16 @@ private:
         , m_native_handle(this_thread_native_handle())
     {}
 
+    void push_on_gc_new_stack(gc_new_stack::stack_entry* entry)
+    {
+        m_new_stack.push_entry(entry);
+    }
+
+    void pop_from_gc_new_stack()
+    {
+        m_new_stack.pop_entry();
+    }
+
     void register_root(ptrs::gc_untyped_ptr* root)
     {
         m_root_set.insert(root);
@@ -128,6 +139,7 @@ private:
     root_stack_map m_root_set;
     pin_stack_map m_pin_set;
     pin_stack m_pin_stack;
+    gc_new_stack m_new_stack;
     collectors::packet_manager::mark_packet_handle m_mark_packet;
 };
 

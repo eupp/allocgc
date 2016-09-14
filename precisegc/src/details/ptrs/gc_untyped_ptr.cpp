@@ -5,7 +5,7 @@
 #include <utility>
 
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
-#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/garbage_collector.hpp>
 #include <libprecisegc/details/logging.hpp>
 

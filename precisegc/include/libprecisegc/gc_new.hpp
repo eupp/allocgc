@@ -13,7 +13,7 @@
 #include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/object_meta.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/ptrs/gc_new_stack.hpp>
+#include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/logging.hpp>

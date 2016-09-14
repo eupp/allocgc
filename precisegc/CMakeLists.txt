@@ -15,7 +15,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
         include/libprecisegc/details/gc_compact.h
-        include/libprecisegc/details/ptrs/gc_new_stack.hpp
+        include/libprecisegc/details/threads/gc_new_stack.hpp
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
@@ -89,7 +89,7 @@ set(precisegc_LIB_HDRS
 set(precisegc_LIB_SRCS
         src/gc_mark.cpp
         src/gc_heap.cpp
-        src/details/ptrs/gc_new_stack.cpp
+        src/details/threads/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
         src/details/logging.cpp
         src/details/allocators/bitmap_pool_chunk.cpp

@@ -4,6 +4,16 @@
 
 namespace precisegc { namespace details { namespace threads {
 
+void managed_thread_accessor::push_on_gc_new_stack(managed_thread* thread, gc_new_stack::stack_entry* entry)
+{
+    thread->push_on_gc_new_stack(entry);
+}
+
+void managed_thread_accessor::pop_from_gc_new_stack(managed_thread* thread)
+{
+    thread->pop_from_gc_new_stack();
+}
+
 void managed_thread_accessor::register_root(managed_thread* thread, ptrs::gc_untyped_ptr* root)
 {
     thread->register_root(root);

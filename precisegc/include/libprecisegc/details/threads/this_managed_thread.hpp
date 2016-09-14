@@ -3,6 +3,7 @@
 
 #include <thread>
 
+#include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -23,6 +24,9 @@ public:
 
     static std::thread::id get_id();
     static std::thread::native_handle_type get_native_handle();
+
+    static void push_on_gc_new_stack(gc_new_stack::stack_entry* top);
+    static void pop_from_gc_new_stack();
 
     static void register_root(ptrs::gc_untyped_ptr* root);
     static void deregister_root(ptrs::gc_untyped_ptr* root);

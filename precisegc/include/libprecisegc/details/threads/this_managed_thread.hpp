@@ -31,10 +31,11 @@ public:
     static void unpin(byte* ptr);
 
     static void push_pin(byte* ptr);
-    static void pop_pin();
+    static void pop_pin(byte* ptr);
 
     static collectors::packet_manager::mark_packet_handle& get_mark_packet();
 
+    friend class managed_thread;
     friend class managed_thread_accessor;
 private:
     static thread_local managed_thread* this_thread;

@@ -121,7 +121,7 @@ byte* garbage_collector::push_pin(const gc_handle& handle)
 void garbage_collector::pop_pin(byte* ptr)
 {
     if (ptr) {
-        threads::this_managed_thread::pop_pin();
+        threads::this_managed_thread::pop_pin(ptr);
     }
 }
 

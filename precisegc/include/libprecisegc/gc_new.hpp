@@ -111,8 +111,8 @@ auto gc_new(Args&&... args)
         object_meta* obj_meta = descr.second;
 
         threads::this_managed_thread::push_pin(ptr);
-        auto guard = utils::make_scope_guard([] {
-            threads::this_managed_thread::pop_pin();
+        auto guard = utils::make_scope_guard([ptr] {
+            threads::this_managed_thread::pop_pin(ptr);
         });
 
         if (!type_meta_provider<T>::is_meta_created()) {

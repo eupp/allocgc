@@ -1,8 +1,8 @@
 #ifndef DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP
 #define DIPLOMA_MANAGED_THREAD_ACCESSOR_HPP
 
-#include <libprecisegc/details/threads/stack_map.hpp>
-#include <libprecisegc/details/threads/pin_stack.hpp>
+#include <libprecisegc/details/threads/managed_thread.hpp>
+#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -18,9 +18,30 @@ class managed_thread_accessor : private utils::noncopyable, private utils::nonmo
 public:
     managed_thread_accessor() = delete;
 private:
-    static root_stack_map& get_root_set(managed_thread* thread);
-    static pin_stack_map& get_pin_set(managed_thread* thread);
-    static pin_stack& get_pin_stack(managed_thread* thread);
+    static void register_root(managed_thread* thread, ptrs::gc_untyped_ptr* root);
+    static void deregister_root(managed_thread* thread, ptrs::gc_untyped_ptr* root);
+
+    static size_t roots_count(const managed_thread* thread);
+
+    template <typename Functor>
+    static void trace_roots(const managed_thread* thread, Functor&& f)
+    {
+        thread->trace_roots(std::forward<Functor>(f));
+    }
+
+    static void pin(managed_thread* thread, byte* ptr);
+    static void unpin(managed_thread* thread, byte* ptr);
+
+    static void push_pin(managed_thread* thread, byte* ptr);
+    static void pop_pin(managed_thread* thread, byte* ptr);
+
+    static size_t pins_count(const managed_thread* thread);
+
+    template <typename Functor>
+    static void trace_pins(const managed_thread* thread, Functor&& f)
+    {
+        thread->trace_pins(std::forward<Functor>(f));
+    }
 
     static void set_this_managed_thread_pointer(managed_thread* thread);
 

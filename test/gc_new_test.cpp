@@ -136,6 +136,12 @@ public:
     simple_object_with_ctor()
     {
         gc_ptr<simple_object> p = gc_new<simple_object>();
+        check_rootness(p);
+    }
+
+    static void check_rootness(const gc_ptr<simple_object>& p)
+    {
+        ASSERT_TRUE(p.is_root());
     }
 };
 

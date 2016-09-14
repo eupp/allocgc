@@ -1,23 +1,47 @@
 #include <libprecisegc/details/threads/managed_thread_accessor.hpp>
 
-#include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
-root_stack_map& managed_thread_accessor::get_root_set(managed_thread* thread)
+void managed_thread_accessor::register_root(managed_thread* thread, ptrs::gc_untyped_ptr* root)
 {
-    return thread->m_root_set;
+    thread->register_root(root);
 }
 
-pin_stack_map& managed_thread_accessor::get_pin_set(managed_thread* thread)
+void managed_thread_accessor::deregister_root(managed_thread* thread, ptrs::gc_untyped_ptr* root)
 {
-    return thread->m_pin_set;
+    thread->deregister_root(root);
 }
 
-pin_stack& managed_thread_accessor::get_pin_stack(managed_thread* thread)
+size_t managed_thread_accessor::roots_count(const managed_thread* thread)
 {
-    return thread->m_pin_stack;
+    return thread->roots_count();
+}
+
+void managed_thread_accessor::pin(managed_thread* thread, byte* ptr)
+{
+    thread->pin(ptr);
+}
+
+void managed_thread_accessor::unpin(managed_thread* thread, byte* ptr)
+{
+    thread->unpin(ptr);
+}
+
+void managed_thread_accessor::push_pin(managed_thread* thread, byte* ptr)
+{
+    thread->push_pin(ptr);
+}
+
+void managed_thread_accessor::pop_pin(managed_thread* thread, byte* ptr)
+{
+    thread->pop_pin(ptr);
+}
+
+size_t managed_thread_accessor::pins_count(const managed_thread* thread)
+{
+    return thread->pins_count();
 }
 
 void managed_thread_accessor::set_this_managed_thread_pointer(managed_thread* thread)

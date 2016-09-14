@@ -98,6 +98,11 @@ public:
         gc_untyped_ptr::operator=(nullptr);
     }
 
+    bool is_root() const
+    {
+        return gc_untyped_ptr::is_root();
+    }
+
     gc_pin<T> pin() const
     {
         return gc_pin<T>(untyped_pin());
@@ -208,6 +213,11 @@ public:
     void reset()
     {
         gc_untyped_ptr::operator=(nullptr);
+    }
+
+    bool is_root() const
+    {
+        return gc_untyped_ptr::is_root();
     }
 
     gc_pin<T[]> pin() const

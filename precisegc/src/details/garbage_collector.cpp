@@ -13,7 +13,9 @@ namespace precisegc { namespace details {
 
 garbage_collector::garbage_collector()
     : m_manager(nullptr)
-{}
+{
+    logging::touch();
+}
 
 void garbage_collector::init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
 {

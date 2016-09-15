@@ -83,12 +83,9 @@ static precisegc::details::utils::barrier tasks_done_barrier{threads_cnt};
 
 static std::vector<precisegc::details::utils::scoped_thread> threads{threads_cnt - 1};
 
-static std::vector<List> input_lists;
-static std::vector<List> output_lists;
-
 List merge_sort(const List& list);
 
-void thread_routine(int i)
+void thread_routine(const List& input, List& output)
 {
     #ifdef BDW_GC
         GC_stack_base sb;
@@ -103,20 +100,18 @@ void thread_routine(int i)
             return;
         }
 
-        output_lists[i] = merge_sort(input_lists[i]);
+        output = merge_sort(input);
 
         tasks_done_barrier.wait();
     }
 }
 
-void init()
+void init(const std::vector<List>& inputs, std::vector<List>& outputs)
 {
     srand(time(nullptr));
     for (int i = 0; i < threads_cnt - 1; ++i) {
-        threads[i] = create_thread(thread_routine, i);
+        threads[i] = create_thread(thread_routine, std::ref(inputs[i]), std::ref(outputs[i]));
     }
-    input_lists.resize(threads_cnt - 1);
-    output_lists.resize(threads_cnt - 1);
 }
 
 List merge(const List& fst, const List& snd)
@@ -191,11 +186,11 @@ List merge_sort(const List& list)
     return merge(lsorted, rsorted);
 }
 
-List parallel_merge_sort(const List& list)
+List parallel_merge_sort(const List& list, std::vector<List>& input, std::vector<List>& output)
 {
     ptr_t(Node) it = list.head;
     for (int i = 0; i < threads_cnt - 1; ++i) {
-        input_lists[i] = List(it, nodes_per_thread);
+        input[i] = List(it, nodes_per_thread);
         it = ::advance(it, nodes_per_thread);
     }
 
@@ -207,7 +202,7 @@ List parallel_merge_sort(const List& list)
     tasks_done_barrier.wait();
 
     for (int i = 0; i < threads_cnt - 1; ++i) {
-        sorted = merge(output_lists[i], sorted);
+        sorted = merge(output[i], sorted);
     }
 
     return sorted;
@@ -247,10 +242,10 @@ void clear_list(List& list)
     list.length = 0;
 }
 
-void routine()
+void routine(std::vector<List>& input, std::vector<List>& output)
 {
     List list = create_list(lists_length, lists_length);
-    List sorted = parallel_merge_sort(list);
+    List sorted = parallel_merge_sort(list, input, output);
 
     ptr_t(Node) it = sorted.head;
     assert(sorted.length == lists_length);
@@ -293,7 +288,10 @@ int main(int argc, const char* argv[])
         }
     #endif
 
-    init();
+    std::vector<List> input_lists(threads_cnt - 1);
+    std::vector<List> output_lists(threads_cnt - 1);
+
+    init(input_lists, output_lists);
     auto guard = precisegc::details::utils::make_scope_guard([&done_flag, &tasks_ready_barrier] {
         done_flag = true;
         tasks_ready_barrier.wait();
@@ -308,7 +306,7 @@ int main(int argc, const char* argv[])
         if ((i+1) % 32 == 0) {
             std::cout << (i+1) * 100 / lists_count << "%" << std::endl;
         }
-        routine();
+        routine(input_lists, output_lists);
     }
 
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;

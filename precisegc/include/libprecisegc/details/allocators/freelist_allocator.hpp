@@ -11,6 +11,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -63,9 +64,11 @@ public:
     auto shrink()
         -> typename std::enable_if<is_varsize_policy<SP>::value, size_t>::type
     {
+        auto prev = m_head;
         while (m_head) {
             internal_pointer_type next = *reinterpret_cast<internal_pointer_type*>(utils::get_ptr(m_head));
             mutable_upstream_allocator().deallocate(m_head.decorated(), m_head.size());
+            prev = m_head;
             m_head = next;
         }
         return mutable_upstream_allocator().shrink();
@@ -86,6 +89,11 @@ public:
     bool empty() const
     {
         return !m_head && upstream_allocator().empty();
+    }
+
+    void reset()
+    {
+        m_head = nullptr;
     }
 
     void reset_cache()

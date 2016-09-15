@@ -100,7 +100,7 @@ public:
     void apply_to_chunks(Functor&& f)
     {
         std::lock_guard<Lock> lock_guard(m_lock);
-        std::for_each(m_chunks.begin(), m_chunks.end(), f);
+        std::for_each(m_chunks.begin(), m_chunks.end(), std::forward<Functor>(f));
     }
 
     memory_range_type memory_range()
@@ -120,7 +120,7 @@ private:
         if (!m_cache.memory_available(m_chunks.begin(), m_chunks.end())) {
             auto new_chunk = create_chunk(size);
             auto first = m_chunks.begin();
-            m_cache.update(first->memory_available() ? first : new_chunk);
+            m_cache.update(first != m_chunks.end() && first->memory_available() ? first : new_chunk);
         }
         return m_cache.allocate(size);
     }

@@ -29,7 +29,7 @@
 #include "../../common/macro.hpp"
 #include "../../common/timer.hpp"
 
-static const int threads_cnt        = std::thread::hardware_concurrency();
+static const int threads_cnt        = 8; // std::thread::hardware_concurrency();
 static const int nodes_per_thread   = 256;
 
 static const int node_size    = 64;
@@ -213,6 +213,7 @@ List create_list(size_t n, int mod)
     if (n == 0) {
         return List();
     }
+    unsigned int i = 0;
     size_t length = n;
     ptr_t(Node) head = new_(Node);
     ptr_t(Node) it = head;
@@ -221,7 +222,7 @@ List create_list(size_t n, int mod)
     while (n > 0) {
         it->next = new_(Node);
         it = it->next;
-        it->data = rand() % mod;
+        it->data = i++ % mod;
         --n;
     }
     return List(head, length);
@@ -244,7 +245,7 @@ void clear_list(List& list)
 
 void routine(std::vector<List>& input, std::vector<List>& output)
 {
-    List list = create_list(lists_length, lists_length);
+    List list = create_list(lists_length, 16);
     List sorted = parallel_merge_sort(list, input, output);
 
     ptr_t(Node) it = sorted.head;
@@ -277,7 +278,7 @@ int main(int argc, const char* argv[])
         ops.algo                = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
         ops.initiation          = gc_initiation::SPACE_BASED;
         ops.compacting          = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel            = gc_loglevel::SILENT;
+        ops.loglevel            = gc_loglevel::DEBUG;
         ops.print_stat          = false;
         gc_init(ops);
     #elif defined(BDW_GC)

@@ -60,7 +60,7 @@ struct splitter
             idxs[i] = (x >> shifts[i]) & (((std::uintptr_t) 1 << (LEVEL_BITS_CNT)) - 1);
         }
 
-        for (int i = 0; i < idxs.size() - 1; ++i) {
+        for (size_t i = 0; i < idxs.size() - 1; ++i) {
             assert(idxs[i] < LEVEL_SIZE);
         }
         assert(idxs.back() < LAST_LEVEL_SIZE);

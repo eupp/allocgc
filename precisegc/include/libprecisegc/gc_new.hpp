@@ -118,6 +118,8 @@ auto gc_new(Args&&... args)
 
     gc_new_cell(descr.first.decorated());
 
+//    logging::debug() << "allocated: " << (void*) ptr;
+
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(typed_ptr);
 };
 

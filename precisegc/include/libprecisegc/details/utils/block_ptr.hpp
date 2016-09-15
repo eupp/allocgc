@@ -12,11 +12,13 @@ class block_ptr
 {
 public:
     block_ptr()
-        : m_size(0)
+        : m_ptr(nullptr)
+        , m_size(0)
     {}
 
     block_ptr(nullptr_t)
-        : m_size(0)
+        : m_ptr(nullptr)
+        , m_size(0)
     {}
 
     explicit block_ptr(const Ptr& ptr, size_t size = 0)

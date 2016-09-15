@@ -25,7 +25,7 @@ void core_allocator::deallocate(byte* ptr, size_t size)
 
 size_t core_allocator::shrink()
 {
-    return freelist.shrink();
+//    return freelist.shrink();
 }
 
 core_allocator::memory_range_type core_allocator::memory_range()

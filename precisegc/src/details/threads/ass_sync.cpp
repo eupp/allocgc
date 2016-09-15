@@ -101,8 +101,8 @@ void ass_mutex::lock()
 
 void ass_mutex::unlock()
 {
-    sig.unlock();
     m_mutex.unlock();
+    sig.unlock();
 }
 
 bool ass_mutex::try_lock()

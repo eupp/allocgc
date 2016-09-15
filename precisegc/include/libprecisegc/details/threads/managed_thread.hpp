@@ -143,12 +143,20 @@ private:
 
     void push_pin(byte* ptr)
     {
-        m_pin_stack.push_pin(ptr);
+        if (!m_pin_stack.is_full()) {
+            m_pin_stack.push_pin(ptr);
+        } else {
+            m_pin_set.insert(ptr);
+        }
     }
 
     void pop_pin(byte* ptr)
     {
-        m_pin_stack.pop_pin();
+        if (m_pin_stack.top() == ptr) {
+            m_pin_stack.pop_pin();
+        } else {
+            m_pin_set.remove(ptr);
+        }
     }
 
     size_t pins_count() const

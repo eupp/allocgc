@@ -38,13 +38,14 @@ public:
 
     bool contains(byte* ptr) const
     {
-        return std::find(m_stack.begin(), m_stack.end(), ptr) != m_stack.end();
+        return std::find(begin(), end(), ptr) != end();
     }
 
     template <typename Functor>
     void trace(Functor&& f) const
     {
-        std::for_each(m_stack.begin(), m_stack.end(), std::forward<Functor>(f));
+
+        std::for_each(begin(), end(), std::forward<Functor>(f));
     }
 
     size_t count() const
@@ -59,7 +60,19 @@ public:
 private:
     static const size_t STACK_CAPACITY = 64;
 
-    std::array<byte*, STACK_CAPACITY> m_stack;
+    typedef std::array<byte*, STACK_CAPACITY> stack_t;
+
+    stack_t::const_iterator begin() const
+    {
+        return m_stack.begin();
+    }
+
+    stack_t::const_iterator end() const
+    {
+        return std::next(m_stack.begin(), m_size.load(std::memory_order_relaxed));
+    }
+
+    stack_t m_stack;
     std::atomic<size_t> m_size;
 };
 

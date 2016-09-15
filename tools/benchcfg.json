@@ -2,7 +2,6 @@
   "targets":
   [
     {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-
     {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
   ],
   "builds":
@@ -18,7 +17,7 @@
   ],
   "reporters":
   [
-    {"name": "tex_table", "output": ".tex"}
+    {"name": "tex_table", "output": "_new.tex"}
   ],
   "nruns" : 1
 }

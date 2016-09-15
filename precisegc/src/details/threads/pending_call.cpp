@@ -10,70 +10,53 @@ namespace precisegc { namespace details { namespace threads {
 void pending_call::operator()()
 {
     assert(m_callable);
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-    if (m_depth > 0) {
-        m_pending_flag = PENDING;
-        std::atomic_signal_fence(std::memory_order_seq_cst);
+    if (m_depth.load(std::memory_order_relaxed) > 0) {
+        m_pending_flag.store(PENDING, std::memory_order_relaxed);
         return;
     }
     m_callable();
-    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 void pending_call::enter_pending_scope()
 {
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-    if (m_depth == 0) {
-//        std::cout << "Thread " << pthread_self() << " enters unsafe scope" << std::endl;
-    }
-    m_depth++;
-    std::atomic_signal_fence(std::memory_order_seq_cst);
+    m_depth.store(m_depth.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 }
 
 void pending_call::leave_pending_scope()
 {
     assert(m_callable);
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-    if (m_depth == 1) {
-//        std::cout << "Thread " << pthread_self() << " leaves unsafe scope" << std::endl;
-        m_depth = 0;
+    size_t depth = m_depth.load(std::memory_order_relaxed);
+    if (depth == 1) {
+        m_depth.store(0, std::memory_order_relaxed);
         call_if_pended();
     } else {
-        m_depth--;
+        assert(depth > 0);
+        m_depth.store(depth - 1, std::memory_order_relaxed);
     }
-    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 void pending_call::enter_safe_scope()
 {
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-//    std::cout << "Thread " << pthread_self() << " enters safepoint" << std::endl;
-    m_saved_depth = m_depth;
-    m_depth = 0;
+    m_saved_depth.store(m_depth.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    m_depth.store(0, std::memory_order_relaxed);
     call_if_pended();
-    std::atomic_signal_fence(std::memory_order_seq_cst);
 }
 
 void pending_call::leave_safe_scope()
 {
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-//    std::cout << "Thread " << pthread_self() << " leaves safepoint" << std::endl;
-    m_depth = m_saved_depth;
-    m_saved_depth = 0;
-    std::atomic_signal_fence(std::memory_order_seq_cst);
+    m_depth.store(m_saved_depth.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    m_saved_depth.store(0, std::memory_order_relaxed);
 }
 
 bool pending_call::is_in_pending_scope() const
 {
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-    return m_depth > 0;
+    return m_depth.load(std::memory_order_relaxed) > 0;
 }
 
 void pending_call::call_if_pended()
 {
-    std::atomic_signal_fence(std::memory_order_seq_cst);
-    bool pending = (m_pending_flag == PENDING);
-    m_pending_flag = NOT_PENDING;
+    bool pending = (m_pending_flag.load(std::memory_order_relaxed) == PENDING);
+    m_pending_flag.store(NOT_PENDING, std::memory_order_relaxed);
     if (pending) {
         m_callable();
     }

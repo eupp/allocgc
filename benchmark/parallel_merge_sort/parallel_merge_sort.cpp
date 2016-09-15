@@ -279,7 +279,7 @@ int main(int argc, const char* argv[])
         ops.initiation          = gc_initiation::SPACE_BASED;
         ops.compacting          = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
         ops.loglevel            = gc_loglevel::DEBUG;
-        ops.print_stat          = false;
+        ops.print_stat          = true;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

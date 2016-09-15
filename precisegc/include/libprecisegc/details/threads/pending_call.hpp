@@ -2,6 +2,7 @@
 #define DIPLOMA_PENDING_CALL_HPP
 
 #include <csignal>
+#include <atomic>
 
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -31,13 +32,13 @@ public:
 private:
     void call_if_pended();
 
-    static const sig_atomic_t PENDING = 1;
-    static const sig_atomic_t NOT_PENDING = 0;
+    static const size_t PENDING = 1;
+    static const size_t NOT_PENDING = 0;
 
     callable_type m_callable;
-    volatile sig_atomic_t m_depth;
-    volatile sig_atomic_t m_saved_depth;
-    volatile sig_atomic_t m_pending_flag;
+    std::atomic<size_t> m_depth;
+    std::atomic<size_t> m_saved_depth;
+    std::atomic<size_t> m_pending_flag;
 };
 
 }}}

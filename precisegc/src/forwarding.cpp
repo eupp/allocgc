@@ -53,8 +53,8 @@ void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
     logging::debug() << "create forwarding: from " << from << " to " << to;
 
     object_meta* meta = object_meta::get_meta_ptr(from, obj_size);
-    meta->set_forward_pointer((byte*) to);
     move_cell(from, to, obj_size);
+    meta->set_forward_pointer((byte*) to);
 }
 
 void intrusive_forwarding::forward(void* ptr) const

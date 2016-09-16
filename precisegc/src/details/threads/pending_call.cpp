@@ -1,9 +1,6 @@
 #include <libprecisegc/details/threads/pending_call.hpp>
 
 #include <cassert>
-#include <atomic>
-
-#include <iostream>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -19,33 +16,39 @@ void pending_call::operator()()
 
 void pending_call::enter_pending_scope()
 {
+    assert(m_depth.load(std::memory_order_relaxed) == 0);
     m_depth.store(m_depth.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 }
 
 void pending_call::leave_pending_scope()
 {
     assert(m_callable);
+    assert(m_depth > 0);
     size_t depth = m_depth.load(std::memory_order_relaxed);
     if (depth == 1) {
         m_depth.store(0, std::memory_order_relaxed);
         call_if_pended();
     } else {
-        assert(depth > 0);
         m_depth.store(depth - 1, std::memory_order_relaxed);
     }
 }
 
 void pending_call::enter_safe_scope()
 {
-    m_saved_depth.store(m_depth.load(std::memory_order_relaxed), std::memory_order_relaxed);
+    assert(m_depth_stack_top < DEPTH_STACK_SIZE);
+    size_t i = m_depth_stack_top.load(std::memory_order_relaxed);
+    m_depth_stack[i] = m_depth.load(std::memory_order_relaxed);
+    m_depth_stack_top.store(i + 1, std::memory_order_relaxed);
     m_depth.store(0, std::memory_order_relaxed);
     call_if_pended();
 }
 
 void pending_call::leave_safe_scope()
 {
-    m_depth.store(m_saved_depth.load(std::memory_order_relaxed), std::memory_order_relaxed);
-    m_saved_depth.store(0, std::memory_order_relaxed);
+    assert(m_depth_stack_top > 0);
+    size_t i = m_depth_stack_top.load(std::memory_order_relaxed) - 1;
+    m_depth.store(m_depth_stack[i], std::memory_order_relaxed);
+    m_depth_stack_top.store(i, std::memory_order_relaxed);
 }
 
 bool pending_call::is_in_pending_scope() const

@@ -2,7 +2,7 @@
 
 #include "libprecisegc/gc_new.hpp"
 #include "libprecisegc/details/type_meta.hpp"
-#include "libprecisegc/details/gc_mark.h"
+#include "libprecisegc/details/gc_mark.hpp"
 
 using namespace precisegc;
 using namespace precisegc::details;

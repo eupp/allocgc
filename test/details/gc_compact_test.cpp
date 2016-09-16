@@ -3,8 +3,8 @@
 #include <iostream>
 #include <unordered_set>
 
-#include "libprecisegc/details/gc_compact.h"
-#include "libprecisegc/details/forwarding.h"
+#include "libprecisegc/details/gc_compact.hpp"
+#include "libprecisegc/details/forwarding.hpp"
 
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>

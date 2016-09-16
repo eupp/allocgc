@@ -13,7 +13,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/logging.hpp>
-#include <libprecisegc/details/forwarding.h>
+#include <libprecisegc/details/forwarding.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

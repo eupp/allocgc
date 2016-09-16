@@ -11,15 +11,15 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_heap.hpp
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.hpp
-        include/libprecisegc/details/forwarding.h
+        include/libprecisegc/details/forwarding.hpp
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
-        include/libprecisegc/details/gc_compact.h
+        include/libprecisegc/details/gc_compact.hpp
         include/libprecisegc/details/threads/gc_new_stack.hpp
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
-        include/libprecisegc/details/gc_mark.h
+        include/libprecisegc/details/gc_mark.hpp
         include/libprecisegc/details/allocators/core_allocator.hpp
         include/libprecisegc/details/index_tree.hpp
         include/libprecisegc/details/types.hpp
@@ -59,8 +59,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
         include/libprecisegc/details/collectors/incremental_gc.hpp
-        include/libprecisegc/details/recorder.hpp
-        include/libprecisegc/details/printer.hpp
         include/libprecisegc/details/gc_clock.hpp
         include/libprecisegc/details/gc_interface.hpp
         include/libprecisegc/details/allocators/default_allocator.hpp
@@ -84,18 +82,25 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
-        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp include/libprecisegc/details/allocators/freelist_allocator.hpp include/libprecisegc/details/utils/get_ptr.hpp include/libprecisegc/details/allocators/pool.hpp include/libprecisegc/details/allocators/stack_chunk.hpp include/libprecisegc/details/allocators/sys_allocator.hpp include/libprecisegc/details/allocators/null_allocator.hpp include/libprecisegc/details/threads/pin_stack.hpp)
+        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp
+        include/libprecisegc/details/allocators/freelist_allocator.hpp
+        include/libprecisegc/details/utils/get_ptr.hpp
+        include/libprecisegc/details/allocators/pool.hpp
+        include/libprecisegc/details/allocators/stack_chunk.hpp
+        include/libprecisegc/details/allocators/sys_allocator.hpp
+        include/libprecisegc/details/allocators/null_allocator.hpp
+        include/libprecisegc/details/threads/pin_stack.hpp)
 
 set(precisegc_LIB_SRCS
-        src/gc_mark.cpp
-        src/gc_heap.cpp
+        src/details/gc_mark.cpp
+        src/details/gc_heap.cpp
         src/details/threads/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp
         src/details/logging.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
-        src/forwarding.cpp
+        src/details/forwarding.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp
@@ -105,8 +110,6 @@ set(precisegc_LIB_SRCS
         src/details/collectors/initiation_policy.cpp
         src/details/serial_gc.cpp
         src/details/collectors/incremental_gc.cpp
-        src/details/printer.cpp
-        src/details/recorder.cpp
         src/details/allocators/freelist_pool_chunk.cpp
         src/details/gc_hooks.cpp
         src/details/gc_factory.cpp
@@ -114,7 +117,9 @@ set(precisegc_LIB_SRCS
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
         src/details/allocators/managed_object_descriptor.cpp
-        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp include/libprecisegc/details/allocators/sys_allocator.hpp src/details/allocators/core_allocator.cpp)
+        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp
+        include/libprecisegc/details/allocators/sys_allocator.hpp
+        src/details/allocators/core_allocator.cpp)
 
 
 find_package(Threads REQUIRED)

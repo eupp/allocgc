@@ -5,7 +5,7 @@
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/gc_mark.h>
+#include <libprecisegc/details/gc_mark.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
 

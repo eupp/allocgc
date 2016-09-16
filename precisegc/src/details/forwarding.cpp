@@ -1,4 +1,4 @@
-#include "forwarding.h"
+#include "forwarding.hpp"
 
 #include <cassert>
 
@@ -7,7 +7,7 @@
 #include "object_meta.hpp"
 
 #include "logging.hpp"
-#include "gc_mark.h"
+#include "gc_mark.hpp"
 
 namespace precisegc { namespace details {
 

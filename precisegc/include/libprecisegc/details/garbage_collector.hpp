@@ -10,8 +10,6 @@
 #include <libprecisegc/details/initiation_policy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
 #include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/recorder.hpp>
-#include <libprecisegc/details/printer.hpp>
 #include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/gc_stat.hpp>
 

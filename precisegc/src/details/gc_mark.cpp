@@ -1,4 +1,4 @@
-#include "gc_mark.h"
+#include "gc_mark.hpp"
 
 #include <cassert>
 
@@ -39,22 +39,6 @@ bool get_object_mark(void* ptr)
     managed_ptr cell_ptr(reinterpret_cast<byte*>(ptr));
 //    cell_ptr.lock_descriptor();
     return cell_ptr.get_mark();
-}
-
-//bool shade(byte* ptr)
-//{
-//    static thread_local barrier_buffer& bb = threads::managed_thread::this_thread().get_barrier_buffer();
-//    if (!ptr) {
-//        return true;
-//    }
-//    return bb.push(ptr);
-//}
-
-void* get_pointed_to(void* ptr)
-{
-    ptrs::gc_untyped_ptr* gcptr = reinterpret_cast<ptrs::gc_untyped_ptr*>(ptr);
-    void* res = gcptr->get();
-    return res;
 }
 
 object_meta* get_object_header(void *ptr) {

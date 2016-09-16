@@ -4,9 +4,9 @@
 #include <iterator>
 #include <algorithm>
 
-#include "forwarding.h"
+#include "forwarding.hpp"
 #include "object_meta.hpp"
-#include "gc_mark.h"
+#include "gc_mark.hpp"
 #include "libprecisegc/gc_ptr.hpp"
 #include "managed_ptr.hpp"
 

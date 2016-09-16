@@ -16,7 +16,6 @@ void pending_call::operator()()
 
 void pending_call::enter_pending_scope()
 {
-    assert(m_depth.load(std::memory_order_relaxed) == 0);
     m_depth.store(m_depth.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
 }
 

@@ -14,8 +14,6 @@ bool get_object_pin(void* ptr);
 void set_object_mark(void* ptr, bool marked);
 void set_object_pin(void* ptr, bool pinned);
 
-void* get_pointed_to(void* ptr);
-
 object_meta * get_object_header(void *ptr);
 
 }}

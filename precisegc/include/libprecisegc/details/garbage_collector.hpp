@@ -25,7 +25,7 @@ public:
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    gc_alloc_descriptor allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
+    gc_pointer_type allocate(size_t size);
 
     void new_cell(const managed_ptr& ptr);
 
@@ -56,7 +56,7 @@ public:
     gc_stat  stats() const;
     gc_state state() const;
 private:
-    gc_alloc_descriptor try_allocate(size_t obj_size, size_t obj_count, const type_meta* tmeta);
+    gc_pointer_type try_allocate(size_t size);
 
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
     static bool is_interior_shift(const gc_handle& handle, ptrdiff_t shift);

@@ -90,6 +90,19 @@ public:
     friend gc_ptr<T[]> gc_new<T[]>(size_t);
 };
 
+inline details::gc_alloc_descriptor gc_new_allocate(size_t obj_size, size_t obj_count, const details::type_meta* tmeta)
+{
+    using namespace details;
+
+    size_t size = obj_count * obj_size + sizeof(object_meta);
+    gc_pointer_type ptr = gc_allocate(size);
+
+    object_meta* obj_meta = object_meta::get_meta_ptr(ptr.decorated().get(), ptr.size());
+    new (obj_meta) object_meta(obj_count, tmeta);
+
+    return std::make_pair(ptr, obj_meta);
+}
+
 }
 
 template <typename T, typename... Args>
@@ -101,7 +114,7 @@ auto gc_new(Args&&... args)
 
     gc_unsafe_scope unsafe_scope;
 
-    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
+    gc_alloc_descriptor descr = ::precisegc::internals::gc_new_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
     byte* ptr = descr.first.decorated().get();
     T* typed_ptr = reinterpret_cast<T*>(ptr);
     size_t size = descr.first.size();
@@ -134,7 +147,7 @@ auto gc_new(size_t n)
 
     gc_unsafe_scope unsafe_scope;
 
-    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
+    gc_alloc_descriptor descr = ::precisegc::internals::gc_new_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
     byte* ptr = descr.first.decorated().get();
     U* typed_ptr = reinterpret_cast<U*>(ptr);
     size_t size = descr.first.size();

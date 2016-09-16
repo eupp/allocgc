@@ -61,6 +61,6 @@ NONIUS_BENCHMARK("allocators.pool.deallocate", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("allocators.gc_heap.allocate", [](nonius::chronometer meter)
 {
     meter.measure([] {
-        return gc_allocate(OBJ_SIZE, 0, nullptr);
+        return gc_allocate(OBJ_SIZE);
     });
 });

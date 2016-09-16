@@ -75,7 +75,11 @@ NONIUS_BENCHMARK("pointers.shared_ptr.ctor", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("pointers.gc_ptr.ctor", [](nonius::chronometer meter)
 {
     nonius::storage_for<gc_ptr<obj_type>> storage;
-    details::ptrs::gc_new_stack::activation_entry activation_entry;
+    details::threads::gc_new_stack::stack_entry stack_entry(
+            reinterpret_cast<details::byte*>(&storage),
+            sizeof(nonius::storage_for<gc_ptr<obj_type>>),
+            false
+    );
     meter.measure([&storage] {
         storage.construct();
     });

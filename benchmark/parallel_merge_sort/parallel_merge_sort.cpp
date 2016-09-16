@@ -321,7 +321,7 @@ int main(int argc, const char* argv[])
     #elif defined(PRECISE_GC)
         gc_stat stat = gc_stats();
         std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
-        std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time).count() << " us" << std::endl;
+        std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << std::endl;
         std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;
     #endif
 

@@ -23,6 +23,7 @@ public:
         return ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
     }
 
+    managed_object_descriptor();
     managed_object_descriptor(byte* ptr, size_t size, size_t obj_size);
     ~managed_object_descriptor();
 
@@ -57,7 +58,6 @@ private:
 
     byte* m_ptr;
     size_t m_size;
-    bool m_live_bit;
     bool m_mark_bit;
     bool m_pin_bit;
 };

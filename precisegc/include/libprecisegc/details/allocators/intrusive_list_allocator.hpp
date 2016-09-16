@@ -152,7 +152,7 @@ private:
 
     typedef typename std::conditional<
               is_multi_block_chunk<Chunk>::value
-            , utils::flattened_range<boost::iterator_range<chunk_iterator>>
+            , utils::flattened_range<chunk_iterator>
             , boost::iterator_range<mem_iterator>
         >::type memory_range_unlocked_type;
 
@@ -351,6 +351,7 @@ private:
     }
 
     control_block m_fake;
+    Chunk m_fake_chunk;
     control_block* m_head;
     cache_t m_cache;
     Lock m_lock;

@@ -22,7 +22,7 @@ managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_siz
     , m_log2_cell_size(log2(cell_size))
     , m_mask(calc_mask(chunk, size, cell_size))
 {
-    managed_ptr::add_to_index(chunk, size, get_descriptor());
+    managed_ptr::add_to_index(chunk, size, this);
 }
 
 managed_pool_chunk::~managed_pool_chunk()
@@ -41,7 +41,7 @@ managed_pool_chunk::pointer_type managed_pool_chunk::allocate(size_t size)
         raw_ptr = m_freelist.allocate(size);
         memset(raw_ptr, 0, m_cell_size);
     }
-    return managed_ptr(raw_ptr, get_descriptor());
+    return managed_ptr(raw_ptr, this);
 }
 
 void managed_pool_chunk::deallocate(const pointer_type& ptr, size_t size)
@@ -112,13 +112,13 @@ void managed_pool_chunk::unmark()
 managed_pool_chunk::iterator managed_pool_chunk::begin()
 {
     assert(get_mem());
-    return iterator(get_mem(), get_descriptor());
+    return iterator(get_mem(), this);
 }
 
 managed_pool_chunk::iterator managed_pool_chunk::end()
 {
     assert(get_mem());
-    return iterator(get_mem() + get_mem_size(), get_descriptor());
+    return iterator(get_mem() + get_mem_size(), this);
 }
 
 managed_pool_chunk::range_type managed_pool_chunk::get_range()

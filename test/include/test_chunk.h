@@ -71,6 +71,13 @@ public:
 
     typedef boost::iterator_range<iterator> range_type;
 
+    test_chunk()
+        : m_mem(nullptr)
+        , m_size(0)
+        , m_obj_size(0)
+        , m_available(false)
+    {}
+
     test_chunk(byte* mem, size_t size, size_t obj_size)
             : m_mem(mem)
             , m_size(size)

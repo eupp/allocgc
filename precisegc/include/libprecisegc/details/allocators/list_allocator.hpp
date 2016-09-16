@@ -34,19 +34,20 @@ class list_allocator : private utils::ebo<UpstreamAlloc>, private utils::noncopy
 public:
     typedef typename Chunk::pointer_type pointer_type;
     typedef stateful_alloc_tag alloc_tag;
-    typedef utils::flattened_range<boost::iterator_range<typename list_t::iterator>> memory_range_type;
+    typedef utils::flattened_range<typename list_t::iterator> memory_range_type;
 //    typedef utils::locked_range<
 //                  utils::flattened_range<boost::iterator_range<typename list_t::iterator>>
 //                , Lock
 //            > memory_range_type;
 
     list_allocator()
-        : m_cache(m_chunks.begin())
-    {}
+    {
+        m_cache.update(create_fake_chunk());
+    }
 
     ~list_allocator()
     {
-        for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
+        for (auto it = m_chunks.begin(), end = std::prev(m_chunks.end()); it != end; ) {
             it = destroy_chunk(it);
         }
     }
@@ -74,7 +75,7 @@ public:
     {
         std::lock_guard<Lock> lock_guard(m_lock);
         size_t shrunk = 0;
-        for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
+        for (auto it = m_chunks.begin(), end = std::prev(m_chunks.end()); it != end; ) {
             if (it->empty()) {
                 shrunk += it->get_mem_size();
                 it = destroy_chunk(it);
@@ -100,14 +101,14 @@ public:
     void apply_to_chunks(Functor&& f)
     {
         std::lock_guard<Lock> lock_guard(m_lock);
-        std::for_each(m_chunks.begin(), m_chunks.end(), std::forward<Functor>(f));
+        std::for_each(m_chunks.begin(), std::prev(m_chunks.end()), std::forward<Functor>(f));
     }
 
     memory_range_type memory_range()
     {
 //        std::unique_lock<Lock> lock_guard(m_lock);
 //        return memory_range_type(utils::flatten_range(m_chunks), std::move(lock_guard));
-        return utils::flatten_range(m_chunks);
+        return utils::flatten_range(m_chunks.begin(), std::prev(m_chunks.end()));
     }
 
     const UpstreamAlloc& upstream_allocator() const
@@ -120,16 +121,22 @@ private:
         if (!m_cache.memory_available(m_chunks.begin(), m_chunks.end())) {
             auto new_chunk = create_chunk(size);
             auto first = m_chunks.begin();
-            m_cache.update(first != m_chunks.end() && first->memory_available() ? first : new_chunk);
+            m_cache.update(first != std::prev(m_chunks.end()) && first->memory_available() ? first : new_chunk);
         }
         return m_cache.allocate(size);
+    }
+
+    typename list_t::iterator create_fake_chunk()
+    {
+        m_chunks.emplace_back();
+        return --m_chunks.end();
     }
 
     typename list_t::iterator create_chunk(size_t cell_size)
     {
         auto alloc_res = allocate_block(cell_size);
-        m_chunks.emplace_back(alloc_res.first, alloc_res.second, cell_size);
-        return --m_chunks.end();
+        m_chunks.emplace(std::prev(m_chunks.end()), alloc_res.first, alloc_res.second, cell_size);
+        return --std::prev(m_chunks.end());
     }
 
     typename list_t::iterator destroy_chunk(typename list_t::iterator chk)

@@ -4,17 +4,23 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
+managed_object_descriptor::managed_object_descriptor()
+    : m_ptr(nullptr)
+    , m_size(0)
+    , m_mark_bit(false)
+    , m_pin_bit(false)
+{}
+
 managed_object_descriptor::managed_object_descriptor(byte* ptr, size_t size, size_t obj_size)
     : m_ptr(ptr)
     , m_size(size)
-    , m_live_bit(true)
     , m_mark_bit(false)
     , m_pin_bit(false)
 {
     assert(ptr);
     assert(size > LARGE_CELL_SIZE);
     assert(obj_size <= size);
-    managed_ptr::add_to_index(ptr, size, get_descriptor());
+    managed_ptr::add_to_index(ptr, size, this);
 }
 
 managed_object_descriptor::~managed_object_descriptor()
@@ -75,7 +81,7 @@ byte * managed_object_descriptor::get_obj_begin(byte* ptr) const
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)
 {
     assert(size <= m_size);
-    return managed_ptr(m_ptr);
+    return managed_ptr(m_ptr, this);
 }
 
 void managed_object_descriptor::deallocate(const pointer_type& ptr, size_t size)
@@ -117,12 +123,12 @@ memory_descriptor* managed_object_descriptor::get_descriptor()
 
 managed_object_descriptor::iterator managed_object_descriptor::begin()
 {
-    return iterator(m_ptr, get_descriptor());
+    return iterator(m_ptr, this);
 }
 
 managed_object_descriptor::iterator managed_object_descriptor::end()
 {
-    return iterator(m_ptr + m_size, get_descriptor());
+    return iterator(m_ptr + m_size, this);
 }
 
 bool managed_object_descriptor::check_ptr(byte* ptr) const

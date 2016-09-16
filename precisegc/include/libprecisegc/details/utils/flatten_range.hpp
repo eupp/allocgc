@@ -135,13 +135,20 @@ flattening_iterator<OuterIterator> make_flattening_iterator(const OuterIterator&
 
 }
 
-template <typename OuterRange>
+template <typename OuterIterator>
 using flattened_range = boost::iterator_range<
-        internals::flattening_iterator<decltype(std::declval<OuterRange>().begin())>
+        internals::flattening_iterator<OuterIterator>
     >;
 
+template <typename OuterIterator>
+flattened_range<OuterIterator> flatten_range(const OuterIterator& first, const OuterIterator& last)
+{
+    return boost::make_iterator_range(internals::make_flattening_iterator(first, last),
+                                      internals::make_flattening_iterator(last));
+}
+
 template <typename OuterRange>
-flattened_range<OuterRange> flatten_range(OuterRange& rng)
+flattened_range<decltype(std::declval<OuterRange>().begin())> flatten_range(OuterRange& rng)
 {
     return boost::make_iterator_range(internals::make_flattening_iterator(rng.begin(), rng.end()),
                                       internals::make_flattening_iterator(rng.end()));

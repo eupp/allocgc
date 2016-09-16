@@ -19,6 +19,8 @@ public:
     typedef typename Iterator::value_type chunk_type;
     typedef typename chunk_type::pointer_type pointer_type;
 
+    always_expand() = default;
+
     explicit always_expand(const Iterator& init)
     {}
 
@@ -46,6 +48,8 @@ public:
     typedef typename Iterator::value_type chunk_type;
     typedef typename chunk_type::pointer_type pointer_type;
 
+    single_chunk_cache() = default;
+
     explicit single_chunk_cache(const Iterator& init)
             : m_chunk(init)
     {}
@@ -57,7 +61,7 @@ public:
 
     bool memory_available(const Iterator& first, const Iterator& last) const
     {
-        return m_chunk != last && m_chunk->memory_available();
+        return m_chunk->memory_available();
     }
 
     void update(const Iterator& it)
@@ -82,6 +86,8 @@ public:
     typedef typename Iterator::value_type chunk_type;
     typedef typename chunk_type::pointer_type pointer_type;
 
+    single_chunk_with_search_cache() = default;
+
     explicit single_chunk_with_search_cache(const Iterator& init)
         : m_chunk(init)
     {}
@@ -94,7 +100,7 @@ public:
     bool memory_available(const Iterator& first, const Iterator& last) const
     {
         typedef typename std::iterator_traits<Iterator>::value_type chunk_type;
-        if (m_chunk == last || !m_chunk->memory_available()) {
+        if (!m_chunk->memory_available()) {
             m_chunk = std::find_if(first, last,
                                    [] (const chunk_type& chk) { return chk.memory_available(); });
             return m_chunk != last;
@@ -124,6 +130,8 @@ public:
     typedef typename Iterator::value_type chunk_type;
     typedef typename chunk_type::pointer_type pointer_type;
 
+    single_chunk_with_forward_search_cache() = default;
+
     explicit single_chunk_with_forward_search_cache(const Iterator& init)
         : m_chunk(init)
     {}
@@ -136,9 +144,6 @@ public:
     bool memory_available(const Iterator& first, const Iterator& last) const
     {
         typedef typename std::iterator_traits<Iterator>::value_type chunk_type;
-        if (m_chunk == last) {
-            return false;
-        }
         if (!m_chunk->memory_available()) {
             m_chunk = std::find_if(std::next(m_chunk), last,
                                    [] (const chunk_type& chk) { return chk.memory_available(); });

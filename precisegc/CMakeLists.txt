@@ -119,7 +119,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/managed_object_descriptor.cpp
         src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
-        src/details/allocators/core_allocator.cpp)
+        src/details/allocators/core_allocator.cpp )
 
 
 find_package(Threads REQUIRED)

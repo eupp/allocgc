@@ -123,6 +123,8 @@ List merge(const List& fst, const List& snd)
     ptr_t(Node) res;
     ptr_t(Node) it1 = fst.head;
     ptr_t(Node) it2 = snd.head;
+    ptr_t(Node) prev1 = it1;
+    ptr_t(Node) prev2 = it2;
     size_t l1 = fst.length;
     size_t l2 = snd.length;
     size_t length = l1 + l2;
@@ -143,11 +145,13 @@ List merge(const List& fst, const List& snd)
         if (it1->data < it2->data) {
             dst->next = it1;
             dst = dst->next;
+            prev1 = it1;
             it1 = it1->next;
             --l1;
         } else {
             dst->next = it2;
             dst = dst->next;
+            prev2 = it2;
             it2 = it2->next;
             --l2;
         }
@@ -278,8 +282,8 @@ int main(int argc, const char* argv[])
         ops.algo                = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
         ops.initiation          = gc_initiation::SPACE_BASED;
         ops.compacting          = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel            = gc_loglevel::DEBUG;
-        ops.print_stat          = true;
+        ops.loglevel            = gc_loglevel::SILENT;
+        ops.print_stat          = false;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

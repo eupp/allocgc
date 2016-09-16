@@ -71,7 +71,7 @@ template <typename Function, typename... Args>
 std::thread create_thread(Function&& f, Args&&... args)
 {
 #ifdef PRECISE_GC
-    return details::threads::managed_thread::create(std::forward<Function>(f), std::forward<Args>(args)...);
+    return gc_thread::create(std::forward<Function>(f), std::forward<Args>(args)...);
 #else
     return std::thread(std::forward<Function>(f), std::forward<Args>(args)...);
 #endif

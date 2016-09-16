@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_GC_H
 #define DIPLOMA_GC_H
 
+#include <thread>
+
 #include <libprecisegc/gc_init_options.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
@@ -11,7 +13,6 @@ int gc_init(const gc_init_options& options = gc_init_options());
 gc_stat gc_stats();
 
 void gc();
-
 
 }
 

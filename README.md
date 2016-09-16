@@ -102,6 +102,32 @@ Compare with following code:
 A& ref = *pA;  // ERROR
 ```
 
+Garbage collector also could work with multithread applications. 
+However library's user should inform the collector about newly created threads 
+so the collector will be able to stop them during collection. 
+It is done via `gc_thread::create` function. 
+Just like `std::thread`'s constructor this function takes as arguments a functor and arbitrary number of arguments
+that will be passed to that functor. As a result `gc_thread::create` returns `std::thread` object.
+
+```C++
+void f(int x, int y) {
+    gc_ptr<A> pA = gc_new<A>(x, y);
+}
+
+int main() {
+    gc_init();
+    
+    std::thread t = gc_thread::create(f, 1, 42);
+    t.join();
+    
+    return 0;
+}
+```
+
+Notice that it's not necessarily to create every thread with `gc_thread::create`. 
+Only those that will access managed heap via `gc_ptr`s are need to be registered. 
+The rest threads in application could be created in usual way and they will not be stopped during collection.
+
 ### Tunning GC
 
 Additional options could be passed to `gc_init`:

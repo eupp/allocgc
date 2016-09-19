@@ -257,7 +257,7 @@ TEST_F(gc_compact_test, test_fix_pointers)
     managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
     cell_ptr.set_mark(true);
     cell_ptr.set_pin(false);
-    byte* ptr = cell_ptr.get();
+    byte* ptr = object_meta::get_object_ptr(cell_ptr.get(), cell_ptr.cell_size());
 
     test_type val1;
     void* to = &val1;
@@ -266,8 +266,8 @@ TEST_F(gc_compact_test, test_fix_pointers)
     void*& from = * (void**) ptr;
     from = &val2;
 
-    object_meta* obj_meta = object_meta::get_meta_ptr(ptr, OBJ_SIZE);
-    new(obj_meta) object_meta(1, tmeta);
+    object_meta* obj_meta = object_meta::get_meta_ptr(cell_ptr.get(), cell_ptr.cell_size());
+    new (obj_meta) object_meta(1, tmeta);
     obj_meta->set_forward_pointer(ptr);
 
     list_forwarding forwarding;

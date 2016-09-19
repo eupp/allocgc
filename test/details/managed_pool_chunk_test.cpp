@@ -63,9 +63,8 @@ TEST_F(managed_pool_chunk_test, test_get_cell_meta)
     size_t mem_size = m_chunk.get_mem_size();
 
     for (byte* ptr = mem; ptr < mem + mem_size; ptr += CELL_SIZE) {
-        object_meta* meta = object_meta::get_meta_ptr(ptr, CELL_SIZE);
         for (byte* p = ptr; p < ptr + CELL_SIZE; p++) {
-            ASSERT_EQ(meta, descr->get_cell_meta(p));
+            ASSERT_EQ(ptr, descr->get_cell_begin(p));
         }
     }
 }
@@ -81,25 +80,6 @@ struct test_type
 {
     byte mem[OBJ_SIZE];
 };
-}
-
-TEST_F(managed_pool_chunk_test, test_get_object_begin)
-{
-    memory_descriptor* descr = m_chunk.get_descriptor();
-    byte* mem = m_chunk.get_mem();
-    size_t mem_size = m_chunk.get_mem_size();
-    object_meta* meta = descr->get_cell_meta(mem);
-
-    type_meta_provider<test_type>::create_meta();
-    const type_meta* cls_meta = type_meta_provider<test_type>::get_meta();
-    new (meta) object_meta(0, cls_meta);
-
-    for (size_t i = 0; i < OBJ_CNT; ++i) {
-        byte* obj_begin = mem + i * OBJ_SIZE;
-        for (byte* p = obj_begin; p < obj_begin + OBJ_SIZE; ++p) {
-            ASSERT_EQ(obj_begin, descr->get_obj_begin(p));
-        }
-    }
 }
 
 TEST_F(managed_pool_chunk_test, test_get_mark_pin)

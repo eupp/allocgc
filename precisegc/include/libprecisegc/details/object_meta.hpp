@@ -4,6 +4,7 @@
 #include <cstring>
 #include <atomic>
 
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -12,10 +13,16 @@ namespace precisegc { namespace details {
 class object_meta
 {
 public:
-    // computes pointer to object_meta by pointer to object and its size
-    static object_meta* get_meta_ptr(void* ptr, size_t obj_size)
+    // computes pointer to object_meta by pointer to managed cell and its size
+    static object_meta* get_meta_ptr(byte* ptr, size_t obj_size)
     {
-        return (object_meta*) ((size_t) ptr + obj_size - sizeof(object_meta));
+        return reinterpret_cast<object_meta*>(ptr);
+    }
+
+    // computes pointer to object itself by pointer to managed cell and its size
+    static byte* get_object_ptr(byte* ptr, size_t obj_size)
+    {
+        return ptr + sizeof(object_meta);
     }
 
     object_meta(size_t count, const type_meta* meta)
@@ -64,6 +71,20 @@ public:
         m_type_meta = reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit;
     }
 
+    byte* get_object_begin() const
+    {
+        return reinterpret_cast<byte*>(const_cast<object_meta*>(this)) + sizeof(object_meta);
+    }
+
+    byte* get_array_element_begin(byte* ptr) const
+    {
+        assert(contains(ptr));
+        byte*  obj_begin = get_object_begin();
+        size_t elem_size = type_size();
+        size_t elem_ind = (ptr - obj_begin) / elem_size;
+        return obj_begin + elem_ind * elem_size;
+    }
+
     bool is_forwarded() const
     {
         return m_type_meta & FORWARD_BIT;
@@ -80,19 +101,50 @@ public:
     void set_forward_pointer(byte* ptr) noexcept
     {
         m_type_meta |= FORWARD_BIT;
+        ptr += sizeof(object_meta);
         memcpy(get_forward_pointer_address(), &ptr, sizeof(void*));
+    }
+
+    template <typename Functor>
+    void trace_children(Functor&& f) const
+    {
+        const type_meta* tmeta = get_type_meta();
+        if (!tmeta) {
+            return;
+        }
+
+        size_t obj_size = tmeta->type_size();
+        auto offsets = tmeta->offsets();
+        if (offsets.empty()) {
+            return;
+        }
+
+        byte* obj = get_object_begin();
+        size_t offsets_size = offsets.size();
+        for (size_t i = 0; i < m_count; i++) {
+            for (size_t j = 0; j < offsets_size; j++) {
+                f(reinterpret_cast<gc_handle*>(obj + offsets[j]));
+            }
+            obj += obj_size;
+        }
     }
 private:
     static const std::uintptr_t FORWARD_BIT = 1;
 
+    bool contains(byte* ptr) const
+    {
+        byte* obj_begin = get_object_begin();
+        return (obj_begin <= ptr) && (ptr < obj_begin + m_count * type_size());
+    }
+
     void* get_forward_pointer_address()
     {
-        return reinterpret_cast<void*>(reinterpret_cast<byte*>(this) - sizeof(void*));
+        return reinterpret_cast<void*>(reinterpret_cast<byte*>(this) + sizeof(object_meta));
     }
 
     const void* get_forward_pointer_address() const
     {
-        return reinterpret_cast<const void*>(reinterpret_cast<const byte*>(this) - sizeof(void*));
+        return reinterpret_cast<const void*>(reinterpret_cast<const byte*>(this) + sizeof(object_meta));
     }
 
     std::uintptr_t m_type_meta;

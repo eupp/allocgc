@@ -33,7 +33,7 @@ class intrusive_forwarding
 public:
     intrusive_forwarding();
     void create(void* from, void* to, size_t obj_size);
-    void forward(void* ptr) const;
+    void forward(gc_handle* handle) const;
 //    void join(const intrusive_forwarding& other);
 };
 

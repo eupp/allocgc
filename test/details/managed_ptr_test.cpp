@@ -95,16 +95,6 @@ TEST_F(managed_ptr_test, test_cell_size)
     ptr.cell_size();
 }
 
-TEST_F(managed_ptr_test, test_get_meta)
-{
-    managed_ptr ptr(m_mem.get(), &m_mock);
-
-    EXPECT_CALL(m_mock, get_cell_meta(m_mem.get()))
-            .Times(Exactly(1));
-
-    ptr.get_meta();
-}
-
 TEST_F(managed_ptr_test, test_get_cell_begin)
 {
     managed_ptr ptr(m_mem.get(), &m_mock);
@@ -113,14 +103,4 @@ TEST_F(managed_ptr_test, test_get_cell_begin)
             .Times(Exactly(1));
 
     ptr.get_cell_begin();
-}
-
-TEST_F(managed_ptr_test, test_get_obj_begin)
-{
-    managed_ptr ptr(m_mem.get(), &m_mock);
-
-    EXPECT_CALL(m_mock, get_obj_begin(m_mem.get()))
-            .Times(Exactly(1));
-
-    ptr.get_obj_begin();
 }

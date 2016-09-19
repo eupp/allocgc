@@ -35,12 +35,12 @@ public:
         new(simple_object_ptr.get_meta()) object_meta(1, type_meta_provider<simple_object>::get_meta());
 
         complex_object_ptr = heap.allocate(OBJ_SIZE).decorated();
-        new(complex_object_ptr.get_meta()) object_meta(1, type_meta_provider<complex_object>::get_meta());
+        new (complex_object_ptr.get_meta()) object_meta(1, type_meta_provider<complex_object>::get_meta());
 
-        child1 = heap.allocate(OBJ_SIZE).decorated().get();
-        child2 = heap.allocate(OBJ_SIZE).decorated().get();
+        child1 = object_meta::get_object_ptr(heap.allocate(OBJ_SIZE).decorated().get(), OBJ_SIZE);
+        child2 = object_meta::get_object_ptr(heap.allocate(OBJ_SIZE).decorated().get(), OBJ_SIZE);
 
-        complex_object* p = reinterpret_cast<complex_object*>(complex_object_ptr.get());
+        complex_object* p = reinterpret_cast<complex_object*>(complex_object_ptr.get_obj_begin());
         p->m_ptr1 = gc_untyped_ptr(child1);
         p->m_ptr2 = gc_untyped_ptr(child2);
     }
@@ -56,8 +56,8 @@ TEST_F(trace_ptr_test, test_simple_object)
 {
     std::unordered_set<byte*> empty_set;
     std::unordered_set<byte*> traced_set;
-    trace_ptr(simple_object_ptr, [&traced_set] (managed_ptr p) {
-        traced_set.insert(p.get());
+    trace_ptr(simple_object_ptr.get_meta(), [&traced_set] (object_meta* meta) {
+        traced_set.insert(meta->get_object_begin());
     });
 
     ASSERT_EQ(empty_set, traced_set);
@@ -67,8 +67,8 @@ TEST_F(trace_ptr_test, test_complex_object)
 {
     std::unordered_set<byte*> children({child1, child2});
     std::unordered_set<byte*> traced_set;
-    trace_ptr(complex_object_ptr, [&traced_set] (managed_ptr p) {
-        traced_set.insert(p.get());
+    trace_ptr(complex_object_ptr.get_meta(), [&traced_set] (object_meta* meta) {
+        traced_set.insert(meta->get_object_begin());
     });
 
     ASSERT_EQ(children, traced_set);

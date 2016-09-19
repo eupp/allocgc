@@ -9,13 +9,13 @@ mark_packet::mark_packet()
     , m_next(nullptr)
 {}
 
-void mark_packet::push(const managed_ptr& mp)
+void mark_packet::push(object_meta* obj_meta)
 {
     assert(!is_full());
-    m_data[m_size++] = mp;
+    m_data[m_size++] = obj_meta;
 }
 
-managed_ptr mark_packet::pop()
+object_meta* mark_packet::pop()
 {
     assert(m_size > 0);
     return m_data[--m_size];

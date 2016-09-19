@@ -143,7 +143,8 @@ public:
         logging::info() << "Fixing roots...";
         for (auto thread: m_threads) {
             managed_thread_accessor::trace_roots(thread, [&forwarding] (ptrs::gc_untyped_ptr* p) {
-                forwarding.forward(p);
+                // to do: get rid of reinterpret_cast
+                forwarding.forward(reinterpret_cast<gc_handle*>(p));
             });
         }
     }

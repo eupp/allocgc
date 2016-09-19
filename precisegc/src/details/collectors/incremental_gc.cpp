@@ -52,7 +52,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
                 m_packet_manager.push_packet(std::move(packet));
                 packet = std::move(new_packet);
             }
-            packet->push(mp);
+            packet->push(mp.get_meta());
         }
     }
 }

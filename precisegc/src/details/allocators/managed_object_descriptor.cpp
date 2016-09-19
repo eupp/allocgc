@@ -57,25 +57,10 @@ size_t managed_object_descriptor::cell_size() const
     return m_size;
 }
 
-object_meta* managed_object_descriptor::get_cell_meta(byte* ptr) const
-{
-    assert(check_ptr(ptr));
-    return object_meta::get_meta_ptr((void*) m_ptr, m_size);
-}
-
 byte* managed_object_descriptor::get_cell_begin(byte* ptr) const
 {
     assert(check_ptr(ptr));
     return m_ptr;
-}
-
-byte * managed_object_descriptor::get_obj_begin(byte* ptr) const
-{
-    object_meta* meta = get_cell_meta(ptr);
-    byte* cell_ptr = get_cell_begin(ptr);
-    size_t obj_size = meta->get_type_meta()->type_size();
-    size_t obj_ind = (ptr - cell_ptr) / obj_size;
-    return cell_ptr + obj_ind * obj_size;
 }
 
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)

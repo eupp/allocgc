@@ -18,8 +18,8 @@ class mark_packet : private utils::noncopyable, private utils::nonmovable
 public:
     mark_packet();
 
-    void push(const managed_ptr& mp);
-    managed_ptr pop();
+    void push(object_meta* obj_meta);
+    object_meta* pop();
 
     bool is_full() const;
     bool is_almost_full() const;
@@ -28,8 +28,8 @@ public:
 
     friend class packet_manager;
 private:
-    static const size_t SIZE = 256;
-    managed_ptr m_data[SIZE];
+    static const size_t SIZE = 512;
+    object_meta* m_data[SIZE];
     size_t m_size;
     mark_packet* m_next;
 };

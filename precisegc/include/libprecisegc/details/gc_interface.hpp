@@ -14,7 +14,6 @@
 namespace precisegc { namespace details {
 
 typedef utils::block_ptr<managed_ptr> gc_pointer_type;
-typedef std::pair<gc_pointer_type, object_meta*> gc_alloc_descriptor;
 
 enum class initiation_point_type {
       USER_REQUEST

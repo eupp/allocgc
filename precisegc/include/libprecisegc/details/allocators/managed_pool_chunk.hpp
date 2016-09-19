@@ -76,8 +76,6 @@ public:
 
     virtual size_t cell_size() const override;
 
-    virtual object_meta* get_cell_meta(byte* ptr) const override;
-    virtual byte* get_obj_begin(byte* ptr) const override;
     virtual byte* get_cell_begin(byte* ptr) const override;
 private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);

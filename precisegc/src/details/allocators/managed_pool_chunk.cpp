@@ -155,27 +155,12 @@ size_t managed_pool_chunk::cell_size() const
     return m_cell_size;
 }
 
-object_meta* managed_pool_chunk::get_cell_meta(byte* ptr) const
-{
-    byte* cell_ptr = get_cell_begin(ptr);
-    return object_meta::get_meta_ptr((void*) cell_ptr, m_cell_size);
-}
-
 byte* managed_pool_chunk::get_cell_begin(byte* ptr) const
 {
     uintptr uiptr = reinterpret_cast<uintptr>(ptr);
     uintptr res = (uiptr & m_mask);
     assert(res % m_cell_size == 0);
     return reinterpret_cast<byte*>(res);
-}
-
-byte* managed_pool_chunk::get_obj_begin(byte* ptr) const
-{
-    object_meta* meta = get_cell_meta(ptr);
-    byte* cell_ptr = get_cell_begin(ptr);
-    size_t obj_size = meta->get_type_meta()->type_size();
-    size_t obj_ind = (ptr - cell_ptr) / obj_size;
-    return cell_ptr + obj_ind * obj_size;
 }
 
 managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,

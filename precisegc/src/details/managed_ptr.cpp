@@ -66,7 +66,7 @@ size_t managed_ptr::cell_size() const
 object_meta* managed_ptr::get_meta() const
 {
     assert(m_descr);
-    return m_descr->get_cell_meta(m_ptr);
+    return object_meta::get_meta_ptr(m_descr->get_cell_begin(m_ptr), m_descr->cell_size());
 }
 
 byte* managed_ptr::get_cell_begin() const
@@ -78,7 +78,7 @@ byte* managed_ptr::get_cell_begin() const
 byte* managed_ptr::get_obj_begin() const
 {
     assert(m_descr);
-    return m_descr->get_obj_begin(m_ptr);
+    return object_meta::get_object_ptr(m_descr->get_cell_begin(m_ptr), m_descr->cell_size());
 }
 
 byte* managed_ptr::get() const

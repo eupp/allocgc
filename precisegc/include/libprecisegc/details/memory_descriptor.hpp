@@ -24,9 +24,7 @@ public:
 
     virtual size_t cell_size() const  = 0;
 
-    virtual object_meta* get_cell_meta(byte* ptr) const = 0;
     virtual byte* get_cell_begin(byte* ptr) const = 0;
-    virtual byte* get_obj_begin(byte* ptr) const = 0;
 };
 
 }}

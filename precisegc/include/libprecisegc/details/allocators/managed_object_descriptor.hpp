@@ -50,9 +50,7 @@ public:
 
     size_t cell_size() const override;
 
-    object_meta* get_cell_meta(byte* ptr) const override;
     byte* get_cell_begin(byte* ptr) const override;
-    byte* get_obj_begin(byte* ptr) const override;
 private:
     bool check_ptr(byte* ptr) const;
 

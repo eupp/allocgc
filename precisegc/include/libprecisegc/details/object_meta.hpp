@@ -5,6 +5,8 @@
 #include <atomic>
 
 #include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_tagging.hpp>
+#include <libprecisegc/details/managed_ptr.hpp>
 #include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -13,16 +15,32 @@ namespace precisegc { namespace details {
 class object_meta
 {
 public:
-    // computes pointer to object_meta by pointer to managed cell and its size
+    // computes pointer to object_meta by pointer to start of managed cell and its size
     static object_meta* get_meta_ptr(byte* ptr, size_t obj_size)
     {
-        return reinterpret_cast<object_meta*>(ptr);
+        return get_meta_ptr_by_cell_start(ptr);
     }
 
-    // computes pointer to object itself by pointer to managed cell and its size
+    // computes pointer to object_meta by managed pointer to managed cell
+    static object_meta* get_meta_ptr(const managed_ptr& ptr)
+    {
+        return ptr.is_derived()
+               ? get_meta_ptr_by_cell_start(ptr.get_cell_begin())
+               : reinterpret_cast<object_meta*>(ptr.get() - sizeof(object_meta));
+    }
+
+    // computes pointer to object itself by pointer to start of managed cell and its size
     static byte* get_object_ptr(byte* ptr, size_t obj_size)
     {
-        return ptr + sizeof(object_meta);
+        return get_object_ptr_by_cell_start(ptr);
+    }
+
+    // computes pointer to object itself by managed pointer to managed cell
+    static byte* get_object_ptr(const managed_ptr& ptr)
+    {
+        return ptr.is_derived()
+               ? get_object_ptr_by_cell_start(ptr.get_cell_begin())
+               : ptr.get();
     }
 
     object_meta(size_t count, const type_meta* meta)
@@ -101,7 +119,6 @@ public:
     void set_forward_pointer(byte* ptr) noexcept
     {
         m_type_meta |= FORWARD_BIT;
-        ptr += sizeof(object_meta);
         memcpy(get_forward_pointer_address(), &ptr, sizeof(void*));
     }
 
@@ -130,6 +147,18 @@ public:
     }
 private:
     static const std::uintptr_t FORWARD_BIT = 1;
+
+    // computes pointer to object_meta by pointer to start of managed cell
+    static object_meta* get_meta_ptr_by_cell_start(byte* ptr)
+    {
+        return reinterpret_cast<object_meta*>(ptr);
+    }
+
+    // computes pointer to object itself by pointer to start of managed cell
+    static byte* get_object_ptr_by_cell_start(byte* ptr)
+    {
+        return ptr + sizeof(object_meta);
+    }
 
     bool contains(byte* ptr) const
     {

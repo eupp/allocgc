@@ -33,16 +33,16 @@ TEST(gc_untyped_ptr_test, test_nullptr_construct)
 
 TEST(gc_untyped_ptr_test, test_raw_ptr_construct)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
     gc_untyped_ptr ptr1(ptr);
     EXPECT_EQ(ptr, ptr1.get());
 }
 
 TEST(gc_untyped_ptr_test, test_copy_construct)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
     gc_untyped_ptr ptr1(ptr);
 
     gc_untyped_ptr ptr2(ptr1);
@@ -51,8 +51,8 @@ TEST(gc_untyped_ptr_test, test_copy_construct)
 
 TEST(gc_untyped_ptr_test, test_move_construct)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
     gc_untyped_ptr ptr1(ptr);
 
     gc_untyped_ptr ptr2(std::move(ptr1));
@@ -61,8 +61,8 @@ TEST(gc_untyped_ptr_test, test_move_construct)
 
 TEST(gc_untyped_ptr_test, test_nullptr_assignment)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
 
     gc_untyped_ptr ptr1(ptr);
     ptr1 = nullptr;
@@ -71,8 +71,8 @@ TEST(gc_untyped_ptr_test, test_nullptr_assignment)
 
 TEST(gc_untyped_ptr_test, test_copy_assignment)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
 
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
@@ -82,8 +82,8 @@ TEST(gc_untyped_ptr_test, test_copy_assignment)
 
 TEST(gc_untyped_ptr_test, test_move_assignment)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
 
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
@@ -112,8 +112,8 @@ TEST(gc_untyped_ptr_test, test_is_root_1)
 
 TEST(gc_untyped_ptr_test, test_is_root_2)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
 
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
@@ -136,8 +136,8 @@ TEST(gc_untyped_ptr_test, test_bool_conversion)
     gc_untyped_ptr ptr1;
     EXPECT_TRUE(ptr1.is_null());
 
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
 
     gc_untyped_ptr ptr2(ptr);
     EXPECT_FALSE(ptr2.is_null());
@@ -145,8 +145,8 @@ TEST(gc_untyped_ptr_test, test_bool_conversion)
 
 TEST(gc_untyped_ptr_test, test_swap)
 {
-    byte val;
-    byte* ptr = &val;
+    size_t val;
+    byte* ptr = (byte*) &val;
 
     gc_untyped_ptr ptr1;
     gc_untyped_ptr ptr2(ptr);

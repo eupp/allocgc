@@ -61,7 +61,7 @@ TEST_F(object_meta_test, test_forward_pointer)
     memset(&pvalue->data, 0, sizeof(void*));
 
     object_meta* obj_meta = object_meta::get_meta_ptr(pstorage, STORAGE_SIZE);
-    new(obj_meta) object_meta(0, tmeta);
+    new (obj_meta) object_meta(0, tmeta);
     obj_meta->set_object_count(1);
 
     byte* p;

@@ -18,10 +18,6 @@ void trace_ptr(object_meta* obj_meta, Functor&& f)
         managed_ptr mp(handle->rbarrier());
         if (mp && !mp.get_mark()) {
             mp.set_mark(true);
-            object_meta* dbg = mp.get_meta();
-            if (dbg == (object_meta*) 0x7ffff4dbd000) {
-                logging::debug() << "trap!";
-            }
             f(mp.get_meta());
         }
     });

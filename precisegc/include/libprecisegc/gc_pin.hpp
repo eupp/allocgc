@@ -5,6 +5,7 @@
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_tagging.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc {
@@ -22,7 +23,7 @@ public:
 
     T* get() const
     {
-        return reinterpret_cast<T*>(m_pin.get());
+        return reinterpret_cast<T*>(details::gc_tagging::clear(m_pin.get()));
     }
 
     T& operator*() const
@@ -54,7 +55,7 @@ public:
 
     T* get() const
     {
-        return reinterpret_cast<T*>(m_pin.get());
+        return reinterpret_cast<T*>(details::gc_tagging::clear(m_pin.get()));
     }
 
     T& operator*() const
@@ -89,7 +90,7 @@ public:
 
     T* get() const
     {
-        return reinterpret_cast<T*>(m_pin.get());
+        return reinterpret_cast<T*>(details::gc_tagging::clear(m_pin.get()));
     }
 
     T* operator->() const

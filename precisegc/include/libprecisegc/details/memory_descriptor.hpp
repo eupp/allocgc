@@ -3,7 +3,6 @@
 
 #include <mutex>
 
-#include <libprecisegc/details/object_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {

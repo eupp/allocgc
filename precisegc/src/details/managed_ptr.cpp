@@ -1,7 +1,10 @@
-#include "managed_ptr.hpp"
+#include <libprecisegc/details/managed_ptr.hpp>
 
 #include <cassert>
 #include <utility>
+
+#include <libprecisegc/details/gc_tagging.hpp>
+#include <libprecisegc/details/object_meta.hpp>
 
 namespace precisegc { namespace details {
 
@@ -21,7 +24,7 @@ managed_ptr::managed_ptr(byte* ptr)
     : m_ptr(ptr)
     , m_descr(indexer.get_entry(ptr))
 {
-    if (m_ptr && !m_descr) {
+    if (gc_tagging::clear(m_ptr) && !m_descr) {
         throw unindexed_memory_exception(ptr);
     }
 }
@@ -66,7 +69,13 @@ size_t managed_ptr::cell_size() const
 object_meta* managed_ptr::get_meta() const
 {
     assert(m_descr);
-    return object_meta::get_meta_ptr(m_descr->get_cell_begin(m_ptr), m_descr->cell_size());
+    return object_meta::get_meta_ptr(*this);
+}
+
+byte* managed_ptr::get_obj_begin() const
+{
+    assert(m_descr);
+    return object_meta::get_object_ptr(*this);
 }
 
 byte* managed_ptr::get_cell_begin() const
@@ -75,15 +84,9 @@ byte* managed_ptr::get_cell_begin() const
     return m_descr->get_cell_begin(m_ptr);
 }
 
-byte* managed_ptr::get_obj_begin() const
-{
-    assert(m_descr);
-    return object_meta::get_object_ptr(m_descr->get_cell_begin(m_ptr), m_descr->cell_size());
-}
-
 byte* managed_ptr::get() const
 {
-    return m_ptr;
+    return gc_tagging::clear(m_ptr);
 }
 
 memory_descriptor* managed_ptr::get_descriptor() const
@@ -91,10 +94,19 @@ memory_descriptor* managed_ptr::get_descriptor() const
     return m_descr;
 }
 
+bool managed_ptr::is_derived() const
+{
+    return gc_tagging::derived_bit(m_ptr);
+}
+
+void managed_ptr::set_derived()
+{
+    gc_tagging::set_derived_bit(m_ptr);
+}
+
 void managed_ptr::advance(ptrdiff_t n)
 {
     m_ptr += n;
-//    assert(get_cell_begin() <= m_ptr && m_ptr <= get_cell_begin() + get_meta()->size());
 }
 
 void managed_ptr::swap(managed_ptr& other)
@@ -111,7 +123,7 @@ void swap(managed_ptr& a, managed_ptr& b)
 
 managed_ptr::operator bool() const
 {
-    return m_ptr != nullptr;
+    return gc_tagging::clear(m_ptr) != nullptr;
 }
 
 managed_ptr managed_ptr::add_to_index(byte* ptr, size_t size, memory_descriptor* descr)

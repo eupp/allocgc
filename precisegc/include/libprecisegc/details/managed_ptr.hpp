@@ -17,6 +17,8 @@ public:
     {}
 };
 
+class object_meta;
+
 class managed_ptr
 {
 public:
@@ -42,11 +44,14 @@ public:
     size_t cell_size() const;
 
     object_meta* get_meta() const;
-    byte* get_cell_begin() const;
     byte* get_obj_begin() const;
+    byte* get_cell_begin() const;
 
     byte* get() const;
     memory_descriptor* get_descriptor() const;
+
+    bool is_derived() const;
+    void set_derived();
 
     void advance(ptrdiff_t n);
 

@@ -5,8 +5,7 @@
 #include <utility>
 
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
-#include <libprecisegc/details/threads/gc_new_stack.hpp>
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_tagging.hpp>
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
@@ -100,7 +99,7 @@ void gc_untyped_ptr::advance(ptrdiff_t n)
 
 void* gc_untyped_ptr::get() const
 {
-    return m_handle.rbarrier();
+    return gc_tagging::clear(m_handle.rbarrier());
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other)

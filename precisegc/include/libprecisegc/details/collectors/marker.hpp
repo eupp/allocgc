@@ -109,9 +109,6 @@ private:
             }
             while (!input_packet->is_empty()) {
                 ptrs::trace_ptr(input_packet->pop(), [this, &output_packet] (object_meta* meta) {
-                    if (meta == (object_meta*) 0x7ffff4dbd000) {
-                        logging::debug() << "Trap!";
-                    }
                     push_to_packet(meta, output_packet);
                 });
             }
@@ -127,10 +124,6 @@ private:
         if (output_packet->is_full()) {
             m_packet_manager->push_packet(std::move(output_packet));
             output_packet = m_packet_manager->pop_output_packet();
-        }
-        object_meta* dbg = mp.get_meta();
-        if (dbg == (object_meta*) 0x7ffff4dbd000) {
-            logging::debug() << "trap!";
         }
         output_packet->push(mp.get_meta());
     }

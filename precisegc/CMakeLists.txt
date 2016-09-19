@@ -89,7 +89,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/stack_chunk.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
         include/libprecisegc/details/allocators/null_allocator.hpp
-        include/libprecisegc/details/threads/pin_stack.hpp include/libprecisegc/gc_thread.hpp)
+        include/libprecisegc/details/threads/pin_stack.hpp include/libprecisegc/gc_thread.hpp include/libprecisegc/details/gc_tagging.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_mark.cpp

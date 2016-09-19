@@ -52,8 +52,8 @@ void intrusive_forwarding::create(void* from, void* to, size_t obj_size)
 {
     logging::debug() << "create forwarding: from " << from << " to " << to;
 
-    object_meta* meta = object_meta::get_meta_ptr((byte*) from, obj_size);
     move_cell(from, to, obj_size);
+    object_meta* meta = object_meta::get_meta_ptr((byte*) from, obj_size);
     meta->set_forward_pointer((byte*) to);
 }
 
@@ -65,7 +65,7 @@ void intrusive_forwarding::forward(gc_handle* handle) const
             auto cell_ptr = managed_ptr(from);
             object_meta* meta = cell_ptr.get_meta();
             if (meta->is_forwarded()) {
-                void* to = meta->forward_pointer();
+                void* to = object_meta::get_object_ptr(meta->forward_pointer(), cell_ptr.cell_size());
                 logging::debug() << "fix ptr: from " << from << " to " << to;
                 gc_handle_access::set<std::memory_order_relaxed>(*handle, (byte*) to);
             }

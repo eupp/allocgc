@@ -95,7 +95,6 @@ size_t managed_pool_chunk::sweep()
     byte* mem_end = m_chunk.get_top();
     for (byte *it = get_mem(); it < mem_end; it += m_cell_size, ++i) {
         if (!m_mark_bits.get(i)) {
-            memset(it, 0, m_cell_size);
             m_freelist.deallocate(it, m_cell_size);
             freed += m_cell_size;
         }

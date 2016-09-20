@@ -34,17 +34,17 @@ void managed_thread_accessor::pop_from_gc_new_stack(managed_thread* thread)
     thread->pop_from_gc_new_stack();
 }
 
-void managed_thread_accessor::register_root(managed_thread* thread, ptrs::gc_untyped_ptr* root)
+void managed_thread_accessor::register_root(managed_thread* thread, gc_handle* root)
 {
     thread->register_root(root);
 }
 
-void managed_thread_accessor::deregister_root(managed_thread* thread, ptrs::gc_untyped_ptr* root)
+void managed_thread_accessor::deregister_root(managed_thread* thread, gc_handle* root)
 {
     thread->deregister_root(root);
 }
 
-bool managed_thread_accessor::is_root(const managed_thread* thread, const ptrs::gc_untyped_ptr* ptr)
+bool managed_thread_accessor::is_root(const managed_thread* thread, const gc_handle* ptr)
 {
     return thread->is_root(ptr);
 }

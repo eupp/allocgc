@@ -84,7 +84,7 @@ bool gc_untyped_ptr::is_null() const
 
 bool gc_untyped_ptr::is_root() const
 {
-    return threads::this_managed_thread::is_root(this);
+    return threads::this_managed_thread::is_root(&m_handle);
 }
 
 bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const
@@ -116,12 +116,12 @@ void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
 
 void gc_untyped_ptr::register_root()
 {
-    threads::this_managed_thread::register_root(this);
+    threads::this_managed_thread::register_root(&m_handle);
 }
 
 void gc_untyped_ptr::delete_root()
 {
-    threads::this_managed_thread::deregister_root(this);
+    threads::this_managed_thread::deregister_root(&m_handle);
 }
 
 }}}

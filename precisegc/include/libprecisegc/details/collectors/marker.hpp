@@ -42,13 +42,13 @@ public:
     void trace_roots(Traceable&& tracer)
     {
         auto output_packet = m_packet_manager->pop_output_packet();
-        tracer.trace([this, &output_packet] (ptrs::gc_untyped_ptr* p) {
-            managed_ptr mp = managed_ptr((byte*) p->get());
+        tracer.trace([this, &output_packet] (gc_handle* root) {
+            managed_ptr mp = managed_ptr(gc_tagging::clear(root->rbarrier()));
             if (mp) {
                 mp.set_mark(true);
                 push_root_to_packet(mp, output_packet);
             }
-            logging::debug() << "root: " << (void*) p;
+            logging::debug() << "root: " << (void*) root;
         });
         m_packet_manager->push_packet(std::move(output_packet));
     }

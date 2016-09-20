@@ -8,6 +8,7 @@
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
+#include <libprecisegc/details/threads/approx_stack_map.hpp>
 #include <libprecisegc/details/threads/stack_map.hpp>
 #include <libprecisegc/details/threads/pin_stack.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
@@ -103,34 +104,32 @@ private:
         m_new_stack.pop_entry();
     }
 
-    void register_root(ptrs::gc_untyped_ptr* root)
+    void register_root(gc_handle* root)
     {
-        logging::debug() << "register root " << root;
-        m_root_set.insert(root);
+//        logging::debug() << "register root " << root;
+        m_stack_map.register_root(root);
     }
 
-    void deregister_root(ptrs::gc_untyped_ptr* root)
+    void deregister_root(gc_handle* root)
     {
-        logging::debug() << "deregister root " << root;
-        m_root_set.remove(root);
+//        logging::debug() << "deregister root " << root;
+        m_stack_map.deregister_root(root);
     }
 
-    bool is_root(const ptrs::gc_untyped_ptr* ptr) const
+    bool is_root(const gc_handle* ptr) const
     {
-        // dirty hack with const_cast here
-        // should be refactored
-        return m_root_set.contains(const_cast<ptrs::gc_untyped_ptr*>(ptr));
+        return m_stack_map.contains(ptr);
     }
 
     size_t roots_count() const
     {
-        return m_root_set.count();
+        return m_stack_map.count();
     }
 
     template <typename Functor>
     void trace_roots(Functor&& f) const
     {
-        m_root_set.trace(std::forward<Functor>(f));
+        m_stack_map.trace(std::forward<Functor>(f));
     }
 
     void pin(byte* ptr)
@@ -176,7 +175,7 @@ private:
 
     std::thread::native_handle_type m_native_handle;
     std::thread::id m_id;
-    root_stack_map m_root_set;
+    approx_stack_map m_stack_map;
     pin_stack_map m_pin_set;
     pin_stack m_pin_stack;
     gc_new_stack m_new_stack;

@@ -36,9 +36,9 @@ public:
     static void push_on_gc_new_stack(gc_new_stack::stack_entry* top);
     static void pop_from_gc_new_stack();
 
-    static void register_root(ptrs::gc_untyped_ptr* root);
-    static void deregister_root(ptrs::gc_untyped_ptr* root);
-    static bool is_root(const ptrs::gc_untyped_ptr* ptr);
+    static void register_root(gc_handle* root);
+    static void deregister_root(gc_handle* root);
+    static bool is_root(const gc_handle* ptr);
 
     static void pin(byte* ptr);
     static void unpin(byte* ptr);

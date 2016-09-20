@@ -28,9 +28,9 @@ private:
     static void push_on_gc_new_stack(managed_thread* thread, gc_new_stack::stack_entry* entry);
     static void pop_from_gc_new_stack(managed_thread* thread);
 
-    static void register_root(managed_thread* thread, ptrs::gc_untyped_ptr* root);
-    static void deregister_root(managed_thread* thread, ptrs::gc_untyped_ptr* root);
-    static bool is_root(const managed_thread* thread, const ptrs::gc_untyped_ptr* ptr);
+    static void register_root(managed_thread* thread, gc_handle* root);
+    static void deregister_root(managed_thread* thread, gc_handle* root);
+    static bool is_root(const managed_thread* thread, const gc_handle* ptr);
 
     static size_t roots_count(const managed_thread* thread);
 

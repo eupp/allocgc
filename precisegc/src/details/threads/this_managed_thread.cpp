@@ -52,17 +52,17 @@ void this_managed_thread::pop_from_gc_new_stack()
     managed_thread_accessor::pop_from_gc_new_stack(this_thread);
 }
 
-void this_managed_thread::register_root(ptrs::gc_untyped_ptr* root)
+void this_managed_thread::register_root(gc_handle* root)
 {
     managed_thread_accessor::register_root(this_thread, root);
 }
 
-void this_managed_thread::deregister_root(ptrs::gc_untyped_ptr* root)
+void this_managed_thread::deregister_root(gc_handle* root)
 {
     managed_thread_accessor::deregister_root(this_thread, root);
 }
 
-bool this_managed_thread::is_root(const ptrs::gc_untyped_ptr* ptr)
+bool this_managed_thread::is_root(const gc_handle* ptr)
 {
     return managed_thread_accessor::is_root(this_thread, ptr);
 }

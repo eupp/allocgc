@@ -69,10 +69,12 @@ void test_deregister_root_2_helper(approx_stack_map& stack_map, gc_handle* ph1, 
 {
     gc_handle h3;
 
+    std::cout << ph1 << " " << ph2 << " " << &h3 << std::endl;
+
     stack_map.register_root(&h3);
 
-    stack_map.deregister_root(ph1);
     stack_map.deregister_root(ph2);
+    stack_map.deregister_root(ph1);
 
     ASSERT_EQ(1, stack_map.count());
     ASSERT_FALSE(stack_map.contains(ph1));

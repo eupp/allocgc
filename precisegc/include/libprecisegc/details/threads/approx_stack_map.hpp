@@ -22,7 +22,13 @@ public:
 
     template <typename Functor>
     void trace(Functor&& f) const
-    {}
+    {
+        stack_frame* frame = m_top.load(std::memory_order_relaxed);
+        while (frame) {
+            frame->trace(std::forward<Functor>(f));
+            frame = frame->next();
+        }
+    }
 
     size_t count() const;
 private:
@@ -44,6 +50,16 @@ private:
 
         stack_frame* next() const;
         void set_next(stack_frame* next);
+
+        template <typename Functor>
+        void trace(Functor&& f) const
+        {
+            gc_handle* const* begin = m_data;
+            gc_handle* const* end = m_data + m_size.load(std::memory_order_relaxed);
+            for (auto it = begin; it < end; ++it) {
+                f(*it);
+            }
+        }
     private:
         gc_handle* m_data[STACK_FRAME_SIZE];
         std::atomic<size_t> m_size;

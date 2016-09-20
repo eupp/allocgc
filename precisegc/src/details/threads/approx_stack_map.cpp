@@ -1,7 +1,6 @@
 #include <libprecisegc/details/threads/approx_stack_map.hpp>
 
 #include <cassert>
-#include <algorithm>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -33,24 +32,26 @@ void approx_stack_map::deregister_root(gc_handle* root)
 
     dec_count();
 
-    stack_frame* top_frame = m_top.load(std::memory_order_relaxed);
-    if (top_frame->contains(root)) {
-        assert(root == top_frame->top());
-        if (top_frame->pop()) {
-            m_top.store(top_frame->next(), std::memory_order_relaxed);
-            m_pool.deallocate(reinterpret_cast<byte*>(top_frame));
+    stack_frame* frame = m_top.load(std::memory_order_relaxed);
+    if (frame->contains(root)) {
+        assert(root == frame->top());
+        if (frame->pop()) {
+            m_top.store(frame->next(), std::memory_order_relaxed);
+            m_pool.deallocate(reinterpret_cast<byte*>(frame));
         }
         return;
     }
 
-    stack_frame* prev_frame = top_frame;
-    top_frame = top_frame->next();
-    while (!top_frame->contains(root)) {
-        assert(root == top_frame->top());
-        if (top_frame->pop()) {
-            prev_frame->set_next(top_frame->next());
-            m_pool.deallocate(reinterpret_cast<byte*>(top_frame));
-        }
+    stack_frame* prev_frame = frame;
+    frame = frame->next();
+    while (!frame->contains(root)) {
+        prev_frame = frame;
+        frame = frame->next();
+    }
+    assert(root == frame->top());
+    if (frame->pop()) {
+        prev_frame->set_next(frame->next());
+        m_pool.deallocate(reinterpret_cast<byte*>(frame));
     }
 }
 

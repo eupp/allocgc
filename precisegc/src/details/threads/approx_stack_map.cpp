@@ -34,7 +34,7 @@ void approx_stack_map::deregister_root(gc_handle* root)
 
     stack_frame* frame = m_top.load(std::memory_order_relaxed);
     if (frame->contains(root)) {
-        assert(root == frame->top());
+        assert(frame->contains_strict(root));
         if (frame->pop()) {
             m_top.store(frame->next(), std::memory_order_relaxed);
             m_pool.deallocate(reinterpret_cast<byte*>(frame));
@@ -48,7 +48,7 @@ void approx_stack_map::deregister_root(gc_handle* root)
         prev_frame = frame;
         frame = frame->next();
     }
-    assert(root == frame->top());
+    assert(frame->contains_strict(root));
     if (frame->pop()) {
         prev_frame->set_next(frame->next());
         m_pool.deallocate(reinterpret_cast<byte*>(frame));
@@ -84,6 +84,7 @@ void approx_stack_map::dec_count()
 
 approx_stack_map::stack_frame::stack_frame()
     : m_size(0)
+    , m_poped_cnt(0)
     , m_next(nullptr)
 {}
 
@@ -98,9 +99,8 @@ void approx_stack_map::stack_frame::push(gc_handle* root)
 bool approx_stack_map::stack_frame::pop()
 {
     assert(m_size > 0);
-    size_t size = m_size.load(std::memory_order_relaxed) - 1;
-    m_size.store(size, std::memory_order_relaxed);
-    return size == 0;
+    ++m_poped_cnt;
+    return m_poped_cnt == m_size.load(std::memory_order_relaxed);
 }
 
 gc_handle* approx_stack_map::stack_frame::top() const

@@ -63,6 +63,7 @@ private:
     private:
         gc_handle* m_data[STACK_FRAME_SIZE];
         std::atomic<size_t> m_size;
+        size_t m_poped_cnt;
         std::atomic<stack_frame*> m_next;
     };
 

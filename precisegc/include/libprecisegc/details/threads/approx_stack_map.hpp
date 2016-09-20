@@ -1,7 +1,11 @@
 #ifndef DIPLOMA_APPROX_STACK_MAP_HPP
 #define DIPLOMA_APPROX_STACK_MAP_HPP
 
+#include <atomic>
+
 #include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/allocators/pool.hpp>
+#include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -14,7 +18,7 @@ public:
     void register_root(gc_handle* root);
     void deregister_root(gc_handle* root);
 
-    bool contains(const gc_handle* ptr);
+    bool contains(const gc_handle* ptr) const;
 
     template <typename Functor>
     void trace(Functor&& f) const
@@ -24,14 +28,34 @@ public:
 private:
     static const size_t STACK_FRAME_SIZE = 4;
 
-    class stack_frame
+    class stack_frame : private utils::noncopyable, private utils::nonmovable
     {
     public:
+        stack_frame();
 
+        void push(gc_handle* root);
+        bool pop();
+
+        gc_handle* top() const;
+        bool contains(const gc_handle* root) const;
+        bool contains_strict(const gc_handle* ptr) const;
+
+        bool is_full() const;
+
+        stack_frame* next() const;
+        void set_next(stack_frame* next);
     private:
         gc_handle* m_data[STACK_FRAME_SIZE];
-        size_t m_size;
+        std::atomic<size_t> m_size;
+        std::atomic<stack_frame*> m_next;
     };
+
+    void inc_count();
+    void dec_count();
+
+    std::atomic<stack_frame*> m_top;
+    std::atomic<size_t> m_count;
+    allocators::pool<utils::dummy_mutex> m_pool;
 };
 
 }}}

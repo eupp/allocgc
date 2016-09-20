@@ -105,11 +105,13 @@ private:
 
     void register_root(ptrs::gc_untyped_ptr* root)
     {
+        logging::debug() << "register root " << root;
         m_root_set.insert(root);
     }
 
     void deregister_root(ptrs::gc_untyped_ptr* root)
     {
+        logging::debug() << "deregister root " << root;
         m_root_set.remove(root);
     }
 

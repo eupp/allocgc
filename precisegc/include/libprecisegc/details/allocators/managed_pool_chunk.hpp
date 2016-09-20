@@ -25,7 +25,7 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_pool_chunk : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = PAGE_SIZE / MIN_CELL_SIZE;;
+    static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
     static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef std::uintptr_t uintptr;

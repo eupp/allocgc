@@ -93,7 +93,7 @@ TEST_F(object_meta_test, test_get_array_element_begin)
 
     type_meta_provider<test_type>::create_meta();
     const type_meta* cls_meta = type_meta_provider<test_type>::get_meta();
-    new (meta) object_meta(0, cls_meta);
+    new (meta) object_meta(ARRAY_SIZE, cls_meta);
 
     for (size_t i = 0; i < ARRAY_SIZE; ++i) {
         byte* obj_begin = array + i * OBJ_SIZE;

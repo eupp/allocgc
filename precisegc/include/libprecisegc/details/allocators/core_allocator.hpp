@@ -4,11 +4,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
+#include <mutex>
 
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/sys_allocator.hpp>
+#include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/constants.hpp>
@@ -19,6 +21,14 @@ namespace precisegc { namespace details { namespace allocators {
 
 class core_allocator
 {
+    class page_bucket_policy
+    {
+    public:
+        static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_BITS_CNT - MIN_CELL_SIZE_BITS_CNT  + 1;
+
+        static size_t bucket(size_t size);
+        static size_t bucket_size(size_t i);
+    };
 public:
     typedef byte* pointer_type;
     typedef stateless_alloc_tag alloc_tag;
@@ -39,9 +49,17 @@ public:
 
     static memory_range_type memory_range();
 private:
-    typedef freelist_allocator<sys_allocator, varsize_policy> freelist_t;
-    
-    static freelist_t freelist;
+    typedef freelist_allocator<sys_allocator, varsize_policy> freelist_alloc_t;
+    typedef freelist_allocator<sys_allocator, fixsize_policy> fixsize_page_alloc_t;
+    typedef bucket_allocator<fixsize_page_alloc_t, page_bucket_policy> bucket_alloc_t;
+
+    typedef std::mutex mutex_t;
+
+    static const size_t MAX_BUCKETIZE_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
+
+    static bucket_alloc_t bucket_alloc;
+    static freelist_alloc_t freelist;
+    static mutex_t mutex;
 };
 
 }}}

@@ -8,7 +8,7 @@
 
 namespace precisegc {
 
-int gc_init(const gc_init_options& options = gc_init_options());
+int gc_init(gc_init_options& options);
 
 gc_stat gc_stats();
 

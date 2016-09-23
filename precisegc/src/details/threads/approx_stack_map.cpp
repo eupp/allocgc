@@ -156,7 +156,7 @@ bool approx_stack_map::stack_frame::is_upward_than_frame_start(const gc_handle* 
 bool approx_stack_map::stack_frame::is_registered_root(const gc_handle* ptr) const
 {
     assert(contains(ptr));
-    assert(reinterpret_cast<std::uintptr_t>(ptr) % GC_HANDLE_SIZE == 0);
+//    assert(reinterpret_cast<std::uintptr_t>(ptr) % GC_HANDLE_SIZE == 0);
     size_t idx = get_root_idx(ptr);
     return m_bitmap.test(idx);
 }

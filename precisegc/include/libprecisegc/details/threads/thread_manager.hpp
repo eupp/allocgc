@@ -11,6 +11,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -33,7 +34,7 @@ public:
 
     ~thread_manager();
 
-    void register_main_thread();
+    void register_main_thread(byte* stack_start_addr);
     void register_thread(managed_thread* thread_ptr);
     void deregister_thread(managed_thread* thread_ptr);
 

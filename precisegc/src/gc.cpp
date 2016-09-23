@@ -9,12 +9,12 @@ namespace precisegc {
 
 using namespace details;
 
-int gc_init(const gc_init_options& options)
+int gc_init(gc_init_options& options)
 {
     static bool init_flag = false;
     if (!init_flag) {
         logging::init(std::clog, options.loglevel);
-        threads::thread_manager::instance().register_main_thread();
+        threads::thread_manager::instance().register_main_thread(reinterpret_cast<byte*>(&options));
 
         auto strategy = gc_factory::create_gc(options);
         auto init_policy = gc_factory::create_initiation_policy(strategy.get(), options);

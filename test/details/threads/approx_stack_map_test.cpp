@@ -65,15 +65,8 @@ void test_register_root_3_helper(approx_stack_map& stack_map)
     static const size_t SIZE = 2 * approx_stack_map::STACK_FRAME_SIZE;
     gc_handle handles[SIZE];
 
-    srand(time(0));
-    std::set<size_t> used;
-    while (used.size() < SIZE) {
-        size_t rnd = rand() % SIZE;
-        while (used.count(rnd)) {
-            rnd = rand() % SIZE;
-        }
-        used.insert(rnd);
-        stack_map.register_root(&handles[rnd]);
+    for (size_t i = 0; i < SIZE; ++i) {
+        stack_map.register_root(&handles[i]);
     }
 
     EXPECT_EQ(SIZE, stack_map.count());
@@ -154,15 +147,8 @@ void test_deregister_root_3_helper(approx_stack_map& stack_map)
         stack_map.register_root(&handles[i]);
     }
 
-    srand(time(0));
-    std::set<size_t> used;
-    while (used.size() < SIZE) {
-        size_t rnd = rand() % SIZE;
-        while (used.count(rnd)) {
-            rnd = rand() % SIZE;
-        }
-        used.insert(rnd);
-        stack_map.deregister_root(&handles[rnd]);
+    for (size_t i = 0; i < SIZE; ++i) {
+        stack_map.deregister_root(&handles[i]);
     }
 
     EXPECT_EQ(0, stack_map.count());

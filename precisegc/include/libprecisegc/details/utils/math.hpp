@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_UTIL_H
 #define DIPLOMA_UTIL_H
 
+#include <cassert>
 #include <cstddef>
 #include <climits>
 

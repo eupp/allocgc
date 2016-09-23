@@ -106,7 +106,7 @@ void thread_routine(const List& input, List& output)
     }
 }
 
-void init(const std::vector<List>& inputs, std::vector<List>& outputs)
+void init(const List* inputs, List* outputs)
 {
     srand(time(nullptr));
     for (int i = 0; i < threads_cnt - 1; ++i) {
@@ -190,7 +190,7 @@ List merge_sort(const List& list)
     return merge(lsorted, rsorted);
 }
 
-List parallel_merge_sort(const List& list, std::vector<List>& input, std::vector<List>& output)
+List parallel_merge_sort(const List& list, List* input, List* output)
 {
     ptr_t(Node) it = list.head;
     for (int i = 0; i < threads_cnt - 1; ++i) {
@@ -247,7 +247,7 @@ void clear_list(List& list)
     list.length = 0;
 }
 
-void routine(std::vector<List>& input, std::vector<List>& output)
+void routine(List* input, List* output)
 {
     List list = create_list(lists_length, 16);
     List sorted = parallel_merge_sort(list, input, output);
@@ -293,8 +293,8 @@ int main(int argc, const char* argv[])
         }
     #endif
 
-    std::vector<List> input_lists(threads_cnt - 1);
-    std::vector<List> output_lists(threads_cnt - 1);
+    List input_lists[threads_cnt - 1];
+    List output_lists[threads_cnt - 1];
 
     init(input_lists, output_lists);
     auto guard = precisegc::details::utils::make_scope_guard([&done_flag, &tasks_ready_barrier] {

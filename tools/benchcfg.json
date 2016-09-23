@@ -1,8 +1,7 @@
 {
   "targets":
   [
-    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-    {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
+    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"}
   ],
   "builds":
   [

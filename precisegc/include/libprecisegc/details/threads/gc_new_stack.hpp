@@ -47,7 +47,11 @@ public:
     size_t depth() const noexcept;
     bool is_active() const noexcept;
     bool is_meta_requsted() const noexcept;
-    bool is_heap_ptr(byte* ptr) const noexcept;
+
+    inline bool is_heap_ptr(byte* ptr) const noexcept
+    {
+        return m_stack_top && (m_stack_top->m_ptr <= ptr) && (ptr < m_stack_top->m_ptr + m_stack_top->m_size);
+    }
 
     template <typename Functor>
     void trace_pointers(Functor&& f) const

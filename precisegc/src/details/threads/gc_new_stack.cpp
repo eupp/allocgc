@@ -55,10 +55,10 @@ bool gc_new_stack::is_meta_requsted() const noexcept
     return m_stack_top->m_meta_requested;
 }
 
-bool gc_new_stack::is_heap_ptr(byte* ptr) const noexcept
-{
-    return m_stack_top && (m_stack_top->m_ptr <= ptr) && (ptr < m_stack_top->m_ptr + m_stack_top->m_size);
-}
+//bool gc_new_stack::is_heap_ptr(byte* ptr) const noexcept
+//{
+//    return m_stack_top && (m_stack_top->m_ptr <= ptr) && (ptr < m_stack_top->m_ptr + m_stack_top->m_size);
+//}
 
 gc_new_stack::stack_entry::stack_entry(byte* ptr, size_t size, bool meta_requested)
     : m_ptr(ptr)

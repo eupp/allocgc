@@ -137,21 +137,21 @@ void approx_stack_map::stack_frame::deregister_root(gc_handle* root)
     m_bitmap.set(idx, false);
 }
 
-bool approx_stack_map::stack_frame::is_upward_than_frame(const gc_handle* ptr) const
-{
-    const byte* p = reinterpret_cast<const byte*>(ptr);
-    return STACK_DIRECTION == stack_growth_direction::UP
-        ? p >= m_stack_end
-        : p <= m_stack_end;
-}
+//bool approx_stack_map::stack_frame::is_upward_than_frame(const gc_handle* ptr) const
+//{
+//    const byte* p = reinterpret_cast<const byte*>(ptr);
+//    return STACK_DIRECTION == stack_growth_direction::UP
+//        ? p >= m_stack_end
+//        : p <= m_stack_end;
+//}
 
-bool approx_stack_map::stack_frame::is_upward_than_frame_start(const gc_handle* ptr) const
-{
-    const byte* p = reinterpret_cast<const byte*>(ptr);
-    return STACK_DIRECTION == stack_growth_direction::UP
-           ? p >= m_stack_begin
-           : p <= m_stack_begin;
-}
+//bool approx_stack_map::stack_frame::is_upward_than_frame_start(const gc_handle* ptr) const
+//{
+//    const byte* p = reinterpret_cast<const byte*>(ptr);
+//    return STACK_DIRECTION == stack_growth_direction::UP
+//           ? p >= m_stack_begin
+//           : p <= m_stack_begin;
+//}
 
 bool approx_stack_map::stack_frame::is_registered_root(const gc_handle* ptr) const
 {
@@ -161,15 +161,15 @@ bool approx_stack_map::stack_frame::is_registered_root(const gc_handle* ptr) con
     return m_bitmap.test(idx);
 }
 
-bool approx_stack_map::stack_frame::contains(const gc_handle* ptr) const
-{
-    const byte* p = reinterpret_cast<const byte*>(ptr);
-    if (STACK_DIRECTION == stack_growth_direction::UP) {
-        return (m_stack_begin <= p) && (p < m_stack_end);
-    } else {
-        return (m_stack_end < p) && (p <= m_stack_begin);
-    }
-}
+//bool approx_stack_map::stack_frame::contains(const gc_handle* ptr) const
+//{
+//    const byte* p = reinterpret_cast<const byte*>(ptr);
+//    if (STACK_DIRECTION == stack_growth_direction::UP) {
+//        return (m_stack_begin <= p) && (p < m_stack_end);
+//    } else {
+//        return (m_stack_end < p) && (p <= m_stack_begin);
+//    }
+//}
 
 bool approx_stack_map::stack_frame::empty() const
 {

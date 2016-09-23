@@ -54,11 +54,33 @@ private:
         void register_root(gc_handle* root);
         void deregister_root(gc_handle* root);
 
-        bool is_upward_than_frame(const gc_handle* ptr) const;
-        bool is_upward_than_frame_start(const gc_handle* ptr) const;
+        inline bool is_upward_than_frame(const gc_handle* ptr) const //__attribute__((always_inline))
+        {
+            const byte* p = reinterpret_cast<const byte*>(ptr);
+            return STACK_DIRECTION == stack_growth_direction::UP
+                   ? p >= m_stack_end
+                   : p <= m_stack_end;
+        }
+
+        inline bool is_upward_than_frame_start(const gc_handle* ptr) const //__attribute__((always_inline))
+        {
+            const byte* p = reinterpret_cast<const byte*>(ptr);
+            return STACK_DIRECTION == stack_growth_direction::UP
+                   ? p >= m_stack_begin
+                   : p <= m_stack_begin;
+        }
+
+        inline bool contains(const gc_handle* ptr) const //__attribute__((always_inline))
+        {
+            const byte* p = reinterpret_cast<const byte*>(ptr);
+            if (STACK_DIRECTION == stack_growth_direction::UP) {
+                return (m_stack_begin <= p) && (p < m_stack_end);
+            } else {
+                return (m_stack_end < p) && (p <= m_stack_begin);
+            }
+        }
 
         bool is_registered_root(const gc_handle* ptr) const;
-        bool contains(const gc_handle* ptr) const;
         bool empty() const;
 
         size_t count() const;

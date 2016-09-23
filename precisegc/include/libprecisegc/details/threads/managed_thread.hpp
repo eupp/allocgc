@@ -5,6 +5,8 @@
 #include <memory>
 #include <functional>
 
+#include <boost/optional/optional.hpp>
+
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
@@ -12,6 +14,7 @@
 #include <libprecisegc/details/threads/stack_map.hpp>
 #include <libprecisegc/details/threads/pin_stack.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
+#include <libprecisegc/details/threads/return_address.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -24,10 +27,15 @@ class managed_thread : private utils::noncopyable, private utils::nonmovable
 public:
     typedef gc_new_stack::offsets_range gc_ptr_offsets_range;
 
+    static void init_main_thread(byte* stack_start_addr)
+    {
+        main_thread_ptr.reset(new managed_thread(stack_start_addr));
+    }
+
     static managed_thread& main_thread()
     {
-        static managed_thread thread;
-        return thread;
+        assert(main_thread_ptr);
+        return *main_thread_ptr;
     }
 
     template <typename Function, typename... Args>
@@ -62,16 +70,17 @@ private:
     {
         static thread_manager& manager = thread_manager::instance();
 
-        managed_thread this_thread;
+        managed_thread this_thread(frame_address());
         this_managed_thread::this_thread = &this_thread;
         manager.register_thread(&this_thread);
         (*bf)();
         manager.deregister_thread(&this_thread);
     }
 
-    managed_thread()
+    managed_thread(byte* stack_start_addr)
         : m_id(std::this_thread::get_id())
         , m_native_handle(this_thread_native_handle())
+        , m_stack_map(stack_start_addr ? stack_start_addr : return_address())
     {}
 
     bool is_heap_ptr(byte* ptr) const
@@ -172,6 +181,8 @@ private:
         m_pin_stack.trace(std::forward<Functor>(f));
         m_new_stack.trace_pointers(std::forward<Functor>(f));
     }
+
+    static std::unique_ptr<managed_thread> main_thread_ptr;
 
     std::thread::native_handle_type m_native_handle;
     std::thread::id m_id;

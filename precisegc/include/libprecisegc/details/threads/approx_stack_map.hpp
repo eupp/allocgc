@@ -2,18 +2,24 @@
 #define DIPLOMA_APPROX_STACK_MAP_HPP
 
 #include <atomic>
+#include <bitset>
+#include <cmath>
 
+#include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/utils/math.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
 class approx_stack_map : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    approx_stack_map();
+    static const size_t STACK_FRAME_SIZE = POINTER_BITS_CNT;
+
+    approx_stack_map(byte* stack_start_addr);
 
     void register_root(gc_handle* root);
     void deregister_root(gc_handle* root);
@@ -23,7 +29,7 @@ public:
     template <typename Functor>
     void trace(Functor&& f) const
     {
-        stack_frame* frame = m_top.load(std::memory_order_relaxed);
+        stack_frame* frame = m_top_frame.load(std::memory_order_relaxed);
         while (frame) {
             frame->trace(std::forward<Functor>(f));
             frame = frame->next();
@@ -32,21 +38,30 @@ public:
 
     size_t count() const;
 private:
-    static const size_t STACK_FRAME_SIZE = 4;
+    static const size_t STACK_FRAME_SIZE_LOG2 = std::log2(POINTER_BITS_CNT);
+    static const size_t GC_HANDLE_SIZE = sizeof(gc_handle);
+    static const size_t GC_HANDLE_SIZE_LOG2 = std::log2(GC_HANDLE_SIZE);
+
+    static_assert(check_pow2(GC_HANDLE_SIZE), "GC_HANDLE_SIZE is not a power of two");
+
+    static size_t stack_diff_in_words(const gc_handle* ptr, byte* stack_addr);
 
     class stack_frame : private utils::noncopyable, private utils::nonmovable
     {
     public:
-        stack_frame();
+        stack_frame(byte* stack_addr);
 
-        void push(gc_handle* root);
-        bool pop();
+        void register_root(gc_handle* root);
+        void deregister_root(gc_handle* root);
 
-        gc_handle* top() const;
-        bool contains(const gc_handle* root) const;
-        bool contains_strict(const gc_handle* ptr) const;
+        bool is_upward_than_frame(const gc_handle* ptr) const;
+        bool is_upward_than_frame_start(const gc_handle* ptr) const;
 
-        bool is_full() const;
+        bool is_registered_root(const gc_handle* ptr) const;
+        bool contains(const gc_handle* ptr) const;
+        bool empty() const;
+
+        size_t count() const;
 
         stack_frame* next() const;
         void set_next(stack_frame* next);
@@ -54,24 +69,28 @@ private:
         template <typename Functor>
         void trace(Functor&& f) const
         {
-            gc_handle* const* begin = m_data;
-            gc_handle* const* end = m_data + m_size.load(std::memory_order_relaxed);
-            for (auto it = begin; it < end; ++it) {
-                f(*it);
+            gc_handle* it = reinterpret_cast<gc_handle*>(m_stack_begin);
+            for (size_t i = 0; i < m_bitmap.size(); ++i) {
+                if (m_bitmap.test(i)) {
+                    f(it);
+                }
+                STACK_DIRECTION == stack_growth_direction::UP ? ++it : --it;
             }
         }
     private:
-        gc_handle* m_data[STACK_FRAME_SIZE];
-        std::atomic<size_t> m_size;
-        size_t m_poped_cnt;
+        size_t get_root_idx(const gc_handle* root) const;
+
+        byte* m_stack_begin;
+        byte* m_stack_end;
+        std::bitset<STACK_FRAME_SIZE> m_bitmap;
         std::atomic<stack_frame*> m_next;
     };
 
-    void inc_count();
-    void dec_count();
+    stack_frame* create_frame(const gc_handle* root);
 
-    std::atomic<stack_frame*> m_top;
-    std::atomic<size_t> m_count;
+    byte* m_stack_start;
+    stack_frame m_stack_bottom;
+    std::atomic<stack_frame*> m_top_frame;
     allocators::pool<utils::dummy_mutex> m_pool;
 };
 

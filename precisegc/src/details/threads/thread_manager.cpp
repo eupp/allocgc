@@ -3,6 +3,7 @@
 #include <libprecisegc/details/threads/stw_manager.hpp>
 #include <libprecisegc/details/threads/managed_thread.hpp>
 #include <libprecisegc/details/threads/managed_thread_accessor.hpp>
+#include <libprecisegc/details/threads/return_address.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -22,6 +23,7 @@ thread_manager::~thread_manager()
 
 void thread_manager::register_main_thread()
 {
+    managed_thread::init_main_thread(frame_address());
     managed_thread& main_thread = managed_thread::main_thread();
     managed_thread_accessor::set_this_managed_thread_pointer(&main_thread);
     std::lock_guard<lock_type> lock(m_lock);

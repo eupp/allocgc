@@ -2,132 +2,189 @@
 
 #include <cassert>
 
+#include <libprecisegc/details/logging.hpp>
+
 namespace precisegc { namespace details { namespace threads {
 
-approx_stack_map::approx_stack_map()
-    : m_top(nullptr)
-    , m_count(0)
+approx_stack_map::approx_stack_map(byte* stack_start_addr)
+    : m_stack_start(stack_start_addr)
+    , m_stack_bottom(stack_start_addr)
+    , m_top_frame(&m_stack_bottom)
     , m_pool(sizeof(stack_frame))
-{}
+{
+    logging::info() << "Stack start addr=" << (void*) stack_start_addr;
+}
 
 void approx_stack_map::register_root(gc_handle* root)
 {
-    stack_frame* top_frame = m_top.load(std::memory_order_relaxed);
-    if (!top_frame || root < top_frame->top() || top_frame->is_full()) {
-        stack_frame* frame = reinterpret_cast<stack_frame*>(m_pool.allocate());
-        new (frame) stack_frame();
-        frame->push(root);
-        frame->set_next(top_frame);
-        m_top.store(frame, std::memory_order_relaxed);
-        inc_count();
+    stack_frame* frame = m_top_frame.load(std::memory_order_relaxed);
+    if (frame->is_upward_than_frame(root)) {
+        stack_frame* new_frame = create_frame(root);
+        new_frame->set_next(frame);
+        new_frame->register_root(root);
+        m_top_frame.store(new_frame, std::memory_order_relaxed);
+        return;
+    } else if (frame->is_upward_than_frame_start(root)) {
+        frame->register_root(root);
         return;
     }
-    top_frame->push(root);
-    inc_count();
+
+    stack_frame* prev = frame;
+    frame = frame->next();
+    while (frame) {
+        if (frame->is_upward_than_frame(root)) {
+            stack_frame* new_frame = create_frame(root);
+            new_frame->set_next(frame);
+            new_frame->register_root(root);
+            prev->set_next(new_frame);
+            return;
+        } else if (frame->is_upward_than_frame_start(root)) {
+            frame->register_root(root);
+            return;
+        }
+
+        prev = frame;
+        frame = frame->next();
+    }
+
+    assert(false);
 }
 
 void approx_stack_map::deregister_root(gc_handle* root)
 {
     assert(contains(root));
 
-    dec_count();
-
-    stack_frame* frame = m_top.load(std::memory_order_relaxed);
+    stack_frame* frame = m_top_frame.load(std::memory_order_relaxed);
     if (frame->contains(root)) {
-        assert(frame->contains_strict(root));
-        if (frame->pop()) {
-            m_top.store(frame->next(), std::memory_order_relaxed);
+        frame->deregister_root(root);
+        if (frame->empty() && frame != &m_stack_bottom) {
+            m_top_frame.store(frame->next(), std::memory_order_relaxed);
             m_pool.deallocate(reinterpret_cast<byte*>(frame));
         }
         return;
     }
 
-    stack_frame* prev_frame = frame;
+    stack_frame* prev = frame;
     frame = frame->next();
     while (!frame->contains(root)) {
-        prev_frame = frame;
+        prev = frame;
         frame = frame->next();
     }
-    assert(frame->contains_strict(root));
-    if (frame->pop()) {
-        prev_frame->set_next(frame->next());
+
+    frame->deregister_root(root);
+    if (frame->empty() && frame != &m_stack_bottom) {
+        prev->set_next(frame->next());
         m_pool.deallocate(reinterpret_cast<byte*>(frame));
     }
 }
 
 bool approx_stack_map::contains(const gc_handle* ptr) const
 {
-    stack_frame* top_frame = m_top.load(std::memory_order_relaxed);
-    while (top_frame) {
-        if (top_frame->contains_strict(ptr)) {
+    stack_frame* frame = m_top_frame.load(std::memory_order_relaxed);
+    while (frame) {
+        if (frame->contains(ptr) && frame->is_registered_root(ptr)) {
             return true;
         }
-        top_frame = top_frame->next();
+        frame = frame->next();
     }
     return false;
 }
 
 size_t approx_stack_map::count() const
 {
-    return m_count;
+    size_t cnt = 0;
+    stack_frame* frame = m_top_frame.load(std::memory_order_relaxed);
+    while (frame) {
+        cnt += frame->count();
+        frame = frame->next();
+    }
+    return cnt;
 }
 
-void approx_stack_map::inc_count()
+approx_stack_map::stack_frame* approx_stack_map::create_frame(const gc_handle* root)
 {
-    m_count.store(m_count.load(std::memory_order_relaxed) + 1, std::memory_order_relaxed);
+    size_t frame_offset = (stack_diff_in_words(root, m_stack_start) >> STACK_FRAME_SIZE_LOG2) * STACK_FRAME_SIZE * GC_HANDLE_SIZE;
+    byte* frame_addr = m_stack_start + STACK_DIRECTION * frame_offset;
+    stack_frame* new_frame = reinterpret_cast<stack_frame*>(m_pool.allocate());
+    new (new_frame) stack_frame(frame_addr);
+    return new_frame;
 }
 
-void approx_stack_map::dec_count()
+size_t approx_stack_map::stack_diff_in_words(const gc_handle* ptr, byte* stack_addr)
 {
-    m_count.store(m_count.load(std::memory_order_relaxed) - 1, std::memory_order_relaxed);
+    return static_cast<size_t>(
+                   STACK_DIRECTION * (reinterpret_cast<const byte*>(ptr) - stack_addr)
+           ) >> GC_HANDLE_SIZE_LOG2;
 }
 
-approx_stack_map::stack_frame::stack_frame()
-    : m_size(0)
-    , m_poped_cnt(0)
+approx_stack_map::stack_frame::stack_frame(byte* stack_addr)
+    : m_stack_begin(stack_addr)
+    , m_stack_end(m_stack_begin + STACK_DIRECTION * GC_HANDLE_SIZE * STACK_FRAME_SIZE)
     , m_next(nullptr)
 {}
 
-void approx_stack_map::stack_frame::push(gc_handle* root)
+void approx_stack_map::stack_frame::register_root(gc_handle* root)
 {
-    assert(m_size < STACK_FRAME_SIZE);
-    size_t size = m_size.load(std::memory_order_relaxed);
-    m_data[size] = root;
-    m_size.store(size + 1, std::memory_order_relaxed);
+    assert(contains(root));
+    size_t idx = get_root_idx(root);
+    m_bitmap.set(idx, true);
 }
 
-bool approx_stack_map::stack_frame::pop()
+void approx_stack_map::stack_frame::deregister_root(gc_handle* root)
 {
-    assert(m_size > 0);
-    ++m_poped_cnt;
-    return m_poped_cnt == m_size.load(std::memory_order_relaxed);
+    assert(contains(root));
+    size_t idx = get_root_idx(root);
+    m_bitmap.set(idx, false);
 }
 
-gc_handle* approx_stack_map::stack_frame::top() const
+bool approx_stack_map::stack_frame::is_upward_than_frame(const gc_handle* ptr) const
 {
-    assert(m_size > 0);
-    return m_data[m_size.load(std::memory_order_relaxed) - 1];
+    const byte* p = reinterpret_cast<const byte*>(ptr);
+    return STACK_DIRECTION == stack_growth_direction::UP
+        ? p >= m_stack_end
+        : p <= m_stack_end;
+}
+
+bool approx_stack_map::stack_frame::is_upward_than_frame_start(const gc_handle* ptr) const
+{
+    const byte* p = reinterpret_cast<const byte*>(ptr);
+    return STACK_DIRECTION == stack_growth_direction::UP
+           ? p >= m_stack_begin
+           : p <= m_stack_begin;
+}
+
+bool approx_stack_map::stack_frame::is_registered_root(const gc_handle* ptr) const
+{
+    assert(contains(ptr));
+    assert(reinterpret_cast<std::uintptr_t>(ptr) % GC_HANDLE_SIZE == 0);
+    size_t idx = get_root_idx(ptr);
+    return m_bitmap.test(idx);
 }
 
 bool approx_stack_map::stack_frame::contains(const gc_handle* ptr) const
 {
-    assert(m_size > 0);
-    size_t size = m_size.load(std::memory_order_relaxed) - 1;
-    return (m_data[0] <= ptr) && (ptr <= m_data[size]);
+    const byte* p = reinterpret_cast<const byte*>(ptr);
+    if (STACK_DIRECTION == stack_growth_direction::UP) {
+        return (m_stack_begin <= p) && (p < m_stack_end);
+    } else {
+        return (m_stack_end < p) && (p <= m_stack_begin);
+    }
 }
 
-bool approx_stack_map::stack_frame::contains_strict(const gc_handle* ptr) const
+bool approx_stack_map::stack_frame::empty() const
 {
-    assert(m_size > 0);
-    size_t size = m_size.load(std::memory_order_relaxed);
-    gc_handle* const* begin = m_data;
-    gc_handle* const* end = m_data + size;
-    return std::find(begin, end, ptr) != end;
+    return m_bitmap.none();
 }
 
-bool approx_stack_map::stack_frame::is_full() const
+size_t approx_stack_map::stack_frame::count() const
 {
-    return m_size.load(std::memory_order_relaxed) == STACK_FRAME_SIZE;
+    return m_bitmap.count();
+}
+
+size_t approx_stack_map::stack_frame::get_root_idx(const gc_handle* root) const
+{
+
+    return stack_diff_in_words(root, m_stack_begin);
 }
 
 approx_stack_map::stack_frame* approx_stack_map::stack_frame::next() const

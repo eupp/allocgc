@@ -9,7 +9,7 @@ namespace precisegc { namespace details { namespace threads {
 
 stack_bitmap::stack_bitmap(byte* stack_start_addr)
     : m_stack_start(stack_start_addr)
-    , m_stack_end(stack_start_addr + stack_maxsize())
+    , m_stack_end(stack_start_addr + STACK_DIRECTION * stack_maxsize())
 {
     logging::info() << "stack start addr=" << (void*) m_stack_start
                     << "; stack end addr=" << (void*) m_stack_end;
@@ -55,7 +55,7 @@ std::pair<size_t, size_t> stack_bitmap::root_idxs(const gc_handle* ptr) const
     ptrdiff_t diff = STACK_DIRECTION * (reinterpret_cast<const byte*>(ptr) - m_stack_start);
     assert(diff >= 0);
     size_t idx = static_cast<size_t>(diff) >> GC_HANDLE_SIZE_LOG2;
-    assert(idx & STACK_FRAME_MASK < STACK_FRAME_SIZE);
+    assert((idx & STACK_FRAME_MASK) < STACK_FRAME_SIZE);
     return std::make_pair(idx >> STACK_FRAME_SIZE_LOG2, idx & STACK_FRAME_MASK);
 }
 

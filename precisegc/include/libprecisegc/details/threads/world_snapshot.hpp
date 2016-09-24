@@ -10,6 +10,7 @@
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
+#include <libprecisegc/details/threads/static_root_set.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -120,6 +121,9 @@ public:
     template <typename Functor>
     void trace_roots(Functor&& f) const
     {
+        logging::info() << "Static roots count = " << static_root_set::count();
+        static_root_set::trace(std::forward<Functor>(f));
+
         for (auto thread: m_threads) {
             logging::info() << "Thread " << thread->get_id()
                             << " roots count = " << managed_thread_accessor::roots_count(thread);
@@ -141,10 +145,14 @@ public:
     void fix_roots(const Forwarding& forwarding) const
     {
         logging::info() << "Fixing roots...";
+
+        auto f = [&forwarding] (gc_handle* root) {
+            forwarding.forward(root);
+        };
+
+        static_root_set::trace(f);
         for (auto thread: m_threads) {
-            managed_thread_accessor::trace_roots(thread, [&forwarding] (gc_handle* root) {
-                forwarding.forward(root);
-            });
+            managed_thread_accessor::trace_roots(thread, f);
         }
     }
 

@@ -21,7 +21,7 @@ inline size_t stack_maxsize()
 {
     rlimit limit;
     getrlimit (RLIMIT_STACK, &limit);
-    return limit.rlim_max;
+    return limit.rlim_cur;
 }
 
 }}}

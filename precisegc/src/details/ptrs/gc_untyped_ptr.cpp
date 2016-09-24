@@ -5,6 +5,7 @@
 #include <utility>
 
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
+#include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_tagging.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -22,10 +23,9 @@ gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
     : m_handle(ptr)
 {
     using namespace threads;
-    byte* untyped_this = reinterpret_cast<byte*>(this);
-    if (this_managed_thread::is_heap_ptr(untyped_this)) {
+    if (this_managed_thread::is_heap_ptr(&m_handle)) {
         if (this_managed_thread::is_type_meta_requested()) {
-            this_managed_thread::register_managed_object_child(untyped_this);
+            this_managed_thread::register_managed_object_child(&m_handle);
         }
     } else {
         register_root();
@@ -84,7 +84,7 @@ bool gc_untyped_ptr::is_null() const
 
 bool gc_untyped_ptr::is_root() const
 {
-    return threads::this_managed_thread::is_root(&m_handle);
+    return gc_is_root(&m_handle);
 }
 
 bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const
@@ -116,12 +116,12 @@ void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
 
 void gc_untyped_ptr::register_root()
 {
-    threads::this_managed_thread::register_root(&m_handle);
+    gc_register_root(&m_handle);
 }
 
 void gc_untyped_ptr::delete_root()
 {
-    threads::this_managed_thread::deregister_root(&m_handle);
+    gc_deregister_root(&m_handle);
 }
 
 }}}

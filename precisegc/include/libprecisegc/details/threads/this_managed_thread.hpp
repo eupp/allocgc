@@ -27,10 +27,11 @@ public:
     static std::thread::id get_id();
     static std::thread::native_handle_type get_native_handle();
 
-    static bool is_heap_ptr(byte* ptr);
+    static bool is_stack_ptr(const gc_handle* ptr);
+    static bool is_heap_ptr(const gc_handle* ptr);
     static bool is_type_meta_requested();
 
-    static void register_managed_object_child(byte* child);
+    static void register_managed_object_child(gc_handle* child);
     static gc_ptr_offsets_range gc_ptr_offsets();
 
     static void push_on_gc_new_stack(gc_new_stack::stack_entry* top);

@@ -4,7 +4,12 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-bool managed_thread_accessor::is_heap_ptr(const managed_thread* thread, byte* ptr)
+bool managed_thread_accessor::is_stack_ptr(const managed_thread* thread, const gc_handle* ptr)
+{
+    return thread->is_stack_ptr(ptr);
+}
+
+bool managed_thread_accessor::is_heap_ptr(const managed_thread* thread, const gc_handle* ptr)
 {
     return thread->is_heap_ptr(ptr);
 }
@@ -14,7 +19,7 @@ bool managed_thread_accessor::is_type_meta_requested(const managed_thread* threa
     return thread->is_type_meta_requested();
 }
 
-void managed_thread_accessor::register_managed_object_child(managed_thread* thread, byte* child)
+void managed_thread_accessor::register_managed_object_child(managed_thread* thread, gc_handle* child)
 {
     thread->register_managed_object_child(child);
 }

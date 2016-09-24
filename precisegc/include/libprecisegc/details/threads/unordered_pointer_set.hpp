@@ -50,7 +50,7 @@ public:
     }
 private:
     std::unordered_set<T*> m_set;
-    Lock m_lock;
+    mutable Lock m_lock;
 };
 
 }}}

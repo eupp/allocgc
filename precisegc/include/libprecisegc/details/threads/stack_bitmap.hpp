@@ -25,7 +25,6 @@ public:
 
     bool contains(const gc_handle* ptr) const;
 
-
     inline bool is_stack_ptr(const gc_handle* ptr) const
     {
         const byte* p = reinterpret_cast<const byte*>(ptr);

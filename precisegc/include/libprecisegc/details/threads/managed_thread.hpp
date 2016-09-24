@@ -1,7 +1,6 @@
 #ifndef DIPLOMA_MANAGED_THREAD_HPP
 #define DIPLOMA_MANAGED_THREAD_HPP
 
-#include <mutex>
 #include <memory>
 #include <thread>
 #include <functional>
@@ -84,9 +83,14 @@ private:
         , m_stack_map(stack_start_addr ? stack_start_addr : return_address())
     {}
 
-    bool is_heap_ptr(byte* ptr) const
+    bool is_stack_ptr(const gc_handle* ptr) const
     {
-        return m_new_stack.is_heap_ptr(ptr);
+        return m_stack_map.is_stack_ptr(ptr);
+    }
+
+    bool is_heap_ptr(const gc_handle* ptr) const
+    {
+        return m_new_stack.is_heap_ptr(reinterpret_cast<const byte*>(ptr));
     }
 
     bool is_type_meta_requested() const
@@ -94,9 +98,9 @@ private:
         return m_new_stack.is_meta_requsted();
     }
 
-    void register_managed_object_child(byte* child) const
+    void register_managed_object_child(gc_handle* child) const
     {
-        m_new_stack.register_child(child);
+        m_new_stack.register_child(reinterpret_cast<byte*>(child));
     }
 
     gc_ptr_offsets_range gc_ptr_offsets() const
@@ -185,7 +189,7 @@ private:
 
     static std::unique_ptr<managed_thread> main_thread_ptr;
 
-    typedef unordered_pointer_set<byte, std::mutex> pin_set_t;
+    typedef unordered_pointer_set<byte, utils::dummy_mutex> pin_set_t;
 
     std::thread::id m_id;
     std::thread::native_handle_type m_native_handle;

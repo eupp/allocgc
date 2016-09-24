@@ -1,6 +1,8 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 
+#include <libprecisegc/details/threads/static_root_set.hpp>
+#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/garbage_collector.hpp>
 
 namespace precisegc { namespace details {
@@ -10,6 +12,40 @@ static garbage_collector gc_instance{};
 void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
 {
     gc_instance.init(std::move(strategy), std::move(init_policy));
+}
+
+void gc_register_root(gc_handle* root)
+{
+    using namespace threads;
+    if (this_managed_thread::is_stack_ptr(root)) {
+        this_managed_thread::register_root(root);
+    } else {
+        static_root_set::register_root(root);
+    }
+}
+
+void gc_deregister_root(gc_handle* root)
+{
+    using namespace threads;
+    if (this_managed_thread::is_stack_ptr(root)) {
+        this_managed_thread::deregister_root(root);
+    } else {
+        static_root_set::deregister_root(root);
+    }
+}
+
+bool gc_is_root(const gc_handle* ptr)
+{
+    using namespace threads;
+    return this_managed_thread::is_stack_ptr(ptr)
+                ? this_managed_thread::is_root(ptr)
+                : static_root_set::is_root(ptr);
+}
+
+bool gc_is_heap_ptr(const gc_handle* ptr)
+{
+    using namespace threads;
+    return this_managed_thread::is_heap_ptr(ptr);
 }
 
 gc_pointer_type gc_allocate(size_t size)

@@ -22,7 +22,12 @@ std::thread::native_handle_type this_managed_thread::get_native_handle()
     return this_thread->native_handle();
 }
 
-bool this_managed_thread::is_heap_ptr(byte* ptr)
+bool this_managed_thread::is_stack_ptr(const gc_handle* ptr)
+{
+    return managed_thread_accessor::is_stack_ptr(this_thread, ptr);
+}
+
+bool this_managed_thread::is_heap_ptr(const gc_handle* ptr)
 {
     return managed_thread_accessor::is_heap_ptr(this_thread, ptr);
 }
@@ -32,7 +37,7 @@ bool this_managed_thread::is_type_meta_requested()
     return managed_thread_accessor::is_type_meta_requested(this_thread);
 }
 
-void this_managed_thread::register_managed_object_child(byte* child)
+void this_managed_thread::register_managed_object_child(gc_handle* child)
 {
     managed_thread_accessor::register_managed_object_child(this_thread, child);
 }

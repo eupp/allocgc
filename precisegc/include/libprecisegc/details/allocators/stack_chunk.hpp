@@ -32,9 +32,20 @@ public:
     byte* allocate(size_t obj_size);
     void  deallocate(byte* ptr, size_t obj_size);
 
-    bool contains(byte* ptr) const;
-    bool memory_available() const;
-    bool empty() const;
+    inline bool contains(byte* ptr) const
+    {
+        return (m_mem <= ptr) && (ptr < m_mem_end);
+    }
+
+    inline bool memory_available() const
+    {
+        return m_next < m_mem_end;
+    }
+
+    inline bool empty() const
+    {
+        return m_top == m_mem;
+    }
 
     byte* get_mem() const;
     size_t get_mem_size() const;
@@ -43,10 +54,10 @@ public:
 
     void reset();
 private:
-    byte*  m_mem;
-    byte*  m_top;
-    byte*  m_next;
-    size_t m_size;
+    byte* m_mem;
+    byte* m_mem_end;
+    byte* m_top;
+    byte* m_next;
 };
 
 }}}

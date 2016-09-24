@@ -111,10 +111,11 @@ struct GCBench {
             return;
         } else {
             iDepth--;
-            thisNode->left  = new_(Node);
-            thisNode->right = new_(Node);
-            Populate (iDepth, thisNode->left);
-            Populate (iDepth, thisNode->right);
+            pin_t(Node) pinnedNode = pin(thisNode);
+            pinnedNode->left  = new_(Node);
+            pinnedNode->right = new_(Node);
+            Populate(iDepth, pinnedNode->left);
+            Populate(iDepth, pinnedNode->right);
         }
     }
 

@@ -40,9 +40,12 @@ public:
     size_t get_mem_size() const;
 
     byte* get_top();
+
+    void reset();
 private:
     byte*  m_mem;
     byte*  m_top;
+    byte*  m_next;
     size_t m_size;
 };
 

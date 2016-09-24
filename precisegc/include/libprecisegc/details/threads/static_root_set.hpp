@@ -1,10 +1,13 @@
 #ifndef DIPLOMA_STATIC_ROOT_SET_HPP
 #define DIPLOMA_STATIC_ROOT_SET_HPP
 
+#include <mutex>
 #include <utility>
+#include <algorithm>
+#include <unordered_set>
 
 #include <libprecisegc/details/gc_handle.hpp>
-#include <libprecisegc/details/threads/unordered_pointer_set.hpp>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -20,14 +23,26 @@ public:
     template <typename Functor>
     static void trace(Functor&& f)
     {
-        root_set.trace(std::forward<Functor>(f));
+        std::for_each(root_set.m_set.begin(), root_set.m_set.end(), std::forward<Functor>(f));
     }
 
     static size_t count();
 private:
-    static_root_set() = delete;
+    typedef std::mutex mutex_t;
 
-    static unordered_pointer_set<gc_handle, std::mutex> root_set;
+    static_root_set() = default;
+
+    void insert(gc_handle* ptr);
+    void remove(gc_handle* ptr);
+
+    bool contains(const gc_handle* ptr);
+
+    size_t size() const;
+
+    static static_root_set root_set;
+
+    std::unordered_set<gc_handle*> m_set;
+    mutable mutex_t m_lock;
 };
 
 }}}

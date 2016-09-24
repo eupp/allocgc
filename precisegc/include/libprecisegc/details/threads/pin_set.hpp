@@ -15,26 +15,25 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-template <typename T>
-class stack_map : private utils::noncopyable, private utils::nonmovable
+class pin_set : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    stack_map()
+    pin_set()
         : m_head(nullptr)
         , m_pool(sizeof(node))
     {};
 
-    void insert(T elem)
+    void insert(byte* elem)
     {
         push_front(elem);
     }
 
-    void remove(T elem)
+    void remove(byte* elem)
     {
         remove_first(elem);
     }
 
-    bool contains(T elem) const
+    bool contains(byte* elem) const
     {
         return std::find(begin(), end(), elem) != end();
     }
@@ -54,13 +53,13 @@ private:
 
     struct node
     {
-        T m_value;
+        byte* m_value;
         std::atomic<node*> m_next;
     };
 
     class iterator: public boost::iterator_facade<
               iterator
-            , const T
+            , byte* const
             , boost::forward_traversal_tag
         >
     {
@@ -74,16 +73,11 @@ private:
 
         iterator& operator=(const iterator&) noexcept = default;
         iterator& operator=(iterator&&) noexcept = default;
-
-        const T* operator->() const
-        {
-            return &m_pnode->m_value;
-        }
     private:
-        friend class stack_map;
+        friend class pin_set;
         friend class boost::iterator_core_access;
 
-        const T& dereference() const
+        byte* const& dereference() const
         {
             return m_pnode->m_value;
         }
@@ -111,14 +105,14 @@ private:
         return iterator(nullptr);
     }
 
-    void push_front(T elem)
+    void push_front(byte* elem)
     {
         node* pnode = create_node(elem);
         pnode->m_next.store(m_head.load(std::memory_order_relaxed), std::memory_order_relaxed);
         m_head.store(pnode, std::memory_order_relaxed);
     }
 
-    void remove_first(T elem)
+    void remove_first(byte* elem)
     {
         assert(m_head);
         node* head = m_head.load(std::memory_order_relaxed);
@@ -142,7 +136,7 @@ private:
         assert(false);
     }
 
-    node* create_node(T elem)
+    node* create_node(byte* elem)
     {
         node* pnode = reinterpret_cast<node*>(m_pool.allocate());
         pnode->m_value = elem;
@@ -157,9 +151,6 @@ private:
     std::atomic<node*> m_head;
     allocators::pool<utils::dummy_mutex> m_pool;
 };
-
-typedef stack_map<ptrs::gc_untyped_ptr*> root_stack_map;
-typedef stack_map<byte*> pin_stack_map;
 
 }}}
 

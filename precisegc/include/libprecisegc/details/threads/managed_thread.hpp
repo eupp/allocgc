@@ -11,8 +11,8 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/threads/stack_bitmap.hpp>
-#include <libprecisegc/details/threads/unordered_pointer_set.hpp>
 #include <libprecisegc/details/threads/pin_stack.hpp>
+#include <libprecisegc/details/threads/pin_set.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
@@ -189,11 +189,9 @@ private:
 
     static std::unique_ptr<managed_thread> main_thread_ptr;
 
-    typedef unordered_pointer_set<byte, utils::dummy_mutex> pin_set_t;
-
     std::thread::id m_id;
     std::thread::native_handle_type m_native_handle;
-    pin_set_t m_pin_set;
+    pin_set m_pin_set;
     pin_stack m_pin_stack;
     stack_bitmap m_stack_map;
     gc_new_stack m_new_stack;

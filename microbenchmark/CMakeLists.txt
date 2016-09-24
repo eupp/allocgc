@@ -2,7 +2,7 @@ set(precisegc_microbenchmark
         main.cpp
         index_tree_benchmark.cpp
         pointers_benchmark.cpp
-        ../common/macro.hpp stack_map_benchmark.cpp
+        ../common/macro.hpp pin_set_benchmark.cpp
         allocators_benchmark.cpp
         deoptimize.hpp
         pool_chunks_benchmark.cpp

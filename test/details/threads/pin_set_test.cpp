@@ -1,0 +1,43 @@
+#include <gtest/gtest.h>
+
+#include <libprecisegc/details/threads/pin_set.hpp>
+
+using namespace precisegc::details;
+using namespace precisegc::details::ptrs;
+using namespace precisegc::details::threads;
+
+TEST(pin_set_test, test_insert)
+{
+    pin_set rs;
+
+    byte* p1;
+    byte* p2;
+
+    rs.insert(p1);
+    ASSERT_TRUE(rs.contains(p1));
+
+    rs.insert(p2);
+    ASSERT_TRUE(rs.contains(p1));
+    ASSERT_TRUE(rs.contains(p2));
+}
+
+TEST(pin_set_test, test_remove)
+{
+    pin_set rs;
+
+    byte* p1;
+    byte* p2;
+    byte* p3;
+
+    rs.insert(p1);
+    rs.insert(p2);
+    rs.insert(p3);
+
+    rs.remove(p3);
+    ASSERT_FALSE(rs.contains(p3));
+
+    rs.remove(p1);
+    ASSERT_FALSE(rs.contains(p1));
+
+    ASSERT_TRUE(rs.contains(p2));
+}

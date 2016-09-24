@@ -25,7 +25,7 @@ set(precisegc_TESTS
         include/rand_util.h
         gc_ptr_test.cpp
         details/threads/pending_call_test.cpp
-        details/stack_map_test.cpp
+        details/threads/pin_set_test.cpp
         details/threads/signal_test.cpp
         details/threads/ass_sync_test.cpp
         details/threads/stw_manager_test.cpp

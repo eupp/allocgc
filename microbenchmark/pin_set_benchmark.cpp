@@ -2,25 +2,25 @@
 
 #include <vector>
 
-#include <libprecisegc/details/threads/stack_map.hpp>
+#include <libprecisegc/details/threads/pin_set.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 
 #include "deoptimize.hpp"
 
 using namespace precisegc::details::threads;
 
-NONIUS_BENCHMARK("stack_map.insert", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("pin_set.insert", [](nonius::chronometer meter)
 {
-    stack_map<void*> map;
+    pin_set<void*> map;
     meter.measure([&map] {
         void* p;
         map.insert(p);
     });
 });
 
-NONIUS_BENCHMARK("stack_map.remove", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("pin_set.remove", [](nonius::chronometer meter)
 {
-    stack_map<void*> map;
+    pin_set<void*> map;
     std::vector<void*> ps(meter.runs());
     size_t size = ps.size();
     for (auto p: ps) {

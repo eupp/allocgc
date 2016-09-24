@@ -10,7 +10,7 @@
 #include "libprecisegc/gc_ptr.hpp"
 #include "managed_ptr.hpp"
 
-#include "libprecisegc/details/threads/stack_map.hpp"
+#include "libprecisegc/details/threads/pin_set.hpp"
 
 namespace precisegc { namespace details {
 

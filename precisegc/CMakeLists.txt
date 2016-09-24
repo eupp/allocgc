@@ -36,7 +36,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
         include/libprecisegc/details/threads/managed_thread.hpp
-        include/libprecisegc/details/threads/stack_map.hpp
+        include/libprecisegc/details/threads/pin_set.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
         include/libprecisegc/details/gc_exception.hpp
         include/libprecisegc/details/threads/thread_manager.hpp
@@ -81,6 +81,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/managed_object_descriptor.hpp
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
+        include/libprecisegc/details/allocators/sys_allocator.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
         include/libprecisegc/details/allocators/managed_ptr_iterator.hpp
         include/libprecisegc/details/allocators/freelist_allocator.hpp
@@ -89,7 +90,12 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/stack_chunk.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
         include/libprecisegc/details/allocators/null_allocator.hpp
-        include/libprecisegc/details/threads/pin_stack.hpp include/libprecisegc/gc_thread.hpp include/libprecisegc/details/gc_tagging.hpp include/libprecisegc/details/threads/stack_bitmap.hpp include/libprecisegc/details/threads/return_address.hpp include/libprecisegc/details/threads/unordered_pointer_set.hpp include/libprecisegc/details/threads/static_root_set.hpp)
+        include/libprecisegc/details/threads/pin_stack.hpp
+        include/libprecisegc/gc_thread.hpp
+        include/libprecisegc/details/gc_tagging.hpp
+        include/libprecisegc/details/threads/stack_bitmap.hpp
+        include/libprecisegc/details/threads/return_address.hpp
+        include/libprecisegc/details/threads/static_root_set.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_mark.cpp
@@ -118,8 +124,10 @@ set(precisegc_LIB_SRCS
         src/details/threads/managed_thread_accessor.cpp
         src/details/allocators/managed_object_descriptor.cpp
         src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp
-        include/libprecisegc/details/allocators/sys_allocator.hpp
-        src/details/allocators/core_allocator.cpp src/details/threads/stack_bitmap.cpp src/details/threads/managed_thread.cpp src/details/threads/static_root_set.cpp)
+        src/details/allocators/core_allocator.cpp
+        src/details/threads/stack_bitmap.cpp
+        src/details/threads/managed_thread.cpp
+        src/details/threads/static_root_set.cpp)
 
 
 find_package(Threads REQUIRED)

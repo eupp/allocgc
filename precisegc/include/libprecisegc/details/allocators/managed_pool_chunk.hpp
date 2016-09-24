@@ -86,7 +86,6 @@ private:
     size_t get_log2_cell_size() const;
 
     plain_pool_chunk m_chunk;
-    freelist_t m_freelist;
     size_t m_cell_size;
     size_t m_log2_cell_size;
     uintptr m_mask;

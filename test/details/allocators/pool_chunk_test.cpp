@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include <libprecisegc/details/types.hpp>
+#include <libprecisegc/details/allocators/stack_chunk.hpp>
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 
@@ -27,7 +28,7 @@ struct pool_chunk_test : public ::testing::Test
     Chunk m_chk;
 };
 
-typedef ::testing::Types<bitmap_pool_chunk, freelist_pool_chunk> test_chunk_types;
+typedef ::testing::Types<bitmap_pool_chunk, freelist_pool_chunk, stack_chunk> test_chunk_types;
 TYPED_TEST_CASE(pool_chunk_test, test_chunk_types);
 
 TYPED_TEST(pool_chunk_test, test_memory_available)

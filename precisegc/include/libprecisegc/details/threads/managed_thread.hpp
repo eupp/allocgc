@@ -1,8 +1,9 @@
 #ifndef DIPLOMA_MANAGED_THREAD_HPP
 #define DIPLOMA_MANAGED_THREAD_HPP
 
-#include <thread>
+#include <mutex>
 #include <memory>
+#include <thread>
 #include <functional>
 
 #include <boost/optional/optional.hpp>
@@ -11,7 +12,7 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/threads/stack_bitmap.hpp>
-#include <libprecisegc/details/threads/stack_map.hpp>
+#include <libprecisegc/details/threads/unordered_pointer_set.hpp>
 #include <libprecisegc/details/threads/pin_stack.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
@@ -184,11 +185,13 @@ private:
 
     static std::unique_ptr<managed_thread> main_thread_ptr;
 
-    std::thread::native_handle_type m_native_handle;
+    typedef unordered_pointer_set<byte, std::mutex> pin_set_t;
+
     std::thread::id m_id;
-    stack_bitmap m_stack_map;
-    pin_stack_map m_pin_set;
+    std::thread::native_handle_type m_native_handle;
+    pin_set_t m_pin_set;
     pin_stack m_pin_stack;
+    stack_bitmap m_stack_map;
     gc_new_stack m_new_stack;
     collectors::packet_manager::mark_packet_handle m_mark_packet;
 };

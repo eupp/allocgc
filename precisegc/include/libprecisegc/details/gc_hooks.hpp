@@ -13,6 +13,8 @@ namespace precisegc { namespace details {
 
 void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
 
+
+
 gc_pointer_type gc_allocate(size_t size);
 
 void gc_new_cell(const managed_ptr& ptr);

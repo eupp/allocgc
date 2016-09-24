@@ -25,6 +25,15 @@ public:
 
     bool contains(const gc_handle* ptr) const;
 
+
+    inline bool is_stack_ptr(const gc_handle* ptr) const
+    {
+        const byte* p = reinterpret_cast<const byte*>(ptr);
+        return STACK_DIRECTION == stack_growth_direction::UP
+                ? (m_stack_start <= p) && (p < m_stack_end)
+                : (m_stack_start >= p) && (p > m_stack_end);
+    }
+
     template <typename Functor>
     void trace(Functor&& f) const
     {
@@ -54,6 +63,7 @@ private:
     typedef std::bitset<STACK_FRAME_SIZE> bitmap_frame_t;
 
     byte* m_stack_start;
+    byte* m_stack_end;
     std::vector<bitmap_frame_t> m_bitmap;
 };
 

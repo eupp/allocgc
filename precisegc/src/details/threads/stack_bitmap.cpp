@@ -2,14 +2,17 @@
 
 #include <cassert>
 
+#include <libprecisegc/details/threads/return_address.hpp>
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
 stack_bitmap::stack_bitmap(byte* stack_start_addr)
     : m_stack_start(stack_start_addr)
+    , m_stack_end(stack_start_addr + stack_maxsize())
 {
-    logging::info() << "Stack start addr=" << (void*) stack_start_addr;
+    logging::info() << "stack start addr=" << (void*) m_stack_start
+                    << "; stack end addr=" << (void*) m_stack_end;
 }
 
 void stack_bitmap::register_root(gc_handle* root)

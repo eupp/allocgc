@@ -52,9 +52,20 @@ public:
     pointer_type allocate(size_t size);
     void deallocate(const pointer_type& ptr, size_t size);
 
-    bool contains(const pointer_type& ptr) const noexcept;
-    bool memory_available() const noexcept;
-    bool empty() const noexcept;
+    inline bool contains(const pointer_type& ptr) const noexcept
+    {
+        return m_chunk.contains(ptr.get());
+    }
+
+    inline bool memory_available() const noexcept
+    {
+        return m_chunk.memory_available();
+    }
+
+    inline bool empty() const noexcept
+    {
+        return m_mark_bits.none();
+    }
 
     byte*  get_mem() const;
     size_t get_mem_size() const;

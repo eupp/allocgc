@@ -48,20 +48,20 @@ void managed_pool_chunk::deallocate(byte* ptr, size_t size)
     m_chunk.deallocate(ptr, size);
 }
 
-bool managed_pool_chunk::contains(const pointer_type& ptr) const noexcept
-{
-    return m_chunk.contains(ptr.get());
-}
-
-bool managed_pool_chunk::memory_available() const noexcept
-{
-    return m_chunk.memory_available();
-}
-
-bool managed_pool_chunk::empty() const noexcept
-{
-    return m_mark_bits.none();
-}
+//bool managed_pool_chunk::contains(const pointer_type& ptr) const noexcept
+//{
+//    return m_chunk.contains(ptr.get());
+//}
+//
+//bool managed_pool_chunk::memory_available() const noexcept
+//{
+//    return m_chunk.memory_available();
+//}
+//
+//bool managed_pool_chunk::empty() const noexcept
+//{
+//    return m_mark_bits.none();
+//}
 
 byte* managed_pool_chunk::get_mem() const
 {

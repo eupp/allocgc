@@ -7,16 +7,16 @@ namespace precisegc { namespace details { namespace allocators {
 
 stack_chunk::stack_chunk()
     : m_mem(nullptr)
+    , m_mem_end(nullptr)
     , m_top(nullptr)
     , m_next(nullptr)
-    , m_size(0)
 {}
 
 stack_chunk::stack_chunk(byte* chunk, size_t size, size_t obj_size)
     : m_mem(chunk)
+    , m_mem_end(chunk + size)
     , m_top(chunk)
     , m_next(chunk)
-    , m_size(size)
 {
     assert(chunk);
     assert(size > 0 && obj_size > 0);
@@ -50,21 +50,6 @@ void stack_chunk::deallocate(byte* ptr, size_t obj_size)
     m_next = ptr;
 }
 
-bool stack_chunk::contains(byte* ptr) const
-{
-    return (m_mem <= ptr) && (ptr < m_mem + m_size);
-}
-
-bool stack_chunk::memory_available() const
-{
-    return m_next < m_mem + m_size;
-}
-
-bool stack_chunk::empty() const
-{
-    return m_top == m_mem;
-}
-
 byte* stack_chunk::get_mem() const
 {
     return m_mem;
@@ -72,7 +57,7 @@ byte* stack_chunk::get_mem() const
 
 size_t stack_chunk::get_mem_size() const
 {
-    return m_size;
+    return m_mem_end - m_mem;
 }
 
 byte* stack_chunk::get_top()

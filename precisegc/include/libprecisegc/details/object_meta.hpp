@@ -78,6 +78,11 @@ public:
         return get_type_meta()->offsets();
     }
 
+    bool is_plain_object() const noexcept
+    {
+        return m_type_meta == 0 || m_type_meta == FORWARD_BIT || get_type_meta()->is_plain_type();
+    }
+
     const type_meta* get_type_meta() const noexcept
     {
         return reinterpret_cast<const type_meta*>(m_type_meta & ~FORWARD_BIT);

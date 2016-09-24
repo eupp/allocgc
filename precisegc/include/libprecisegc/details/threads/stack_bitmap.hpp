@@ -13,12 +13,12 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-class approx_stack_map : private utils::noncopyable, private utils::nonmovable
+class stack_bitmap : private utils::noncopyable, private utils::nonmovable
 {
 public:
     static const size_t STACK_FRAME_SIZE = 512;
 
-    approx_stack_map(byte* stack_start_addr);
+    stack_bitmap(byte* stack_start_addr);
 
     void register_root(gc_handle* root);
     void deregister_root(gc_handle* root);

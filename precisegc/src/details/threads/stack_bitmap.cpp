@@ -1,4 +1,4 @@
-#include <libprecisegc/details/threads/approx_stack_map.hpp>
+#include <libprecisegc/details/threads/stack_bitmap.hpp>
 
 #include <cassert>
 
@@ -6,13 +6,13 @@
 
 namespace precisegc { namespace details { namespace threads {
 
-approx_stack_map::approx_stack_map(byte* stack_start_addr)
+stack_bitmap::stack_bitmap(byte* stack_start_addr)
     : m_stack_start(stack_start_addr)
 {
     logging::info() << "Stack start addr=" << (void*) stack_start_addr;
 }
 
-void approx_stack_map::register_root(gc_handle* root)
+void stack_bitmap::register_root(gc_handle* root)
 {
     auto idxs = root_idxs(root);
     if (idxs.first >= m_bitmap.size()) {
@@ -21,7 +21,7 @@ void approx_stack_map::register_root(gc_handle* root)
     m_bitmap[idxs.first].set(idxs.second);
 }
 
-void approx_stack_map::deregister_root(gc_handle* root)
+void stack_bitmap::deregister_root(gc_handle* root)
 {
     assert(contains(root));
 
@@ -29,7 +29,7 @@ void approx_stack_map::deregister_root(gc_handle* root)
     m_bitmap[idxs.first].reset(idxs.second);
 }
 
-bool approx_stack_map::contains(const gc_handle* ptr) const
+bool stack_bitmap::contains(const gc_handle* ptr) const
 {
     auto idxs = root_idxs(ptr);
     if (idxs.first >= m_bitmap.size()) {
@@ -38,7 +38,7 @@ bool approx_stack_map::contains(const gc_handle* ptr) const
     return m_bitmap[idxs.first].test(idxs.second);
 }
 
-size_t approx_stack_map::count() const
+size_t stack_bitmap::count() const
 {
     size_t cnt = 0;
     for (auto& bitmap_frame: m_bitmap) {
@@ -47,7 +47,7 @@ size_t approx_stack_map::count() const
     return cnt;
 }
 
-std::pair<size_t, size_t> approx_stack_map::root_idxs(const gc_handle* ptr) const
+std::pair<size_t, size_t> stack_bitmap::root_idxs(const gc_handle* ptr) const
 {
     ptrdiff_t diff = STACK_DIRECTION * (reinterpret_cast<const byte*>(ptr) - m_stack_start);
     assert(diff >= 0);

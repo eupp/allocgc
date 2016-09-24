@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/approx_stack_map.hpp>
+#include <libprecisegc/details/threads/stack_bitmap.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 
 #include <set>
@@ -9,7 +9,7 @@
 using namespace precisegc::details;
 using namespace precisegc::details::threads;
 
-void test_register_root_1_helper(approx_stack_map& stack_map)
+void test_register_root_1_helper(stack_bitmap& stack_map)
 {
     gc_handle h1;
     gc_handle h2;
@@ -22,16 +22,16 @@ void test_register_root_1_helper(approx_stack_map& stack_map)
     ASSERT_TRUE(stack_map.contains(&h2));
 }
 
-TEST(approx_stack_map_test, test_register_root_1)
+TEST(stack_bitmap_test, test_register_root_1)
 {
     gc_handle h1;
     gc_handle h2;
 
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_register_root_1_helper(stack_map);
 }
 
-void test_register_root_2_helper_2(approx_stack_map& stack_map, gc_handle* ph1, gc_handle* ph2)
+void test_register_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc_handle* ph2)
 {
     gc_handle h3;
 
@@ -43,7 +43,7 @@ void test_register_root_2_helper_2(approx_stack_map& stack_map, gc_handle* ph1, 
     ASSERT_TRUE(stack_map.contains(&h3));
 }
 
-void test_register_root_2_helper_1(approx_stack_map& stack_map)
+void test_register_root_2_helper_1(stack_bitmap& stack_map)
 {
     gc_handle h1;
     gc_handle h2;
@@ -54,15 +54,15 @@ void test_register_root_2_helper_1(approx_stack_map& stack_map)
     test_register_root_2_helper_2(stack_map, &h1, &h2);
 }
 
-TEST(approx_stack_map_test, test_register_root_2)
+TEST(stack_bitmap_test, test_register_root_2)
 {
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_register_root_2_helper_1(stack_map);
 }
 
-void test_register_root_3_helper(approx_stack_map& stack_map)
+void test_register_root_3_helper(stack_bitmap& stack_map)
 {
-    static const size_t SIZE = 2 * approx_stack_map::STACK_FRAME_SIZE;
+    static const size_t SIZE = 2 * stack_bitmap::STACK_FRAME_SIZE;
     gc_handle handles[SIZE];
 
     for (size_t i = 0; i < SIZE; ++i) {
@@ -75,13 +75,13 @@ void test_register_root_3_helper(approx_stack_map& stack_map)
     }
 }
 
-TEST(approx_stack_map_test, test_register_root_3)
+TEST(stack_bitmap_test, test_register_root_3)
 {
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_register_root_3_helper(stack_map);
 }
 
-void test_deregister_root_1_helper(approx_stack_map& stack_map)
+void test_deregister_root_1_helper(stack_bitmap& stack_map)
 {
     gc_handle h1;
     gc_handle h2;
@@ -100,13 +100,13 @@ void test_deregister_root_1_helper(approx_stack_map& stack_map)
     ASSERT_FALSE(stack_map.contains(&h2));
 }
 
-TEST(approx_stack_map_test, test_deregister_root_1)
+TEST(stack_bitmap_test, test_deregister_root_1)
 {
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_deregister_root_1_helper(stack_map);
 }
 
-void test_deregister_root_2_helper_2(approx_stack_map& stack_map, gc_handle* ph1, gc_handle* ph2)
+void test_deregister_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc_handle* ph2)
 {
     gc_handle h3;
 
@@ -121,7 +121,7 @@ void test_deregister_root_2_helper_2(approx_stack_map& stack_map, gc_handle* ph1
     ASSERT_TRUE(stack_map.contains(&h3));
 }
 
-void test_deregister_root_2_helper_1(approx_stack_map& stack_map)
+void test_deregister_root_2_helper_1(stack_bitmap& stack_map)
 {
     gc_handle h1;
     gc_handle h2;
@@ -132,15 +132,15 @@ void test_deregister_root_2_helper_1(approx_stack_map& stack_map)
     test_register_root_2_helper_2(stack_map, &h1, &h2);
 }
 
-TEST(approx_stack_map_test, test_deregister_root_2)
+TEST(stack_bitmap_test, test_deregister_root_2)
 {
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_deregister_root_2_helper_1(stack_map);
 }
 
-void test_deregister_root_3_helper(approx_stack_map& stack_map)
+void test_deregister_root_3_helper(stack_bitmap& stack_map)
 {
-    static const size_t SIZE = 2 * approx_stack_map::STACK_FRAME_SIZE;
+    static const size_t SIZE = 2 * stack_bitmap::STACK_FRAME_SIZE;
     gc_handle handles[SIZE];
 
     for (size_t i = 0; i < SIZE; ++i) {
@@ -157,13 +157,13 @@ void test_deregister_root_3_helper(approx_stack_map& stack_map)
     }
 }
 
-TEST(approx_stack_map_test, test_deregister_root_3)
+TEST(stack_bitmap_test, test_deregister_root_3)
 {
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_register_root_3_helper(stack_map);
 }
 
-void test_trace_helper(approx_stack_map& stack_map)
+void test_trace_helper(stack_bitmap& stack_map)
 {
     gc_handle h1;
     gc_handle h2;
@@ -181,8 +181,8 @@ void test_trace_helper(approx_stack_map& stack_map)
     ASSERT_EQ(expected, actual);
 }
 
-TEST(approx_stack_map_test, test_trace)
+TEST(stack_bitmap_test, test_trace)
 {
-    approx_stack_map stack_map(frame_address());
+    stack_bitmap stack_map(frame_address());
     test_trace_helper(stack_map);
 }

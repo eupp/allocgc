@@ -7,7 +7,7 @@ set(precisegc_microbenchmark
         deoptimize.hpp
         pool_chunks_benchmark.cpp
         math_benchmark.cpp
-        approx_stack_map_benchmark.cpp)
+        stack_bitmap_benchmark.cpp)
 
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
 

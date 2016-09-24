@@ -10,7 +10,7 @@
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
-#include <libprecisegc/details/threads/approx_stack_map.hpp>
+#include <libprecisegc/details/threads/stack_bitmap.hpp>
 #include <libprecisegc/details/threads/stack_map.hpp>
 #include <libprecisegc/details/threads/pin_stack.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
@@ -186,7 +186,7 @@ private:
 
     std::thread::native_handle_type m_native_handle;
     std::thread::id m_id;
-    approx_stack_map m_stack_map;
+    stack_bitmap m_stack_map;
     pin_stack_map m_pin_set;
     pin_stack m_pin_stack;
     gc_new_stack m_new_stack;

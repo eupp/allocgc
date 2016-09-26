@@ -77,7 +77,7 @@ public:
 
     iterator begin();
     iterator end();
-    range_type get_range();
+    range_type memory_range();
 
     virtual bool get_mark(byte* ptr) const override;
     virtual bool get_pin(byte* ptr) const override;

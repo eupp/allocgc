@@ -29,6 +29,18 @@ public:
                : reinterpret_cast<object_meta*>(ptr.get() - sizeof(object_meta));
     }
 
+    // computes pointer to object_meta by pointer to location somewhere inside managed cell
+    // that tagged with derived bit
+    static object_meta* get_meta_ptr(byte* tagged_ptr)
+    {
+        if (gc_tagging::derived_bit(tagged_ptr)) {
+            auto cell_ptr = managed_ptr(tagged_ptr);
+            return cell_ptr.get_meta();
+        } else {
+            reinterpret_cast<object_meta*>(gc_tagging::clear(tagged_ptr) - sizeof(object_meta));
+        }
+    }
+
     // computes pointer to object itself by pointer to start of managed cell and its size
     static byte* get_object_ptr(byte* ptr, size_t obj_size)
     {
@@ -41,6 +53,19 @@ public:
         return ptr.is_derived()
                ? get_object_ptr_by_cell_start(ptr.get_cell_begin())
                : ptr.get();
+    }
+
+    // computes pointer to object itself by pointer to location somewhere inside managed cell
+    // that tagged with derived bit
+    static byte* get_object_ptr(byte* tagged_ptr)
+    {
+        byte* ptr = gc_tagging::clear(tagged_ptr);
+        if (gc_tagging::derived_bit(tagged_ptr)) {
+            auto cell_ptr = managed_ptr(tagged_ptr);
+            return cell_ptr.get_obj_begin();
+        } else {
+            return get_object_ptr_by_cell_start(gc_tagging::clear(tagged_ptr));
+        }
     }
 
     object_meta(size_t count, const type_meta* meta)

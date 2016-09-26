@@ -114,7 +114,7 @@ TEST_F(managed_pool_chunk_test, test_set_pin)
 
 TEST_F(managed_pool_chunk_test, test_range)
 {
-    auto range = m_chunk.get_range();
+    auto range = m_chunk.memory_range();
     byte* it = m_chunk.get_mem();
     for (auto cell_ptr: range) {
         ASSERT_EQ(it, cell_ptr.get());

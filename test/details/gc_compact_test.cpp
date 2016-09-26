@@ -140,7 +140,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_2)
     }
 
     uniform_rand_generator<size_t> rand_gen(0, CHUNK_SIZE - 1);
-    auto rng = m_chunk.get_range();
+    auto rng = m_chunk.memory_range();
     for (size_t i = 0; i < LIVE_CNT; ++i) {
         size_t rand = rand_gen();
         auto it = std::next(rng.begin(), rand);
@@ -222,7 +222,7 @@ TEST_F(gc_compact_test, test_two_finger_compact_3)
 //    }
 //
 //    uniform_rand_generator<size_t> rand_gen(0, ALLOC_CNT - 1);
-//    auto rng = m_chunk.get_range();
+//    auto rng = m_chunk.memory_range();
 //    for (size_t i = 0; i < LIVE_CNT; ++i) {
 //        size_t rand = rand_gen();
 //        auto it = std::next(rng.begin(), rand);
@@ -273,7 +273,7 @@ TEST_F(gc_compact_test, test_fix_pointers)
     list_forwarding forwarding;
     forwarding.create(from, to, OBJ_SIZE);
 
-    auto rng = m_chunk.get_range();
+    auto rng = m_chunk.memory_range();
     fix_pointers(rng.begin(), rng.end(), OBJ_SIZE, forwarding);
 
     ASSERT_EQ(to, from);

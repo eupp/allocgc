@@ -112,7 +112,7 @@ managed_pool_chunk::iterator managed_pool_chunk::end()
     return iterator(get_mem() + get_mem_size(), this);
 }
 
-managed_pool_chunk::range_type managed_pool_chunk::get_range()
+managed_pool_chunk::range_type managed_pool_chunk::memory_range()
 {
     return range_type(begin(), end());
 }

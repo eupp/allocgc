@@ -13,7 +13,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template <typename Alloc, typename BucketPolicy>
-class bucket_allocator : private utils::ebo<BucketPolicy>, private utils::noncopyable
+class bucket_allocator : private utils::noncopyable
 {
     static const size_t BUCKET_COUNT = BucketPolicy::BUCKET_COUNT;
 
@@ -27,17 +27,15 @@ public:
 
     utils::block_ptr<pointer_type> allocate(size_t size)
     {
-        auto& bp = get_bucket_policy();
-        size_t ind = bp.bucket(size);
-        size_t aligned_size = bp.bucket_size(ind);
+        size_t ind = BucketPolicy::bucket(size);
+        size_t aligned_size = BucketPolicy::bucket_size(ind);
         return utils::make_block_ptr(m_buckets[ind].allocate(aligned_size), aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
     {
-        auto& bp = get_bucket_policy();
-        size_t ind = bp.bucket(size);
-        size_t aligned_size = bp.bucket_size(ind);
+        size_t ind = BucketPolicy::bucket(size);
+        size_t aligned_size = BucketPolicy::bucket_size(ind);
         m_buckets[ind].deallocate(ptr, size);
     }
 
@@ -49,7 +47,6 @@ public:
     size_t shrink()
     {
         size_t shrunk = 0;
-        auto& bp = get_bucket_policy();
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
             shrunk += m_buckets[i].shrink();
         }
@@ -83,11 +80,6 @@ public:
     memory_range_type memory_range(size_t bucket_ind)
     {
         return m_buckets[bucket_ind].memory_range();
-    }
-
-    BucketPolicy& get_bucket_policy()
-    {
-        return this->template get_base<BucketPolicy>();
     }
 private:
     array_t m_buckets;

@@ -13,18 +13,18 @@ using namespace precisegc::details::threads;
 NONIUS_BENCHMARK("stack_bitmap.register_root", [](nonius::chronometer meter)
 {
     stack_bitmap stack_map(frame_address());
-    meter.measure([&pin_set] {
+    meter.measure([&stack_map] {
         gc_handle h;
-        pin_set.register_root(&h);
+        stack_map.register_root(&h);
     });
 });
 
 NONIUS_BENCHMARK("stack_bitmap.deregister_root", [](nonius::chronometer meter)
 {
     stack_bitmap stack_map(frame_address());
-    meter.measure([&pin_set] {
+    meter.measure([&stack_map] {
         gc_handle h;
-        pin_set.deregister_root(&h);
+        stack_map.deregister_root(&h);
     });
 });
 

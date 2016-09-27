@@ -4,11 +4,13 @@
 #include <vector>
 #include <functional>
 
+#include <libprecisegc/details/compacting/fix_ptrs.hpp>
+#include <libprecisegc/details/compacting/forwarding.hpp>
+#include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/static_thread_pool.hpp>
 #include <libprecisegc/details/utils/math.hpp>
-#include <libprecisegc/details/gc_compact.hpp>
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details {
@@ -108,14 +110,15 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
     logging::info() << "Compacting memory...";
 
     forwarding frwd;
+    compacting::two_finger_compactor compactor;
     size_t mem_copied = 0;
     for (auto& kv: m_tlab_map) {
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            size_t copied_cnt = two_finger_compact(rng, bucket_size, frwd);
-            mem_copied += copied_cnt * bucket_size;
+            size_t copied = compactor(rng, frwd);
+            mem_copied += copied;
         }
     }
     return std::make_pair(frwd, mem_copied);
@@ -130,15 +133,16 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_
     std::atomic<size_t> mem_copied{0};
 
     forwarding frwd;
+    compacting::two_finger_compactor compactor;
     for (auto& kv: m_tlab_map) {
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
             if (!rng.empty()) {
-                tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd] {
-                    size_t copied_cnt = two_finger_compact(rng, bucket_size, frwd);
-                    mem_copied += copied_cnt * bucket_size;
+                tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd, &compactor] {
+                    size_t copied = compactor(rng, frwd);
+                    mem_copied += copied;
                 });
             }
         }
@@ -155,7 +159,7 @@ void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
-            ::precisegc::details::fix_pointers(rng.begin(), rng.end(), tlab_bucket_policy::bucket_size(i), frwd);
+            compacting::fix_ptrs(rng.begin(), rng.end(), frwd, tlab_bucket_policy::bucket_size(i));
         }
     }
 }
@@ -173,7 +177,7 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
             auto rng = tlab.memory_range(i);
             if (!rng.empty()) {
                 tasks.emplace_back([this, rng, i, &frwd] {
-                    ::precisegc::details::fix_pointers(rng.begin(), rng.end(), tlab_bucket_policy::bucket_size(i), frwd);
+                    compacting::fix_ptrs(rng.begin(), rng.end(), frwd, tlab_bucket_policy::bucket_size(i));
                 });
             }
         }

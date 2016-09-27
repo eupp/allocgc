@@ -95,7 +95,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_tagging.hpp
         include/libprecisegc/details/threads/stack_bitmap.hpp
         include/libprecisegc/details/threads/return_address.hpp
-        include/libprecisegc/details/threads/static_root_set.hpp include/libprecisegc/details/compacting/fix_ptrs.hpp include/libprecisegc/details/compacting/forwarding.hpp include/libprecisegc/details/compacting/two_finger_compact.hpp)
+        include/libprecisegc/details/threads/static_root_set.hpp include/libprecisegc/details/compacting/fix_ptrs.hpp include/libprecisegc/details/compacting/forwarding.hpp include/libprecisegc/details/compacting/two_finger_compactor.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_mark.cpp

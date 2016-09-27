@@ -1,12 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/compacting/two_finger_compact.hpp>
+#include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/types.hpp>
+
+#include "test_forwarding.hpp"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
@@ -23,20 +25,24 @@ struct test_type
 
 }
 
-template <typename Compacting>
-struct compact_test : public ::testing::Test
+template <typename Compactor>
+struct compactor_test : public ::testing::Test
 {
-    compact_test()
-        : m_chunk(core_allocator::allocate(CHUNK_SIZE), CHUNK_SIZE, OBJ_SIZE)
+    compactor_test()
+        : chunk(core_allocator::allocate(CHUNK_SIZE), CHUNK_SIZE, OBJ_SIZE)
     {}
 
-    ~compact_test()
+    ~compactor_test()
     {
-        core_allocator::deallocate(m_chunk.get_mem(), m_chunk.get_mem_size());
+        core_allocator::deallocate(chunk.get_mem(), chunk.get_mem_size());
     }
 
-    managed_pool_chunk m_chunk;
+    managed_pool_chunk chunk;
+    Compactor compactor;
 };
+
+typedef ::testing::Types<two_finger_compactor> test_compactor_types;
+TYPED_TEST_CASE(compactor_test, test_compactor_types);
 
 /**
  * In this test a small pool is compated by the two-finger-compact procedure and resulting forwarding is checked.
@@ -56,22 +62,21 @@ struct compact_test : public ::testing::Test
  *      * x | x |   | # |   *
  *      *********************
  */
-TEST_F(compact_test, test_compact_1)
+TYPED_TEST(compactor_test, test_compact_1)
 {
-    static const OBJ_COUNT = 5;
+    static const size_t OBJ_COUNT = 5;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        managed_ptr cell_ptr = m_chunk.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = this->chunk.allocate(OBJ_SIZE);
         cell_ptr.set_mark(false);
         cell_ptr.set_pin(false);
     }
 
-    auto rng = m_chunk.memory_range();
+    auto rng = this->chunk.memory_range();
     auto it0 = std::next(rng.begin(), 0);
     auto it1 = std::next(rng.begin(), 1);
     auto it2 = std::next(rng.begin(), 2);
     auto it3 = std::next(rng.begin(), 3);
     auto it4 = std::next(rng.begin(), 4);
-
 
     // mark & pin some objects
     it0->set_mark(true);
@@ -87,10 +92,12 @@ TEST_F(compact_test, test_compact_1)
     byte* exp_to = it1->get();
     byte* exp_from = it4->get();
 
-    list_forwarding frwd;
-    two_finger_compact(rng, OBJ_SIZE, frwd);
+    test_forwarding frwd;
+    size_t copied = this->compactor(rng, frwd);
 
-    auto frwd_list = frwd.get_list();
+    ASSERT_EQ(OBJ_SIZE, copied);
+
+    auto frwd_list = frwd.get_forwarding_list();
     ASSERT_EQ(1, frwd_list.size());
     void* from = frwd_list[0].from;
     void* to = frwd_list[0].to;

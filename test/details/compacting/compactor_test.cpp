@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <unordered_set>
+
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
@@ -8,6 +10,7 @@
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/types.hpp>
 
+#include "rand_util.h"
 #include "test_forwarding.hpp"
 
 using namespace precisegc::details;
@@ -16,28 +19,25 @@ using namespace precisegc::details::compacting;
 
 namespace {
 static const size_t OBJ_SIZE = 64;      // PAGE_SIZE / OBJECTS_PER_PAGE;
-static const size_t CHUNK_SIZE = managed_pool_chunk::chunk_size(OBJ_SIZE);
 
 struct test_type
 {
     byte data[OBJ_SIZE];
 };
 
+typedef list_allocator<managed_pool_chunk,
+        core_allocator,
+        default_allocator,
+        single_chunk_cache,
+        utils::dummy_mutex
+    > allocator_t;
+
 }
 
 template <typename Compactor>
 struct compactor_test : public ::testing::Test
 {
-    compactor_test()
-        : chunk(core_allocator::allocate(CHUNK_SIZE), CHUNK_SIZE, OBJ_SIZE)
-    {}
-
-    ~compactor_test()
-    {
-        core_allocator::deallocate(chunk.get_mem(), chunk.get_mem_size());
-    }
-
-    managed_pool_chunk chunk;
+    allocator_t alloc;
     Compactor compactor;
 };
 
@@ -66,12 +66,12 @@ TYPED_TEST(compactor_test, test_compact_1)
 {
     static const size_t OBJ_COUNT = 5;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        managed_ptr cell_ptr = this->chunk.allocate(OBJ_SIZE);
+        managed_ptr cell_ptr = this->alloc.allocate(OBJ_SIZE);
         cell_ptr.set_mark(false);
         cell_ptr.set_pin(false);
     }
 
-    auto rng = this->chunk.memory_range();
+    auto rng = this->alloc.memory_range();
     auto it0 = std::next(rng.begin(), 0);
     auto it1 = std::next(rng.begin(), 1);
     auto it2 = std::next(rng.begin(), 2);
@@ -112,4 +112,90 @@ TYPED_TEST(compactor_test, test_compact_1)
 
     ASSERT_FALSE(it2->get_mark());
     ASSERT_FALSE(it4->get_mark());
+}
+
+TYPED_TEST(compactor_test, test_compact_2)
+{
+    const size_t LIVE_CNT = 5;
+    const size_t ALLOC_CNT = 4 * LIVE_CNT;
+
+    for (size_t i = 0; i < ALLOC_CNT; ++i) {
+        managed_ptr cell_ptr = this->alloc.allocate(OBJ_SIZE);
+        cell_ptr.set_mark(false);
+        cell_ptr.set_pin(false);
+    }
+
+    uniform_rand_generator<size_t> rand_gen(0, ALLOC_CNT - 1);
+    auto rng = this->alloc.memory_range();
+    for (size_t i = 0; i < LIVE_CNT; ++i) {
+        size_t rand = rand_gen();
+        auto it = std::next(rng.begin(), rand);
+        while (it->get_mark()) {
+            rand = rand_gen();
+            it = std::next(rng.begin(), rand);
+        }
+        it->set_mark(true);
+    }
+
+    test_forwarding frwd;
+    size_t copied = this->compactor(rng, frwd);
+
+    ASSERT_LE(copied, OBJ_SIZE * LIVE_CNT);
+
+    auto live_begin = rng.begin();
+    auto live_end = std::next(live_begin, LIVE_CNT);
+    auto dead_begin = live_end;
+    auto dead_end = rng.end();
+    size_t dead_cnt = std::distance(dead_begin, dead_end);
+    for (auto it = live_begin; it != live_end; ++it) {
+        ASSERT_TRUE(it->get_mark());
+    }
+    for (auto it = dead_begin; it != dead_end; ++it) {
+        ASSERT_FALSE(it->get_mark());
+    }
+}
+
+TYPED_TEST(compactor_test, test_compact_3)
+{
+    static const size_t OBJ_COUNT = 512;
+    bernoulli_rand_generator mark_gen(0.3);
+    bernoulli_rand_generator pin_gen(0.2);
+    size_t exp_mark_cnt = 0;
+    size_t exp_pin_cnt = 0;
+    std::unordered_set<byte*> pinned;
+    for (int i = 0; i < OBJ_COUNT; ++i) {
+        managed_ptr cell_ptr = this->alloc.allocate(OBJ_SIZE);
+        bool pin = pin_gen();
+        bool mark = mark_gen() || pin;
+        cell_ptr.set_mark(mark);
+        cell_ptr.set_pin(pin);
+        if (mark) {
+            exp_mark_cnt++;
+        }
+        if (pin) {
+            exp_pin_cnt++;
+            pinned.insert(cell_ptr.get());
+        }
+    }
+
+    auto rng = this->alloc.memory_range();
+    test_forwarding frwd;
+    size_t copied = this->compactor(rng, frwd);
+
+    EXPECT_LE(copied, exp_mark_cnt * OBJ_SIZE);
+
+    size_t pin_cnt = 0;
+    size_t mark_cnt = 0;
+    for (auto cell_ptr: rng) {
+        if (cell_ptr.get_mark()) {
+            mark_cnt++;
+        }
+        if (cell_ptr.get_pin()) {
+            pin_cnt++;
+            EXPECT_TRUE(pinned.count(cell_ptr.get()));
+        }
+    }
+
+    EXPECT_EQ(exp_pin_cnt, pin_cnt);
+    EXPECT_EQ(exp_mark_cnt, mark_cnt);
 }

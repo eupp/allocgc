@@ -18,6 +18,7 @@
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
+#include <libprecisegc/details/compacting/forwarding.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/safepoint_lock.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
@@ -25,6 +26,7 @@
 #include <libprecisegc/details/object_meta.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/compacting/forwarding.hpp>
 
 namespace precisegc { namespace details {
 
@@ -62,7 +64,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     static_assert(std::is_same<typename tlab_t::pointer_type, typename loa_t::pointer_type>::value,
                   "Large and small object allocators should have same pointer_type");
 
-    typedef intrusive_forwarding forwarding;
+    typedef compacting::forwarding forwarding;
 public:
     struct collect_stats
     {

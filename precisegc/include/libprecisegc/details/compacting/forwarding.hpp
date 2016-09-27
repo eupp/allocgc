@@ -9,14 +9,16 @@
 
 namespace precisegc { namespace details { namespace compacting {
 
-class forwarding : private utils::noncopyable, private utils::nonmovable
+class forwarding
 {
 public:
     forwarding() = default;
+    forwarding(const forwarding&) = default;
+    forwarding(forwarding&&) = default;
 
     void create(byte* from, byte* to, size_t size);
 
-    void forward(gc_handle* handle);
+    void forward(gc_handle* handle) const;
 private:
     static void move_cell(byte* from, byte* to, size_t size);
 };

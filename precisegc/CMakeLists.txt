@@ -11,10 +11,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_heap.hpp
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.hpp
-        include/libprecisegc/details/forwarding.hpp
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
-        include/libprecisegc/details/gc_compact.hpp
         include/libprecisegc/details/threads/gc_new_stack.hpp
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
@@ -106,7 +104,6 @@ set(precisegc_LIB_SRCS
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/managed_pool_chunk.cpp
         src/details/managed_ptr.cpp
-        src/details/forwarding.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp

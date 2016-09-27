@@ -37,7 +37,7 @@ public:
             auto cell_ptr = managed_ptr(tagged_ptr);
             return cell_ptr.get_meta();
         } else {
-            reinterpret_cast<object_meta*>(gc_tagging::clear(tagged_ptr) - sizeof(object_meta));
+            return reinterpret_cast<object_meta*>(gc_tagging::clear(tagged_ptr) - sizeof(object_meta));
         }
     }
 

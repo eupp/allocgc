@@ -11,7 +11,6 @@ set(precisegc_TESTS
         gc_inside_method_test.cpp
         details/type_meta_test.cpp
         details/gc_heap_test.cpp
-        details/gc_compact_test.cpp
         gc_new_test.cpp
         details/gc_untyped_ptr_test.cpp
         gc_environment.cpp

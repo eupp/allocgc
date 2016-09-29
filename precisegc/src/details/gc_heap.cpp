@@ -75,7 +75,7 @@ gc_heap::tlab_t& gc_heap::get_tlab()
 
 size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
 {
-    logging::info() << "Clearing empty pages...";
+    logging::info() << "Dropping empty pages...";
 
     size_t freed_in_tlabs = 0;
     for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
@@ -105,6 +105,24 @@ size_t gc_heap::sweep()
     return freed;
 }
 
+gc_heap::occupancy_stat gc_heap::calc_occupancy(size_t bucket_ind, tlab_t& tlab)
+{
+    occupancy_stat occupancy;
+    occupancy.m_avg = 0;
+    occupancy.m_sum = 0;
+    size_t chunk_cnt = 0;
+    tlab.apply_to_chunks(bucket_ind, [&occupancy, &chunk_cnt] (const allocators::managed_pool_chunk& chunk) {
+        ++chunk_cnt;
+        occupancy.m_sum += chunk.occupancy();
+    });
+    occupancy.m_avg = occupancy.m_sum / chunk_cnt;
+
+    logging::warning() << "Occupancy sum = " << occupancy.m_sum;
+    logging::warning() << "Occupancy avg = " << occupancy.m_avg;
+
+    return occupancy;
+}
+
 std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
 {
     logging::info() << "Compacting memory...";
@@ -116,6 +134,12 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
+            if (rng.empty()) {
+                continue;
+            }
+
+            occupancy_stat occupancy = calc_occupancy(i, tlab);
+
             size_t bucket_size = tlab_bucket_policy::bucket_size(i);
             size_t copied = compactor(rng, frwd);
             mem_copied += copied;
@@ -138,13 +162,17 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
-            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            if (!rng.empty()) {
-                tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd, &compactor] {
-                    size_t copied = compactor(rng, frwd);
-                    mem_copied += copied;
-                });
+            if (rng.empty()) {
+                continue;
             }
+
+            occupancy_stat occupancy = calc_occupancy(i, tlab);
+
+            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
+            tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd, &compactor] {
+                size_t copied = compactor(rng, frwd);
+                mem_copied += copied;
+            });
         }
     }
     thread_pool.run(tasks.begin(), tasks.end());

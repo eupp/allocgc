@@ -77,6 +77,12 @@ public:
         }
     }
 
+    template <typename Functor>
+    void apply_to_chunks(size_t bucket_ind, Functor&& f)
+    {
+        m_buckets[bucket_ind].apply_to_chunks(f);
+    }
+
     memory_range_type memory_range(size_t bucket_ind)
     {
         return m_buckets[bucket_ind].memory_range();

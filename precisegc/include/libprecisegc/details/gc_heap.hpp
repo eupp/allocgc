@@ -80,19 +80,25 @@ public:
 private:
     typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
 
+    struct occupancy_stat
+    {
+        double m_sum;
+        double m_avg;
+    };
+
     gc_pointer_type allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
 
     size_t shrink(const threads::world_snapshot& snapshot);
     size_t sweep();
 
+    occupancy_stat calc_occupancy(size_t bucket_ind, tlab_t& tlab);
+
     std::pair<forwarding, size_t> compact();
     std::pair<forwarding, size_t> parallel_compact(size_t threads_num);
 
     void fix_pointers(const forwarding& frwd);
     void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);
-
-//    void unmark();
 
     loa_t m_loa;
     tlab_map_t m_tlab_map;

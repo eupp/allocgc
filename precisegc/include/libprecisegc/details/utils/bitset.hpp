@@ -100,7 +100,7 @@ class bitset
 {
     static const size_t BLOCK_SIZE = CHAR_BIT * sizeof(Block);
     static const size_t LOG2_BLOCK_SIZE = boost::static_log2<BLOCK_SIZE>::value;
-    static const size_t BLOCK_CNT = N / BLOCK_SIZE;
+    static const size_t BLOCK_CNT = (N + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     static_assert(check_pow2(BLOCK_SIZE), "bitset block size must be power of two");
 public:
@@ -184,6 +184,11 @@ public:
             }
         }
         return cnt;
+    }
+
+    size_t size() const
+    {
+        return N;
     }
 
     boost::optional<size_t> most_significant_bit() const

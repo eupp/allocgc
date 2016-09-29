@@ -75,6 +75,8 @@ public:
     size_t sweep();
     void unmark();
 
+    double occupancy() const;
+
     iterator begin();
     iterator end();
     range_type memory_range();

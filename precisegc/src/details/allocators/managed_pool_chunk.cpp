@@ -101,6 +101,11 @@ void managed_pool_chunk::unmark()
     m_pin_bits.reset_all();
 }
 
+double managed_pool_chunk::occupancy() const
+{
+    return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
+}
+
 managed_pool_chunk::iterator managed_pool_chunk::begin()
 {
     assert(get_mem());

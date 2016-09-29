@@ -22,7 +22,7 @@ public:
     gc_untyped_ptr(gc_untyped_ptr&& other);
     ~gc_untyped_ptr();
 
-    gc_untyped_ptr& operator=(nullptr_t);
+    gc_untyped_ptr& operator=(std::nullptr_t);
     gc_untyped_ptr& operator=(const gc_untyped_ptr& other);
     gc_untyped_ptr& operator=(gc_untyped_ptr&& other);
 

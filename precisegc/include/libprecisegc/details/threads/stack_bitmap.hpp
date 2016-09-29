@@ -6,6 +6,8 @@
 #include <bitset>
 #include <vector>
 
+#include <boost/integer/static_log2.hpp>
+
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -50,9 +52,9 @@ public:
     size_t count() const;
 private:
     static const size_t STACK_FRAME_MASK = STACK_FRAME_SIZE - 1;
-    static const size_t STACK_FRAME_SIZE_LOG2 = std::log2(STACK_FRAME_SIZE);
+    static const size_t STACK_FRAME_SIZE_LOG2 = boost::static_log2<STACK_FRAME_SIZE>::value;
     static const size_t GC_HANDLE_SIZE = sizeof(gc_handle);
-    static const size_t GC_HANDLE_SIZE_LOG2 = std::log2(GC_HANDLE_SIZE);
+    static const size_t GC_HANDLE_SIZE_LOG2 = boost::static_log2<GC_HANDLE_SIZE>::value;
 
     static_assert(check_pow2(STACK_FRAME_SIZE), "STACK_FRAME_SIZE is not a power of two");
     static_assert(check_pow2(GC_HANDLE_SIZE), "GC_HANDLE_SIZE is not a power of two");

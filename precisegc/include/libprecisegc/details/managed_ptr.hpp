@@ -25,7 +25,7 @@ public:
     typedef byte element_type;
 
     managed_ptr() noexcept;
-    managed_ptr(nullptr_t) noexcept;
+    managed_ptr(std::nullptr_t) noexcept;
     managed_ptr(byte* ptr);
     managed_ptr(byte* ptr, memory_descriptor* descriptor);
 

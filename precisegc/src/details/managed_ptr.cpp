@@ -15,7 +15,7 @@ managed_ptr::managed_ptr() noexcept
     , m_descr(nullptr)
 {}
 
-managed_ptr::managed_ptr(nullptr_t) noexcept
+managed_ptr::managed_ptr(std::nullptr_t) noexcept
     : m_ptr(nullptr)
     , m_descr(nullptr)
 {}

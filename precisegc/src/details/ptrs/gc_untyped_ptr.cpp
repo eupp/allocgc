@@ -49,7 +49,7 @@ gc_untyped_ptr::~gc_untyped_ptr()
     delete_root();
 }
 
-gc_untyped_ptr& gc_untyped_ptr::operator=(nullptr_t t)
+gc_untyped_ptr& gc_untyped_ptr::operator=(std::nullptr_t t)
 {
     m_handle.reset();
     return *this;

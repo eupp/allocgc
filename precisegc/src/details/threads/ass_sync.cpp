@@ -9,7 +9,6 @@ namespace precisegc { namespace details { namespace threads {
 namespace internals {
 
 unnamed_pipe::unnamed_pipe()
-    : m_pipefd({-1, -1})
 {
     int rc = pipe(m_pipefd);
     utils::throw_system_error(rc, "Failed to initialize unnamed_pipe");

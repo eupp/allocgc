@@ -16,7 +16,7 @@ public:
         , m_size(0)
     {}
 
-    block_ptr(nullptr_t)
+    block_ptr(std::nullptr_t)
         : m_ptr(nullptr)
         , m_size(0)
     {}

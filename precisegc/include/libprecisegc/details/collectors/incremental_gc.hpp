@@ -4,6 +4,7 @@
 #include <atomic>
 
 #include <libprecisegc/details/collectors/packet_manager.hpp>
+#include <libprecisegc/details/collectors/remset.hpp>
 #include <libprecisegc/details/collectors/marker.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
@@ -35,6 +36,7 @@ private:
 
     gc_heap m_heap;
     packet_manager m_packet_manager;
+    remset m_remset;
     marker m_marker;
     size_t m_threads_available;
     gc_phase m_phase;

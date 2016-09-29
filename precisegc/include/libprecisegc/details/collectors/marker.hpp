@@ -8,6 +8,7 @@
 #include <atomic>
 #include <condition_variable>
 
+#include <libprecisegc/details/collectors/remset.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
@@ -28,8 +29,9 @@ public:
 class marker
 {
 public:
-    marker(packet_manager* manager)
+    marker(packet_manager* manager, remset* rset)
         : m_packet_manager(manager)
+        , m_remset(rset)
         , m_done(false)
     {}
 
@@ -69,6 +71,22 @@ public:
         m_packet_manager->push_packet(std::move(output_packet));
     }
 
+    void trace_remset()
+    {
+        assert(m_remset);
+        m_remset->flush_buffers();
+        auto output_packet = m_packet_manager->pop_output_packet();
+        for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
+            managed_ptr mp = managed_ptr((*it)->get_object_begin());
+            if (mp) {
+                mp.set_mark(true);
+                push_root_to_packet(mp, output_packet);
+            }
+            logging::debug() << "remset ptr: " << (void*) mp.get();
+        }
+        m_packet_manager->push_packet(std::move(output_packet));
+    }
+
     void mark()
     {
         worker_routine();
@@ -87,6 +105,7 @@ public:
         }
     }
 private:
+    static const size_t POP_REMSET_COUNT = 16;
     static const size_t POP_OUTPUT_ATTEMPTS = 2;
 
     void worker_routine()
@@ -95,12 +114,26 @@ private:
         packet_manager::mark_packet_handle output_packet = nullptr;
         while (true) {
             while (!input_packet) {
+
+                if (m_remset) {
+                    size_t pop_remset_cnt = 0;
+                    while (!m_remset->empty() && pop_remset_cnt < POP_REMSET_COUNT) {
+                        push_to_packet(m_remset->get(), output_packet);
+                    }
+
+                    input_packet = m_packet_manager->pop_input_packet();
+                    if (input_packet) {
+                        break;
+                    }
+                }
+
                 if (output_packet) {
                     m_packet_manager->push_packet(std::move(output_packet));
                 }
                 if (m_packet_manager->is_no_input() || m_done.load(std::memory_order_acquire)) {
                     return;
                 }
+
                 std::this_thread::yield();
                 input_packet = m_packet_manager->pop_input_packet();
             }
@@ -146,6 +179,7 @@ private:
     }
 
     packet_manager* m_packet_manager;
+    remset* m_remset;
     std::vector<utils::scoped_thread> m_workers;
     std::atomic<bool> m_done;
 };

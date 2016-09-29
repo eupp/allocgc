@@ -15,7 +15,7 @@ namespace internals {
 
 serial_gc_base::serial_gc_base(gc_compacting compacting, size_t threads_available)
     : m_heap(compacting)
-    , m_marker(&m_packet_manager)
+    , m_marker(&m_packet_manager, nullptr)
     , m_threads_available(threads_available)
 {}
 

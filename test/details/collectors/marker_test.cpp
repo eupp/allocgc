@@ -144,7 +144,7 @@ struct marker_test: public ::testing::Test
 {
     marker_test()
         : root(create_tree(TREE_DEPTH))
-        , marker(&packet_manager)
+        , marker(&packet_manager, nullptr)
     {}
 
     gc_ptr<node> root;

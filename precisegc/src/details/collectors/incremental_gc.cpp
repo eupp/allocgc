@@ -14,7 +14,7 @@ namespace internals {
 
 incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t threads_available)
     : m_heap(compacting)
-    , m_marker(&m_packet_manager)
+    , m_marker(&m_packet_manager, &m_remset)
     , m_phase(gc_phase::IDLE)
     , m_threads_available(threads_available)
 {}
@@ -44,15 +44,7 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     if (m_phase == gc_phase::MARK) {
         managed_ptr mp(p);
         if (mp && !mp.get_mark()) {
-            packet_manager::mark_packet_handle& packet = threads::this_managed_thread::get_mark_packet();
-            if (!packet) {
-                packet = m_packet_manager.pop_output_packet();
-            } else if (packet->is_full()) {
-                auto new_packet = m_packet_manager.pop_output_packet();
-                m_packet_manager.push_packet(std::move(packet));
-                packet = std::move(new_packet);
-            }
-            packet->push(mp.get_meta());
+            m_remset.add(mp.get_meta());
         }
     }
 }
@@ -124,13 +116,14 @@ gc_run_stats incremental_gc_base::sweep()
         type = gc_type::FULL_GC;
         m_marker.trace_roots(snapshot.get_root_tracer());
         m_marker.trace_pins(snapshot.get_pin_tracer());
+        m_marker.trace_remset();
         m_phase = gc_phase::MARK;
         m_marker.concurrent_mark(m_threads_available - 1);
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
         type = gc_type::COLLECT_GARBAGE;
         m_marker.trace_pins(snapshot.get_pin_tracer());
-        flush_threads_packets(snapshot);
+        m_marker.trace_remset();
         m_marker.mark();
     }
     m_phase = gc_phase::COLLECT;

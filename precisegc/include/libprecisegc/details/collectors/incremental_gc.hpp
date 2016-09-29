@@ -30,7 +30,6 @@ public:
 
     gc_run_stats gc(const gc_options& options) override;
 private:
-    void flush_threads_packets(const threads::world_snapshot& snapshot);
     gc_run_stats start_marking();
     gc_run_stats sweep();
 

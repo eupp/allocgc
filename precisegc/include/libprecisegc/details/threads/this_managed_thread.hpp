@@ -47,8 +47,6 @@ public:
     static void push_pin(byte* ptr);
     static void pop_pin(byte* ptr);
 
-    static collectors::packet_manager::mark_packet_handle& get_mark_packet();
-
     friend class managed_thread;
     friend class managed_thread_accessor;
 private:

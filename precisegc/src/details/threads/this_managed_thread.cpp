@@ -92,9 +92,4 @@ void this_managed_thread::pop_pin(byte* ptr)
     managed_thread_accessor::pop_pin(this_thread, ptr);
 }
 
-collectors::packet_manager::mark_packet_handle& this_managed_thread::get_mark_packet()
-{
-    return this_thread->get_mark_packet();
-}
-
 }}}

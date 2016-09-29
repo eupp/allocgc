@@ -8,6 +8,7 @@
 #include <atomic>
 #include <condition_variable>
 
+#include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/collectors/remset.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
@@ -32,6 +33,8 @@ public:
     marker(packet_manager* manager, remset* rset)
         : m_packet_manager(manager)
         , m_remset(rset)
+        , m_running_threads_cnt(0)
+        , m_concurrent_flag(false)
         , m_done(false)
     {}
 
@@ -89,16 +92,20 @@ public:
 
     void mark()
     {
+        m_concurrent_flag = false;
+        ++m_running_threads_cnt;
         worker_routine();
         for (auto& worker: m_workers) {
-            worker.join();
+            if (worker.get_id() != std::this_thread::get_id()) {
+                worker.join();
+            }
         }
-        m_workers.resize(0);
-        m_workers.shrink_to_fit();
     }
 
     void concurrent_mark(size_t threads_num)
     {
+        m_concurrent_flag = true;
+        m_running_threads_cnt = threads_num;
         m_workers.resize(threads_num);
         for (auto& worker: m_workers) {
             worker = std::thread(&marker::worker_routine, this);
@@ -131,6 +138,10 @@ private:
                     m_packet_manager->push_packet(std::move(output_packet));
                 }
                 if (m_packet_manager->is_no_input() || m_done.load(std::memory_order_acquire)) {
+                    if (--m_running_threads_cnt == 0 && m_concurrent_flag) {
+                            gc_initiation_point(initiation_point_type::CONCURRENT_MARKING_FINISHED,
+                                                initiation_point_data::create_empty_data());
+                    }
                     return;
                 }
 
@@ -181,6 +192,8 @@ private:
     packet_manager* m_packet_manager;
     remset* m_remset;
     std::vector<utils::scoped_thread> m_workers;
+    std::atomic<size_t> m_running_threads_cnt;
+    std::atomic<bool> m_concurrent_flag;
     std::atomic<bool> m_done;
 };
 

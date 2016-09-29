@@ -15,7 +15,6 @@
 #include <libprecisegc/details/threads/pin_set.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
-#include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -56,11 +55,6 @@ public:
     std::thread::native_handle_type native_handle() const
     {
         return m_native_handle;
-    }
-
-    collectors::packet_manager::mark_packet_handle& get_mark_packet()
-    {
-        return m_mark_packet;
     }
 
     friend class managed_thread_accessor;
@@ -195,7 +189,6 @@ private:
     pin_stack m_pin_stack;
     stack_bitmap m_stack_map;
     gc_new_stack m_new_stack;
-    collectors::packet_manager::mark_packet_handle m_mark_packet;
 };
 
 }}}

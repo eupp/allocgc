@@ -75,16 +75,6 @@ gc_run_stats incremental_gc_base::gc(const gc_options& options)
     return stats;
 }
 
-void incremental_gc_base::flush_threads_packets(const threads::world_snapshot& snapshot)
-{
-    snapshot.apply_to_threads([this] (threads::managed_thread* thread ) {
-        if (thread->get_mark_packet()) {
-            m_packet_manager.push_packet(std::move(thread->get_mark_packet()));
-            thread->get_mark_packet() = nullptr;
-        }
-    });
-}
-
 gc_run_stats incremental_gc_base::start_marking()
 {
     using namespace threads;

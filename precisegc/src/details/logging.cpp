@@ -75,16 +75,16 @@ logging::log_line::log_line(gc_loglevel lv)
         switch (lv)
         {
             case gc_loglevel::DEBUG:
-                lv_str = "DEBUG:  ";
+                lv_str = "DEBUG: ";
                 break;
             case gc_loglevel::INFO:
-                lv_str = "INFO:   ";
+                lv_str = "INFO: ";
                 break;
             case gc_loglevel::WARNING:
                 lv_str = "WARNING: ";
                 break;
             case gc_loglevel::ERROR:
-                lv_str = "ERROR:   ";
+                lv_str = "ERROR: ";
                 break;
         }
         (*this) << time_buffer << prefix_ << threads::this_thread_native_handle() << "-" << lv_str;

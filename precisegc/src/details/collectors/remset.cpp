@@ -14,11 +14,19 @@ void remset::add(object_meta* meta)
 object_meta* remset::get()
 {
     std::lock_guard<mutex_t> lock(m_hashtable_mutex);
-    assert(!m_hashtable.empty());
+    if (m_hashtable.empty()) {
+        return nullptr;
+    }
     auto it = m_hashtable.begin();
     object_meta* meta = *it;
     m_hashtable.erase(it);
     return meta;
+}
+
+size_t remset::size() const
+{
+    std::lock_guard<mutex_t> lock(m_hashtable_mutex);
+    return m_hashtable.size();
 }
 
 bool remset::empty() const
@@ -45,9 +53,16 @@ remset::ssb_t& remset::get_ssb()
 
 void remset::flush_buffers()
 {
+    std::lock_guard<mutex_t> lock(m_ssb_mutex);
     for (auto it = m_ssb_map.begin(); it != m_ssb_map.end(); ++it) {
         flush_ssb(it->second);
     }
+}
+
+void remset::clear()
+{
+    std::lock_guard<mutex_t> lock(m_hashtable_mutex);
+    m_hashtable.clear();
 }
 
 void remset::flush_ssb(ssb_t& ssb)

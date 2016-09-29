@@ -21,10 +21,16 @@ public:
     void add(object_meta* meta);
     object_meta* get();
 
+    void clear();
     void flush_buffers();
 
+    size_t size() const;
     bool empty() const;
 
+    // we use iterators here but it isn't best option,
+    // because we don't hold lock on hash table while we are tracing data through these iterators;
+    // however, because we do tracing only during stop-the-world it's ok;
+    // but we still need more consistent lock strategy
     const_iterator begin() const;
     const_iterator end() const;
 private:

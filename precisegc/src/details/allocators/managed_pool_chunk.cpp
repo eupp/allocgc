@@ -87,6 +87,7 @@ size_t managed_pool_chunk::sweep()
     byte* mem_end = m_chunk.get_top();
     for (byte *it = get_mem(); it < mem_end; it += m_cell_size, ++i) {
         if (!m_mark_bits.get(i)) {
+            logging::debug() << "Deallocate cell addr=" << (void*) it << ", size=" << m_cell_size;
             m_chunk.deallocate(it, m_cell_size);
             freed += m_cell_size;
         }

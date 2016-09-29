@@ -78,6 +78,7 @@ public:
     {
         assert(m_remset);
         m_remset->flush_buffers();
+        logging::info() << "remset size: " << m_remset->size();
         auto output_packet = m_packet_manager->pop_output_packet();
         for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
             managed_ptr mp = managed_ptr((*it)->get_object_begin());
@@ -87,6 +88,7 @@ public:
             }
             logging::debug() << "remset ptr: " << (void*) mp.get();
         }
+        m_remset->clear();
         m_packet_manager->push_packet(std::move(output_packet));
     }
 
@@ -123,9 +125,13 @@ private:
             while (!input_packet) {
 
                 if (m_remset) {
-                    size_t pop_remset_cnt = 0;
-                    while (!m_remset->empty() && pop_remset_cnt < POP_REMSET_COUNT) {
-                        push_to_packet(m_remset->get(), output_packet);
+                    for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
+                        object_meta* meta = m_remset->get();
+                        if (meta) {
+                            push_to_packet(meta, output_packet);
+                        } else {
+                            break;
+                        }
                     }
 
                     input_packet = m_packet_manager->pop_input_packet();
@@ -138,10 +144,10 @@ private:
                     m_packet_manager->push_packet(std::move(output_packet));
                 }
                 if (m_packet_manager->is_no_input() || m_done.load(std::memory_order_acquire)) {
-                    if (--m_running_threads_cnt == 0 && m_concurrent_flag) {
-                            gc_initiation_point(initiation_point_type::CONCURRENT_MARKING_FINISHED,
-                                                initiation_point_data::create_empty_data());
-                    }
+//                    if (--m_running_threads_cnt == 0 && m_concurrent_flag) {
+//                            gc_initiation_point(initiation_point_type::CONCURRENT_MARKING_FINISHED,
+//                                                initiation_point_data::create_empty_data());
+//                    }
                     return;
                 }
 

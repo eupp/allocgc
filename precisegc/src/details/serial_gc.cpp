@@ -34,14 +34,9 @@ byte* serial_gc_base::rbarrier(const gc_handle& handle)
     return gc_handle_access::get<std::memory_order_relaxed>(handle);
 }
 
-void serial_gc_base::interior_wbarrier(gc_handle& handle, byte* ptr)
+void serial_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t shift)
 {
-    gc_handle_access::set<std::memory_order_relaxed>(handle, ptr);
-}
-
-void serial_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
-{
-    gc_handle_access::advance<std::memory_order_relaxed>(handle, shift);
+    gc_handle_access::set<std::memory_order_relaxed>(handle, shift);
 }
 
 gc_run_stats serial_gc_base::gc(const gc_options& options)
@@ -80,25 +75,6 @@ void serial_gc::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_handle_access::set<std::memory_order_relaxed>(dst, p);
 }
 
-bool serial_gc::compare(const gc_handle& a, const gc_handle& b)
-{
-    return gc_handle_access::get<std::memory_order_relaxed>(a) == gc_handle_access::get<std::memory_order_relaxed>(b);
-}
-
-//byte* serial_gc::pin(const gc_handle& handle)
-//{
-//    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
-//    if (ptr) {
-//        threads::this_managed_thread::pin(ptr);
-//    }
-//    return ptr;
-//}
-//
-//void serial_gc::unpin(byte* ptr)
-//{
-//    threads::this_managed_thread::unpin(ptr);
-//}
-
 gc_info serial_gc::info() const
 {
     static gc_info inf = {
@@ -118,12 +94,6 @@ void serial_compacting_gc::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_unsafe_scope unsafe_scope;
     byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
     gc_handle_access::set<std::memory_order_relaxed>(dst, p);
-}
-
-bool serial_compacting_gc::compare(const gc_handle& a, const gc_handle& b)
-{
-    gc_unsafe_scope unsafe_scope;
-    return gc_handle_access::get<std::memory_order_relaxed>(a) == gc_handle_access::get<std::memory_order_relaxed>(b);
 }
 
 gc_info serial_compacting_gc::info() const

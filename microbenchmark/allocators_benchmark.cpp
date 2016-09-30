@@ -14,6 +14,13 @@ using namespace precisegc::details::allocators;
 
 static const size_t OBJ_SIZE = 32;
 
+namespace {
+struct test_type
+{
+    std::uint8_t data[OBJ_SIZE];
+};
+}
+
 NONIUS_BENCHMARK("allocators.default_allocator.allocate", [](nonius::chronometer meter)
 {
     default_allocator allocator;
@@ -40,21 +47,21 @@ NONIUS_BENCHMARK("allocators.default_allocator.deallocate", [](nonius::chronomet
 
 NONIUS_BENCHMARK("allocators.pool.allocate", [](nonius::chronometer meter)
 {
-    pool<utils::dummy_mutex> allocator(OBJ_SIZE);
+    pool<test_type, utils::dummy_mutex> allocator();
     meter.measure([&allocator] {
-        return allocator.allocate();
+        return allocator.create();
     });
 });
 
 NONIUS_BENCHMARK("allocators.pool.deallocate", [](nonius::chronometer meter)
 {
-    pool<utils::dummy_mutex> allocator(OBJ_SIZE);
+    pool<test_type, utils::dummy_mutex> allocator(OBJ_SIZE);
     std::vector<byte*> ps(meter.runs());
     for (auto& p: ps) {
-        p = allocator.allocate();
+        p = allocator.create();
     }
     meter.measure([&allocator, &ps] (size_t i) {
-        allocator.deallocate(ps[i]);
+        allocator.destroy(ps[i]);
     });
 });
 

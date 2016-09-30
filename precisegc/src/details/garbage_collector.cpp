@@ -120,8 +120,8 @@ void garbage_collector::pop_pin(byte* ptr)
 
 bool garbage_collector::compare(const gc_handle& a, const gc_handle& b)
 {
-    assert(m_strategy);
-    return m_strategy->compare(a, b);
+    gc_unsafe_scope unsafe_scope;
+    return a.rbarrier() == b.rbarrier();
 }
 
 void garbage_collector::initiation_point(initiation_point_type ipt, const initiation_point_data& ipd)

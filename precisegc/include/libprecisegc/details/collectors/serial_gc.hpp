@@ -23,8 +23,7 @@ public:
 
     byte* rbarrier(const gc_handle& handle) override;
 
-    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
-    void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t shift) override;
 
     gc_run_stats gc(const gc_options& options) override;
 private:
@@ -43,8 +42,6 @@ public:
 
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 
-    bool compare(const gc_handle& a, const gc_handle& b) override;
-
     gc_info info() const override;
 };
 
@@ -54,8 +51,6 @@ public:
     explicit serial_compacting_gc(size_t threads_available);
 
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
-
-    bool compare(const gc_handle& a, const gc_handle& b) override;
 
     gc_info info() const override;
 };

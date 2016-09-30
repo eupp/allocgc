@@ -128,18 +128,15 @@ private:
     public:
         static std::unique_ptr<Level, level_deleter> create()
         {
-            auto ptr = std::unique_ptr<Level, level_deleter>(reinterpret_cast<Level*>(level_pool.allocate()));
-            new (ptr.get()) Level();
-            return ptr;
+            return std::unique_ptr<Level, level_deleter>(level_pool.create());
         }
 
         static void destroy(Level* level)
         {
-            level->~Level();
-            level_pool.deallocate(reinterpret_cast<byte*>(level));
+            level_pool.destroy(level);
         }
     private:
-        static allocators::pool<std::mutex> level_pool;
+        static allocators::pool<Level, std::mutex> level_pool;
     };
 
     template <typename Level>
@@ -331,7 +328,7 @@ Level index_tree<T>::internal_level<Level>::null{};
 
 template <typename T>
 template <typename Level>
-allocators::pool<std::mutex> index_tree<T>::level_factory<Level>::level_pool{sizeof(Level)};
+allocators::pool<Level, std::mutex> index_tree<T>::level_factory<Level>::level_pool{};
 
 }}
 

@@ -12,33 +12,27 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename Lock>
+template <typename T, typename Lock>
 class pool
 {
 public:
-    explicit pool(size_t alloc_size)
-            : m_alloc_size(alloc_size)
-            , m_alloc_cnt(0)
-            , m_dealloc_cnt(0)
+    pool()
+        : m_alloc_cnt(0)
+        , m_dealloc_cnt(0)
     {}
 
-    byte* allocate()
+    template <typename... Args>
+    T* create(Args&&... args)
     {
-        std::lock_guard<Lock> lock_guard(m_lock);
-        ++m_alloc_cnt;
-        return m_alloc.allocate(m_alloc_size);
+        byte* ptr = allocate();
+        new (ptr) T(std::forward<Args>(args)...);
+        return reinterpret_cast<T*>(ptr);
     }
 
-    void deallocate(byte* ptr)
+    void destroy(T* ptr)
     {
-        std::lock_guard<Lock> lock_guard(m_lock);
-        m_alloc.deallocate(ptr, m_alloc_size);
-        ++m_dealloc_cnt;
-        if (m_alloc_cnt > SHRINK_LOWER_BOUND && m_alloc_cnt <= 2 * m_dealloc_cnt) {
-            m_alloc.shrink(m_alloc_size);
-            m_alloc_cnt >>= 1;
-            m_dealloc_cnt = 0;
-        }
+        ptr->~T();
+        deallocate(reinterpret_cast<byte*>(ptr));
     }
 private:
     typedef freelist_allocator<
@@ -52,6 +46,25 @@ private:
         > alloc_t;
 
     static const size_t SHRINK_LOWER_BOUND = freelist_pool_chunk::DEFAULT_CHUNK_SIZE;
+
+    byte* allocate()
+    {
+        std::lock_guard<Lock> lock_guard(m_lock);
+        ++m_alloc_cnt;
+        return m_alloc.allocate(sizeof(T));
+    }
+
+    void deallocate(byte* ptr)
+    {
+        std::lock_guard<Lock> lock_guard(m_lock);
+        m_alloc.deallocate(ptr, sizeof(T));
+        ++m_dealloc_cnt;
+        if (m_alloc_cnt > SHRINK_LOWER_BOUND && m_alloc_cnt <= 2 * m_dealloc_cnt) {
+            m_alloc.shrink(m_alloc_size);
+            m_alloc_cnt >>= 1;
+            m_dealloc_cnt = 0;
+        }
+    }
 
     alloc_t m_alloc;
     size_t m_alloc_size;

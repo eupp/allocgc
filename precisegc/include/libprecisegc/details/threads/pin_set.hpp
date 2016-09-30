@@ -20,7 +20,7 @@ class pin_set : private utils::noncopyable, private utils::nonmovable
 public:
     pin_set()
         : m_head(nullptr)
-        , m_pool(sizeof(node))
+        , m_pool()
     {};
 
     void insert(byte* elem)
@@ -138,18 +138,18 @@ private:
 
     node* create_node(byte* elem)
     {
-        node* pnode = reinterpret_cast<node*>(m_pool.allocate());
+        node* pnode = m_pool.create();
         pnode->m_value = elem;
         return pnode;
     }
 
     void destroy_node(node* pnode)
     {
-        m_pool.deallocate(reinterpret_cast<byte*>(pnode));
+        m_pool.destroy(pnode);
     }
 
     std::atomic<node*> m_head;
-    allocators::pool<utils::dummy_mutex> m_pool;
+    allocators::pool<node, utils::dummy_mutex> m_pool;
 };
 
 }}}

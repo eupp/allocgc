@@ -25,7 +25,7 @@ public:
     byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 
-    void interior_wbarrier(gc_handle& handle, byte* ptr) override;
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t shift) override;
     void interior_shift(gc_handle& handle, ptrdiff_t shift) override;
 
     gc_run_stats gc(const gc_options& options) override;
@@ -48,8 +48,6 @@ class incremental_gc : public internals::incremental_gc_base
 public:
     explicit incremental_gc(size_t threads_available);
 
-    bool compare(const gc_handle& a, const gc_handle& b) override;
-
     gc_info info() const override;
 };
 
@@ -57,8 +55,6 @@ class incremental_compacting_gc : public internals::incremental_gc_base
 {
 public:
     explicit incremental_compacting_gc(size_t threads_available);
-
-    bool compare(const gc_handle& a, const gc_handle& b) override;
 
     gc_info info() const override;
 };

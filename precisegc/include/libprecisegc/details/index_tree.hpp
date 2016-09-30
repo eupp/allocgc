@@ -109,7 +109,7 @@ public:
         return get_page_entry(mem);
     }
 
-    friend class internals::index_tree_access;
+    friend struct internals::index_tree_access;
 private:
     typedef internals::splitter::idx_t  idx_t;
     typedef internals::splitter::idxs_t idxs_t;
@@ -205,7 +205,7 @@ private:
 
         static const size_t LEVEL_SIZE = internals::splitter::LEVEL_SIZE;
 
-        friend class internals::index_tree_access;
+        friend struct internals::index_tree_access;
     private:
         static Level null;
 

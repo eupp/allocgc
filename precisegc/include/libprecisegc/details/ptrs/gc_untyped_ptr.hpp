@@ -36,7 +36,7 @@ public:
 
     void advance(ptrdiff_t n);
 
-    void* get() const;
+    byte* get() const;
 
     void swap(gc_untyped_ptr& other);
     friend void swap(gc_untyped_ptr& a, gc_untyped_ptr& b);

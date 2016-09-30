@@ -27,8 +27,6 @@ public:
     // and hence it's safe to use logger inside destructor
     static void touch();
 private:
-    class log_line;
-
     typedef std::mutex mutex_t;
 
     class logger : private utils::noncopyable, private utils::nonmovable

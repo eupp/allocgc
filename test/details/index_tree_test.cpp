@@ -10,65 +10,65 @@
 
 using namespace precisegc::details;
 
-TEST(index_tree_level_test, test_level)
-{
-    typedef internals::index_tree_access::internal_level<
-                  int
-                , internals::index_tree_access::last_level<int>
-            > level_t;
-
-    typedef internals::index_tree_access::idxs_t idxs_t;
-
-    level_t level;
-    idxs_t idxs;
-
-    ASSERT_LE(2, idxs.size());
-
-    idxs[0] = 0; idxs[1] = 0;
-    int entry = 0;
-    level.index(idxs.begin(), &entry);
-
-    ASSERT_EQ(&entry, level.get(idxs.begin()));
-    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(level, idxs[0]));
-}
-
-TEST(index_tree_level_test, test_nested_levels)
-{
-    typedef internals::index_tree_access::internal_level<
-            int
-            , internals::index_tree_access::last_level<int>
-        > nested_level_t;
-
-    typedef internals::index_tree_access::internal_level<
-              int
-            , nested_level_t
-    > level_t;
-
-    typedef internals::index_tree_access::idxs_t idxs_t;
-
-    level_t level;
-    idxs_t idxs1;
-    idxs_t idxs2;
-
-    ASSERT_LE(3, idxs1.size());
-
-    idxs1[0] = 0; idxs1[1] = 0; idxs1[2] = 0;
-    idxs2[0] = 0; idxs2[1] = 1; idxs2[2] = 0;
-
-    int entry1 = 0;
-    int entry2 = 0;
-    level.index(idxs1.begin(), &entry1);
-    level.index(idxs2.begin(), &entry2);
-
-    ASSERT_EQ(&entry1, level.get(idxs1.begin()));
-    ASSERT_EQ(&entry2, level.get(idxs2.begin()));
-
-    ASSERT_EQ(2, internals::index_tree_access::get_level_count<int>(level, idxs1[0]));
-
-    nested_level_t* nested_level = internals::index_tree_access::get_level<int>(level, idxs1[0]);
-    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(*nested_level, idxs1[1]));
-    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(*nested_level, idxs2[1]));
-}
+//TEST(index_tree_level_test, test_level)
+//{
+//    typedef internals::index_tree_access::inter_level<
+//                  int
+//                , internals::index_tree_access::last_level<int>
+//            > level_t;
+//
+//    typedef internals::index_tree_access::idxs_t idxs_t;
+//
+//    level_t level;
+//    idxs_t idxs;
+//
+//    ASSERT_LE(2, idxs.size());
+//
+//    idxs[0] = 0; idxs[1] = 0;
+//    int entry = 0;
+//    level.index(idxs.begin(), &entry);
+//
+//    ASSERT_EQ(&entry, level.get(idxs.begin()));
+//    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(level, idxs[0]));
+//}
+//
+//TEST(index_tree_level_test, test_nested_levels)
+//{
+//    typedef internals::index_tree_access::internal_level<
+//              int
+//            , internals::index_tree_access::last_level<int>
+//        > nested_level_t;
+//
+//    typedef internals::index_tree_access::internal_level<
+//              int
+//            , nested_level_t
+//    > level_t;
+//
+//    typedef internals::index_tree_access::idxs_t idxs_t;
+//
+//    level_t level;
+//    idxs_t idxs1;
+//    idxs_t idxs2;
+//
+//    ASSERT_LE(3, idxs1.size());
+//
+//    idxs1[0] = 0; idxs1[1] = 0; idxs1[2] = 0;
+//    idxs2[0] = 0; idxs2[1] = 1; idxs2[2] = 0;
+//
+//    int entry1 = 0;
+//    int entry2 = 0;
+//    level.index(idxs1.begin(), &entry1);
+//    level.index(idxs2.begin(), &entry2);
+//
+//    ASSERT_EQ(&entry1, level.get(idxs1.begin()));
+//    ASSERT_EQ(&entry2, level.get(idxs2.begin()));
+//
+//    ASSERT_EQ(2, internals::index_tree_access::get_level_count<int>(level, idxs1[0]));
+//
+//    nested_level_t* nested_level = internals::index_tree_access::get_level<int>(level, idxs1[0]);
+//    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(*nested_level, idxs1[1]));
+//    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(*nested_level, idxs2[1]));
+//}
 
 struct index_tree_test : public ::testing::Test
 {

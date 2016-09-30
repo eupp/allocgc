@@ -97,7 +97,7 @@ void gc_untyped_ptr::advance(ptrdiff_t n)
     m_handle.interior_shift(n);
 }
 
-void* gc_untyped_ptr::get() const
+byte* gc_untyped_ptr::get() const
 {
     return gc_tagging::clear(m_handle.rbarrier());
 }

@@ -42,6 +42,7 @@ private:
             assert(bucket <= std::numeric_limits<std::uint8_t>::max());
             table[size] = bucket;
         }
+        return true;
     }
 
     static std::uint8_t table[TABLE_SIZE];

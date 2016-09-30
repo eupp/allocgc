@@ -33,7 +33,7 @@ class gc_ptr: private details::ptrs::gc_untyped_ptr
 public:
     gc_ptr() {}
 
-    gc_ptr(nullptr_t)
+    gc_ptr(std::nullptr_t)
         : gc_untyped_ptr(nullptr)
     {}
 
@@ -59,7 +59,7 @@ public:
         shift_to_base<D>();
     };
 
-    gc_ptr& operator=(nullptr_t)
+    gc_ptr& operator=(std::nullptr_t)
     {
         gc_untyped_ptr::operator=(nullptr);
         return *this;
@@ -168,7 +168,7 @@ class gc_ptr<T[]> : private details::ptrs::gc_untyped_ptr
 public:
     gc_ptr() {}
 
-    gc_ptr(nullptr_t)
+    gc_ptr(std::nullptr_t)
         : gc_untyped_ptr(nullptr)
     {}
 
@@ -180,7 +180,7 @@ public:
         : gc_untyped_ptr(std::move(other))
     {}
 
-    gc_ptr& operator=(nullptr_t)
+    gc_ptr& operator=(std::nullptr_t)
     {
         gc_untyped_ptr::operator=(nullptr);
         return *this;

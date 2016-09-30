@@ -59,7 +59,6 @@ public:
     // that tagged with derived bit
     static byte* get_object_ptr(byte* tagged_ptr)
     {
-        byte* ptr = gc_tagging::clear(tagged_ptr);
         if (gc_tagging::derived_bit(tagged_ptr)) {
             auto cell_ptr = managed_ptr(tagged_ptr);
             return cell_ptr.get_obj_begin();

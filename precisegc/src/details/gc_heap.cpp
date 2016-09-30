@@ -64,7 +64,7 @@ gc_pointer_type gc_heap::allocate_on_tlab(size_t size)
 {
     assert(size <= LARGE_CELL_SIZE);
     static thread_local tlab_t& tlab = get_tlab();
-    return tlab.allocate(size);
+    return tlab.allocate(std::max(size, MIN_CELL_SIZE));
 }
 
 gc_heap::tlab_t& gc_heap::get_tlab()

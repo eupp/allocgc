@@ -36,7 +36,7 @@ public:
     {
         size_t ind = BucketPolicy::bucket(size);
         size_t aligned_size = BucketPolicy::bucket_size(ind);
-        m_buckets[ind].deallocate(ptr, size);
+        m_buckets[ind].deallocate(ptr, aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t bucket_ind, size_t bucket_size)

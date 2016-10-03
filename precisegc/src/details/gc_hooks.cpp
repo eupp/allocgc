@@ -108,14 +108,9 @@ void gc_handle::wbarrier(const gc_handle& other)
     gc_instance.wbarrier(*this, other);
 }
 
-void gc_handle::interior_wbarrier(byte* ptr)
+void gc_handle::interior_wbarrier(ptrdiff_t offset)
 {
-    gc_instance.interior_wbarrier(*this, ptr);
-}
-
-void gc_handle::interior_shift(ptrdiff_t shift)
-{
-    gc_instance.interior_shift(*this, shift);
+    gc_instance.interior_wbarrier(*this, offset);
 }
 
 gc_handle::pin_guard gc_handle::pin() const
@@ -130,7 +125,7 @@ gc_handle::stack_pin_guard gc_handle::push_pin() const
 
 void gc_handle::reset()
 {
-    gc_instance.interior_wbarrier(*this, nullptr);
+    gc_instance.wbarrier(*this, null);
 }
 
 bool gc_handle::equal(const gc_handle& other) const
@@ -189,5 +184,7 @@ byte* gc_handle::stack_pin_guard::get() const noexcept
 {
     return m_ptr;
 }
+
+gc_handle gc_handle::null{nullptr};
 
 }}

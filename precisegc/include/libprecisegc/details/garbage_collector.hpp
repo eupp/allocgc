@@ -32,8 +32,7 @@ public:
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 
-    void interior_wbarrier(gc_handle& handle, byte* ptr);
-    void interior_shift(gc_handle& handle, ptrdiff_t shift);
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
 
     byte* pin(const gc_handle& handle);
     void  unpin(byte* ptr);
@@ -59,7 +58,7 @@ private:
     gc_pointer_type try_allocate(size_t size);
 
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
-    static bool is_interior_shift(const gc_handle& handle, ptrdiff_t shift);
+    static bool is_interior_offset(const gc_handle& handle, ptrdiff_t shift);
 
     std::unique_ptr<gc_strategy> m_strategy;
     std::unique_ptr<initiation_policy> m_initiation_policy;

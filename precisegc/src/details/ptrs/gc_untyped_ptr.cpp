@@ -6,7 +6,6 @@
 
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/gc_tagging.hpp>
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
@@ -38,12 +37,6 @@ gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other)
     m_handle.wbarrier(other.m_handle);
 }
 
-gc_untyped_ptr::gc_untyped_ptr(gc_untyped_ptr&& other)
-    : gc_untyped_ptr()
-{
-    m_handle.wbarrier(other.m_handle);
-}
-
 gc_untyped_ptr::~gc_untyped_ptr()
 {
     delete_root();
@@ -56,12 +49,6 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(std::nullptr_t t)
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other)
-{
-    m_handle.wbarrier(other.m_handle);
-    return *this;
-}
-
-gc_untyped_ptr& gc_untyped_ptr::operator=(gc_untyped_ptr&& other)
 {
     m_handle.wbarrier(other.m_handle);
     return *this;
@@ -94,12 +81,14 @@ bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const
 
 void gc_untyped_ptr::advance(ptrdiff_t n)
 {
-    m_handle.interior_shift(n);
+    if (n != 0) {
+        m_handle.interior_wbarrier(n);
+    }
 }
 
 byte* gc_untyped_ptr::get() const
 {
-    return gc_tagging::clear(m_handle.rbarrier());
+    return m_handle.rbarrier();
 }
 
 void gc_untyped_ptr::swap(gc_untyped_ptr& other)

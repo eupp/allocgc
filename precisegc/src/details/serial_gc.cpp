@@ -31,12 +31,24 @@ void serial_gc_base::new_cell(const managed_ptr& ptr)
 
 byte* serial_gc_base::rbarrier(const gc_handle& handle)
 {
-    return gc_handle_access::get<std::memory_order_relaxed>(handle);
+    return dptr_storage::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
 }
 
-void serial_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t shift)
+void serial_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 {
-    gc_handle_access::set<std::memory_order_relaxed>(handle, shift);
+    byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
+    gc_handle_access::set<std::memory_order_relaxed>(dst, p);
+}
+
+void serial_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+{
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
+    if (dptr_storage::is_derived(ptr)) {
+        dptr_storage::reset_derived_ptr(ptr, offset);
+    } else {
+        byte* derived = m_dptr_storage.make_derived(ptr, offset);
+        gc_handle_access::set<std::memory_order_relaxed>(handle, derived);
+    }
 }
 
 gc_run_stats serial_gc_base::gc(const gc_options& options)
@@ -69,12 +81,6 @@ serial_gc::serial_gc(size_t threads_available)
     : serial_gc_base(gc_compacting::DISABLED, threads_available)
 {}
 
-void serial_gc::wbarrier(gc_handle& dst, const gc_handle& src)
-{
-    byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
-    gc_handle_access::set<std::memory_order_relaxed>(dst, p);
-}
-
 gc_info serial_gc::info() const
 {
     static gc_info inf = {
@@ -92,8 +98,13 @@ serial_compacting_gc::serial_compacting_gc(size_t threads_available)
 void serial_compacting_gc::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
-    gc_handle_access::set<std::memory_order_relaxed>(dst, p);
+    internals::serial_gc_base::wbarrier(dst, src);
+}
+
+void serial_compacting_gc::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+{
+    gc_unsafe_scope unsafe_scope;
+    internals::serial_gc_base::interior_wbarrier(handle, offset);
 }
 
 gc_info serial_compacting_gc::info() const

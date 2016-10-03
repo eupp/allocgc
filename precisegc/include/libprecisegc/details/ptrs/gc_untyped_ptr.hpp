@@ -15,16 +15,12 @@ class gc_untyped_ptr
 {
 public:
     gc_untyped_ptr();
-//    gc_untyped_ptr(nullptr_t) noexcept;
-    // for testing purpose
     gc_untyped_ptr(byte* ptr);
     gc_untyped_ptr(const gc_untyped_ptr& other);
-    gc_untyped_ptr(gc_untyped_ptr&& other);
     ~gc_untyped_ptr();
 
     gc_untyped_ptr& operator=(std::nullptr_t);
     gc_untyped_ptr& operator=(const gc_untyped_ptr& other);
-    gc_untyped_ptr& operator=(gc_untyped_ptr&& other);
 
     gc_handle::pin_guard untyped_pin() const;
     gc_handle::stack_pin_guard push_untyped_pin() const;
@@ -33,6 +29,7 @@ public:
     bool is_root() const;
 
     bool equal(const gc_untyped_ptr& other) const;
+
 
     void advance(ptrdiff_t n);
 

@@ -11,10 +11,15 @@ namespace precisegc { namespace details { namespace collectors {
 class dptr_storage
 {
 public:
-    byte* get(const gc_handle* handle);
-    byte* get_origin(const gc_handle* handle);
+    static byte* get(byte* ptr);
+    static byte* get_origin(byte* ptr);
 
-    byte* make_derived(const gc_handle* handle, ptrdiff_t offset);
+    static bool is_derived(byte* ptr);
+
+    static void reset_derived_ptr(byte* ptr, ptrdiff_t offset);
+    static void forward_derived_ptr(byte* from, byte* to);
+
+    byte* make_derived(byte* ptr, ptrdiff_t offset);
 
     void destroy_unmarked();
 private:
@@ -28,11 +33,12 @@ private:
 
     static const std::uintptr_t DERIVED_BIT = 1;
 
-    static byte* get_origin(byte* ptr);
-    static byte* get_derived(byte* ptr);
+    static dptr_descriptor* get_descriptor(byte* ptr);
 
-    static bool  derived_bit(byte* ptr);
-    static void  set_derived_bit(byte*& ptr);
+    static byte* get_origin_indirect(byte* ptr);
+    static byte* get_derived_indirect(byte* ptr);
+
+    static byte* set_derived_bit(byte* ptr);
     static byte* clear_derived_bit(byte* ptr);
 
     pool_t m_pool;

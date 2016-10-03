@@ -58,8 +58,7 @@ public:
     void  wbarrier(const gc_handle& other);
 
     // reset handle to point to some different location inside same cell that was pointed to before
-    void interior_wbarrier(byte* ptr);
-    void interior_shift(ptrdiff_t shift);
+    void interior_wbarrier(ptrdiff_t offset);
 
     pin_guard pin() const;
     stack_pin_guard push_pin() const;
@@ -70,6 +69,8 @@ public:
     bool is_null() const;
 private:
     friend class gc_handle_access;
+
+    static gc_handle null;
 
     atomic_byte_ptr m_ptr;
 };

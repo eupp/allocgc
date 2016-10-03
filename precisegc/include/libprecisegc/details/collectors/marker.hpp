@@ -10,6 +10,7 @@
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/collectors/remset.hpp>
+#include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
@@ -48,7 +49,8 @@ public:
     {
         auto output_packet = m_packet_manager->pop_output_packet();
         tracer.trace([this, &output_packet] (gc_handle* root) {
-            managed_ptr mp = managed_ptr(gc_tagging::clear(root->rbarrier()));
+            byte* p = gc_handle_access::get<std::memory_order_relaxed>(*root);
+            managed_ptr mp = managed_ptr(dptr_storage::get_origin(p));
             if (mp) {
                 mp.set_mark(true);
                 push_root_to_packet(mp, output_packet);

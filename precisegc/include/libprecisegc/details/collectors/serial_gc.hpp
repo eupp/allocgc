@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/collectors/marker.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
@@ -22,12 +23,14 @@ public:
     void new_cell(const managed_ptr& ptr) override;
 
     byte* rbarrier(const gc_handle& handle) override;
+    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t shift) override;
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset) override;
 
     gc_run_stats gc(const gc_options& options) override;
 private:
     gc_heap m_heap;
+    dptr_storage m_dptr_storage;
     packet_manager m_packet_manager;
     marker m_marker;
     size_t m_threads_available;
@@ -40,8 +43,6 @@ class serial_gc : public internals::serial_gc_base
 public:
     explicit serial_gc(size_t threads_available);
 
-    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
-
     gc_info info() const override;
 };
 
@@ -51,6 +52,8 @@ public:
     explicit serial_compacting_gc(size_t threads_available);
 
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
+
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset) override;
 
     gc_info info() const override;
 };

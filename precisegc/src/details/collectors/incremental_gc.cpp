@@ -33,7 +33,7 @@ void incremental_gc_base::new_cell(const managed_ptr& ptr)
 
 byte* incremental_gc_base::rbarrier(const gc_handle& handle)
 {
-    return gc_handle_access::get<std::memory_order_relaxed>(handle);
+    return dptr_storage::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
 }
 
 void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -42,21 +42,22 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
     gc_handle_access::set<std::memory_order_release>(dst, p);
     if (m_phase == gc_phase::MARK) {
-        managed_ptr mp(p);
+        managed_ptr mp(dptr_storage::get_origin(p));
         if (mp && !mp.get_mark()) {
             m_remset.add(mp.get_meta());
         }
     }
 }
 
-void incremental_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t shift)
+void incremental_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
-    gc_handle_access::set<std::memory_order_release>(handle, shift);
-}
-
-void incremental_gc_base::interior_shift(gc_handle& handle, ptrdiff_t shift)
-{
-    gc_handle_access::advance<std::memory_order_acq_rel>(handle, shift);
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
+    if (dptr_storage::is_derived(ptr)) {
+        dptr_storage::reset_derived_ptr(ptr, offset);
+    } else {
+        byte* derived = m_dptr_storage.make_derived(ptr, offset);
+        gc_handle_access::set<std::memory_order_relaxed>(handle, derived);
+    }
 }
 
 gc_run_stats incremental_gc_base::gc(const gc_options& options)
@@ -150,6 +151,12 @@ gc_info incremental_gc::info() const
 incremental_compacting_gc::incremental_compacting_gc(size_t threads_available)
         : incremental_gc_base(gc_compacting::ENABLED, threads_available)
 {}
+
+void incremental_compacting_gc::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+{
+    gc_unsafe_scope unsafe_scope;
+    internals::incremental_gc_base::interior_wbarrier(handle, offset);
+}
 
 gc_info incremental_compacting_gc::info() const
 {

@@ -50,9 +50,6 @@ public:
     byte* get() const;
     memory_descriptor* get_descriptor() const;
 
-    bool is_derived() const;
-    void set_derived();
-
     void advance(ptrdiff_t n);
 
     void swap(managed_ptr& other);

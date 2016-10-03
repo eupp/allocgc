@@ -23,8 +23,7 @@ public:
     MOCK_METHOD1(rbarrier, byte*(const gc_handle&));
     MOCK_METHOD2(wbarrier, void(gc_handle&, const gc_handle&));
 
-    MOCK_METHOD2(interior_wbarrier, void(gc_handle& handle, byte* ptr));
-    MOCK_METHOD2(interior_shift, void(gc_handle& handle, ptrdiff_t shift));
+    MOCK_METHOD2(interior_wbarrier, void(gc_handle& handle, ptrdiff_t offset));
 
     MOCK_METHOD1(pin, byte*(const gc_handle& handle));
     MOCK_METHOD1(unpin, void(byte* ptr));

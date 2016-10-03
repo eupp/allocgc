@@ -72,18 +72,11 @@ void garbage_collector::wbarrier(gc_handle& dst, const gc_handle& src)
     m_strategy->wbarrier(dst, src);
 }
 
-void garbage_collector::interior_wbarrier(gc_handle& handle, byte* ptr)
+void garbage_collector::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     assert(m_strategy);
-    assert(!ptr || is_interior_pointer(handle, ptr));
-    m_strategy->interior_wbarrier(handle, ptr);
-}
-
-void garbage_collector::interior_shift(gc_handle& handle, ptrdiff_t shift)
-{
-    assert(m_strategy);
-    assert(is_interior_shift(handle, shift));
-    m_strategy->interior_shift(handle, shift);
+    assert(is_interior_offset(handle, offset));
+    m_strategy->interior_wbarrier(handle, offset);
 }
 
 byte* garbage_collector::pin(const gc_handle& handle)
@@ -194,7 +187,7 @@ bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)
     return (cell_begin <= p) && (p <= cell_end);
 }
 
-bool garbage_collector::is_interior_shift(const gc_handle& handle, ptrdiff_t shift)
+bool garbage_collector::is_interior_offset(const gc_handle& handle, ptrdiff_t shift)
 {
     return is_interior_pointer(handle, handle.rbarrier() + shift);
 }

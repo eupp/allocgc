@@ -16,7 +16,7 @@
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_alloc_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -89,8 +89,9 @@ public:
     virtual void set_pin(byte* ptr, bool pin) override;
 
     virtual size_t cell_size() const override;
-
     virtual byte* cell_start(byte* ptr) const override;
+
+    virtual void set_type_meta(byte* ptr, const type_meta* tmeta) override;
 private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
 

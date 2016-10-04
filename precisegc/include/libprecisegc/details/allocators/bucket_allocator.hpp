@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_POOL_H
-#define DIPLOMA_POOL_H
+#ifndef DIPLOMA_BUCKET_ALLOCATOR_HPP
+#define DIPLOMA_BUCKET_ALLOCATOR_HPP
 
 #include <cstddef>
 #include <array>
@@ -25,11 +25,11 @@ public:
     bucket_allocator() = default;
     bucket_allocator(bucket_allocator&&) = default;
 
-    utils::block_ptr<pointer_type> allocate(size_t size)
+    pointer_type allocate(size_t size)
     {
         size_t ind = BucketPolicy::bucket(size);
         size_t aligned_size = BucketPolicy::bucket_size(ind);
-        return utils::make_block_ptr(m_buckets[ind].allocate(aligned_size), aligned_size);
+        return m_buckets[ind].allocate(aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t size)
@@ -93,4 +93,4 @@ private:
 
 }}}
 
-#endif //DIPLOMA_POOL_H
+#endif //DIPLOMA_BUCKET_ALLOCATOR_HPP

@@ -18,12 +18,12 @@ gc_heap::gc_heap(gc_compacting compacting)
     : m_compacting(compacting)
 {}
 
-gc_pointer_type gc_heap::allocate(size_t size)
+gc_alloc_descriptor gc_heap::allocate(size_t size)
 {
     if (size <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(size);
     } else {
-        return utils::make_block_ptr(m_loa.allocate(size), size);
+        return m_loa.allocate(size);
     }
 }
 
@@ -60,7 +60,7 @@ gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot,
     return stat;
 }
 
-gc_pointer_type gc_heap::allocate_on_tlab(size_t size)
+gc_alloc_descriptor gc_heap::allocate_on_tlab(size_t size)
 {
     assert(size <= LARGE_CELL_SIZE);
     static thread_local tlab_t& tlab = get_tlab();

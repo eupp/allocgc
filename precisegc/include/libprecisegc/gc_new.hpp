@@ -90,40 +90,6 @@ public:
     friend gc_ptr<T[]> gc_new<T[]>(size_t);
 };
 
-struct alloc_descriptor
-{
-    alloc_descriptor(const details::indexed_managed_object& mptr,
-                     details::byte* obj_ptr,
-                     size_t obj_size,
-                     details::traceable_object_meta* obj_meta)
-        : m_managed_ptr(mptr)
-        , m_obj_ptr(obj_ptr)
-        , m_obj_size(obj_size)
-        , m_obj_meta(obj_meta)
-    {}
-
-    details::indexed_managed_object    m_managed_ptr;
-    details::byte*          m_obj_ptr;
-    size_t                  m_obj_size;
-    details::traceable_object_meta*   m_obj_meta;
-};
-
-inline alloc_descriptor gc_new_allocate(size_t obj_size, size_t obj_count, const details::type_meta* tmeta)
-{
-    using namespace details;
-
-    size_t size = obj_count * obj_size + sizeof(traceable_object_meta);
-    gc_pointer_type ptr = gc_allocate(size);
-
-    byte* cell_ptr = ptr.decorated().get();
-    size_t cell_size = ptr.size();
-    byte* obj_ptr = traceable_object_meta::get_object_ptr(cell_ptr, cell_size);
-    traceable_object_meta* obj_meta = traceable_object_meta::get_meta_ptr(cell_ptr, cell_size);
-    new (obj_meta) traceable_object_meta(obj_count, tmeta);
-
-    return alloc_descriptor(ptr.decorated(), obj_ptr, cell_size - sizeof(details::traceable_object_meta), obj_meta);
-}
-
 }
 
 template <typename T, typename... Args>
@@ -135,22 +101,21 @@ auto gc_new(Args&&... args)
 
     gc_unsafe_scope unsafe_scope;
 
-    ::precisegc::internals::alloc_descriptor descr =
-            ::precisegc::internals::gc_new_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
-    T* typed_ptr = reinterpret_cast<T*>(descr.m_obj_ptr);
+    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
 
     if (!type_meta_provider<T>::is_meta_created()) {
-        gc_new_stack::stack_entry stack_entry(descr.m_obj_ptr, descr.m_obj_size, true);
-        new (typed_ptr) T(std::forward<Args>(args)...);
-        descr.m_obj_meta->set_type_meta(type_meta_provider<T>::create_meta(this_managed_thread::gc_ptr_offsets()));
+        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
+        new (descr.get()) T(std::forward<Args>(args)...);
+        descr.descriptor()->set_type_meta(descr.get(),
+                                          type_meta_provider<T>::create_meta(this_managed_thread::gc_ptr_offsets()));
     } else {
-        gc_new_stack::stack_entry stack_entry(descr.m_obj_ptr, descr.m_obj_size, false);
-        new (typed_ptr) T(std::forward<Args>(args)...);
+        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), false);
+        new (descr.get()) T(std::forward<Args>(args)...);
     }
 
-    gc_new_cell(descr.m_managed_ptr);
+    gc_commit(descr);
 
-    return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(typed_ptr);
+    return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(descr.get());
 };
 
 template <typename T>
@@ -164,19 +129,18 @@ auto gc_new(size_t n)
 
     gc_unsafe_scope unsafe_scope;
 
-    ::precisegc::internals::alloc_descriptor descr =
-            ::precisegc::internals::gc_new_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
-    U* typed_ptr = reinterpret_cast<U*>(descr.m_obj_ptr);
+    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
 
-    U* begin = typed_ptr;
-    U* end = typed_ptr + n;
+    U* begin = descr.get();
+    U* end = begin + n;
 
     if (!type_meta_provider<U>::is_meta_created()) {
-        gc_new_stack::stack_entry stack_entry(descr.m_obj_ptr, descr.m_obj_size, true);
+        gc_new_stack::stack_entry stack_entry(begin, descr.size(), true);
         new (begin++) U();
-        descr.m_obj_meta->set_type_meta(type_meta_provider<U>::create_meta(this_managed_thread::gc_ptr_offsets()));
+        descr.descriptor()->set_type_meta(descr.get(),
+                                          type_meta_provider<U>::create_meta(this_managed_thread::gc_ptr_offsets()));
     } else {
-        gc_new_stack::stack_entry stack_entry(descr.m_obj_ptr, descr.m_obj_size, false);
+        gc_new_stack::stack_entry stack_entry(begin, descr.size(), false);
         new (begin++) U();
     }
 
@@ -184,9 +148,9 @@ auto gc_new(size_t n)
         new (it) U();
     }
 
-    gc_new_cell(descr.m_managed_ptr);
+    gc_commit(descr);
 
-    return precisegc::internals::gc_ptr_factory<U[]>::create(typed_ptr);
+    return precisegc::internals::gc_ptr_factory<U[]>::create(descr.get());
 };
 
 template<typename T, typename... Args>

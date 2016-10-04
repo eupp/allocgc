@@ -74,7 +74,7 @@ public:
 
     gc_heap(gc_compacting compacting);
 
-    gc_pointer_type allocate(size_t size);
+    gc_alloc_descriptor allocate(size_t size);
 
     collect_stats collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
@@ -86,7 +86,7 @@ private:
         double m_avg;
     };
 
-    gc_pointer_type allocate_on_tlab(size_t size);
+    gc_alloc_descriptor allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
 
     size_t shrink(const threads::world_snapshot& snapshot);

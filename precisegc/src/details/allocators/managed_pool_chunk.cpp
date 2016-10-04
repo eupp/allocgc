@@ -4,6 +4,8 @@
 #include <limits>
 #include <utility>
 
+#include <libprecisegc/details/collectors/managed_object.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/utils/math.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -22,18 +24,18 @@ managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_siz
     , m_log2_cell_size(log2(cell_size))
     , m_mask(calc_mask(chunk, size, cell_size))
 {
-    indexed_managed_object::add_to_index(chunk, size, this);
+    collectors::memory_index::add_to_index(chunk, size, this);
 }
 
 managed_pool_chunk::~managed_pool_chunk()
 {
-    indexed_managed_object::remove_from_index(get_mem(), get_mem_size());
+    collectors::memory_index::remove_from_index(get_mem(), get_mem_size());
 }
 
 managed_pool_chunk::pointer_type managed_pool_chunk::allocate(size_t size)
 {
     assert(size == cell_size());
-    return indexed_managed_object(m_chunk.allocate(size), this);
+    return gc_alloc_descriptor(m_chunk.allocate(size), size, this);
 }
 
 void managed_pool_chunk::deallocate(const pointer_type& ptr, size_t size)
@@ -158,6 +160,13 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
     uintptr res = (uiptr & m_mask);
     assert(res % m_cell_size == 0);
     return reinterpret_cast<byte*>(res);
+}
+
+void managed_pool_chunk::set_type_meta(byte* ptr, const type_meta* tmeta)
+{
+    assert(m_chunk.contains(ptr));
+    assert(ptr == cell_start(ptr));
+    collectors::managed_object::get_meta(ptr)->set_type_meta(tmeta);
 }
 
 managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,

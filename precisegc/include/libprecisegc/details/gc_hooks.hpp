@@ -19,9 +19,9 @@ void gc_deregister_root(gc_handle* root);
 bool gc_is_root(const gc_handle* ptr);
 bool gc_is_heap_ptr(const gc_handle* ptr);
 
-gc_pointer_type gc_allocate(size_t size);
+gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta);
 
-void gc_new_cell(const indexed_managed_object& ptr);
+void gc_commit(const gc_alloc_descriptor& ptr);
 
 void gc_initiation_point(initiation_point_type ipoint,
                          const initiation_point_data& ipd = initiation_point_data::create_empty_data());

@@ -19,15 +19,18 @@ incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t thread
     , m_threads_available(threads_available)
 {}
 
-gc_pointer_type incremental_gc_base::allocate(size_t size)
+gc_alloc_descriptor incremental_gc_base::allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta)
 {
-    return m_heap.allocate(size);
+    gc_alloc_descriptor descr = m_heap.allocate(obj_size);
+    traceable_object_meta* meta = managed_object::get_meta(descr.get());
+    new (meta) traceable_object_meta(obj_cnt, tmeta);
+    return descr;
 }
 
-void incremental_gc_base::new_cell(const indexed_managed_object& ptr)
+void incremental_gc_base::commit(const gc_alloc_descriptor& alloc_descr)
 {
     if (m_phase == gc_phase::MARK) {
-        ptr.set_mark(true);
+        alloc_descr.descriptor()->set_mark(alloc_descr.get(), true);
     }
 }
 
@@ -39,12 +42,12 @@ byte* incremental_gc_base::rbarrier(const gc_handle& handle)
 void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
-    gc_handle_access::set<std::memory_order_release>(dst, p);
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
+    gc_handle_access::set<std::memory_order_release>(dst, ptr);
     if (m_phase == gc_phase::MARK) {
-        indexed_managed_object mp(dptr_storage::get_origin(p));
-        if (mp && !mp.get_mark()) {
-            m_remset.add(mp.meta());
+        indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(ptr));
+        if (idx_obj && !idx_obj.get_mark()) {
+            m_remset.add(idx_obj.object());
         }
     }
 }

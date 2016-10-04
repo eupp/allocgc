@@ -131,7 +131,7 @@ private:
                     for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
                         byte* ptr = m_remset->get();
                         if (ptr) {
-                            push_to_packet(managed_object(dptr_storage::get_origin(ptr)), output_packet);
+                            push_to_packet(managed_object(ptr), output_packet);
                         } else {
                             break;
                         }

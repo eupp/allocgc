@@ -13,8 +13,6 @@
 
 namespace precisegc { namespace details {
 
-typedef utils::block_ptr<indexed_managed_object> gc_pointer_type;
-
 enum class initiation_point_type {
       USER_REQUEST
     , GC_BAD_ALLOC

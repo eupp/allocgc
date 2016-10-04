@@ -19,8 +19,8 @@ class serial_gc_base : public gc_strategy, private utils::noncopyable, private u
 public:
     serial_gc_base(gc_compacting compacting, size_t threads_available);
 
-    gc_pointer_type allocate(size_t size) override;
-    void new_cell(const indexed_managed_object& ptr) override;
+    gc_alloc_descriptor allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta) override;
+    void commit(const gc_alloc_descriptor& ptr) override;
 
     byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;

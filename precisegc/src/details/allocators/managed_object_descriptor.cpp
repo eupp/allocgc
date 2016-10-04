@@ -2,6 +2,9 @@
 
 #include <cassert>
 
+#include <libprecisegc/details/collectors/managed_object.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
+
 namespace precisegc { namespace details { namespace allocators {
 
 managed_object_descriptor::managed_object_descriptor()
@@ -20,12 +23,12 @@ managed_object_descriptor::managed_object_descriptor(byte* ptr, size_t size, siz
     assert(ptr);
     assert(size > LARGE_CELL_SIZE);
     assert(obj_size <= size);
-    indexed_managed_object::add_to_index(ptr, size, this);
+    collectors::memory_index::add_to_index(ptr, size, this);
 }
 
 managed_object_descriptor::~managed_object_descriptor()
 {
-    indexed_managed_object::remove_from_index(m_ptr, m_size);
+    collectors::memory_index::remove_from_index(m_ptr, m_size);
 }
 
 bool managed_object_descriptor::get_mark(byte* ptr) const
@@ -63,10 +66,16 @@ byte* managed_object_descriptor::cell_start(byte* ptr) const
     return m_ptr;
 }
 
+void managed_object_descriptor::set_type_meta(byte* ptr, const type_meta* tmeta)
+{
+    assert(ptr == m_ptr);
+    collectors::managed_object::get_meta(ptr)->set_type_meta(tmeta);
+}
+
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)
 {
     assert(size <= m_size);
-    return indexed_managed_object(m_ptr, this);
+    return gc_alloc_descriptor(m_ptr, m_size, this);
 }
 
 void managed_object_descriptor::deallocate(const pointer_type& ptr, size_t size)

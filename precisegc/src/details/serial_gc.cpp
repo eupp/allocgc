@@ -19,12 +19,15 @@ serial_gc_base::serial_gc_base(gc_compacting compacting, size_t threads_availabl
     , m_threads_available(threads_available)
 {}
 
-gc_pointer_type serial_gc_base::allocate(size_t size)
+gc_alloc_descriptor serial_gc_base::allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta)
 {
-    return m_heap.allocate(size);
+    gc_alloc_descriptor descr = m_heap.allocate(obj_size);
+    traceable_object_meta* meta = managed_object::get_meta(descr.get());
+    new (meta) traceable_object_meta(obj_cnt, tmeta);
+    return descr;
 }
 
-void serial_gc_base::new_cell(const indexed_managed_object& ptr)
+void serial_gc_base::commit(const gc_alloc_descriptor& ptr)
 {
     return;
 }

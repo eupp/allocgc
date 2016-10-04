@@ -19,7 +19,7 @@ class incremental_gc_mock : public precisegc::details::gc_strategy
     typedef precisegc::details::gc_info gc_info;
 public:
     MOCK_METHOD1(allocate, gc_pointer_type(size_t));
-    MOCK_METHOD1(new_cell, void(const managed_ptr&));
+    MOCK_METHOD1(commit, void(const managed_ptr&));
 
     MOCK_METHOD1(rbarrier, byte*(const gc_handle&));
     MOCK_METHOD2(wbarrier, void(gc_handle&, const gc_handle&));

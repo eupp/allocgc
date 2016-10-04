@@ -3,6 +3,7 @@
 
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/gc_alloc_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
@@ -14,7 +15,7 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef collectors::indexed_managed_object pointer_type;
+    typedef gc_alloc_descriptor pointer_type;
     typedef allocators::single_block_chunk_tag chunk_tag;
     typedef managed_ptr_iterator<managed_object_descriptor> iterator;
 
@@ -49,8 +50,9 @@ public:
     void set_pin(byte* ptr, bool pin) override;
 
     size_t cell_size() const override;
+    byte*  cell_start(byte* ptr) const override;
 
-    byte* cell_start(byte* ptr) const override;
+    void set_type_meta(byte* ptr, const type_meta* tmeta) override;
 private:
     bool check_ptr(byte* ptr) const;
 

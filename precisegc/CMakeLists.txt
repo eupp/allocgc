@@ -97,7 +97,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/compacting/forwarding.hpp
         include/libprecisegc/details/compacting/two_finger_compactor.hpp
         include/libprecisegc/details/collectors/remset.hpp
-        include/libprecisegc/details/collectors/dptr_storage.hpp)
+        include/libprecisegc/details/collectors/dptr_storage.hpp include/libprecisegc/details/managed_object.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_mark.cpp

@@ -39,10 +39,10 @@ struct fix_ptrs_test : public ::testing::Test
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
-    managed_ptr cell_ptr = alloc.allocate(OBJ_SIZE);
+    indexed_managed_object cell_ptr = alloc.allocate(OBJ_SIZE);
     cell_ptr.set_mark(true);
     cell_ptr.set_pin(false);
-    byte* ptr = object_meta::get_object_ptr(cell_ptr.get(), cell_ptr.cell_size());
+    byte* ptr = traceable_object_meta::get_object_ptr(cell_ptr.get(), cell_ptr.cell_size());
 
     test_type val1;
     byte* to = reinterpret_cast<byte*>(&val1);
@@ -51,8 +51,8 @@ TEST_F(fix_ptrs_test, test_fix_ptrs)
     byte*& from = * (byte**) ptr;
     from = reinterpret_cast<byte*>(&val2);
 
-    object_meta* obj_meta = object_meta::get_meta_ptr(cell_ptr.get(), cell_ptr.cell_size());
-    new (obj_meta) object_meta(1, tmeta);
+    traceable_object_meta* obj_meta = traceable_object_meta::get_meta_ptr(cell_ptr.get(), cell_ptr.cell_size());
+    new (obj_meta) traceable_object_meta(1, tmeta);
     obj_meta->set_forward_pointer(ptr);
 
     test_forwarding forwarding;

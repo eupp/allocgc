@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <atomic>
 
-#include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/types.hpp>
 

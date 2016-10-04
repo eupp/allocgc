@@ -54,7 +54,7 @@ gc_pointer_type garbage_collector::try_allocate(size_t size)
     return ptr;
 }
 
-void garbage_collector::new_cell(const managed_ptr& ptr)
+void garbage_collector::new_cell(const indexed_managed_object& ptr)
 {
     assert(m_strategy);
     m_strategy->new_cell(ptr);
@@ -181,7 +181,7 @@ gc_state garbage_collector::state() const
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)
 {
-    managed_ptr cell_ptr(handle.rbarrier());
+    indexed_managed_object cell_ptr(handle.rbarrier());
     byte* cell_begin = cell_ptr.get_cell_begin();
     byte* cell_end   = cell_begin + cell_ptr.cell_size();
     return (cell_begin <= p) && (p <= cell_end);

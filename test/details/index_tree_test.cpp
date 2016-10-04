@@ -2,9 +2,9 @@
 
 #include <random>
 #include <limits>
-#include <libprecisegc/details/index_tree.hpp>
+#include <libprecisegc/details/collectors/index_tree.hpp>
 
-#include "libprecisegc/details/index_tree.hpp"
+#include "libprecisegc/details/collectors/index_tree.hpp"
 #include "libprecisegc/details/allocators/debug_layer.hpp"
 #include "libprecisegc/details/allocators/core_allocator.hpp"
 
@@ -26,7 +26,7 @@ using namespace precisegc::details;
 //
 //    idxs[0] = 0; idxs[1] = 0;
 //    int entry = 0;
-//    level.index(idxs.begin(), &entry);
+//    level.add_to_index(idxs.begin(), &entry);
 //
 //    ASSERT_EQ(&entry, level.get(idxs.begin()));
 //    ASSERT_EQ(1, internals::index_tree_access::get_level_count<int>(level, idxs[0]));
@@ -57,8 +57,8 @@ using namespace precisegc::details;
 //
 //    int entry1 = 0;
 //    int entry2 = 0;
-//    level.index(idxs1.begin(), &entry1);
-//    level.index(idxs2.begin(), &entry2);
+//    level.add_to_index(idxs1.begin(), &entry1);
+//    level.add_to_index(idxs2.begin(), &entry2);
 //
 //    ASSERT_EQ(&entry1, level.get(idxs1.begin()));
 //    ASSERT_EQ(&entry2, level.get(idxs2.begin()));
@@ -93,20 +93,20 @@ TEST_F(index_tree_test, test_index_1)
 {
     byte* mem = (byte*) m_ptrs[0];
     int entry = 0;
-    m_tree.index(mem, PAGE_SIZE, &entry);
+    m_tree.add_to_index(mem, PAGE_SIZE, &entry);
 
-    ASSERT_EQ(&entry, m_tree.get_entry(mem));
+    ASSERT_EQ(&entry, m_tree.index(mem));
 }
 
 TEST_F(index_tree_test, test_index_2)
 {
     byte* mem = (byte*) m_ptrs[0];
     int expected = 0;
-    m_tree.index(mem, PAGE_SIZE, &expected);
+    m_tree.add_to_index(mem, PAGE_SIZE, &expected);
 
     byte* mem_end = mem + PAGE_SIZE;
     for (byte* it = mem; it < mem_end; ++it) {
-        ASSERT_EQ(&expected, m_tree.get_entry(it));
+        ASSERT_EQ(&expected, m_tree.index(it));
     }
 }
 
@@ -117,11 +117,11 @@ TEST_F(index_tree_test, test_remove_index)
 
     int val1 = 0;
     int val2 = 0;
-    m_tree.index(mem1, PAGE_SIZE, &val1);
-    m_tree.index(mem2, PAGE_SIZE, &val2);
+    m_tree.add_to_index(mem1, PAGE_SIZE, &val1);
+    m_tree.add_to_index(mem2, PAGE_SIZE, &val2);
 
-    m_tree.remove_index(mem1, PAGE_SIZE);
+    m_tree.remove_from_index(mem1, PAGE_SIZE);
 
-    ASSERT_EQ(nullptr, m_tree.get_entry(mem1));
-    ASSERT_EQ(&val2, m_tree.get_entry(mem2));
+    ASSERT_EQ(nullptr, m_tree.index(mem1));
+    ASSERT_EQ(&val2, m_tree.index(mem2));
 }

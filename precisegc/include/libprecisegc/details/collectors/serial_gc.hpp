@@ -20,7 +20,7 @@ public:
     serial_gc_base(gc_compacting compacting, size_t threads_available);
 
     gc_pointer_type allocate(size_t size) override;
-    void new_cell(const managed_ptr& ptr) override;
+    void new_cell(const indexed_managed_object& ptr) override;
 
     byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;

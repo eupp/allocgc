@@ -5,21 +5,21 @@
 #include <unordered_set>
 #include <mutex>
 
-#include <libprecisegc/details/object_meta.hpp>
+#include <libprecisegc/details/collectors/managed_object.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
 class remset : private utils::noncopyable, private utils::nonmovable
 {
-    typedef std::unordered_set<object_meta*> hashtable_t;
+    typedef std::unordered_set<byte*> hashtable_t;
 public:
     typedef hashtable_t::const_iterator const_iterator;
 
     remset() = default;
 
-    void add(object_meta* meta);
-    object_meta* get();
+    void  add(byte* ptr);
+    byte* get();
 
     void clear();
     void flush_buffers();
@@ -37,11 +37,11 @@ private:
     class sequential_store_buffer : private utils::noncopyable, private utils::nonmovable
     {
     public:
-        typedef object_meta* const* const_iterator;
+        typedef byte* const* const_iterator;
 
         sequential_store_buffer();
 
-        void push(object_meta* meta);
+        void push(byte* ptr);
         void clear();
 
         bool is_full() const;
@@ -53,7 +53,7 @@ private:
 
         static const size_t SSB_SIZE = 64;
 
-        object_meta* m_data[SSB_SIZE];
+        byte* m_data[SSB_SIZE];
         size_t m_size;
     };
 

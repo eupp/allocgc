@@ -11,7 +11,7 @@
 #include <libprecisegc/gc_ptr.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/type_meta.hpp>
-#include <libprecisegc/details/object_meta.hpp>
+#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
@@ -92,36 +92,36 @@ public:
 
 struct alloc_descriptor
 {
-    alloc_descriptor(const details::managed_ptr& mptr,
+    alloc_descriptor(const details::indexed_managed_object& mptr,
                      details::byte* obj_ptr,
                      size_t obj_size,
-                     details::object_meta* obj_meta)
+                     details::traceable_object_meta* obj_meta)
         : m_managed_ptr(mptr)
         , m_obj_ptr(obj_ptr)
         , m_obj_size(obj_size)
         , m_obj_meta(obj_meta)
     {}
 
-    details::managed_ptr    m_managed_ptr;
+    details::indexed_managed_object    m_managed_ptr;
     details::byte*          m_obj_ptr;
     size_t                  m_obj_size;
-    details::object_meta*   m_obj_meta;
+    details::traceable_object_meta*   m_obj_meta;
 };
 
 inline alloc_descriptor gc_new_allocate(size_t obj_size, size_t obj_count, const details::type_meta* tmeta)
 {
     using namespace details;
 
-    size_t size = obj_count * obj_size + sizeof(object_meta);
+    size_t size = obj_count * obj_size + sizeof(traceable_object_meta);
     gc_pointer_type ptr = gc_allocate(size);
 
     byte* cell_ptr = ptr.decorated().get();
     size_t cell_size = ptr.size();
-    byte* obj_ptr = object_meta::get_object_ptr(cell_ptr, cell_size);
-    object_meta* obj_meta = object_meta::get_meta_ptr(cell_ptr, cell_size);
-    new (obj_meta) object_meta(obj_count, tmeta);
+    byte* obj_ptr = traceable_object_meta::get_object_ptr(cell_ptr, cell_size);
+    traceable_object_meta* obj_meta = traceable_object_meta::get_meta_ptr(cell_ptr, cell_size);
+    new (obj_meta) traceable_object_meta(obj_count, tmeta);
 
-    return alloc_descriptor(ptr.decorated(), obj_ptr, cell_size - sizeof(details::object_meta), obj_meta);
+    return alloc_descriptor(ptr.decorated(), obj_ptr, cell_size - sizeof(details::traceable_object_meta), obj_meta);
 }
 
 }

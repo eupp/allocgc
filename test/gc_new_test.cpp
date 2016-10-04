@@ -37,7 +37,7 @@ TEST(gc_new_test, test_meta)
 {
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
-    object_meta* obj_meta = get_object_header((void*) pin.get());
+    traceable_object_meta* obj_meta = get_object_header((void*) pin.get());
     const type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_EQ(1, obj_meta->object_count());
@@ -77,7 +77,7 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    object_meta* obj_meta = get_object_header((void*) ptr.pin().get());
+    traceable_object_meta* obj_meta = get_object_header((void*) ptr.pin().get());
     const type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_NE(nullptr, cls_meta);

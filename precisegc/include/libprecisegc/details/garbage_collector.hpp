@@ -9,7 +9,7 @@
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/initiation_policy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
-#include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
@@ -27,7 +27,7 @@ public:
 
     gc_pointer_type allocate(size_t size);
 
-    void new_cell(const managed_ptr& ptr);
+    void new_cell(const indexed_managed_object& ptr);
 
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);

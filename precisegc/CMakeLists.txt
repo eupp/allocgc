@@ -7,7 +7,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/libprecisegc.hpp
 
         include/libprecisegc/details/type_meta.hpp
-        include/libprecisegc/details/object_meta.hpp
+        include/libprecisegc/details/collectors/traceable_object_meta.hpp
         include/libprecisegc/details/gc_heap.hpp
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.hpp
@@ -19,7 +19,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/logging.hpp
         include/libprecisegc/details/gc_mark.hpp
         include/libprecisegc/details/allocators/core_allocator.hpp
-        include/libprecisegc/details/index_tree.hpp
+        include/libprecisegc/details/collectors/index_tree.hpp
         include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/debug_layer.hpp
         include/libprecisegc/details/allocators/bucket_allocator.hpp
@@ -29,7 +29,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
         include/libprecisegc/details/allocators/managed_pool_chunk.hpp
         include/libprecisegc/details/memory_descriptor.hpp
-        include/libprecisegc/details/managed_ptr.hpp
+        include/libprecisegc/details/collectors/indexed_managed_object.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
@@ -45,7 +45,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/garbage_collector.hpp
         include/libprecisegc/details/collectors/marker.hpp
         include/libprecisegc/details/utils/locked_range.hpp
-        include/libprecisegc/details/ptrs/trace_ptr.hpp
+        include/libprecisegc/details/collectors/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
         include/libprecisegc/details/gc_strategy.hpp
         include/libprecisegc/details/utils/to_string.hpp
@@ -97,7 +97,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/compacting/forwarding.hpp
         include/libprecisegc/details/compacting/two_finger_compactor.hpp
         include/libprecisegc/details/collectors/remset.hpp
-        include/libprecisegc/details/collectors/dptr_storage.hpp include/libprecisegc/details/managed_object.hpp)
+        include/libprecisegc/details/collectors/dptr_storage.hpp include/libprecisegc/details/collectors/managed_object.hpp include/libprecisegc/details/collectors/memory_index.hpp include/libprecisegc/details/gc_alloc_descriptor.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_mark.cpp
@@ -107,7 +107,7 @@ set(precisegc_LIB_SRCS
         src/details/logging.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/managed_pool_chunk.cpp
-        src/details/managed_ptr.cpp
+        src/details/indexed_managed_object.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp
@@ -128,7 +128,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/core_allocator.cpp
         src/details/threads/stack_bitmap.cpp
         src/details/threads/managed_thread.cpp
-        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp)
+        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp src/details/collectors/memory_index.cpp)
 
 
 find_package(Threads REQUIRED)

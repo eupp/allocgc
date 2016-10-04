@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "libprecisegc/details/managed_ptr.hpp"
+#include "libprecisegc/details/collectors/indexed_managed_object.hpp"
 
 #include "memory_descriptor_mock.h"
 #include "page_ptr.h"
@@ -15,12 +15,12 @@ struct managed_ptr_test : public ::testing::Test
     managed_ptr_test()
         : m_mem(make_page_ptr())
     {
-        managed_ptr::add_to_index(m_mem.get(), PAGE_SIZE, &m_mock);
+        indexed_managed_object::add_to_index(m_mem.get(), PAGE_SIZE, &m_mock);
     }
 
     ~managed_ptr_test()
     {
-        managed_ptr::remove_from_index(m_mem.get(), PAGE_SIZE);
+        indexed_managed_object::remove_from_index(m_mem.get(), PAGE_SIZE);
     }
 
     page_ptr m_mem;
@@ -29,25 +29,25 @@ struct managed_ptr_test : public ::testing::Test
 
 TEST_F(managed_ptr_test, test_default_constructor)
 {
-    managed_ptr ptr1;
+    indexed_managed_object ptr1;
     EXPECT_EQ(nullptr, ptr1.get());
 
-    managed_ptr ptr2(nullptr);
+    indexed_managed_object ptr2(nullptr);
     EXPECT_EQ(nullptr, ptr2.get());
 }
 
 TEST_F(managed_ptr_test, test_constructor)
 {
-    managed_ptr ptr1(m_mem.get());
+    indexed_managed_object ptr1(m_mem.get());
     EXPECT_EQ(m_mem.get(), ptr1.get());
 
-    managed_ptr ptr2(m_mem.get(), &m_mock);
+    indexed_managed_object ptr2(m_mem.get(), &m_mock);
     EXPECT_EQ(m_mem.get(), ptr2.get());
 }
 
 TEST_F(managed_ptr_test, test_get_mark)
 {
-    managed_ptr ptr(m_mem.get(), &m_mock);
+    indexed_managed_object ptr(m_mem.get(), &m_mock);
 
     EXPECT_CALL(m_mock, get_mark(m_mem.get()))
         .Times(Exactly(1));
@@ -57,7 +57,7 @@ TEST_F(managed_ptr_test, test_get_mark)
 
 TEST_F(managed_ptr_test, test_get_pin)
 {
-    managed_ptr ptr(m_mem.get(), &m_mock);
+    indexed_managed_object ptr(m_mem.get(), &m_mock);
 
     EXPECT_CALL(m_mock, get_pin(m_mem.get()))
             .Times(Exactly(1));
@@ -67,7 +67,7 @@ TEST_F(managed_ptr_test, test_get_pin)
 
 TEST_F(managed_ptr_test, test_set_mark)
 {
-    managed_ptr ptr(m_mem.get(), &m_mock);
+    indexed_managed_object ptr(m_mem.get(), &m_mock);
 
     EXPECT_CALL(m_mock, set_mark(m_mem.get(), true))
             .Times(Exactly(1));
@@ -77,7 +77,7 @@ TEST_F(managed_ptr_test, test_set_mark)
 
 TEST_F(managed_ptr_test, test_set_pin)
 {
-    managed_ptr ptr(m_mem.get(), &m_mock);
+    indexed_managed_object ptr(m_mem.get(), &m_mock);
 
     EXPECT_CALL(m_mock, set_pin(m_mem.get(), true))
             .Times(Exactly(1));
@@ -87,7 +87,7 @@ TEST_F(managed_ptr_test, test_set_pin)
 
 TEST_F(managed_ptr_test, test_cell_size)
 {
-    managed_ptr ptr(m_mem.get(), &m_mock);
+    indexed_managed_object ptr(m_mem.get(), &m_mock);
 
     EXPECT_CALL(m_mock, cell_size())
             .Times(Exactly(1));
@@ -97,7 +97,7 @@ TEST_F(managed_ptr_test, test_cell_size)
 
 TEST_F(managed_ptr_test, test_get_cell_begin)
 {
-    managed_ptr ptr(m_mem.get(), &m_mock);
+    indexed_managed_object ptr(m_mem.get(), &m_mock);
 
     EXPECT_CALL(m_mock, get_cell_begin(m_mem.get()))
             .Times(Exactly(1));

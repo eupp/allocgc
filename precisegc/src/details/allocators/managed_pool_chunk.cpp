@@ -22,18 +22,18 @@ managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_siz
     , m_log2_cell_size(log2(cell_size))
     , m_mask(calc_mask(chunk, size, cell_size))
 {
-    managed_ptr::add_to_index(chunk, size, this);
+    indexed_managed_object::add_to_index(chunk, size, this);
 }
 
 managed_pool_chunk::~managed_pool_chunk()
 {
-    managed_ptr::remove_from_index(get_mem(), get_mem_size());
+    indexed_managed_object::remove_from_index(get_mem(), get_mem_size());
 }
 
 managed_pool_chunk::pointer_type managed_pool_chunk::allocate(size_t size)
 {
     assert(size == cell_size());
-    return managed_ptr(m_chunk.allocate(size), this);
+    return indexed_managed_object(m_chunk.allocate(size), this);
 }
 
 void managed_pool_chunk::deallocate(const pointer_type& ptr, size_t size)
@@ -152,7 +152,7 @@ size_t managed_pool_chunk::cell_size() const
     return m_cell_size;
 }
 
-byte* managed_pool_chunk::get_cell_begin(byte* ptr) const
+byte* managed_pool_chunk::cell_start(byte* ptr) const
 {
     uintptr uiptr = reinterpret_cast<uintptr>(ptr);
     uintptr res = (uiptr & m_mask);
@@ -171,7 +171,7 @@ managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 {
     assert(get_mem() <= ptr && ptr < get_mem() + get_mem_size());
-    byte* cell_ptr = get_cell_begin(ptr);
+    byte* cell_ptr = cell_start(ptr);
     assert((cell_ptr - get_mem()) % pow2(m_log2_cell_size) == 0);
     return (cell_ptr - get_mem()) >> m_log2_cell_size;
 }

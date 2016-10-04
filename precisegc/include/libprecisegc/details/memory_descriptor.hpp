@@ -22,8 +22,7 @@ public:
     virtual void set_pin(byte* ptr, bool pin) = 0;
 
     virtual size_t cell_size() const  = 0;
-
-    virtual byte* get_cell_begin(byte* ptr) const = 0;
+    virtual byte*  cell_start(byte* ptr) const = 0;
 };
 
 }}

@@ -20,12 +20,12 @@ managed_object_descriptor::managed_object_descriptor(byte* ptr, size_t size, siz
     assert(ptr);
     assert(size > LARGE_CELL_SIZE);
     assert(obj_size <= size);
-    managed_ptr::add_to_index(ptr, size, this);
+    indexed_managed_object::add_to_index(ptr, size, this);
 }
 
 managed_object_descriptor::~managed_object_descriptor()
 {
-    managed_ptr::remove_from_index(m_ptr, m_size);
+    indexed_managed_object::remove_from_index(m_ptr, m_size);
 }
 
 bool managed_object_descriptor::get_mark(byte* ptr) const
@@ -57,7 +57,7 @@ size_t managed_object_descriptor::cell_size() const
     return m_size;
 }
 
-byte* managed_object_descriptor::get_cell_begin(byte* ptr) const
+byte* managed_object_descriptor::cell_start(byte* ptr) const
 {
     assert(check_ptr(ptr));
     return m_ptr;
@@ -66,7 +66,7 @@ byte* managed_object_descriptor::get_cell_begin(byte* ptr) const
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)
 {
     assert(size <= m_size);
-    return managed_ptr(m_ptr, this);
+    return indexed_managed_object(m_ptr, this);
 }
 
 void managed_object_descriptor::deallocate(const pointer_type& ptr, size_t size)

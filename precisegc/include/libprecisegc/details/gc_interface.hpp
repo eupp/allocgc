@@ -6,14 +6,14 @@
 #include <boost/variant.hpp>
 
 #include <libprecisegc/details/utils/block_ptr.hpp>
-#include <libprecisegc/details/managed_ptr.hpp>
-#include <libprecisegc/details/object_meta.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
+#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 
 namespace precisegc { namespace details {
 
-typedef utils::block_ptr<managed_ptr> gc_pointer_type;
+typedef utils::block_ptr<indexed_managed_object> gc_pointer_type;
 
 enum class initiation_point_type {
       USER_REQUEST

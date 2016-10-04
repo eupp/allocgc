@@ -14,7 +14,7 @@
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/ptrs/trace_ptr.hpp>
+#include <libprecisegc/details/collectors/trace_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 
@@ -50,10 +50,10 @@ public:
         auto output_packet = m_packet_manager->pop_output_packet();
         tracer.trace([this, &output_packet] (gc_handle* root) {
             byte* p = gc_handle_access::get<std::memory_order_relaxed>(*root);
-            managed_ptr mp = managed_ptr(dptr_storage::get_origin(p));
-            if (mp) {
-                mp.set_mark(true);
-                push_root_to_packet(mp, output_packet);
+            indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(p));
+            if (idx_obj) {
+                idx_obj.set_mark(true);
+                push_root_to_packet(idx_obj.object(), output_packet);
             }
             logging::debug() << "root: " << (void*) root;
         });
@@ -64,14 +64,15 @@ public:
     void trace_pins(Traceable&& tracer)
     {
         auto output_packet = m_packet_manager->pop_output_packet();
-        tracer.trace([this, &output_packet] (void* p) {
-            managed_ptr mp = managed_ptr((byte*) p);
-            if (mp) {
-                mp.set_mark(true);
-                mp.set_pin(true);
-                push_root_to_packet(mp, output_packet);
+        tracer.trace([this, &output_packet] (byte* ptr) {
+
+            indexed_managed_object idx_obj = indexed_managed_object::index_by_indirect_ptr(ptr);
+            if (idx_obj) {
+                idx_obj.set_mark(true);
+                idx_obj.set_pin(true);
+                push_root_to_packet(idx_obj.object(), output_packet);
             }
-            logging::debug() << "pin: " << (void*) mp.get();
+            logging::debug() << "pin: " << (void*) ptr;
         });
         m_packet_manager->push_packet(std::move(output_packet));
     }
@@ -83,12 +84,12 @@ public:
         logging::info() << "remset size: " << m_remset->size();
         auto output_packet = m_packet_manager->pop_output_packet();
         for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
-            managed_ptr mp = managed_ptr((*it)->get_object_begin());
-            if (mp) {
-                mp.set_mark(true);
-                push_root_to_packet(mp, output_packet);
+            indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(*it));
+            if (idx_obj) {
+                idx_obj.set_mark(true);
+                push_root_to_packet(idx_obj.object(), output_packet);
             }
-            logging::debug() << "remset ptr: " << (void*) mp.get();
+            logging::debug() << "remset ptr: " << (void*) dptr_storage::get(*it);
         }
         m_remset->clear();
         m_packet_manager->push_packet(std::move(output_packet));
@@ -128,9 +129,9 @@ private:
 
                 if (m_remset) {
                     for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
-                        object_meta* meta = m_remset->get();
-                        if (meta) {
-                            push_to_packet(meta, output_packet);
+                        byte* ptr = m_remset->get();
+                        if (ptr) {
+                            push_to_packet(managed_object(dptr_storage::get_origin(ptr)), output_packet);
                         } else {
                             break;
                         }
@@ -160,8 +161,8 @@ private:
                 output_packet = m_packet_manager->pop_output_packet();
             }
             while (!input_packet->is_empty()) {
-                ptrs::trace_ptr(input_packet->pop(), [this, &output_packet] (object_meta* meta) {
-                    push_to_packet(meta, output_packet);
+                trace_ptr(input_packet->pop(), [this, &output_packet] (managed_object obj) {
+                    push_to_packet(obj, output_packet);
                 });
             }
 
@@ -171,16 +172,16 @@ private:
         }
     }
 
-    void push_root_to_packet(const managed_ptr& mp, packet_manager::mark_packet_handle& output_packet)
+    void push_root_to_packet(byte* cell_start, packet_manager::mark_packet_handle& output_packet)
     {
         if (output_packet->is_full()) {
             m_packet_manager->push_packet(std::move(output_packet));
             output_packet = m_packet_manager->pop_output_packet();
         }
-        output_packet->push(mp.get_meta());
+        output_packet->push(managed_object(cell_start));
     }
 
-    void push_to_packet(object_meta* meta, packet_manager::mark_packet_handle& output_packet)
+    void push_to_packet(managed_object obj, packet_manager::mark_packet_handle& output_packet)
     {
         if (output_packet->is_full()) {
             size_t attempts = 0;
@@ -194,7 +195,7 @@ private:
                 throw marking_overflow_exception();
             }
         }
-        output_packet->push(meta);
+        output_packet->push(obj);
     }
 
     packet_manager* m_packet_manager;

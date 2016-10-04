@@ -14,8 +14,9 @@
 #include <libprecisegc/details/allocators/null_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
-#include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -35,7 +36,7 @@ private:
     typedef freelist_allocator<null_allocator, fixsize_policy> freelist_t;
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
-    typedef managed_ptr pointer_type;
+    typedef gc_alloc_descriptor pointer_type;
     typedef managed_ptr_iterator<managed_pool_chunk> iterator;
     typedef boost::iterator_range<iterator> range_type;
 
@@ -89,7 +90,7 @@ public:
 
     virtual size_t cell_size() const override;
 
-    virtual byte* get_cell_begin(byte* ptr) const override;
+    virtual byte* cell_start(byte* ptr) const override;
 private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
 

@@ -2,25 +2,25 @@
 
 namespace precisegc { namespace details { namespace collectors {
 
-void remset::add(object_meta* meta)
+void remset::add(byte* ptr)
 {
     static thread_local ssb_t& ssb = get_ssb();
     if (ssb.is_full()) {
         flush_ssb(ssb);
     }
-    ssb.push(meta);
+    ssb.push(ptr);
 }
 
-object_meta* remset::get()
+byte* remset::get()
 {
     std::lock_guard<mutex_t> lock(m_hashtable_mutex);
     if (m_hashtable.empty()) {
         return nullptr;
     }
     auto it = m_hashtable.begin();
-    object_meta* meta = *it;
+    byte* ptr = *it;
     m_hashtable.erase(it);
-    return meta;
+    return ptr;
 }
 
 size_t remset::size() const
@@ -76,10 +76,10 @@ remset::sequential_store_buffer::sequential_store_buffer()
     : m_size(0)
 {}
 
-void remset::sequential_store_buffer::push(object_meta* meta)
+void remset::sequential_store_buffer::push(byte* ptr)
 {
     assert(!is_full());
-    m_data[m_size++] = meta;
+    m_data[m_size++] = ptr;
 }
 
 void remset::sequential_store_buffer::clear()

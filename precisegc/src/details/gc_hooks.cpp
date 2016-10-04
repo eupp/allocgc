@@ -53,7 +53,7 @@ gc_pointer_type gc_allocate(size_t size)
     return gc_instance.allocate(size);
 }
 
-void gc_new_cell(const managed_ptr& ptr)
+void gc_new_cell(const indexed_managed_object& ptr)
 {
     gc_instance.new_cell(ptr);
 }

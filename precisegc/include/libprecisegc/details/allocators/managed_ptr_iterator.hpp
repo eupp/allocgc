@@ -3,7 +3,7 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -13,9 +13,9 @@ class managed_object_descriptor;
 template <typename Chunk>
 class managed_ptr_iterator : public boost::iterator_facade<
           managed_ptr_iterator<Chunk>
-        , const managed_ptr
+        , const indexed_managed_object
         , boost::random_access_traversal_tag
-        , const managed_ptr
+        , const indexed_managed_object
     >
 {
 public:
@@ -26,7 +26,7 @@ public:
     managed_ptr_iterator& operator=(const managed_ptr_iterator&) noexcept = default;
     managed_ptr_iterator& operator=(managed_ptr_iterator&&) noexcept = default;
 
-    const managed_ptr* operator->()
+    const indexed_managed_object* operator->()
     {
         return &m_ptr;
     }
@@ -39,7 +39,7 @@ private:
         : m_ptr(ptr, descr)
     {}
 
-    managed_ptr dereference() const
+    indexed_managed_object dereference() const
     {
         return m_ptr;
     }
@@ -75,7 +75,7 @@ private:
         return chunk->cell_size();
     }
 
-    managed_ptr m_ptr;
+    indexed_managed_object m_ptr;
 };
 
 }}}

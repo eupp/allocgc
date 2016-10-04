@@ -49,11 +49,11 @@ TEST_F(managed_pool_chunk_test, test_construct)
 
 TEST_F(managed_pool_chunk_test, test_allocate)
 {
-    managed_ptr cell_ptr = m_chunk.allocate(CELL_SIZE);
+    indexed_managed_object cell_ptr = m_chunk.allocate(CELL_SIZE);
 
     EXPECT_NE(nullptr, cell_ptr.get());
     EXPECT_EQ(cell_ptr.get_descriptor(), m_chunk.get_descriptor());
-    EXPECT_EQ(managed_ptr::index(cell_ptr.get()), m_chunk.get_descriptor());
+    EXPECT_EQ(indexed_managed_object::index(cell_ptr.get()), m_chunk.get_descriptor());
 }
 
 TEST_F(managed_pool_chunk_test, test_get_cell_meta)
@@ -64,7 +64,7 @@ TEST_F(managed_pool_chunk_test, test_get_cell_meta)
 
     for (byte* ptr = mem; ptr < mem + mem_size; ptr += CELL_SIZE) {
         for (byte* p = ptr; p < ptr + CELL_SIZE; p++) {
-            ASSERT_EQ(ptr, descr->get_cell_begin(p));
+            ASSERT_EQ(ptr, descr->cell_start(p));
         }
     }
 }
@@ -73,7 +73,7 @@ namespace {
 const size_t OBJ_SIZE = 8;
 const size_t OBJ_CNT = 2;
 
-static_assert(OBJ_CNT * OBJ_SIZE + sizeof(object_meta) <= CELL_SIZE,
+static_assert(OBJ_CNT * OBJ_SIZE + sizeof(traceable_object_meta) <= CELL_SIZE,
               "managed_pool_chunk_test assertion failed");
 
 struct test_type

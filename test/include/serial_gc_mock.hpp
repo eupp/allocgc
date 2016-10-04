@@ -9,7 +9,7 @@ class serial_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_handle gc_handle;
-    typedef precisegc::details::managed_ptr managed_ptr;
+    typedef precisegc::details::indexed_managed_object managed_ptr;
     typedef precisegc::details::gc_pointer_type gc_pointer_type;
     typedef precisegc::details::initiation_point_type initation_point_type;
     typedef precisegc::details::gc_options gc_options;

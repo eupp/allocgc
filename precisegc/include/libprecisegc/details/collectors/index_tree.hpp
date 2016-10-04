@@ -20,7 +20,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 namespace internals {
 struct index_tree_access;
@@ -84,29 +84,29 @@ public:
         clear();
     }
 
-    void index(byte* mem, size_t size, T* entry)
+    void add_to_index(byte* mem, size_t size, T* entry)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         assert(size % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
-            index_page(it, entry);
+            add_page_to_index(it, entry);
         }
     }
 
-    void remove_index(byte* mem, size_t size)
+    void remove_from_index(byte* mem, size_t size)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         assert(size % PAGE_SIZE == 0);
         byte* mem_end = mem + size;
         for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
-            remove_page_index(it);
+            remove_page_from_index(it);
         }
     }
 
-    T* get_entry(byte* mem)
+    T* index(byte* mem)
     {
-        return get_page_entry(mem);
+        return index_page(mem);
     }
 
     friend struct internals::index_tree_access;
@@ -268,19 +268,19 @@ private:
         array_t m_data;
     };
 
-    void index_page(byte* page, T* entry)
+    void add_page_to_index(byte* page, T* entry)
     {
         idxs_t idxs = internals::splitter::split(page);
         m_first_level.index(idxs.begin(), entry);
     }
 
-    void remove_page_index(byte* page)
+    void remove_page_from_index(byte* page)
     {
         idxs_t idxs = internals::splitter::split(page);
         m_first_level.remove_index(idxs.begin());
     }
 
-    T* get_page_entry(byte* page)
+    T* index_page(byte* page)
     {
         idxs_t idxs = internals::splitter::split(page);
         return m_first_level.get(idxs.begin());
@@ -330,6 +330,6 @@ template <typename T>
 template <typename Level>
 allocators::pool<Level, std::mutex> index_tree<T>::level_factory<Level>::level_pool{};
 
-}}
+}}}
 
 #endif //DIPLOMA_INDEX_TREE_H

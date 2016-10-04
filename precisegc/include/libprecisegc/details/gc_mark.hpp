@@ -2,7 +2,7 @@
 #define DIPLOMA_GC_MARK_H
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/object_meta.hpp>
+#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 
 namespace precisegc { namespace details {
 
@@ -14,7 +14,7 @@ bool get_object_pin(void* ptr);
 void set_object_mark(void* ptr, bool marked);
 void set_object_pin(void* ptr, bool pinned);
 
-object_meta * get_object_header(void *ptr);
+traceable_object_meta * get_object_header(void *ptr);
 
 }}
 

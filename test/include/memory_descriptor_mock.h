@@ -21,7 +21,7 @@ public:
 
     MOCK_CONST_METHOD0(cell_size, size_t(void));
 
-    MOCK_CONST_METHOD1(get_cell_meta, precisegc::details::object_meta* (byte* ptr));
+    MOCK_CONST_METHOD1(get_cell_meta, precisegc::details::traceable_object_meta* (byte* ptr));
     MOCK_CONST_METHOD1(get_cell_begin, byte*(byte* ptr));
     MOCK_CONST_METHOD1(get_obj_begin, byte*(byte* ptr));
 };

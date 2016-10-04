@@ -24,7 +24,7 @@ gc_pointer_type incremental_gc_base::allocate(size_t size)
     return m_heap.allocate(size);
 }
 
-void incremental_gc_base::new_cell(const managed_ptr& ptr)
+void incremental_gc_base::new_cell(const indexed_managed_object& ptr)
 {
     if (m_phase == gc_phase::MARK) {
         ptr.set_mark(true);
@@ -42,9 +42,9 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
     gc_handle_access::set<std::memory_order_release>(dst, p);
     if (m_phase == gc_phase::MARK) {
-        managed_ptr mp(dptr_storage::get_origin(p));
+        indexed_managed_object mp(dptr_storage::get_origin(p));
         if (mp && !mp.get_mark()) {
-            m_remset.add(mp.get_meta());
+            m_remset.add(mp.meta());
         }
     }
 }

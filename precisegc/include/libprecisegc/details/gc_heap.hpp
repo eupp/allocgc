@@ -23,7 +23,7 @@
 #include <libprecisegc/details/utils/safepoint_lock.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/object_meta.hpp>
+#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/compacting/forwarding.hpp>

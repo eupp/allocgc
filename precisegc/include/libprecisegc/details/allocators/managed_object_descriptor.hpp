@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
 #define DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
 
-#include <libprecisegc/details/managed_ptr.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
@@ -14,7 +14,7 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef managed_ptr pointer_type;
+    typedef collectors::indexed_managed_object pointer_type;
     typedef allocators::single_block_chunk_tag chunk_tag;
     typedef managed_ptr_iterator<managed_object_descriptor> iterator;
 
@@ -50,7 +50,7 @@ public:
 
     size_t cell_size() const override;
 
-    byte* get_cell_begin(byte* ptr) const override;
+    byte* cell_start(byte* ptr) const override;
 private:
     bool check_ptr(byte* ptr) const;
 

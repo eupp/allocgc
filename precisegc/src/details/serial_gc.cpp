@@ -24,7 +24,7 @@ gc_pointer_type serial_gc_base::allocate(size_t size)
     return m_heap.allocate(size);
 }
 
-void serial_gc_base::new_cell(const managed_ptr& ptr)
+void serial_gc_base::new_cell(const indexed_managed_object& ptr)
 {
     return;
 }

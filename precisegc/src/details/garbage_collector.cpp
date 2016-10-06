@@ -46,7 +46,7 @@ gc_alloc_descriptor garbage_collector::allocate(size_t obj_size, size_t obj_cnt,
     }
 }
 
-gc_alloc_descriptor garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, type_meta* tmeta)
+gc_alloc_descriptor garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta)
 {
     assert(m_strategy);
     return m_strategy->allocate(obj_size, obj_cnt, tmeta);
@@ -73,7 +73,8 @@ void garbage_collector::wbarrier(gc_handle& dst, const gc_handle& src)
 void garbage_collector::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     assert(m_strategy);
-    assert(is_interior_offset(handle, offset));
+    // this assertion doesn't work properly in current version
+//    assert(is_interior_offset(handle, offset));
     m_strategy->interior_wbarrier(handle, offset);
 }
 
@@ -179,10 +180,10 @@ gc_state garbage_collector::state() const
 
 bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)
 {
-    indexed_managed_object cell_ptr(handle.rbarrier());
-    byte* cell_begin = cell_ptr.get_cell_begin();
-    byte* cell_end   = cell_begin + cell_ptr.cell_size();
-    return (cell_begin <= p) && (p <= cell_end);
+    auto idx_ptr = collectors::indexed_managed_object::index(handle.rbarrier());
+    byte* cell_begin = idx_ptr.object();
+    byte* cell_end   = cell_begin + idx_ptr.cell_size();
+    return (cell_begin <= p) && (p < cell_end);
 }
 
 bool garbage_collector::is_interior_offset(const gc_handle& handle, ptrdiff_t shift)

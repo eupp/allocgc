@@ -24,7 +24,7 @@ gc_alloc_descriptor serial_gc_base::allocate(size_t obj_size, size_t obj_cnt, co
     gc_alloc_descriptor descr = m_heap.allocate(obj_size);
     traceable_object_meta* meta = managed_object::get_meta(descr.get());
     new (meta) traceable_object_meta(obj_cnt, tmeta);
-    return descr;
+    return gc_alloc_descriptor(managed_object::get_object(descr.get()), descr.size(), descr.descriptor());
 }
 
 void serial_gc_base::commit(const gc_alloc_descriptor& ptr)

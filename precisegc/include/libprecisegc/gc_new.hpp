@@ -115,7 +115,9 @@ auto gc_new(Args&&... args)
 
     gc_commit(descr);
 
-    return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(descr.get());
+    return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(
+            reinterpret_cast<T*>(descr.get())
+    );
 };
 
 template <typename T>
@@ -131,16 +133,16 @@ auto gc_new(size_t n)
 
     gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
 
-    U* begin = descr.get();
+    U* begin = reinterpret_cast<U*>(descr.get());
     U* end = begin + n;
 
     if (!type_meta_provider<U>::is_meta_created()) {
-        gc_new_stack::stack_entry stack_entry(begin, descr.size(), true);
+        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
         new (begin++) U();
         descr.descriptor()->set_type_meta(descr.get(),
                                           type_meta_provider<U>::create_meta(this_managed_thread::gc_ptr_offsets()));
     } else {
-        gc_new_stack::stack_entry stack_entry(begin, descr.size(), false);
+        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), false);
         new (begin++) U();
     }
 
@@ -150,7 +152,9 @@ auto gc_new(size_t n)
 
     gc_commit(descr);
 
-    return precisegc::internals::gc_ptr_factory<U[]>::create(descr.get());
+    return precisegc::internals::gc_ptr_factory<U[]>::create(
+            reinterpret_cast<U*>(descr.get())
+    );
 };
 
 template<typename T, typename... Args>

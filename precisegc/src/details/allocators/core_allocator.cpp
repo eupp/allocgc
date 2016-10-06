@@ -18,7 +18,7 @@ byte* core_allocator::allocate(size_t size)
     byte* page = nullptr;
     if (aligned_size <= MAX_BUCKETIZE_SIZE) {
         std::lock_guard<mutex_t> lock(mutex);
-        page = bucket_alloc.allocate(aligned_size).decorated();
+        page = bucket_alloc.allocate(aligned_size);
         memset(page, 0, aligned_size);
     } else {
         page = sys_allocator::allocate(aligned_size);

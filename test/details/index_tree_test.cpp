@@ -9,6 +9,7 @@
 #include "libprecisegc/details/allocators/core_allocator.hpp"
 
 using namespace precisegc::details;
+using namespace precisegc::details::collectors;
 
 //TEST(index_tree_level_test, test_level)
 //{

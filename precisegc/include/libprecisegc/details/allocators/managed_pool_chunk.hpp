@@ -12,7 +12,7 @@
 #include <libprecisegc/details/allocators/stack_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/null_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
+#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
@@ -37,7 +37,7 @@ private:
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
     typedef gc_alloc_descriptor pointer_type;
-    typedef managed_ptr_iterator<managed_pool_chunk> iterator;
+    typedef managed_memory_iterator<managed_pool_chunk> iterator;
     typedef boost::iterator_range<iterator> range_type;
 
     static size_t chunk_size(size_t cell_size)

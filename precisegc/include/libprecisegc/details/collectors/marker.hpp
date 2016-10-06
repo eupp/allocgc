@@ -161,8 +161,8 @@ private:
                 output_packet = m_packet_manager->pop_output_packet();
             }
             while (!input_packet->is_empty()) {
-                trace_ptr(input_packet->pop(), [this, &output_packet] (managed_object obj) {
-                    push_to_packet(obj, output_packet);
+                trace_ptr(input_packet->pop(), [this, &output_packet] (byte* ptr) {
+                    push_to_packet(managed_object(ptr), output_packet);
                 });
             }
 

@@ -25,7 +25,7 @@ public:
     virtual size_t cell_size() const  = 0;
     virtual byte*  cell_start(byte* ptr) const = 0;
 
-    virtual void set_type_meta(byte* ptr, const type_meta* tmeta);
+    virtual void set_type_meta(byte* ptr, const type_meta* tmeta) = 0;
 };
 
 }}

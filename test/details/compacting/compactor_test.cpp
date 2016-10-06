@@ -66,7 +66,7 @@ TYPED_TEST(compactor_test, test_compact_1)
 {
     static const size_t OBJ_COUNT = 5;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        indexed_managed_object cell_ptr = this->alloc.allocate(OBJ_SIZE);
+        gc_alloc_descriptor cell_ptr = this->alloc.allocate(OBJ_SIZE);
         cell_ptr.set_mark(false);
         cell_ptr.set_pin(false);
     }
@@ -120,7 +120,7 @@ TYPED_TEST(compactor_test, test_compact_2)
     const size_t ALLOC_CNT = 4 * LIVE_CNT;
 
     for (size_t i = 0; i < ALLOC_CNT; ++i) {
-        indexed_managed_object cell_ptr = this->alloc.allocate(OBJ_SIZE);
+        gc_alloc_descriptor cell_ptr = this->alloc.allocate(OBJ_SIZE);
         cell_ptr.set_mark(false);
         cell_ptr.set_pin(false);
     }
@@ -164,7 +164,7 @@ TYPED_TEST(compactor_test, test_compact_3)
     size_t exp_pin_cnt = 0;
     std::unordered_set<byte*> pinned;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        indexed_managed_object cell_ptr = this->alloc.allocate(OBJ_SIZE);
+        gc_alloc_descriptor cell_ptr = this->alloc.allocate(OBJ_SIZE);
         bool pin = pin_gen();
         bool mark = mark_gen() || pin;
         cell_ptr.set_mark(mark);

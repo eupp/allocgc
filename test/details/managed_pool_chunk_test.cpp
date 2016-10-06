@@ -3,14 +3,16 @@
 #include <memory>
 #include <utility>
 
-#include "libprecisegc/details/allocators/managed_pool_chunk.hpp"
-#include "libprecisegc/details/allocators/core_allocator.hpp"
-#include "libprecisegc/details/allocators/debug_layer.hpp"
+#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/debug_layer.hpp>
 
 #include "rand_util.h"
 
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
+using namespace precisegc::details::collectors;
 
 namespace {
 const size_t CELL_SIZE  = 64;
@@ -49,11 +51,11 @@ TEST_F(managed_pool_chunk_test, test_construct)
 
 TEST_F(managed_pool_chunk_test, test_allocate)
 {
-    indexed_managed_object cell_ptr = m_chunk.allocate(CELL_SIZE);
+    gc_alloc_descriptor cell_ptr = m_chunk.allocate(CELL_SIZE);
 
     EXPECT_NE(nullptr, cell_ptr.get());
-    EXPECT_EQ(cell_ptr.get_descriptor(), m_chunk.get_descriptor());
-    EXPECT_EQ(indexed_managed_object::index(cell_ptr.get()), m_chunk.get_descriptor());
+    EXPECT_EQ(cell_ptr.descriptor(), m_chunk.get_descriptor());
+    EXPECT_EQ(memory_index::index(cell_ptr.get()), m_chunk.get_descriptor());
 }
 
 TEST_F(managed_pool_chunk_test, test_get_cell_meta)

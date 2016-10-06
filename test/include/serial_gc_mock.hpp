@@ -8,17 +8,17 @@
 class serial_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
+    typedef precisegc::details::type_meta type_meta;
     typedef precisegc::details::gc_handle gc_handle;
-    typedef precisegc::details::indexed_managed_object managed_ptr;
-    typedef precisegc::details::gc_pointer_type gc_pointer_type;
+    typedef precisegc::details::gc_alloc_descriptor gc_alloc_descriptor;
     typedef precisegc::details::initiation_point_type initation_point_type;
     typedef precisegc::details::gc_options gc_options;
     typedef precisegc::details::gc_run_stats gc_stats;
     typedef precisegc::details::gc_phase gc_phase;
     typedef precisegc::details::gc_info gc_info;
 public:
-    MOCK_METHOD1(allocate, gc_pointer_type(size_t));
-    MOCK_METHOD1(commit, void(const managed_ptr&));
+    MOCK_METHOD3(allocate, gc_alloc_descriptor (size_t obj_size, size_t obj_cnt, const type_meta* tmeta));
+    MOCK_METHOD1(commit, void(const gc_alloc_descriptor&));
 
     MOCK_METHOD1(rbarrier, byte*(const gc_handle&));
     MOCK_METHOD2(wbarrier, void(gc_handle&, const gc_handle&));

@@ -5,11 +5,10 @@
 #include <atomic>
 
 #include <libprecisegc/details/gc_handle.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace collectors {
 
 class traceable_object_meta
 {
@@ -86,12 +85,6 @@ public:
 private:
     static const std::uintptr_t FORWARD_BIT = 1;
 
-    bool contains(byte* ptr) const
-    {
-        byte* obj_begin = get_object_begin();
-        return (obj_begin <= ptr) && (ptr < obj_begin + m_count * type_size());
-    }
-
     void* get_forward_pointer_address()
     {
         return reinterpret_cast<void*>(reinterpret_cast<byte*>(this) + sizeof(traceable_object_meta));
@@ -106,6 +99,6 @@ private:
     size_t m_count;
 };
 
-} }
+}}}
 
 #endif //DIPLOMA_OBJECT_META_H

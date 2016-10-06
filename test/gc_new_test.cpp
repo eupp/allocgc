@@ -1,11 +1,20 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/gc_new.hpp"
-#include "libprecisegc/details/type_meta.hpp"
-#include "libprecisegc/details/gc_mark.hpp"
+#include <libprecisegc/gc_new.hpp>
+#include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;
+
+namespace {
+
+collectors::traceable_object_meta* get_meta(byte* ptr)
+{
+    return collectors::indexed_managed_object::get_meta(ptr);
+}
+
+}
 
 TEST(gc_new_test, test_gc_new_int)
 {
@@ -37,7 +46,7 @@ TEST(gc_new_test, test_meta)
 {
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
-    traceable_object_meta* obj_meta = get_object_header((void*) pin.get());
+    collectors::traceable_object_meta* obj_meta = get_meta((byte*) pin.get());
     const type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_EQ(1, obj_meta->object_count());
@@ -77,7 +86,7 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    traceable_object_meta* obj_meta = get_object_header((void*) ptr.pin().get());
+    collectors::traceable_object_meta* obj_meta = get_meta((byte*) ptr.pin().get());
     const type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_NE(nullptr, cls_meta);

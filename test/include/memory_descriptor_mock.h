@@ -8,22 +8,19 @@
 class memory_descriptor_mock : public precisegc::details::memory_descriptor
 {
     typedef precisegc::details::byte byte;
+    typedef precisegc::details::type_meta type_meta;
+    typedef precisegc::details::collectors::traceable_object_meta traceable_object_meta;
 public:
     MOCK_CONST_METHOD1(get_mark, bool(byte*));
     MOCK_CONST_METHOD1(get_pin, bool(byte*));
+
     MOCK_METHOD2(set_mark, void(byte* ptr, bool mark));
     MOCK_METHOD2(set_pin, void(byte* ptr, bool pin));
 
-    MOCK_CONST_METHOD1(is_live, bool(byte*));
-    MOCK_METHOD2(set_live, void(byte*, bool));
-
-    MOCK_METHOD1(sweep, void (byte* ptr));
-
     MOCK_CONST_METHOD0(cell_size, size_t(void));
+    MOCK_CONST_METHOD1(cell_start, byte*(byte* ptr));
 
-    MOCK_CONST_METHOD1(get_cell_meta, precisegc::details::traceable_object_meta* (byte* ptr));
-    MOCK_CONST_METHOD1(get_cell_begin, byte*(byte* ptr));
-    MOCK_CONST_METHOD1(get_obj_begin, byte*(byte* ptr));
+    MOCK_METHOD2(set_type_meta, void(byte* ptr, const type_meta*));
 };
 
 

@@ -3,14 +3,13 @@
 
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/collectors/traceable_object_meta.hpp>
-#include "dptr_storage.hpp"
+#include <libprecisegc/details/collectors/dptr_storage.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
 class managed_object
 {
 public:
-    managed_object() = delete;
     managed_object(const managed_object&) = default;
     managed_object& operator=(const managed_object&) = default;
 
@@ -24,7 +23,16 @@ public:
         return cell_start + sizeof(traceable_object_meta);
     }
 
-    explicit managed_object(byte* ptr)
+    inline static managed_object make(byte* cell_start) noexcept
+    {
+        return managed_object(get_object(cell_start));
+    }
+
+    managed_object() noexcept
+        : m_ptr(nullptr)
+    {}
+
+    explicit managed_object(byte* ptr) noexcept
         : m_ptr(ptr)
     {
         assert(!dptr_storage::is_derived(m_ptr));
@@ -39,6 +47,8 @@ public:
     {
         return reinterpret_cast<traceable_object_meta*>(m_ptr - sizeof(traceable_object_meta));
     }
+
+    inline
 
     explicit operator bool() const noexcept
     {

@@ -68,8 +68,8 @@ byte* managed_object_descriptor::cell_start(byte* ptr) const
 
 void managed_object_descriptor::set_type_meta(byte* ptr, const type_meta* tmeta)
 {
-    assert(ptr == m_ptr);
-    collectors::managed_object::get_meta(ptr)->set_type_meta(tmeta);
+//    assert(ptr == m_ptr);
+    collectors::managed_object(ptr).meta()->set_type_meta(tmeta);
 }
 
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)

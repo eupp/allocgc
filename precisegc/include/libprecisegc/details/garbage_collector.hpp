@@ -55,7 +55,7 @@ public:
     gc_stat  stats() const;
     gc_state state() const;
 private:
-    gc_alloc_descriptor try_allocate(size_t obj_size, size_t obj_cnt, type_meta* tmeta);
+    gc_alloc_descriptor try_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta);
 
     static bool is_interior_pointer(const gc_handle& handle, byte* p);
     static bool is_interior_offset(const gc_handle& handle, ptrdiff_t shift);

@@ -6,7 +6,7 @@
 #include <libprecisegc/details/gc_alloc_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/allocators/managed_ptr_iterator.hpp>
+#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -17,7 +17,7 @@ class managed_object_descriptor : public memory_descriptor, private utils::nonco
 public:
     typedef gc_alloc_descriptor pointer_type;
     typedef allocators::single_block_chunk_tag chunk_tag;
-    typedef managed_ptr_iterator<managed_object_descriptor> iterator;
+    typedef managed_memory_iterator<managed_object_descriptor> iterator;
 
     static size_t chunk_size(size_t size)
     {

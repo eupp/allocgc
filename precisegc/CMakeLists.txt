@@ -17,7 +17,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
-        include/libprecisegc/details/gc_mark.hpp
         include/libprecisegc/details/allocators/core_allocator.hpp
         include/libprecisegc/details/collectors/index_tree.hpp
         include/libprecisegc/details/types.hpp
@@ -81,7 +80,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
         include/libprecisegc/details/allocators/cache_policies.hpp
-        include/libprecisegc/details/allocators/managed_ptr_iterator.hpp
+        include/libprecisegc/details/allocators/managed_memory_iterator.hpp
         include/libprecisegc/details/allocators/freelist_allocator.hpp
         include/libprecisegc/details/utils/get_ptr.hpp
         include/libprecisegc/details/allocators/pool.hpp
@@ -100,7 +99,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/dptr_storage.hpp include/libprecisegc/details/collectors/managed_object.hpp include/libprecisegc/details/collectors/memory_index.hpp include/libprecisegc/details/gc_alloc_descriptor.hpp)
 
 set(precisegc_LIB_SRCS
-        src/details/gc_mark.cpp
         src/details/gc_heap.cpp
         src/details/threads/gc_new_stack.cpp
         src/details/ptrs/gc_untyped_ptr.cpp

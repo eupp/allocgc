@@ -27,10 +27,20 @@ public:
     static indexed_managed_object index(byte* ptr);
     static indexed_managed_object index_by_indirect_ptr(byte* ptr);
 
+    static bool get_mark(byte* ptr);
+    static void set_mark(byte* ptr, bool mark);
+
+    static bool get_pin(byte* ptr);
+    static void set_pin(byte* ptr, bool pin);
+
+    static traceable_object_meta* get_meta(byte* ptr);
+
     indexed_managed_object() = delete;
 
     indexed_managed_object(const indexed_managed_object&) = default;
     indexed_managed_object& operator=(const indexed_managed_object&) = default;
+
+    indexed_managed_object(byte* ptr, memory_descriptor* descriptor);
 
     bool get_mark() const;
     bool get_pin() const;
@@ -38,14 +48,14 @@ public:
     void set_mark(bool mark) const;
     void set_pin(bool pin) const;
 
+    size_t cell_size() const;
+
     byte* object() const;
     traceable_object_meta* meta() const;
     memory_descriptor* descriptor() const;
 
     explicit operator bool() const;
 private:
-    indexed_managed_object(byte* ptr, memory_descriptor* descriptor);
-
     managed_object m_obj;
     memory_descriptor* m_descr;
 };

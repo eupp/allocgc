@@ -6,7 +6,6 @@
 #include <libprecisegc/details/collectors/managed_object.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/gc_mark.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

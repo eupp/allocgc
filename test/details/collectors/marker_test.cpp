@@ -6,11 +6,13 @@
 
 #include <libprecisegc/libprecisegc.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/collectors/marker.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::ptrs;
+using namespace precisegc::details::collectors;
 
 #define DEBUG_PRINT_TREE
 
@@ -43,7 +45,7 @@ struct test_pin_set
         }
     }
 
-    std::vector<void*> pins;
+    std::vector<byte*> pins;
 };
 
 gc_ptr<node> create_gc_node()
@@ -75,7 +77,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
         return;
     }
     gc_pin<node> pin = ptr.pin();
-    set_object_mark(pin.get(), false);
+    indexed_managed_object::set_mark((byte*) pin.get(), false);
     if (depth == mark_depth) {
         root_set.roots.push_back(
                 reinterpret_cast<gc_handle*>(&precisegc::internals::gc_ptr_access<node>::get_untyped(ptr))
@@ -95,9 +97,9 @@ void check_nodes_marked(const gc_ptr<node>& ptr, size_t depth, size_t mark_depth
 
     gc_pin<node> pin = ptr.pin();
     if (depth < mark_depth) {
-        EXPECT_FALSE(get_object_mark(pin.get())) << "ptr=" << pin.get();
+        EXPECT_FALSE(indexed_managed_object::get_mark((byte*) pin.get())) << "ptr=" << pin.get();
     } else {
-        EXPECT_TRUE(get_object_mark(pin.get())) << "ptr=" << pin.get();
+        EXPECT_TRUE(indexed_managed_object::get_mark((byte*) pin.get())) << "ptr=" << pin.get();
     }
 
     check_nodes_marked(ptr->m_left, depth + 1, mark_depth, max_depth);
@@ -114,9 +116,9 @@ void check_nodes_pinned(const gc_ptr<node>& ptr, size_t depth, size_t pin_depth,
 
     node* raw_ptr = precisegc::internals::gc_ptr_access<node>::get(ptr);
     if (depth == pin_depth) {
-        EXPECT_TRUE(get_object_pin(raw_ptr)) << "ptr=" << raw_ptr;
+        EXPECT_TRUE(indexed_managed_object::get_pin((byte*) raw_ptr)) << "ptr=" << raw_ptr;
     } else {
-        EXPECT_FALSE(get_object_pin(raw_ptr)) << "ptr=" << raw_ptr;
+        EXPECT_FALSE(indexed_managed_object::get_pin((byte*) raw_ptr)) << "ptr=" << raw_ptr;
     }
 
     check_nodes_pinned(ptr->m_left, depth + 1, pin_depth, max_depth);
@@ -131,7 +133,7 @@ void print_tree(const gc_ptr<node>& root, const std::string& offset = "")
         return;
     }
     gc_pin<node> pin = root.pin();
-    std::cout << offset << &root << " (" << pin.get() << ") [" << get_object_mark(pin.get()) << "]" << std::endl;
+    std::cout << offset << &root << " (" << pin.get() << ") [" << indexed_managed_object::get_mark((byte*) pin.get()) << "]" << std::endl;
     auto new_offset = offset + "    ";
     print_tree(root->m_left, new_offset);
     print_tree(root->m_right, new_offset);
@@ -223,7 +225,7 @@ TEST_F(marker_test, test_pins)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    pin_set.pins.push_back(precisegc::internals::gc_ptr_access<node>::get(root));
+    pin_set.pins.push_back((byte*) precisegc::internals::gc_ptr_access<node>::get(root));
     marker.trace_pins(pin_set);
     marker.mark();
 

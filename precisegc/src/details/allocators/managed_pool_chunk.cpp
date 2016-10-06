@@ -165,8 +165,8 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
 void managed_pool_chunk::set_type_meta(byte* ptr, const type_meta* tmeta)
 {
     assert(m_chunk.contains(ptr));
-    assert(ptr == cell_start(ptr));
-    collectors::managed_object::get_meta(ptr)->set_type_meta(tmeta);
+//    assert(ptr == cell_start(ptr));
+    collectors::managed_object(ptr).meta()->set_type_meta(tmeta);
 }
 
 managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,

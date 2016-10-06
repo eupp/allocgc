@@ -12,6 +12,7 @@
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 using namespace precisegc::details::compacting;
+using namespace precisegc::details::collectors;
 
 namespace {
 static const size_t OBJ_SIZE = 64;
@@ -39,10 +40,10 @@ struct fix_ptrs_test : public ::testing::Test
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
-    indexed_managed_object cell_ptr = alloc.allocate(OBJ_SIZE);
-    cell_ptr.set_mark(true);
-    cell_ptr.set_pin(false);
-    byte* ptr = traceable_object_meta::get_object_ptr(cell_ptr.get(), cell_ptr.cell_size());
+    gc_alloc_descriptor cell_ptr = alloc.allocate(OBJ_SIZE);
+    cell_ptr.descriptor()->set_mark(cell_ptr.get(), true);
+    cell_ptr.descriptor()->set_pin(cell_ptr.get(), false);
+    byte* ptr = managed_object::get_object(cell_ptr.get());
 
     test_type val1;
     byte* to = reinterpret_cast<byte*>(&val1);
@@ -51,7 +52,7 @@ TEST_F(fix_ptrs_test, test_fix_ptrs)
     byte*& from = * (byte**) ptr;
     from = reinterpret_cast<byte*>(&val2);
 
-    traceable_object_meta* obj_meta = traceable_object_meta::get_meta_ptr(cell_ptr.get(), cell_ptr.cell_size());
+    traceable_object_meta* obj_meta = managed_object::get_meta(cell_ptr.get());
     new (obj_meta) traceable_object_meta(1, tmeta);
     obj_meta->set_forward_pointer(ptr);
 

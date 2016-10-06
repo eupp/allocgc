@@ -13,6 +13,12 @@ public:
     gc_alloc_descriptor(const gc_alloc_descriptor&) = default;
     gc_alloc_descriptor& operator=(const gc_alloc_descriptor&) = default;
 
+    gc_alloc_descriptor(std::nullptr_t)
+        : m_ptr(nullptr)
+        , m_size(0)
+        , m_descr(nullptr)
+    {}
+
     gc_alloc_descriptor(byte* ptr, size_t size, memory_descriptor* descr)
         : m_ptr(ptr)
         , m_size(size)
@@ -32,6 +38,30 @@ public:
     inline memory_descriptor* descriptor() const noexcept
     {
         return m_descr;
+    }
+
+    bool get_mark() const
+    {
+        assert(m_descr);
+        return m_descr->get_mark(m_ptr);
+    }
+
+    bool get_pin() const
+    {
+        assert(m_descr);
+        return m_descr->get_pin(m_ptr);
+    }
+
+    void set_mark(bool mark) const
+    {
+        assert(m_descr);
+        return m_descr->set_mark(m_ptr, mark);
+    }
+
+    void set_pin(bool pin) const
+    {
+        assert(m_descr);
+        return m_descr->set_pin(m_ptr, pin);
     }
 private:
     byte*  m_ptr;

@@ -172,13 +172,13 @@ private:
         }
     }
 
-    void push_root_to_packet(byte* cell_start, packet_manager::mark_packet_handle& output_packet)
+    void push_root_to_packet(byte* obj_start, packet_manager::mark_packet_handle& output_packet)
     {
         if (output_packet->is_full()) {
             m_packet_manager->push_packet(std::move(output_packet));
             output_packet = m_packet_manager->pop_output_packet();
         }
-        output_packet->push(managed_object(cell_start));
+        output_packet->push(managed_object(obj_start));
     }
 
     void push_to_packet(managed_object obj, packet_manager::mark_packet_handle& output_packet)

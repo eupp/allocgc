@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
@@ -22,8 +22,8 @@ public:
     gc_untyped_ptr& operator=(std::nullptr_t);
     gc_untyped_ptr& operator=(const gc_untyped_ptr& other);
 
-    gc_handle::pin_guard untyped_pin() const;
-    gc_handle::stack_pin_guard push_untyped_pin() const;
+    gc_word::pin_guard untyped_pin() const;
+    gc_word::stack_pin_guard push_untyped_pin() const;
 
     bool is_null() const;
     bool is_root() const;
@@ -41,7 +41,7 @@ private:
     void register_root();
     void delete_root();
 
-    gc_handle m_handle;
+    gc_word m_handle;
 };
 
 }}}

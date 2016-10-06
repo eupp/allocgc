@@ -14,8 +14,9 @@ void trace_ptr(managed_object obj, Functor&& f)
 {
     assert(obj);
 
-    obj.trace_children([&f] (gc_handle* handle) {
-        indexed_managed_object idx_obj = indexed_managed_object::index_by_indirect_ptr(handle->rbarrier());
+    obj.trace_children([&f] (gc_word* handle) {
+        byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
+        indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(ptr));
         if (idx_obj && !idx_obj.get_mark()) {
             idx_obj.set_mark(true);
             f(idx_obj.object());

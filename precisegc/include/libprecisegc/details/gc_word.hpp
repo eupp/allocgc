@@ -11,7 +11,7 @@ namespace precisegc { namespace details {
 
 class gc_handle_access;
 
-class gc_handle : private utils::noncopyable, private utils::nonmovable
+class gc_word : private utils::noncopyable, private utils::nonmovable
 {
 public:
     class pin_guard : private utils::noncopyable
@@ -24,9 +24,9 @@ public:
 
         byte* get() const noexcept;
 
-        friend class gc_handle;
+        friend class gc_word;
     private:
-        pin_guard(const gc_handle& handle);
+        pin_guard(const gc_word& handle);
 
         byte* m_ptr;
     };
@@ -41,21 +41,21 @@ public:
 
         byte* get() const noexcept;
 
-        friend class gc_handle;
+        friend class gc_word;
     private:
-        stack_pin_guard(const gc_handle& handle);
+        stack_pin_guard(const gc_word& handle);
 
         byte* m_ptr;
     };
 
-    gc_handle() = default;
+    gc_word() = default;
 
-    constexpr gc_handle(byte* ptr)
+    constexpr gc_word(byte* ptr)
         : m_ptr(ptr)
     {}
 
     byte* rbarrier() const;
-    void  wbarrier(const gc_handle& other);
+    void  wbarrier(const gc_word& other);
 
     // reset handle to point to some different location inside same cell that was pointed to before
     void interior_wbarrier(ptrdiff_t offset);
@@ -65,12 +65,12 @@ public:
 
     void reset();
 
-    bool equal(const gc_handle& other) const;
+    bool equal(const gc_word& other) const;
     bool is_null() const;
 private:
     friend class gc_handle_access;
 
-    static gc_handle null;
+    static gc_word null;
 
     atomic_byte_ptr m_ptr;
 };
@@ -79,19 +79,19 @@ class gc_handle_access
 {
 public:
     template <int MemoryOrder>
-    static byte* get(const gc_handle& handle)
+    static byte* get(const gc_word& handle)
     {
         return handle.m_ptr.load(static_cast<std::memory_order>(MemoryOrder));
     }
 
     template <int MemoryOrder>
-    static void  set(gc_handle& handle, byte* ptr)
+    static void  set(gc_word& handle, byte* ptr)
     {
         handle.m_ptr.store(ptr, static_cast<std::memory_order>(MemoryOrder));
     }
 
     template <int MemoryOrder>
-    static void  advance(gc_handle& handle, ptrdiff_t n)
+    static void  advance(gc_word& handle, ptrdiff_t n)
     {
         handle.m_ptr.fetch_add(n, static_cast<std::memory_order>(MemoryOrder));
     }

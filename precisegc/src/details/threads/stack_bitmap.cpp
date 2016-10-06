@@ -15,7 +15,7 @@ stack_bitmap::stack_bitmap(byte* stack_start_addr)
                     << "; stack end addr=" << (void*) m_stack_end;
 }
 
-void stack_bitmap::register_root(gc_handle* root)
+void stack_bitmap::register_root(gc_word* root)
 {
     auto idxs = root_idxs(root);
     if (idxs.first >= m_bitmap.size()) {
@@ -24,7 +24,7 @@ void stack_bitmap::register_root(gc_handle* root)
     m_bitmap[idxs.first].set(idxs.second);
 }
 
-void stack_bitmap::deregister_root(gc_handle* root)
+void stack_bitmap::deregister_root(gc_word* root)
 {
     assert(contains(root));
 
@@ -32,7 +32,7 @@ void stack_bitmap::deregister_root(gc_handle* root)
     m_bitmap[idxs.first].reset(idxs.second);
 }
 
-bool stack_bitmap::contains(const gc_handle* ptr) const
+bool stack_bitmap::contains(const gc_word* ptr) const
 {
     auto idxs = root_idxs(ptr);
     if (idxs.first >= m_bitmap.size()) {
@@ -50,7 +50,7 @@ size_t stack_bitmap::count() const
     return cnt;
 }
 
-std::pair<size_t, size_t> stack_bitmap::root_idxs(const gc_handle* ptr) const
+std::pair<size_t, size_t> stack_bitmap::root_idxs(const gc_word* ptr) const
 {
     ptrdiff_t diff = STACK_DIRECTION * (reinterpret_cast<const byte*>(ptr) - m_stack_start);
     assert(diff >= 0);

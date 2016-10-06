@@ -10,7 +10,7 @@ class incremental_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::type_meta type_meta;
-    typedef precisegc::details::gc_handle gc_handle;
+    typedef precisegc::details::gc_word gc_handle;
     typedef precisegc::details::gc_alloc_descriptor gc_alloc_descriptor;
     typedef precisegc::details::initiation_point_type initation_point_type;
     typedef precisegc::details::gc_options gc_options;
@@ -21,8 +21,8 @@ public:
     MOCK_METHOD3(allocate, gc_alloc_descriptor(size_t obj_size, size_t obj_cnt, const type_meta* tmeta));
     MOCK_METHOD1(commit, void(const gc_alloc_descriptor&));
 
-    MOCK_METHOD1(rbarrier, byte*(const gc_handle&));
-    MOCK_METHOD2(wbarrier, void(gc_handle&, const gc_handle&));
+    MOCK_METHOD1(rbarrier, byte*(const gc_word&));
+    MOCK_METHOD2(wbarrier, void(gc_handle&, const gc_word&));
 
     MOCK_METHOD2(interior_wbarrier, void(gc_handle& handle, ptrdiff_t offset));
 

@@ -64,7 +64,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
         include/libprecisegc/gc_pin.hpp
         include/libprecisegc/gc_ref.hpp
-        include/libprecisegc/details/gc_handle.hpp
+        include/libprecisegc/details/gc_word.hpp
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/utils/base_offset.hpp
         include/libprecisegc/details/gc_factory.hpp

@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/collectors/managed_object.hpp>
 #include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 
@@ -19,7 +19,7 @@ void fix_ptrs(const Iterator& first, const Iterator& last, const Forwarding& frw
             continue;
         }
         auto obj = managed_object(managed_object::get_object(it->get()));
-        obj.trace_children([&frwd] (gc_handle* handle) {
+        obj.trace_children([&frwd] (gc_word* handle) {
             frwd.forward(handle);
         });
     }

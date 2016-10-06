@@ -48,7 +48,7 @@ public:
     void trace_roots(Traceable&& tracer)
     {
         auto output_packet = m_packet_manager->pop_output_packet();
-        tracer.trace([this, &output_packet] (gc_handle* root) {
+        tracer.trace([this, &output_packet] (gc_word* root) {
             byte* p = gc_handle_access::get<std::memory_order_relaxed>(*root);
             indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(p));
             if (idx_obj) {

@@ -27,19 +27,19 @@ public:
     static std::thread::id get_id();
     static std::thread::native_handle_type get_native_handle();
 
-    static bool is_stack_ptr(const gc_handle* ptr);
-    static bool is_heap_ptr(const gc_handle* ptr);
+    static bool is_stack_ptr(const gc_word* ptr);
+    static bool is_heap_ptr(const gc_word* ptr);
     static bool is_type_meta_requested();
 
-    static void register_managed_object_child(gc_handle* child);
+    static void register_managed_object_child(gc_word* child);
     static gc_ptr_offsets_range gc_ptr_offsets();
 
     static void push_on_gc_new_stack(gc_new_stack::stack_entry* top);
     static void pop_from_gc_new_stack();
 
-    static void register_root(gc_handle* root);
-    static void deregister_root(gc_handle* root);
-    static bool is_root(const gc_handle* ptr);
+    static void register_root(gc_word* root);
+    static void deregister_root(gc_word* root);
+    static bool is_root(const gc_word* ptr);
 
     static void pin(byte* ptr);
     static void unpin(byte* ptr);

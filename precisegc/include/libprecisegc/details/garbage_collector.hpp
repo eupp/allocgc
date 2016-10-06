@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/initiation_policy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
@@ -29,18 +29,18 @@ public:
 
     void commit(const gc_alloc_descriptor& ptr);
 
-    byte* rbarrier(const gc_handle& handle);
-    void  wbarrier(gc_handle& dst, const gc_handle& src);
+    byte* rbarrier(const gc_word& handle);
+    void  wbarrier(gc_word& dst, const gc_word& src);
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
+    void interior_wbarrier(gc_word& handle, ptrdiff_t offset);
 
-    byte* pin(const gc_handle& handle);
+    byte* pin(const gc_word& handle);
     void  unpin(byte* ptr);
 
-    byte* push_pin(const gc_handle& handle);
+    byte* push_pin(const gc_word& handle);
     void  pop_pin(byte* ptr);
 
-    bool compare(const gc_handle& a, const gc_handle& b);
+    bool compare(const gc_word& a, const gc_word& b);
 
     void initiation_point(initiation_point_type ipt,
                           const initiation_point_data& ipd = initiation_point_data::create_empty_data());
@@ -57,8 +57,8 @@ public:
 private:
     gc_alloc_descriptor try_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta);
 
-    static bool is_interior_pointer(const gc_handle& handle, byte* p);
-    static bool is_interior_offset(const gc_handle& handle, ptrdiff_t shift);
+    static bool is_interior_pointer(const gc_word& handle, byte* p);
+    static bool is_interior_offset(const gc_word& handle, ptrdiff_t shift);
 
     std::unique_ptr<gc_strategy> m_strategy;
     std::unique_ptr<initiation_policy> m_initiation_policy;

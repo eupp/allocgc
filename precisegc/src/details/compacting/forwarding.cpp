@@ -20,7 +20,7 @@ void forwarding::create(byte* from, byte* to, size_t size)
     meta->set_forward_pointer(to);
 }
 
-void forwarding::forward(gc_handle* handle) const
+void forwarding::forward(gc_word* handle) const
 {
     using namespace collectors;
 

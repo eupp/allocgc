@@ -4,7 +4,7 @@
 #include <cstring>
 #include <atomic>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/type_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 

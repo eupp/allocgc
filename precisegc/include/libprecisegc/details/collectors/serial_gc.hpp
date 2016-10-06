@@ -22,10 +22,10 @@ public:
     gc_alloc_descriptor allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta) override;
     void commit(const gc_alloc_descriptor& ptr) override;
 
-    byte* rbarrier(const gc_handle& handle) override;
-    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
+    byte* rbarrier(const gc_word& handle) override;
+    void  wbarrier(gc_word& dst, const gc_word& src) override;
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset) override;
+    void interior_wbarrier(gc_word& handle, ptrdiff_t offset) override;
 
     gc_run_stats gc(const gc_options& options) override;
 private:
@@ -51,9 +51,9 @@ class serial_compacting_gc : public internals::serial_gc_base
 public:
     explicit serial_compacting_gc(size_t threads_available);
 
-    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
+    void  wbarrier(gc_word& dst, const gc_word& src) override;
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset) override;
+    void interior_wbarrier(gc_word& handle, ptrdiff_t offset) override;
 
     gc_info info() const override;
 };

@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -15,10 +15,10 @@ namespace precisegc { namespace details { namespace threads {
 class static_root_set : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static void register_root(gc_handle* root);
-    static void deregister_root(gc_handle* root);
+    static void register_root(gc_word* root);
+    static void deregister_root(gc_word* root);
 
-    static bool is_root(const gc_handle* ptr);
+    static bool is_root(const gc_word* ptr);
 
     template <typename Functor>
     static void trace(Functor&& f)
@@ -32,16 +32,16 @@ private:
 
     static_root_set() = default;
 
-    void insert(gc_handle* ptr);
-    void remove(gc_handle* ptr);
+    void insert(gc_word* ptr);
+    void remove(gc_word* ptr);
 
-    bool contains(const gc_handle* ptr);
+    bool contains(const gc_word* ptr);
 
     size_t size() const;
 
     static static_root_set root_set;
 
-    std::unordered_set<gc_handle*> m_set;
+    std::unordered_set<gc_word*> m_set;
     mutable mutex_t m_lock;
 };
 

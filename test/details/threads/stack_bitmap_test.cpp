@@ -11,8 +11,8 @@ using namespace precisegc::details::threads;
 
 void test_register_root_1_helper(stack_bitmap& stack_map)
 {
-    gc_handle h1;
-    gc_handle h2;
+    gc_word h1;
+    gc_word h2;
 
     stack_map.register_root(&h1);
     stack_map.register_root(&h2);
@@ -24,16 +24,16 @@ void test_register_root_1_helper(stack_bitmap& stack_map)
 
 TEST(stack_bitmap_test, test_register_root_1)
 {
-    gc_handle h1;
-    gc_handle h2;
+    gc_word h1;
+    gc_word h2;
 
     stack_bitmap stack_map(frame_address());
     test_register_root_1_helper(stack_map);
 }
 
-void test_register_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc_handle* ph2)
+void test_register_root_2_helper_2(stack_bitmap& stack_map, gc_word* ph1, gc_word* ph2)
 {
-    gc_handle h3;
+    gc_word h3;
 
     stack_map.register_root(&h3);
 
@@ -45,8 +45,8 @@ void test_register_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc_h
 
 void test_register_root_2_helper_1(stack_bitmap& stack_map)
 {
-    gc_handle h1;
-    gc_handle h2;
+    gc_word h1;
+    gc_word h2;
 
     stack_map.register_root(&h1);
     stack_map.register_root(&h2);
@@ -63,7 +63,7 @@ TEST(stack_bitmap_test, test_register_root_2)
 void test_register_root_3_helper(stack_bitmap& stack_map)
 {
     static const size_t SIZE = 2 * stack_bitmap::STACK_FRAME_SIZE;
-    gc_handle handles[SIZE];
+    gc_word handles[SIZE];
 
     for (size_t i = 0; i < SIZE; ++i) {
         stack_map.register_root(&handles[i]);
@@ -83,8 +83,8 @@ TEST(stack_bitmap_test, test_register_root_3)
 
 void test_deregister_root_1_helper(stack_bitmap& stack_map)
 {
-    gc_handle h1;
-    gc_handle h2;
+    gc_word h1;
+    gc_word h2;
 
     stack_map.register_root(&h1);
     stack_map.register_root(&h2);
@@ -106,9 +106,9 @@ TEST(stack_bitmap_test, test_deregister_root_1)
     test_deregister_root_1_helper(stack_map);
 }
 
-void test_deregister_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc_handle* ph2)
+void test_deregister_root_2_helper_2(stack_bitmap& stack_map, gc_word* ph1, gc_word* ph2)
 {
-    gc_handle h3;
+    gc_word h3;
 
     stack_map.register_root(&h3);
 
@@ -123,8 +123,8 @@ void test_deregister_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc
 
 void test_deregister_root_2_helper_1(stack_bitmap& stack_map)
 {
-    gc_handle h1;
-    gc_handle h2;
+    gc_word h1;
+    gc_word h2;
 
     stack_map.register_root(&h1);
     stack_map.register_root(&h2);
@@ -141,7 +141,7 @@ TEST(stack_bitmap_test, test_deregister_root_2)
 void test_deregister_root_3_helper(stack_bitmap& stack_map)
 {
     static const size_t SIZE = 2 * stack_bitmap::STACK_FRAME_SIZE;
-    gc_handle handles[SIZE];
+    gc_word handles[SIZE];
 
     for (size_t i = 0; i < SIZE; ++i) {
         stack_map.register_root(&handles[i]);
@@ -165,18 +165,18 @@ TEST(stack_bitmap_test, test_deregister_root_3)
 
 void test_trace_helper(stack_bitmap& stack_map)
 {
-    gc_handle h1;
-    gc_handle h2;
-    gc_handle h3;
+    gc_word h1;
+    gc_word h2;
+    gc_word h3;
 
-    std::set<gc_handle*> expected({&h1, &h2, &h3});
-    std::set<gc_handle*> actual;
+    std::set<gc_word*> expected({&h1, &h2, &h3});
+    std::set<gc_word*> actual;
 
     stack_map.register_root(&h1);
     stack_map.register_root(&h2);
     stack_map.register_root(&h3);
 
-    stack_map.trace([&actual] (gc_handle* root) { actual.insert(root); });
+    stack_map.trace([&actual] (gc_word* root) { actual.insert(root); });
 
     ASSERT_EQ(expected, actual);
 }

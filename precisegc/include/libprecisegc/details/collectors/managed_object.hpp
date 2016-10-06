@@ -76,7 +76,7 @@ public:
         size_t offsets_size = offsets.size();
         for (size_t i = 0; i < obj_cnt; i++) {
             for (size_t j = 0; j < offsets_size; j++) {
-                f(reinterpret_cast<gc_handle*>(obj + offsets[j]));
+                f(reinterpret_cast<gc_word*>(obj + offsets[j]));
             }
             obj += obj_size;
         }

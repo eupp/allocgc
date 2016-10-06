@@ -58,19 +58,19 @@ void garbage_collector::commit(const gc_alloc_descriptor& ptr)
     m_strategy->commit(ptr);
 }
 
-byte* garbage_collector::rbarrier(const gc_handle& handle)
+byte* garbage_collector::rbarrier(const gc_word& handle)
 {
     assert(m_strategy);
     return m_strategy->rbarrier(handle);
 }
 
-void garbage_collector::wbarrier(gc_handle& dst, const gc_handle& src)
+void garbage_collector::wbarrier(gc_word& dst, const gc_word& src)
 {
     assert(m_strategy);
     m_strategy->wbarrier(dst, src);
 }
 
-void garbage_collector::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+void garbage_collector::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
 {
     assert(m_strategy);
     // this assertion doesn't work properly in current version
@@ -78,7 +78,7 @@ void garbage_collector::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
     m_strategy->interior_wbarrier(handle, offset);
 }
 
-byte* garbage_collector::pin(const gc_handle& handle)
+byte* garbage_collector::pin(const gc_word& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -95,7 +95,7 @@ void garbage_collector::unpin(byte* ptr)
     }
 }
 
-byte* garbage_collector::push_pin(const gc_handle& handle)
+byte* garbage_collector::push_pin(const gc_word& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -110,7 +110,7 @@ void garbage_collector::pop_pin(byte* ptr)
     }
 }
 
-bool garbage_collector::compare(const gc_handle& a, const gc_handle& b)
+bool garbage_collector::compare(const gc_word& a, const gc_word& b)
 {
     gc_unsafe_scope unsafe_scope;
     return a.rbarrier() == b.rbarrier();
@@ -178,7 +178,7 @@ gc_state garbage_collector::state() const
     return m_manager.state();
 }
 
-bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)
+bool garbage_collector::is_interior_pointer(const gc_word& handle, byte* p)
 {
     auto idx_ptr = collectors::indexed_managed_object::index(handle.rbarrier());
     byte* cell_begin = idx_ptr.object();
@@ -186,7 +186,7 @@ bool garbage_collector::is_interior_pointer(const gc_handle& handle, byte* p)
     return (cell_begin <= p) && (p < cell_end);
 }
 
-bool garbage_collector::is_interior_offset(const gc_handle& handle, ptrdiff_t shift)
+bool garbage_collector::is_interior_offset(const gc_word& handle, ptrdiff_t shift)
 {
     return is_interior_pointer(handle, handle.rbarrier() + shift);
 }

@@ -13,11 +13,11 @@ namespace precisegc { namespace details {
 
 void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
 
-void gc_register_root(gc_handle* root);
-void gc_deregister_root(gc_handle* root);
+void gc_register_root(gc_word* root);
+void gc_deregister_root(gc_word* root);
 
-bool gc_is_root(const gc_handle* ptr);
-bool gc_is_heap_ptr(const gc_handle* ptr);
+bool gc_is_root(const gc_word* ptr);
+bool gc_is_heap_ptr(const gc_word* ptr);
 
 gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta);
 

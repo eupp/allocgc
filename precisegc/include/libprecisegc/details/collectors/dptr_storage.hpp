@@ -3,7 +3,7 @@
 
 #include <mutex>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
 
 namespace precisegc { namespace details { namespace collectors {

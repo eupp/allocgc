@@ -22,8 +22,6 @@ indexed_managed_object indexed_managed_object::index(byte* ptr)
 
 indexed_managed_object indexed_managed_object::index_by_indirect_ptr(byte* ptr)
 {
-    assert(!collectors::dptr_storage::is_derived(ptr));
-
     if (!ptr) {
         return indexed_managed_object(nullptr, nullptr);
     }

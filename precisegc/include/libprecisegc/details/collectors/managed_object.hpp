@@ -71,7 +71,7 @@ public:
             return;
         }
 
-        byte* obj = object();
+        byte*  obj = object();
         size_t obj_cnt = meta()->object_count();
         size_t offsets_size = offsets.size();
         for (size_t i = 0; i < obj_cnt; i++) {

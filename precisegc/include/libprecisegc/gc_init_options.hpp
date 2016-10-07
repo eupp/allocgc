@@ -20,6 +20,7 @@ enum class gc_compacting {
 enum class gc_initiation {
       MANUAL
     , SPACE_BASED
+    , GROWTH_BASED
     , DEFAULT
 };
 

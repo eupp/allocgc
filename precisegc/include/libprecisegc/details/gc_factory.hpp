@@ -17,6 +17,7 @@ public:
     static std::unique_ptr<gc_strategy> create_gc(const gc_init_options& options);
 private:
     static std::unique_ptr<initiation_policy> create_space_based_policy(gc_strategy* gc, size_t max_heap_size);
+    static std::unique_ptr<initiation_policy> create_growth_based_policy(gc_strategy* gc, size_t max_heap_size);
 };
 
 }}

@@ -25,11 +25,25 @@ std::unique_ptr<initiation_policy> gc_factory::create_space_based_policy(gc_stra
     );
 }
 
+std::unique_ptr<initiation_policy> gc_factory::create_growth_based_policy(gc_strategy* gc, size_t max_heap_size)
+{
+    static const size_t start_heap_size     = 2 * 1024 * 1024;  // 2 Mb
+    static const double freespace_divisor   = 3.0;
+
+    return utils::make_unique<growth_based_policy>(
+              max_heap_size == std::numeric_limits<size_t>::max() ? start_heap_size : max_heap_size
+            , freespace_divisor
+            , max_heap_size
+    );
+}
+
 std::unique_ptr<initiation_policy> gc_factory::create_initiation_policy(gc_strategy* gc,
                                                                         const gc_init_options& options)
 {
     if (options.initiation == gc_initiation::MANUAL) {
         return utils::make_unique<empty_policy>();
+    } else if (options.initiation == gc_initiation::GROWTH_BASED) {
+        return create_growth_based_policy(gc, options.heapsize);
     } else if (options.initiation == gc_initiation::SPACE_BASED || options.initiation == gc_initiation::DEFAULT) {
         return create_space_based_policy(gc, options.heapsize);
     }

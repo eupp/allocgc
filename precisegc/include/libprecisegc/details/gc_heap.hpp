@@ -11,11 +11,9 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
-#include <libprecisegc/details/allocators/list_allocator.hpp>
+#include <libprecisegc/details/allocators/mso_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
-#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/allocators/pow2_bucket_policy.hpp>
 #include <libprecisegc/details/compacting/forwarding.hpp>
@@ -41,13 +39,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
             , utils::dummy_mutex
         > chunk_pool_t;
 
-    typedef allocators::list_allocator<
-                          allocators::managed_pool_chunk
-                        , allocators::core_allocator
-                        , chunk_pool_t
-                        , allocators::single_chunk_with_forward_search_cache
-                        , utils::dummy_mutex
-        > fixsize_alloc_t;
+    typedef allocators::mso_allocator fixsize_alloc_t;
 
     typedef allocators::bucket_allocator<
             fixsize_alloc_t,

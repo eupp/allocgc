@@ -96,11 +96,9 @@ size_t gc_heap::sweep()
 {
     size_t freed = 0;
     for (auto& kv: m_tlab_map) {
-        kv.second.apply_to_chunks([&freed] (allocators::managed_pool_chunk& chunk) {
-            freed += chunk.sweep();
-            chunk.unmark();
+        kv.second.apply([&freed] (fixsize_alloc_t& alloc) {
+            alloc.sweep();
         });
-        kv.second.reset_cache();
     }
     return freed;
 }
@@ -110,12 +108,12 @@ gc_heap::occupancy_stat gc_heap::calc_occupancy(size_t bucket_ind, tlab_t& tlab)
     occupancy_stat occupancy;
     occupancy.m_avg = 0;
     occupancy.m_sum = 0;
-    size_t chunk_cnt = 0;
-    tlab.apply_to_chunks(bucket_ind, [&occupancy, &chunk_cnt] (const allocators::managed_pool_chunk& chunk) {
-        ++chunk_cnt;
-        occupancy.m_sum += chunk.occupancy();
-    });
-    occupancy.m_avg = occupancy.m_sum / chunk_cnt;
+//    size_t chunk_cnt = 0;
+//    tlab.apply_to_chunks(bucket_ind, [&occupancy, &chunk_cnt] (const allocators::managed_pool_chunk& chunk) {
+//        ++chunk_cnt;
+//        occupancy.m_sum += chunk.occupancy();
+//    });
+//    occupancy.m_avg = occupancy.m_sum / chunk_cnt;
 
     logging::warning() << "Occupancy sum = " << occupancy.m_sum;
     logging::warning() << "Occupancy avg = " << occupancy.m_avg;

@@ -3,7 +3,6 @@
 #include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
@@ -31,16 +30,17 @@ typedef intrusive_list_allocator<
         , utils::dummy_mutex
     > intrusive_list_allocator_t;
 
-typedef list_allocator<
-          test_chunk
-        , debug_allocator_t
-        , debug_allocator_t
-        , single_chunk_cache
-        , utils::dummy_mutex
-    > list_allocator_t;
+//typedef list_allocator<
+//          test_chunk
+//        , debug_allocator_t
+//        , debug_allocator_t
+//        , single_chunk_cache
+//        , utils::dummy_mutex
+//    > list_allocator_t;
+//}
 }
 
-typedef ::testing::Types<list_allocator_t, intrusive_list_allocator_t> test_list_alloc_types;
+typedef ::testing::Types</*list_allocator_t, */ intrusive_list_allocator_t> test_list_alloc_types;
 TYPED_TEST_CASE(list_allocator_test, test_list_alloc_types);
 
 TYPED_TEST(list_allocator_test, test_allocate_1)

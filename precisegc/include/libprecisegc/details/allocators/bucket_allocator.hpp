@@ -62,18 +62,11 @@ public:
         return flag;
     }
 
-    void reset_cache()
-    {
-        for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            m_buckets[i].reset_cache();
-        }
-    }
-
     template <typename Functor>
-    void apply_to_chunks(Functor&& f)
+    void apply(Functor&& f)
     {
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            m_buckets[i].apply_to_chunks(f);
+            f(m_buckets[i]);
         }
     }
 

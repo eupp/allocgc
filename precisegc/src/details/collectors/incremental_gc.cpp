@@ -123,6 +123,7 @@ gc_run_stats incremental_gc_base::sweep()
         m_marker.mark();
     }
     m_phase = gc_phase::COLLECT;
+    m_dptr_storage.destroy_unmarked();
     auto collect_stats = m_heap.collect(snapshot, m_threads_available);
     m_phase = gc_phase::IDLE;
 

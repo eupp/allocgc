@@ -96,7 +96,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/compacting/forwarding.hpp
         include/libprecisegc/details/compacting/two_finger_compactor.hpp
         include/libprecisegc/details/collectors/remset.hpp
-        include/libprecisegc/details/collectors/dptr_storage.hpp include/libprecisegc/details/collectors/managed_object.hpp include/libprecisegc/details/collectors/memory_index.hpp include/libprecisegc/details/gc_alloc_descriptor.hpp)
+        include/libprecisegc/details/collectors/dptr_storage.hpp
+        include/libprecisegc/details/collectors/managed_object.hpp
+        include/libprecisegc/details/collectors/memory_index.hpp
+        include/libprecisegc/details/gc_alloc_descriptor.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp

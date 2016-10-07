@@ -68,6 +68,7 @@ gc_run_stats serial_gc_base::gc(const gc_options& options)
     m_marker.trace_pins(snapshot.get_pin_tracer());
     m_marker.concurrent_mark(m_threads_available - 1);
     m_marker.mark();
+    m_dptr_storage.destroy_unmarked();
     auto collect_stats = m_heap.collect(snapshot, m_threads_available);
 
     gc_run_stats stats = {

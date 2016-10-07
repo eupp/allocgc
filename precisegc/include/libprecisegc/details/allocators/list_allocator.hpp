@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_FIXED_SIZE_ALLOCATOR_H
-#define DIPLOMA_FIXED_SIZE_ALLOCATOR_H
+#ifndef DIPLOMA_LIST_ALLOCATOR_HPP
+#define DIPLOMA_LIST_ALLOCATOR_HPP
 
 #include <cassert>
 #include <cstddef>
@@ -176,4 +176,4 @@ private:
 
 }}}
 
-#endif //DIPLOMA_FIXED_SIZE_ALLOCATOR_H
+#endif //DIPLOMA_LIST_ALLOCATOR_HPP

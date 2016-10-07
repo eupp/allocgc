@@ -3,12 +3,12 @@
 
 #include <mutex>
 
-#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
-class dptr_storage
+class dptr_storage : utils::noncopyable, utils::nonmovable
 {
 public:
     static byte* get(byte* ptr);
@@ -19,6 +19,8 @@ public:
     static void reset_derived_ptr(byte* ptr, ptrdiff_t offset);
     static void forward_derived_ptr(byte* from, byte* to);
 
+    dptr_storage();
+
     byte* make_derived(byte* ptr, ptrdiff_t offset);
 
     void destroy_unmarked();
@@ -27,6 +29,9 @@ private:
     {
         byte* m_origin;
         byte* m_derived;
+        // temporary solution: to deallocate all descriptors that point to unmarked objects
+        // we maintain a list of all descriptors
+        dptr_descriptor* m_next;
     };
 
     typedef allocators::pool<dptr_descriptor, std::mutex> pool_t;
@@ -42,6 +47,7 @@ private:
     static byte* clear_derived_bit(byte* ptr);
 
     pool_t m_pool;
+    dptr_descriptor* m_head;
 };
 
 }}}

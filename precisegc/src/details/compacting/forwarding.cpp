@@ -31,7 +31,7 @@ void forwarding::forward(gc_word* handle) const
         return;
     }
 
-    traceable_object_meta* meta = managed_object::get_meta(from_orig);
+    traceable_object_meta* meta = managed_object(from_orig).meta();
     if (meta->is_forwarded()) {
         byte* to = managed_object::get_object(meta->forward_pointer());
 

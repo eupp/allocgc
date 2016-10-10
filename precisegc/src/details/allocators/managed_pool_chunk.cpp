@@ -59,7 +59,7 @@ void managed_pool_chunk::unmark()
     m_pin_bits.reset_all();
 }
 
-double managed_pool_chunk::occupancy() const
+double managed_pool_chunk::residency() const
 {
     return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
 }

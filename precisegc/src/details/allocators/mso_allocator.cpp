@@ -84,6 +84,15 @@ bool mso_allocator::empty() const
     return m_chunks.empty();
 }
 
+double mso_allocator::residency() const
+{
+    double r = 0;
+    for (auto& chk: m_chunks) {
+        r += chk.residency();
+    }
+    return r / m_chunks.size();
+}
+
 mso_allocator::iterator_t mso_allocator::create_chunk(size_t cell_size)
 {
     auto alloc_res = allocate_block(cell_size);

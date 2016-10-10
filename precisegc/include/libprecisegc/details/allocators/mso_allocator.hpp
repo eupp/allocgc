@@ -55,6 +55,8 @@ public:
     }
 
     bool empty() const;
+
+    double residency() const;
 private:
     void sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end);
 

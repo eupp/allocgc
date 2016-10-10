@@ -56,7 +56,7 @@ public:
     bool all_unmarked() const noexcept;
     void unmark();
 
-    double occupancy() const;
+    double residency() const;
 
     iterator begin();
     iterator end();

@@ -103,22 +103,18 @@ size_t gc_heap::sweep()
     return freed;
 }
 
-gc_heap::occupancy_stat gc_heap::calc_occupancy(size_t bucket_ind, tlab_t& tlab)
+gc_heap::heap_part_stat gc_heap::calc_heap_part_stat(size_t bucket_ind, tlab_t& tlab)
 {
-    occupancy_stat occupancy;
-    occupancy.m_avg = 0;
-    occupancy.m_sum = 0;
-//    size_t chunk_cnt = 0;
-//    tlab.apply_to_chunks(bucket_ind, [&occupancy, &chunk_cnt] (const allocators::managed_pool_chunk& chunk) {
-//        ++chunk_cnt;
-//        occupancy.m_sum += chunk.occupancy();
-//    });
-//    occupancy.m_avg = occupancy.m_sum / chunk_cnt;
+    heap_part_stat stats;
+    tlab.apply(bucket_ind, [&stats] (const fixsize_alloc_t& alloc) {
+        stats.residency = alloc.residency();
+    });
+    return stats;
+}
 
-    logging::warning() << "Occupancy sum = " << occupancy.m_sum;
-    logging::warning() << "Occupancy avg = " << occupancy.m_avg;
-
-    return occupancy;
+void gc_heap::update_heap_part_stat(size_t bucket_ind, tlab_t& tlab)
+{
+    m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)] = calc_heap_part_stat(bucket_ind, tlab);
 }
 
 std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
@@ -126,21 +122,14 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
     logging::info() << "Compacting memory...";
 
     forwarding frwd;
-    compacting::two_finger_compactor compactor;
     size_t mem_copied = 0;
     for (auto& kv: m_tlab_map) {
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
-            auto rng = tlab.memory_range(i);
-            if (rng.empty()) {
+            if (tlab.get_bucket_alloc(i).empty()) {
                 continue;
             }
-
-            occupancy_stat occupancy = calc_occupancy(i, tlab);
-
-            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            size_t copied = compactor(rng, frwd);
-            mem_copied += copied;
+            mem_copied += compact_heap_part(i, tlab, frwd);
         }
     }
     return std::make_pair(frwd, mem_copied);
@@ -159,22 +148,35 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_
     for (auto& kv: m_tlab_map) {
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
-            auto rng = tlab.memory_range(i);
-            if (rng.empty()) {
+            if (tlab.get_bucket_alloc(i).empty()) {
                 continue;
             }
-
-            occupancy_stat occupancy = calc_occupancy(i, tlab);
-
-            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd, &compactor] {
-                size_t copied = compactor(rng, frwd);
-                mem_copied += copied;
+            tasks.emplace_back([this, i, &mem_copied, &frwd, &tlab] {
+                mem_copied += compact_heap_part(i, tlab, frwd);
             });
         }
     }
     thread_pool.run(tasks.begin(), tasks.end());
     return std::make_pair(frwd, mem_copied.load());
+}
+
+size_t gc_heap::compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd)
+{
+    compacting::two_finger_compactor compactor;
+
+    heap_part_stat curr_stat = calc_heap_part_stat(bucket_ind, tlab);
+    heap_part_stat prev_stat = m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)];
+
+    size_t copied = 0;
+    if (curr_stat.residency < RESIDENCY_COMPACTING_THRESHOLD
+        ||
+        (curr_stat.residency < RESIDENCY_NON_COMPACTING_THRESHOLD &&
+         std::abs(curr_stat.residency - prev_stat.residency) < RESIDENCY_EPS)) {
+        auto rng = tlab.get_bucket_alloc(bucket_ind).memory_range();
+        copied = compactor(rng, frwd);
+    }
+    update_heap_part_stat(bucket_ind, tlab);
+    return copied;
 }
 
 void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)

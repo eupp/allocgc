@@ -70,13 +70,17 @@ public:
 
     collect_stats collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
-    typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
+    static constexpr double RESIDENCY_COMPACTING_THRESHOLD = 0.5;
+    static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
+    static constexpr double RESIDENCY_EPS = 0.1;
 
-    struct occupancy_stat
+    struct heap_part_stat
     {
-        double m_sum;
-        double m_avg;
+        double residency;
     };
+
+    typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
+    typedef std::unordered_map<fixsize_alloc_t*, heap_part_stat> heap_stat_map_t;
 
     gc_alloc_descriptor allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
@@ -84,7 +88,9 @@ private:
     size_t shrink(const threads::world_snapshot& snapshot);
     size_t sweep();
 
-    occupancy_stat calc_occupancy(size_t bucket_ind, tlab_t& tlab);
+    size_t compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd);
+    heap_part_stat calc_heap_part_stat(size_t bucket_ind, tlab_t& tlab);
+    void update_heap_part_stat(size_t bucket_ind, tlab_t& tlab);
 
     std::pair<forwarding, size_t> compact();
     std::pair<forwarding, size_t> parallel_compact(size_t threads_num);
@@ -94,6 +100,7 @@ private:
 
     loa_t m_loa;
     tlab_map_t m_tlab_map;
+    heap_stat_map_t m_heap_stat_map;
     std::mutex m_tlab_map_mutex;
     gc_compacting m_compacting;
 };

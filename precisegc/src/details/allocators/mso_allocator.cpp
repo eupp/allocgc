@@ -33,6 +33,24 @@ void mso_allocator::deallocate(pointer_type ptr, size_t size)
     return;
 }
 
+heap_part_stat mso_allocator::collect()
+{
+    heap_part_stat stats;
+    stats.mem_shrunk = 0;
+    stats.residency  = 0;
+    for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
+        stats.residency += it->residency();
+        if (it->all_unmarked()) {
+            stats.mem_shrunk += it->size();
+            it = destroy_chunk(it);
+        } else {
+            ++it;
+        }
+    }
+    stats.residency /= m_chunks.size();
+    return stats;
+}
+
 size_t mso_allocator::shrink()
 {
     size_t shrunk = 0;

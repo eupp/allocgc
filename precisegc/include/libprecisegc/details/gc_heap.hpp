@@ -74,13 +74,10 @@ private:
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
     static constexpr double RESIDENCY_EPS = 0.1;
 
-    struct heap_part_stat
-    {
-        double residency;
-    };
-
     typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
     typedef std::unordered_map<fixsize_alloc_t*, heap_part_stat> heap_stat_map_t;
+
+    static bool is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats);
 
     gc_alloc_descriptor allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
@@ -88,9 +85,16 @@ private:
     size_t shrink(const threads::world_snapshot& snapshot);
     size_t sweep();
 
-    size_t compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd);
+    std::pair<size_t, size_t> compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd);
+
+
     heap_part_stat calc_heap_part_stat(size_t bucket_ind, tlab_t& tlab);
-    void update_heap_part_stat(size_t bucket_ind, tlab_t& tlab);
+    void update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const heap_part_stat& stats);
+
+    collect_stats serial_collect(const threads::world_snapshot& snapshot);
+    collect_stats parallel_collect(const threads::world_snapshot& snapshot, size_t threads_available);
+
+    std::pair<size_t, size_t> compact_heap_part()
 
     std::pair<forwarding, size_t> compact();
     std::pair<forwarding, size_t> parallel_compact(size_t threads_num);

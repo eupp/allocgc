@@ -45,6 +45,8 @@ public:
 
     void deallocate(pointer_type ptr, size_t size);
 
+    heap_part_stat collect();
+
     size_t shrink();
 
     void sweep();

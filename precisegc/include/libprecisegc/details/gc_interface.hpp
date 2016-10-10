@@ -77,6 +77,12 @@ struct gc_pause_stat
     gc_clock::duration  duration;
 };
 
+struct heap_part_stat
+{
+    size_t mem_shrunk;
+    double residency;
+};
+
 struct gc_sweep_stat
 {
     size_t      shrunk;

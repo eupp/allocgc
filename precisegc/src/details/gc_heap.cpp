@@ -60,6 +60,35 @@ gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot,
     return stat;
 }
 
+collect_stats gc_heap::serial_collect(const threads::world_snapshot& snapshot)
+{
+    size_t freed  = 0;
+    size_t copied = 0;
+
+    forwarding frwd;
+    compacting::two_finger_compactor compactor;
+
+    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
+
+        auto& tlab = it->second;
+        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
+            auto res = compact_heap_part(i, tlab, frwd);
+            freed  += res.first;
+            copied += res.second;
+        }
+
+        if (tlab.empty() && snapshot.lookup_thread(it->first) == nullptr) {
+            it = m_tlab_map.erase(it);
+        } else {
+            ++it;
+        }
+
+
+    }
+
+
+}
+
 gc_alloc_descriptor gc_heap::allocate_on_tlab(size_t size)
 {
     assert(size <= LARGE_CELL_SIZE);
@@ -79,6 +108,15 @@ size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
 
     size_t freed_in_tlabs = 0;
     for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
+
+        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
+            if (tlab.get_bucket_alloc(i).empty()) {
+                continue;
+            }
+            mem_copied += compact_heap_part(i, tlab, frwd);
+        }
+
+
         freed_in_tlabs += it->second.shrink();
         if (it->second.empty() && snapshot.lookup_thread(it->first) == nullptr) {
             it = m_tlab_map.erase(it);
@@ -112,9 +150,9 @@ gc_heap::heap_part_stat gc_heap::calc_heap_part_stat(size_t bucket_ind, tlab_t& 
     return stats;
 }
 
-void gc_heap::update_heap_part_stat(size_t bucket_ind, tlab_t& tlab)
+void gc_heap::update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const heap_part_stat& stats)
 {
-    m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)] = calc_heap_part_stat(bucket_ind, tlab);
+    m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)] = stats;
 }
 
 std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
@@ -160,23 +198,24 @@ std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_
     return std::make_pair(frwd, mem_copied.load());
 }
 
-size_t gc_heap::compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd)
+std::pair<size_t, size_t> gc_heap::compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd)
 {
     compacting::two_finger_compactor compactor;
 
-    heap_part_stat curr_stat = calc_heap_part_stat(bucket_ind, tlab);
-    heap_part_stat prev_stat = m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)];
+    heap_part_stat curr_stats = tlab.get_bucket_alloc(bucket_ind).collect();
+    heap_part_stat prev_stats = m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)];
 
+    size_t freed  = curr_stats.mem_shrunk;
     size_t copied = 0;
-    if (curr_stat.residency < RESIDENCY_COMPACTING_THRESHOLD
-        ||
-        (curr_stat.residency < RESIDENCY_NON_COMPACTING_THRESHOLD &&
-         std::abs(curr_stat.residency - prev_stat.residency) < RESIDENCY_EPS)) {
+
+    if (is_compacting_required(curr_stats, prev_stats)) {
         auto rng = tlab.get_bucket_alloc(bucket_ind).memory_range();
-        copied = compactor(rng, frwd);
+        copied += compactor(rng, frwd);
+        curr_stats = calc_heap_part_stat(bucket_ind, tlab);
     }
-    update_heap_part_stat(bucket_ind, tlab);
-    return copied;
+    update_heap_part_stat(bucket_ind, tlab, curr_stats);
+
+    return std::make_pair(freed, copied);
 }
 
 void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
@@ -213,13 +252,11 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
     thread_pool.run(tasks.begin(), tasks.end());
 }
 
-//void gc_heap::unmark()
-//{
-//    for (auto& kv: m_tlab_map) {
-//        kv.second.apply_to_chunks([] (allocators::managed_pool_chunk& chunk) {
-//            chunk.unmark();
-//        });
-//    }
-//}
+bool gc_heap::is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats)
+{
+    return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
+           || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD
+               && std::abs(curr_stats.residency - prev_stats.residency) < RESIDENCY_EPS);
+}
 
 }}

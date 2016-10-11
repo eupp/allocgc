@@ -85,7 +85,7 @@ gc_heap::collect_stats gc_heap::parallel_collect(const threads::world_snapshot& 
     std::vector<std::function<void()>> tasks;
 
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
-    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
+    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ++it) {
         auto& tlab = it->second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             tasks.push_back([this, i, &tlab, &frwd, &freed, &copied] {

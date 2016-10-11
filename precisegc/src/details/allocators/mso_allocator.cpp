@@ -2,6 +2,8 @@
 
 #include <libprecisegc/details/collectors/memory_index.hpp>
 
+#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
+
 namespace precisegc { namespace details { namespace allocators {
 
 mso_allocator::mso_allocator()
@@ -38,10 +40,19 @@ heap_part_stat mso_allocator::collect()
     heap_part_stat stats;
     stats.mem_shrunk = 0;
     stats.residency  = 0;
+
+    byte* curr = m_freelist;
+    while (curr) {
+        managed_pool_chunk* chk = static_cast<managed_pool_chunk*>(collectors::memory_index::index(curr));
+        chk->set_dead(curr);
+        curr = *reinterpret_cast<byte**>(curr);
+    }
+
     for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
         stats.residency += it->residency();
         if (it->all_unmarked()) {
             stats.mem_shrunk += it->size();
+            call_destructors(it);
             it = destroy_chunk(it);
         } else {
             ++it;
@@ -49,20 +60,6 @@ heap_part_stat mso_allocator::collect()
     }
     stats.residency /= m_chunks.size();
     return stats;
-}
-
-size_t mso_allocator::shrink()
-{
-    size_t shrunk = 0;
-    for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
-        if (it->all_unmarked()) {
-            shrunk += it->size();
-            it = destroy_chunk(it);
-        } else {
-            ++it;
-        }
-    }
-    return shrunk;
 }
 
 void mso_allocator::sweep()
@@ -88,6 +85,8 @@ void mso_allocator::sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end)
         if (!chk->get_mark(i)) {
             logging::debug() << "Deallocate cell addr=" << (void*) it << ", size=" << cell_size;
 
+            call_destructor(it, chk);
+
             byte** next = reinterpret_cast<byte**>(it);
             *next = m_freelist;
             m_freelist = it;
@@ -95,6 +94,28 @@ void mso_allocator::sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end)
     }
 
     chk->unmark();
+}
+
+void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
+{
+    using namespace collectors;
+
+    if (!chk->is_dead(ptr)) {
+        traceable_object_meta* meta = reinterpret_cast<traceable_object_meta*>(ptr);
+        const gc_type_meta* tmeta = meta->get_type_meta();
+        tmeta->destroy(ptr + sizeof(traceable_object_meta));
+    }
+}
+
+void mso_allocator::call_destructors(iterator_t chk)
+{
+    byte* it = chk->memory();
+    size_t cnt = chk->size() / chk->cell_size();
+    size_t cell_size = chk->cell_size();
+
+    for (size_t i = 0; i < cnt; ++i, it += cell_size) {
+        call_destructor(it, chk);
+    }
 }
 
 bool mso_allocator::empty() const
@@ -120,6 +141,7 @@ mso_allocator::iterator_t mso_allocator::create_chunk(size_t cell_size)
 
 mso_allocator::iterator_t mso_allocator::destroy_chunk(typename chunk_list_t::iterator chk)
 {
+
     deallocate_block(chk->memory(), chk->size());
     return m_chunks.erase(chk);
 }

@@ -30,7 +30,6 @@ public:
 
     bool equal(const gc_untyped_ptr& other) const;
 
-
     void advance(ptrdiff_t n);
 
     byte* get() const;
@@ -42,6 +41,7 @@ private:
     void delete_root();
 
     gc_word m_handle;
+    const bool m_root_flag;
 };
 
 }}}

@@ -26,11 +26,11 @@ class mso_allocator : private utils::noncopyable, utils::nonmovable
     typedef managed_pool_chunk chunk_t;
 
     typedef allocators::intrusive_list_allocator<
-            allocators::freelist_pool_chunk
+              allocators::freelist_pool_chunk
             , allocators::default_allocator
             , allocators::single_chunk_with_search_cache
             , utils::dummy_mutex
-    > chunk_pool_t;
+        > chunk_pool_t;
 
     typedef std::list<chunk_t, stl_adapter<chunk_t, chunk_pool_t>> chunk_list_t;
     typedef typename chunk_list_t::iterator iterator_t;
@@ -47,8 +47,6 @@ public:
 
     heap_part_stat collect();
 
-    size_t shrink();
-
     void sweep();
 
     memory_range_type memory_range()
@@ -60,6 +58,9 @@ public:
 
     double residency() const;
 private:
+    void call_destructor(byte* ptr, iterator_t chk);
+    void call_destructors(iterator_t chk);
+
     void sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end);
 
     iterator_t create_chunk(size_t cell_size);

@@ -57,6 +57,7 @@ void managed_pool_chunk::unmark()
 {
     m_mark_bits.reset_all();
     m_pin_bits.reset_all();
+    m_dead_bits.reset_all();
 }
 
 double managed_pool_chunk::residency() const
@@ -79,6 +80,18 @@ managed_pool_chunk::iterator managed_pool_chunk::end()
 managed_pool_chunk::memory_range_type managed_pool_chunk::memory_range()
 {
     return memory_range_type(begin(), end());
+}
+
+bool managed_pool_chunk::is_dead(byte* ptr) const
+{
+    size_t ind = calc_cell_ind(ptr);
+    return m_dead_bits.get(ind);
+}
+
+void managed_pool_chunk::set_dead(byte* ptr)
+{
+    size_t ind = calc_cell_ind(ptr);
+    m_dead_bits.set(ind);
 }
 
 bool managed_pool_chunk::get_mark(size_t i) const

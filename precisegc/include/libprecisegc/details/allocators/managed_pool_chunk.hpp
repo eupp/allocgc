@@ -62,6 +62,9 @@ public:
     iterator end();
     memory_range_type memory_range();
 
+    bool is_dead(byte* ptr) const;
+    void set_dead(byte* ptr);
+
     bool get_mark(size_t i) const;
     bool get_pin(size_t i) const;
 
@@ -90,6 +93,7 @@ private:
     uintptr m_mask;
     sync_bitset_t m_mark_bits;
     bitset_t m_pin_bits;
+    bitset_t m_dead_bits;
 };
 
 }}}

@@ -2,12 +2,9 @@
 
 #include <unordered_set>
 
+#include <libprecisegc/details/allocators/mso_allocator.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
-#include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/cache_policies.hpp>
-#include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/types.hpp>
 
 #include "rand_util.h"
@@ -25,12 +22,7 @@ struct test_type
     byte data[OBJ_SIZE];
 };
 
-typedef list_allocator<managed_pool_chunk,
-        core_allocator,
-        default_allocator,
-        single_chunk_cache,
-        utils::dummy_mutex
-    > allocator_t;
+typedef mso_allocator allocator_t;
 
 }
 

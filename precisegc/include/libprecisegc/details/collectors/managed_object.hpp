@@ -48,9 +48,7 @@ public:
         return reinterpret_cast<traceable_object_meta*>(m_ptr - sizeof(traceable_object_meta));
     }
 
-    inline
-
-    explicit operator bool() const noexcept
+    inline explicit operator bool() const noexcept
     {
         return m_ptr != nullptr;
     }

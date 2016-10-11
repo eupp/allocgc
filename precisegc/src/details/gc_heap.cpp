@@ -29,35 +29,92 @@ gc_alloc_descriptor gc_heap::allocate(size_t size)
 
 gc_heap::collect_stats gc_heap::collect(const threads::world_snapshot& snapshot, size_t threads_available)
 {
-    collect_stats stat;
+    if (threads_available > 1) {
+        return parallel_collect(snapshot, threads_available);
+    } else {
+        return serial_collect(snapshot);
+    }
+}
 
-    size_t freed = shrink(snapshot);
+gc_heap::collect_stats gc_heap::serial_collect(const threads::world_snapshot& snapshot)
+{
+    size_t freed  = 0;
     size_t copied = 0;
 
-    if (m_compacting == gc_compacting::ENABLED) {
-        if (threads_available > 1) {
-            auto cmpct_res = parallel_compact(threads_available);
-            forwarding& frwd = cmpct_res.first;
-            copied = cmpct_res.second;
-            parallel_fix_pointers(frwd, threads_available);
-            snapshot.fix_roots(frwd);
+    forwarding frwd;
+
+    freed += m_loa.shrink();
+
+    std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
+    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
+        auto& tlab = it->second;
+        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
+            auto res = compact_heap_part(i, tlab, frwd);
+            freed  += res.first;
+            copied += res.second;
+        }
+
+        if (tlab.empty() && snapshot.lookup_thread(it->first) == nullptr) {
+            it = m_tlab_map.erase(it);
         } else {
-            auto cmpct_res = compact();
-            forwarding& frwd = cmpct_res.first;
-            copied = cmpct_res.second;
-            fix_pointers(frwd);
-            snapshot.fix_roots(frwd);
+            ++it;
         }
     }
 
-    sweep();
-//    freed += sweep();
-//    unmark();
+    if (copied > 0) {
+        fix_pointers(frwd);
+        snapshot.fix_roots(frwd);
+    }
 
-    stat.mem_swept = freed;
-    stat.mem_copied = copied;
+    collect_stats stats;
+    stats.mem_swept  = freed;
+    stats.mem_copied = copied;
+    return stats;
+}
 
-    return stat;
+gc_heap::collect_stats gc_heap::parallel_collect(const threads::world_snapshot& snapshot, size_t threads_available)
+{
+    std::atomic<size_t> freed{0};
+    std::atomic<size_t> copied{0};
+
+    forwarding frwd;
+
+    freed += m_loa.shrink();
+
+    utils::static_thread_pool thread_pool(threads_available);
+    std::vector<std::function<void()>> tasks;
+
+    std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
+    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ++it) {
+        auto& tlab = it->second;
+        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
+            tasks.push_back([this, i, &tlab, &frwd, &freed, &copied] {
+                auto res = compact_heap_part(i, tlab, frwd);
+                freed  += res.first;
+                copied += res.second;
+            });
+        }
+    }
+    thread_pool.run(tasks.begin(), tasks.end());
+
+    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
+        auto& tlab = it->second;
+        if (tlab.empty() && snapshot.lookup_thread(it->first) == nullptr) {
+            it = m_tlab_map.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    if (copied > 0) {
+        parallel_fix_pointers(frwd, threads_available);
+        snapshot.fix_roots(frwd);
+    }
+
+    collect_stats stats;
+    stats.mem_swept  = freed;
+    stats.mem_copied = copied;
+    return stats;
 }
 
 gc_alloc_descriptor gc_heap::allocate_on_tlab(size_t size)
@@ -73,110 +130,31 @@ gc_heap::tlab_t& gc_heap::get_tlab()
     return m_tlab_map[std::this_thread::get_id()];
 }
 
-size_t gc_heap::shrink(const threads::world_snapshot& snapshot)
+void gc_heap::update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const heap_part_stat& stats)
 {
-    logging::info() << "Dropping empty pages...";
-
-    size_t freed_in_tlabs = 0;
-    for (auto it = m_tlab_map.begin(); it != m_tlab_map.end(); ) {
-        freed_in_tlabs += it->second.shrink();
-        if (it->second.empty() && snapshot.lookup_thread(it->first) == nullptr) {
-            it = m_tlab_map.erase(it);
-        } else {
-            ++it;
-        }
-    }
-
-    size_t freed_in_loa = m_loa.shrink();
-
-    return freed_in_tlabs + freed_in_loa;
+    m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)] = stats;
 }
 
-size_t gc_heap::sweep()
+std::pair<size_t, size_t> gc_heap::compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd)
 {
-    size_t freed = 0;
-    for (auto& kv: m_tlab_map) {
-        kv.second.apply_to_chunks([&freed] (allocators::managed_pool_chunk& chunk) {
-            freed += chunk.sweep();
-            chunk.unmark();
-        });
-        kv.second.reset_cache();
-    }
-    return freed;
-}
-
-gc_heap::occupancy_stat gc_heap::calc_occupancy(size_t bucket_ind, tlab_t& tlab)
-{
-    occupancy_stat occupancy;
-    occupancy.m_avg = 0;
-    occupancy.m_sum = 0;
-    size_t chunk_cnt = 0;
-    tlab.apply_to_chunks(bucket_ind, [&occupancy, &chunk_cnt] (const allocators::managed_pool_chunk& chunk) {
-        ++chunk_cnt;
-        occupancy.m_sum += chunk.occupancy();
-    });
-    occupancy.m_avg = occupancy.m_sum / chunk_cnt;
-
-    logging::warning() << "Occupancy sum = " << occupancy.m_sum;
-    logging::warning() << "Occupancy avg = " << occupancy.m_avg;
-
-    return occupancy;
-}
-
-std::pair<gc_heap::forwarding, size_t> gc_heap::compact()
-{
-    logging::info() << "Compacting memory...";
-
-    forwarding frwd;
     compacting::two_finger_compactor compactor;
-    size_t mem_copied = 0;
-    for (auto& kv: m_tlab_map) {
-        auto& tlab = kv.second;
-        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
-            auto rng = tlab.memory_range(i);
-            if (rng.empty()) {
-                continue;
-            }
+    fixsize_alloc_t& bucket_alloc = tlab.get_bucket_alloc(bucket_ind);
 
-            occupancy_stat occupancy = calc_occupancy(i, tlab);
+    heap_part_stat curr_stats = bucket_alloc.collect();
+    heap_part_stat prev_stats = m_heap_stat_map[&bucket_alloc];
 
-            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            size_t copied = compactor(rng, frwd);
-            mem_copied += copied;
-        }
+    size_t freed  = curr_stats.mem_shrunk;
+    size_t copied = 0;
+
+    if (is_compacting_required(curr_stats, prev_stats)) {
+        auto rng = bucket_alloc.memory_range();
+        copied += compactor(rng, frwd);
+        curr_stats.residency = bucket_alloc.residency();
     }
-    return std::make_pair(frwd, mem_copied);
-}
+    bucket_alloc.sweep();
+    update_heap_part_stat(bucket_ind, tlab, curr_stats);
 
-std::pair<gc_heap::forwarding, size_t> gc_heap::parallel_compact(size_t threads_num)
-{
-    logging::info() << "Compacting memory (in parallel with " << threads_num << " threads)...";
-
-    utils::static_thread_pool thread_pool(threads_num);
-    std::vector<std::function<void()>> tasks;
-    std::atomic<size_t> mem_copied{0};
-
-    forwarding frwd;
-    compacting::two_finger_compactor compactor;
-    for (auto& kv: m_tlab_map) {
-        auto& tlab = kv.second;
-        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
-            auto rng = tlab.memory_range(i);
-            if (rng.empty()) {
-                continue;
-            }
-
-            occupancy_stat occupancy = calc_occupancy(i, tlab);
-
-            size_t bucket_size = tlab_bucket_policy::bucket_size(i);
-            tasks.emplace_back([this, rng, i, bucket_size, &mem_copied, &frwd, &compactor] {
-                size_t copied = compactor(rng, frwd);
-                mem_copied += copied;
-            });
-        }
-    }
-    thread_pool.run(tasks.begin(), tasks.end());
-    return std::make_pair(frwd, mem_copied.load());
+    return std::make_pair(freed, copied);
 }
 
 void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
@@ -213,13 +191,11 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
     thread_pool.run(tasks.begin(), tasks.end());
 }
 
-//void gc_heap::unmark()
-//{
-//    for (auto& kv: m_tlab_map) {
-//        kv.second.apply_to_chunks([] (allocators::managed_pool_chunk& chunk) {
-//            chunk.unmark();
-//        });
-//    }
-//}
+bool gc_heap::is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats)
+{
+    return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
+           || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD
+               && std::abs(curr_stats.residency - prev_stats.residency) < RESIDENCY_EPS);
+}
 
 }}

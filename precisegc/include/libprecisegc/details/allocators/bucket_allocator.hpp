@@ -62,30 +62,28 @@ public:
         return flag;
     }
 
-    void reset_cache()
+    template <typename Functor>
+    void apply(Functor&& f)
     {
         for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            m_buckets[i].reset_cache();
+            f(m_buckets[i]);
         }
     }
 
     template <typename Functor>
-    void apply_to_chunks(Functor&& f)
+    void apply(size_t bucket_ind, Functor&& f)
     {
-        for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-            m_buckets[i].apply_to_chunks(f);
-        }
-    }
-
-    template <typename Functor>
-    void apply_to_chunks(size_t bucket_ind, Functor&& f)
-    {
-        m_buckets[bucket_ind].apply_to_chunks(f);
+        f(m_buckets[bucket_ind]);
     }
 
     memory_range_type memory_range(size_t bucket_ind)
     {
         return m_buckets[bucket_ind].memory_range();
+    }
+
+    Alloc& get_bucket_alloc(size_t bucket_ind)
+    {
+        return m_buckets[bucket_ind];
     }
 private:
     array_t m_buckets;

@@ -23,7 +23,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/debug_layer.hpp
         include/libprecisegc/details/allocators/bucket_allocator.hpp
         include/libprecisegc/details/allocators/bitmap_pool_chunk.hpp
-        include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
         include/libprecisegc/details/allocators/managed_pool_chunk.hpp
@@ -129,7 +128,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/core_allocator.cpp
         src/details/threads/stack_bitmap.cpp
         src/details/threads/managed_thread.cpp
-        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp src/details/collectors/memory_index.cpp)
+        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp src/details/collectors/memory_index.cpp src/details/allocators/mso_allocator.cpp)
 
 
 find_package(Threads REQUIRED)

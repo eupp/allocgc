@@ -36,66 +36,50 @@ private:
     typedef freelist_allocator<null_allocator, fixsize_policy> freelist_t;
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
-    typedef gc_alloc_descriptor pointer_type;
     typedef managed_memory_iterator<managed_pool_chunk> iterator;
-    typedef boost::iterator_range<iterator> range_type;
+    typedef boost::iterator_range<iterator> memory_range_type;
 
     static size_t chunk_size(size_t cell_size)
     {
         return cell_size * CHUNK_MAXSIZE;
     }
 
-    managed_pool_chunk();
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
 
     ~managed_pool_chunk();
 
-    pointer_type allocate(size_t size);
-    void deallocate(const pointer_type& ptr, size_t size);
-
-    inline bool contains(const pointer_type& ptr) const noexcept
-    {
-        return m_chunk.contains(ptr.get());
-    }
-
-    inline bool memory_available() const noexcept
-    {
-        return m_chunk.memory_available();
-    }
-
-    inline bool empty() const noexcept
-    {
-        return m_mark_bits.none();
-    }
-
-    byte*  get_mem() const;
-    size_t get_mem_size() const;
+    byte*  memory() const;
+    size_t size() const;
 
     memory_descriptor* get_descriptor();
 
-    size_t sweep();
+    bool all_unmarked() const noexcept;
     void unmark();
 
-    double occupancy() const;
+    double residency() const;
 
     iterator begin();
     iterator end();
-    range_type memory_range();
+    memory_range_type memory_range();
+
+    bool get_mark(size_t i) const;
+    bool get_pin(size_t i) const;
 
     virtual bool get_mark(byte* ptr) const override;
     virtual bool get_pin(byte* ptr) const override;
+
+    void set_mark(size_t i, bool mark);
+    void set_pin(size_t i, bool pin);
 
     virtual void set_mark(byte* ptr, bool mark) override;
     virtual void set_pin(byte* ptr, bool pin) override;
 
     virtual size_t cell_size() const override;
-    virtual byte* cell_start(byte* ptr) const override;
+    virtual byte*  cell_start(byte* ptr) const override;
 
     virtual void set_type_meta(byte* ptr, const type_meta* tmeta) override;
 private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
-
-    void deallocate(byte* ptr, size_t size);
 
     size_t calc_cell_ind(byte* ptr) const;
     size_t get_log2_cell_size() const;

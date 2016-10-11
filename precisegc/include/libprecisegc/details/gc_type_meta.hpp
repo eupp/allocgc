@@ -1,18 +1,23 @@
-#ifndef DIPLOMA_CLASS_META_H
-#define DIPLOMA_CLASS_META_H
-
-#include <cassert>
-#include <memory>
-#include <algorithm>
-#include <type_traits>
+#ifndef DIPLOMA_GC_TYPE_META_HPP
+#define DIPLOMA_GC_TYPE_META_HPP
 
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/utils/dynarray.hpp>
+#include <libprecisegc/details/utils/to_string.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {
+
+class forbidden_move_exception : public gc_exception
+{
+public:
+    forbidden_move_exception(byte* ptr)
+        : gc_exception("Attempt to move non-movable object by address " + utils::to_string(ptr))
+    {}
+};
 
 class gc_type_meta : private utils::noncopyable, private utils::nonmovable
 {
@@ -63,4 +68,4 @@ private:
 
 } }
 
-#endif //DIPLOMA_CLASS_META_H
+#endif //DIPLOMA_GC_TYPE_META_HPP

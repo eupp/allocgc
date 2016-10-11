@@ -6,9 +6,7 @@
 #include <type_traits>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/utils/to_string.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
 
 namespace precisegc { namespace details {
@@ -17,14 +15,6 @@ template <typename T>
 class gc_type_meta_factory;
 
 namespace internals {
-
-class forbidden_move_exception : public gc_exception
-{
-public:
-    forbidden_move_exception(byte* ptr)
-        : gc_exception("Attempt to move non-movable object by address " + utils::to_string(ptr))
-    {}
-};
 
 template <typename T>
 class gc_type_meta_instance : public gc_type_meta

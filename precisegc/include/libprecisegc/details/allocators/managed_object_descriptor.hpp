@@ -52,7 +52,7 @@ public:
     size_t cell_size() const override;
     byte*  cell_start(byte* ptr) const override;
 
-    void set_type_meta(byte* ptr, const type_meta* tmeta) override;
+    void set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
     bool check_ptr(byte* ptr) const;
 

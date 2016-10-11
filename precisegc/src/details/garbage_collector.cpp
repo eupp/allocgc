@@ -36,7 +36,7 @@ std::unique_ptr<gc_strategy> garbage_collector::set_strategy(std::unique_ptr<gc_
     return std::move(strategy);
 }
 
-gc_alloc_descriptor garbage_collector::allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta)
+gc_alloc_descriptor garbage_collector::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     try {
         return try_allocate(obj_size, obj_cnt, tmeta);
@@ -46,7 +46,7 @@ gc_alloc_descriptor garbage_collector::allocate(size_t obj_size, size_t obj_cnt,
     }
 }
 
-gc_alloc_descriptor garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta)
+gc_alloc_descriptor garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     assert(m_strategy);
     return m_strategy->allocate(obj_size, obj_cnt, tmeta);

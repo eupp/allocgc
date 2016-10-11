@@ -2,6 +2,7 @@
 
 #include <unordered_set>
 
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/collectors/trace_ptr.hpp>
@@ -30,15 +31,15 @@ public:
     trace_ptr_test()
         : heap(gc_compacting::DISABLED)
     {
-        type_meta_provider<simple_object_t>::create_meta();
-        type_meta_provider<complex_object_t>::create_meta(std::vector<size_t>({0, sizeof(gc_untyped_ptr)}));
+        gc_type_meta_factory<simple_object_t>::create();
+        gc_type_meta_factory<complex_object_t>::create(std::vector<size_t>({0, sizeof(gc_untyped_ptr)}));
 
         gc_alloc_descriptor alloc_dscr1 = heap.allocate(OBJ_SIZE);
-        new (managed_object::get_meta(alloc_dscr1.get())) traceable_object_meta(1, type_meta_provider<simple_object_t>::get_meta());
+        new (managed_object::get_meta(alloc_dscr1.get())) traceable_object_meta(1, gc_type_meta_factory<simple_object_t>::get());
 
         gc_alloc_descriptor alloc_dscr2 = heap.allocate(OBJ_SIZE);
 
-        new (managed_object::get_meta(alloc_dscr2.get())) traceable_object_meta(1, type_meta_provider<complex_object_t>::get_meta());
+        new (managed_object::get_meta(alloc_dscr2.get())) traceable_object_meta(1, gc_type_meta_factory<complex_object_t>::get());
 
         child1 = managed_object::get_object(heap.allocate(OBJ_SIZE).get());
         child2 = managed_object::get_object(heap.allocate(OBJ_SIZE).get());

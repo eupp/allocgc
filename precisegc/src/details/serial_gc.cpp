@@ -19,7 +19,7 @@ serial_gc_base::serial_gc_base(gc_compacting compacting, size_t threads_availabl
     , m_threads_available(threads_available)
 {}
 
-gc_alloc_descriptor serial_gc_base::allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta)
+gc_alloc_descriptor serial_gc_base::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     gc_alloc_descriptor descr = m_heap.allocate(sizeof(traceable_object_meta) + obj_size * obj_cnt);
     traceable_object_meta* meta = managed_object::get_meta(descr.get());

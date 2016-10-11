@@ -19,7 +19,7 @@ void gc_deregister_root(gc_word* root);
 bool gc_is_root(const gc_word* ptr);
 bool gc_is_heap_ptr(const gc_word* ptr);
 
-gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta);
+gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
 void gc_commit(const gc_alloc_descriptor& ptr);
 

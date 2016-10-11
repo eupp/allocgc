@@ -4,7 +4,7 @@
 #include <mutex>
 
 #include <libprecisegc/details/types.hpp>
-#include "type_meta.hpp"
+#include "gc_type_meta.hpp"
 
 namespace precisegc { namespace details {
 
@@ -25,7 +25,7 @@ public:
     virtual size_t cell_size() const = 0;
     virtual byte*  cell_start(byte* ptr) const = 0;
 
-    virtual void set_type_meta(byte* ptr, const type_meta* tmeta) = 0;
+    virtual void set_type_meta(byte* ptr, const gc_type_meta* tmeta) = 0;
 };
 
 }}

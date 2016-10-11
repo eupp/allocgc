@@ -5,7 +5,7 @@
 #include <atomic>
 
 #include <libprecisegc/details/gc_word.hpp>
-#include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
@@ -13,7 +13,7 @@ namespace precisegc { namespace details { namespace collectors {
 class traceable_object_meta
 {
 public:
-    traceable_object_meta(size_t count, const type_meta* meta)
+    traceable_object_meta(size_t count, const gc_type_meta* meta)
         : m_type_meta(reinterpret_cast<std::uintptr_t>(meta))
         , m_count(count)
     {}
@@ -43,7 +43,7 @@ public:
         ++m_count;
     }
 
-    type_meta::offsets_range offsets() const noexcept
+    gc_type_meta::offsets_t offsets() const noexcept
     {
         return get_type_meta()->offsets();
     }
@@ -53,12 +53,12 @@ public:
         return m_type_meta == 0 || m_type_meta == FORWARD_BIT || get_type_meta()->is_plain_type();
     }
 
-    const type_meta* get_type_meta() const noexcept
+    const gc_type_meta* get_type_meta() const noexcept
     {
-        return reinterpret_cast<const type_meta*>(m_type_meta & ~FORWARD_BIT);
+        return reinterpret_cast<const gc_type_meta*>(m_type_meta & ~FORWARD_BIT);
     }
 
-    void set_type_meta(const type_meta* cls_meta) noexcept
+    void set_type_meta(const gc_type_meta* cls_meta) noexcept
     {
         std::uintptr_t frwd_bit = is_forwarded() ? FORWARD_BIT : 0;
         m_type_meta = reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit;

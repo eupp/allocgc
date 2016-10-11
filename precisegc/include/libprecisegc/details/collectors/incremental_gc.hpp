@@ -21,7 +21,7 @@ class incremental_gc_base : public gc_strategy, private utils::noncopyable, priv
 public:
     incremental_gc_base(gc_compacting compacting, size_t threads_available);
 
-    gc_alloc_descriptor allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta) override;
+    gc_alloc_descriptor allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
     void commit(const gc_alloc_descriptor& alloc_descr) override;
 
     byte* rbarrier(const gc_word& handle) override;

@@ -58,7 +58,7 @@ public:
     {
         assert(m_ptr);
 
-        const type_meta* tmeta = meta()->get_type_meta();
+        const gc_type_meta* tmeta = meta()->get_type_meta();
         if (!tmeta) {
             return;
         }

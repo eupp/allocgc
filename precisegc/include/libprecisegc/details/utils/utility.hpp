@@ -32,6 +32,12 @@ public:
     nonmovable& operator=(nonmovable&&) = delete;
 };
 
+class nonconstructible : private utils::noncopyable, private utils::nonmovable
+{
+public:
+    nonconstructible() = delete;
+};
+
 template <typename... Bases>
 class ebo : private Bases...
 {

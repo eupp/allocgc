@@ -17,7 +17,7 @@ class gc_strategy
 public:
     virtual ~gc_strategy() {}
 
-    virtual gc_alloc_descriptor allocate(size_t obj_size, size_t obj_cnt, const type_meta* tmeta) = 0;
+    virtual gc_alloc_descriptor allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) = 0;
     virtual void commit(const gc_alloc_descriptor& alloc_dscr) = 0;
 
     virtual byte* rbarrier(const gc_word& handle) = 0;

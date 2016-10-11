@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/gc_new.hpp>
-#include <libprecisegc/details/type_meta.hpp>
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
+#include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 
 using namespace precisegc;
@@ -47,7 +48,7 @@ TEST(gc_new_test, test_meta)
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
     collectors::traceable_object_meta* obj_meta = get_meta((byte*) pin.get());
-    const type_meta* cls_meta = obj_meta->get_type_meta();
+    const gc_type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_EQ(1, obj_meta->object_count());
 
@@ -87,7 +88,7 @@ TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
     collectors::traceable_object_meta* obj_meta = get_meta((byte*) ptr.pin().get());
-    const type_meta* cls_meta = obj_meta->get_type_meta();
+    const gc_type_meta* cls_meta = obj_meta->get_type_meta();
 
     ASSERT_NE(nullptr, cls_meta);
     ASSERT_EQ(sizeof(node1), cls_meta->type_size());
@@ -118,18 +119,18 @@ TEST(gc_new_test, test_nested_2)
 {
     gc_ptr<complex_object> ptr = gc_new<complex_object>();
 
-    typedef type_meta_provider<simple_object> simple_meta_provider;
-    typedef type_meta_provider<complex_object> complex_meta_provider;
+    typedef gc_type_meta_factory<simple_object> simple_meta_factory;
+    typedef gc_type_meta_factory<complex_object> complex_meta_factory;
 
-    ASSERT_TRUE(simple_meta_provider::is_meta_created());
-    ASSERT_TRUE(complex_meta_provider::is_meta_created());
+    ASSERT_NE(nullptr, simple_meta_factory::get());
+    ASSERT_NE(nullptr, complex_meta_factory::get());
 
-    const type_meta* simple_obj_meta = simple_meta_provider::get_meta();
+    const gc_type_meta* simple_obj_meta = simple_meta_factory::get();
     ASSERT_EQ(sizeof(simple_object), simple_obj_meta->type_size());
     ASSERT_EQ(0, simple_obj_meta->offsets().size());
     ASSERT_TRUE(simple_obj_meta->is_plain_type());
 
-    const type_meta* complex_obj_meta = complex_meta_provider::get_meta();
+    const gc_type_meta* complex_obj_meta = complex_meta_factory::get();
     ASSERT_EQ(sizeof(complex_object), complex_obj_meta->type_size());
     ASSERT_EQ(3, complex_obj_meta->offsets().size());
     ASSERT_EQ(0, complex_obj_meta->offsets()[0]);
@@ -160,11 +161,11 @@ TEST(gc_new_test, test_with_ctor)
 {
     gc_ptr<simple_object_with_ctor> ptr = gc_new<simple_object_with_ctor>();
 
-    typedef type_meta_provider<simple_object_with_ctor> meta_provider;
+    typedef gc_type_meta_factory<simple_object_with_ctor> meta_factory;
 
-    ASSERT_TRUE(meta_provider::is_meta_created());
+    ASSERT_NE(nullptr, meta_factory::get());
 
-    const type_meta* tmeta = meta_provider::get_meta();
+    const gc_type_meta* tmeta = meta_factory::get();
     ASSERT_EQ(sizeof(simple_object_with_ctor), tmeta->type_size());
     ASSERT_EQ(0, tmeta->offsets().size());
     ASSERT_TRUE(tmeta->is_plain_type());

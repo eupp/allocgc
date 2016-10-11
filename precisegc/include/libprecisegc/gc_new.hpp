@@ -1,5 +1,5 @@
-#ifndef GC_NEW_H
-#define GC_NEW_H
+#ifndef GC_NEW_HPP
+#define GC_NEW_HPP
 
 #include <cstdio>
 #include <cassert>
@@ -9,14 +9,15 @@
 #include <pthread.h>
 
 #include <libprecisegc/gc_ptr.hpp>
+#include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/type_meta.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
+#include <libprecisegc/details/gc_type_meta.hpp>
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
+#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
-#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc {
 
@@ -101,13 +102,14 @@ auto gc_new(Args&&... args)
 
     gc_unsafe_scope unsafe_scope;
 
-    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, type_meta_provider<T>::get_meta());
+    gc_type_meta* tmeta = gc_type_meta_factory<T>::get();
+    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, tmeta);
 
-    if (!type_meta_provider<T>::is_meta_created()) {
+    if (!tmeta) {
         gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
         new (descr.get()) T(std::forward<Args>(args)...);
         descr.descriptor()->set_type_meta(descr.get(),
-                                          type_meta_provider<T>::create_meta(this_managed_thread::gc_ptr_offsets()));
+                                          gc_type_meta_factory<T>::create(this_managed_thread::gc_ptr_offsets()));
     } else {
         gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), false);
         new (descr.get()) T(std::forward<Args>(args)...);
@@ -131,16 +133,17 @@ auto gc_new(size_t n)
 
     gc_unsafe_scope unsafe_scope;
 
-    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, type_meta_provider<T>::get_meta());
+    gc_type_meta* tmeta = gc_type_meta_factory<U>::get();
+    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, tmeta);
 
     U* begin = reinterpret_cast<U*>(descr.get());
     U* end = begin + n;
 
-    if (!type_meta_provider<U>::is_meta_created()) {
+    if (!tmeta) {
         gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
         new (begin++) U();
         descr.descriptor()->set_type_meta(descr.get(),
-                                          type_meta_provider<U>::create_meta(this_managed_thread::gc_ptr_offsets()));
+                                          gc_type_meta_factory<U>::create(this_managed_thread::gc_ptr_offsets()));
     } else {
         gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), false);
         new (begin++) U();
@@ -164,4 +167,4 @@ auto gc_new(Args&&...)
 
 }
 
-#endif //GC_NEW_H
+#endif //GC_NEW_HPP

@@ -3,6 +3,7 @@
 #include <vector>
 #include <type_traits>
 
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/collectors/managed_object.hpp>
 
@@ -16,10 +17,10 @@ struct object_meta_test : public ::testing::Test
         byte* data;
     };
 
-    static const type_meta* tmeta;
+    static const gc_type_meta* tmeta;
 };
 
-const type_meta* object_meta_test::tmeta = type_meta_provider<test_type>::create_meta(std::vector<size_t>{1, 2, 3});
+const gc_type_meta* object_meta_test::tmeta = gc_type_meta_factory<test_type>::create(std::vector<size_t>{1, 2, 3});
 
 TEST_F(object_meta_test, test_get_meta_ptr)
 {
@@ -94,7 +95,7 @@ TEST_F(object_meta_test, test_forward_pointer)
 //    byte* array = traceable_object_meta::get_object_ptr((byte*) &storage, STORAGE_SIZE);
 //
 //    type_meta_provider<test_type>::create_meta();
-//    const type_meta* cls_meta = type_meta_provider<test_type>::get_meta();
+//    const gc_type_meta* cls_meta = type_meta_provider<test_type>::get_meta();
 //    new (meta) traceable_object_meta(ARRAY_SIZE, cls_meta);
 //
 //    for (size_t i = 0; i < ARRAY_SIZE; ++i) {

@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/mso_allocator.hpp>
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
+#include <libprecisegc/details/allocators/mso_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
@@ -26,7 +27,7 @@ typedef mso_allocator allocator_t;
 
 }
 
-static const type_meta* tmeta = type_meta_provider<test_type>::create_meta(std::vector<size_t>({0}));
+static const gc_type_meta* tmeta = gc_type_meta_factory<test_type>::create(std::vector<size_t>({0}));
 
 struct fix_ptrs_test : public ::testing::Test
 {

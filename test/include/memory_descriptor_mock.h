@@ -8,7 +8,7 @@
 class memory_descriptor_mock : public precisegc::details::memory_descriptor
 {
     typedef precisegc::details::byte byte;
-    typedef precisegc::details::type_meta type_meta;
+    typedef precisegc::details::gc_type_meta type_meta;
     typedef precisegc::details::collectors::traceable_object_meta traceable_object_meta;
 public:
     MOCK_CONST_METHOD1(get_mark, bool(byte*));

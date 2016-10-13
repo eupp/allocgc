@@ -20,7 +20,7 @@ public:
     MOCK_CONST_METHOD0(cell_size, size_t(void));
     MOCK_CONST_METHOD1(cell_start, byte*(byte* ptr));
 
-    MOCK_CONST_METHOD1(get_type_meta, const gc_type_meta*(byte* ptr));
+    MOCK_CONST_METHOD1(get_type_meta, const type_meta*(byte* ptr));
     MOCK_METHOD2(set_type_meta, void(byte* ptr, const type_meta*));
 };
 

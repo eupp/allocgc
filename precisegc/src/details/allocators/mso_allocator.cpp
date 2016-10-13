@@ -105,6 +105,14 @@ void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
 
         traceable_object_meta* meta = reinterpret_cast<traceable_object_meta*>(ptr);
         const gc_type_meta* tmeta = meta->get_type_meta();
+        byte* obj = ptr + sizeof(traceable_object_meta);
+
+        auto offsets = tmeta->offsets();
+        for (size_t offset: offsets) {
+            gc_word* word = reinterpret_cast<gc_word*>(obj + offset);
+            gc_handle_access::set<std::memory_order_relaxed>(*word, nullptr);
+        }
+
         tmeta->destroy(ptr + sizeof(traceable_object_meta));
     }
 }

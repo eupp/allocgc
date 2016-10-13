@@ -4,6 +4,7 @@
 #include <memory>
 #include <iostream>
 
+#include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
@@ -15,6 +16,8 @@ garbage_collector::garbage_collector()
     : m_manager(nullptr)
 {
     logging::touch();
+    // same hack as with logger
+    collectors::memory_index::add_to_index(nullptr, 0, nullptr);
 }
 
 void garbage_collector::init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)

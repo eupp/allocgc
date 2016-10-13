@@ -24,7 +24,7 @@ public:
 
     // auxiliary method to fix order of objects construction/destruction;
     // it's used in some static/global object constructor to guarantee that logger will be constructed before that object
-    // and hence it's safe to use logger inside destructor
+    // and hence it's safe to use logger inside destructor (because it will be destructed after)
     static void touch();
 private:
     typedef std::mutex mutex_t;

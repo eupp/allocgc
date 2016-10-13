@@ -85,6 +85,8 @@ private:
     collect_stats serial_collect(const threads::world_snapshot& snapshot);
     collect_stats parallel_collect(const threads::world_snapshot& snapshot, size_t threads_available);
 
+    void sweep();
+
     std::pair<size_t, size_t> compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd);
     void update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const heap_part_stat& stats);
 

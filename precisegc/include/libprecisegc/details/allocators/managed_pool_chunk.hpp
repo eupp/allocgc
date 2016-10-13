@@ -68,19 +68,20 @@ public:
     bool get_mark(size_t i) const;
     bool get_pin(size_t i) const;
 
-    virtual bool get_mark(byte* ptr) const override;
-    virtual bool get_pin(byte* ptr) const override;
+    bool get_mark(byte* ptr) const override;
+    bool get_pin(byte* ptr) const override;
 
     void set_mark(size_t i, bool mark);
     void set_pin(size_t i, bool pin);
 
-    virtual void set_mark(byte* ptr, bool mark) override;
-    virtual void set_pin(byte* ptr, bool pin) override;
+    void set_mark(byte* ptr, bool mark) override;
+    void set_pin(byte* ptr, bool pin) override;
 
-    virtual size_t cell_size() const override;
-    virtual byte*  cell_start(byte* ptr) const override;
+    size_t cell_size() const override;
+    byte*  cell_start(byte* ptr) const override;
 
-    virtual void set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
+    const gc_type_meta* get_type_meta(byte* ptr) const override;
+    void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
 

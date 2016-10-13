@@ -117,6 +117,8 @@ auto gc_new(Args&&... args)
 
     gc_commit(descr);
 
+//    logging::debug() << "allocate cell addr=" << (void*) descr.get();
+
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(
             reinterpret_cast<T*>(descr.get())
     );

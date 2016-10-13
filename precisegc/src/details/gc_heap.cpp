@@ -65,6 +65,7 @@ gc_heap::collect_stats gc_heap::serial_collect(const threads::world_snapshot& sn
         fix_pointers(frwd);
         snapshot.fix_roots(frwd);
     }
+    sweep();
 
     collect_stats stats;
     stats.mem_swept  = freed;
@@ -110,6 +111,8 @@ gc_heap::collect_stats gc_heap::parallel_collect(const threads::world_snapshot& 
         parallel_fix_pointers(frwd, threads_available);
         snapshot.fix_roots(frwd);
     }
+    sweep();
+
 
     collect_stats stats;
     stats.mem_swept  = freed;
@@ -151,7 +154,6 @@ std::pair<size_t, size_t> gc_heap::compact_heap_part(size_t bucket_ind, tlab_t& 
         copied += compactor(rng, frwd);
         curr_stats.residency = bucket_alloc.residency();
     }
-    bucket_alloc.sweep();
     update_heap_part_stat(bucket_ind, tlab, curr_stats);
 
     return std::make_pair(freed, copied);
@@ -182,7 +184,7 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
             if (!rng.empty()) {
-                tasks.emplace_back([this, rng, i, &frwd] {
+                tasks.emplace_back([this, rng, i, &tlab, &frwd] {
                     compacting::fix_ptrs(rng.begin(), rng.end(), frwd, tlab_bucket_policy::bucket_size(i));
                 });
             }
@@ -191,11 +193,22 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
     thread_pool.run(tasks.begin(), tasks.end());
 }
 
+void gc_heap::sweep()
+{
+    for (auto& kv: m_tlab_map) {
+        auto& tlab = kv.second;
+        for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
+            tlab.get_bucket_alloc(i).sweep();
+        }
+    }
+}
+
 bool gc_heap::is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats)
 {
-    return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
-           || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD
-               && std::abs(curr_stats.residency - prev_stats.residency) < RESIDENCY_EPS);
+    return true;
+//    return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
+//           || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD
+//               && std::abs(curr_stats.residency - prev_stats.residency) < RESIDENCY_EPS);
 }
 
 }}

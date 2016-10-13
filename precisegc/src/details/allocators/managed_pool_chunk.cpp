@@ -151,6 +151,12 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
     return reinterpret_cast<byte*>(res);
 }
 
+const gc_type_meta* managed_pool_chunk::get_type_meta(byte* ptr) const
+{
+    assert(m_chunk.contains(ptr));
+    return collectors::managed_object(ptr).meta()->get_type_meta();
+}
+
 void managed_pool_chunk::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
 {
     assert(m_chunk.contains(ptr));

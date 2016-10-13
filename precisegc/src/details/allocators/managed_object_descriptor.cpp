@@ -66,6 +66,11 @@ byte* managed_object_descriptor::cell_start(byte* ptr) const
     return m_ptr;
 }
 
+const gc_type_meta* managed_object_descriptor::get_type_meta(byte* ptr) const
+{
+    return collectors::managed_object(ptr).meta()->get_type_meta();
+}
+
 void managed_object_descriptor::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
 {
 //    assert(ptr == m_ptr);

@@ -101,6 +101,8 @@ void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
     using namespace collectors;
 
     if (!chk->is_dead(ptr)) {
+//        logging::debug() << "Call destructor addr=" << (void*) ptr;
+
         traceable_object_meta* meta = reinterpret_cast<traceable_object_meta*>(ptr);
         const gc_type_meta* tmeta = meta->get_type_meta();
         tmeta->destroy(ptr + sizeof(traceable_object_meta));

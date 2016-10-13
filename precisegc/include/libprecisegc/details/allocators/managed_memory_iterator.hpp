@@ -51,6 +51,16 @@ public:
         return m_descr->set_pin(m_ptr, pin);
     }
 
+    bool is_dead() const
+    {
+        return m_descr->id_dead(m_ptr);
+    }
+
+    void set_dead() const
+    {
+        return m_descr->set_dead(m_ptr);
+    }
+
     size_t cell_size() const
     {
         return m_descr->cell_size();

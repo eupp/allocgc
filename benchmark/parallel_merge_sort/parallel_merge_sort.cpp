@@ -280,7 +280,7 @@ int main(int argc, const char* argv[])
 
     #if defined(PRECISE_GC)
         gc_init_options ops;
-//        ops.heapsize            = 16 * 4096;      // 2 Mb
+        ops.heapsize            = 4 * 1024 * 1024;      // 2 Mb
         ops.threads_available   = 1;
         ops.algo                = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
         ops.initiation          = gc_initiation::SPACE_BASED;

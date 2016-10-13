@@ -205,10 +205,9 @@ void gc_heap::sweep()
 
 bool gc_heap::is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats)
 {
-    return true;
-//    return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
-//           || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD
-//               && std::abs(curr_stats.residency - prev_stats.residency) < RESIDENCY_EPS);
+    return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
+           || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD
+               && std::abs(curr_stats.residency - prev_stats.residency) < RESIDENCY_EPS);
 }
 
 }}

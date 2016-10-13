@@ -9,17 +9,17 @@ namespace precisegc { namespace details { namespace collectors {
 class memory_index
 {
 public:
-    static inline void add_to_index(byte* mem, size_t size, memory_descriptor* entry)
+    static inline void add_to_index(const byte* mem, size_t size, memory_descriptor* entry)
     {
         indexer.add_to_index(mem, size, entry);
     }
 
-    static inline void remove_from_index(byte* mem, size_t size)
+    static inline void remove_from_index(const byte* mem, size_t size)
     {
         indexer.remove_from_index(mem, size);
     }
 
-    static inline memory_descriptor* index(byte* mem)
+    static inline memory_descriptor* index(const byte* mem)
     {
         return indexer.index(mem);
     }

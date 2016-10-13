@@ -51,8 +51,8 @@ bool gc_new_stack::is_active() const noexcept
 
 bool gc_new_stack::is_meta_requsted() const noexcept
 {
-    assert(m_stack_top);
-    return m_stack_top->m_meta_requested;
+//    assert(m_stack_top);
+    return m_stack_top && m_stack_top->m_meta_requested;
 }
 
 //bool gc_new_stack::is_heap_ptr(byte* ptr) const noexcept

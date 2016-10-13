@@ -4,6 +4,7 @@
 #include <libprecisegc/details/threads/static_root_set.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details {
 
@@ -45,6 +46,7 @@ bool gc_is_root(const gc_word* ptr)
 bool gc_is_heap_ptr(const gc_word* ptr)
 {
     using namespace threads;
+    return collectors::memory_index::index(reinterpret_cast<const byte*>(ptr)) != nullptr;
     return this_managed_thread::is_heap_ptr(ptr);
 }
 

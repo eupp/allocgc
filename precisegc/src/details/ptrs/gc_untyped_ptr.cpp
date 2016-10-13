@@ -20,7 +20,7 @@ gc_untyped_ptr::gc_untyped_ptr()
 
 gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
     : m_handle(ptr)
-    , m_root_flag(!threads::this_managed_thread::is_heap_ptr(&m_handle))
+    , m_root_flag(!gc_is_heap_ptr(&m_handle))
 {
     using namespace threads;
     if (m_root_flag) {

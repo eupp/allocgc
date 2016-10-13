@@ -43,7 +43,7 @@ struct splitter
 
     typedef std::array<idx_t, LEVEL_CNT> idxs_t;
 
-    static idxs_t split(byte* ptr)
+    static idxs_t split(const byte* ptr)
     {
         std::uintptr_t x = reinterpret_cast<std::uintptr_t>(ptr);
         x &= ((std::uintptr_t) 1 << (POINTER_BITS_USED)) - 1;
@@ -84,27 +84,27 @@ public:
         clear();
     }
 
-    void add_to_index(byte* mem, size_t size, T* entry)
+    void add_to_index(const byte* mem, size_t size, T* entry)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         assert(size % PAGE_SIZE == 0);
-        byte* mem_end = mem + size;
-        for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
+        const byte* mem_end = mem + size;
+        for (const byte* it = mem; it != mem_end; it += PAGE_SIZE) {
             add_page_to_index(it, entry);
         }
     }
 
-    void remove_from_index(byte* mem, size_t size)
+    void remove_from_index(const byte* mem, size_t size)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
         assert(size % PAGE_SIZE == 0);
-        byte* mem_end = mem + size;
-        for (byte* it = mem; it != mem_end; it += PAGE_SIZE) {
+        const byte* mem_end = mem + size;
+        for (const byte* it = mem; it != mem_end; it += PAGE_SIZE) {
             remove_page_from_index(it);
         }
     }
 
-    T* index(byte* mem)
+    T* index(const byte* mem)
     {
         return index_page(mem);
     }
@@ -268,19 +268,19 @@ private:
         array_t m_data;
     };
 
-    void add_page_to_index(byte* page, T* entry)
+    void add_page_to_index(const byte* page, T* entry)
     {
         idxs_t idxs = internals::splitter::split(page);
         m_first_level.index(idxs.begin(), entry);
     }
 
-    void remove_page_from_index(byte* page)
+    void remove_page_from_index(const byte* page)
     {
         idxs_t idxs = internals::splitter::split(page);
         m_first_level.remove_index(idxs.begin());
     }
 
-    T* index_page(byte* page)
+    T* index_page(const byte* page)
     {
         idxs_t idxs = internals::splitter::split(page);
         return m_first_level.get(idxs.begin());

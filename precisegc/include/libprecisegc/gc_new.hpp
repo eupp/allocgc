@@ -103,7 +103,7 @@ auto gc_new(Args&&... args)
     gc_unsafe_scope unsafe_scope;
 
     gc_type_meta* tmeta = gc_type_meta_factory<T>::get();
-    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, tmeta);
+    gc_alloc_response descr = gc_allocate(sizeof(T), 1, tmeta);
 
     if (!tmeta) {
         gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
@@ -136,7 +136,7 @@ auto gc_new(size_t n)
     gc_unsafe_scope unsafe_scope;
 
     gc_type_meta* tmeta = gc_type_meta_factory<U>::get();
-    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, tmeta);
+    gc_alloc_response descr = gc_allocate(sizeof(U), n, tmeta);
 
     U* begin = reinterpret_cast<U*>(descr.get());
     U* end = begin + n;

@@ -3,7 +3,7 @@
 
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/gc_alloc_descriptor.hpp>
+#include <libprecisegc/details/gc_alloc_response.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
@@ -15,7 +15,7 @@ namespace precisegc { namespace details { namespace allocators {
 class managed_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef gc_alloc_descriptor pointer_type;
+    typedef gc_alloc_response pointer_type;
     typedef allocators::single_block_chunk_tag chunk_tag;
     typedef managed_memory_iterator<managed_object_descriptor> iterator;
 

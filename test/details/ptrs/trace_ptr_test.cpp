@@ -34,10 +34,10 @@ public:
         gc_type_meta_factory<simple_object_t>::create();
         gc_type_meta_factory<complex_object_t>::create(std::vector<size_t>({0, sizeof(gc_untyped_ptr)}));
 
-        gc_alloc_descriptor alloc_dscr1 = heap.allocate(OBJ_SIZE);
+        gc_alloc_response alloc_dscr1 = heap.allocate(OBJ_SIZE);
         new (managed_object::get_meta(alloc_dscr1.get())) traceable_object_meta(1, gc_type_meta_factory<simple_object_t>::get());
 
-        gc_alloc_descriptor alloc_dscr2 = heap.allocate(OBJ_SIZE);
+        gc_alloc_response alloc_dscr2 = heap.allocate(OBJ_SIZE);
 
         new (managed_object::get_meta(alloc_dscr2.get())) traceable_object_meta(1, gc_type_meta_factory<complex_object_t>::get());
 

@@ -32,7 +32,6 @@ managed_pool_chunk::~managed_pool_chunk()
     collectors::memory_index::remove_from_index(memory(), size());
 }
 
-
 byte* managed_pool_chunk::memory() const
 {
     return m_chunk.get_mem();
@@ -48,16 +47,28 @@ memory_descriptor* managed_pool_chunk::get_descriptor()
     return this;
 }
 
-bool managed_pool_chunk::all_unmarked() const noexcept
+bool managed_pool_chunk::contains(byte* ptr) const
+{
+    byte* mem_begin = memory();
+    byte* mem_end = memory() + size();
+    return (mem_begin <= ptr) && (ptr < mem_end);
+}
+
+bool managed_pool_chunk::unused() const
 {
     return m_mark_bits.none();
+}
+
+size_t managed_pool_chunk::count_pinned() const
+{
+    return m_pin_bits.count();
 }
 
 void managed_pool_chunk::unmark()
 {
     m_mark_bits.reset_all();
     m_pin_bits.reset_all();
-    m_dead_bits.reset_all();
+    m_live_bits.reset_all();
 }
 
 double managed_pool_chunk::residency() const
@@ -82,21 +93,29 @@ managed_pool_chunk::memory_range_type managed_pool_chunk::memory_range()
     return memory_range_type(begin(), end());
 }
 
-bool managed_pool_chunk::is_dead(byte* ptr) const
+bool managed_pool_chunk::is_live(size_t idx) const
 {
-    size_t ind = calc_cell_ind(ptr);
-    return m_dead_bits.get(ind);
+    return m_live_bits.get(idx);
 }
 
-void managed_pool_chunk::set_dead(byte* ptr)
+void managed_pool_chunk::set_live(size_t idx, bool live)
 {
-    size_t ind = calc_cell_ind(ptr);
-    m_dead_bits.set(ind);
+    m_live_bits.set(idx, live);
 }
 
-bool managed_pool_chunk::get_mark(size_t i) const
+bool managed_pool_chunk::is_live(byte* ptr) const
 {
-    return m_mark_bits.get(i);
+    return is_live(calc_cell_ind(ptr));
+}
+
+void managed_pool_chunk::set_live(byte* ptr, bool live)
+{
+    set_live(calc_cell_ind(ptr), live);
+}
+
+bool managed_pool_chunk::get_mark(size_t idx) const
+{
+    return m_mark_bits.get(idx);
 }
 
 bool managed_pool_chunk::get_mark(byte* ptr) const
@@ -105,9 +124,9 @@ bool managed_pool_chunk::get_mark(byte* ptr) const
     return m_mark_bits.get(ind);
 }
 
-bool managed_pool_chunk::get_pin(size_t i) const
+bool managed_pool_chunk::get_pin(size_t idx) const
 {
-    return m_pin_bits.get(i);
+    return m_pin_bits.get(idx);
 }
 
 bool managed_pool_chunk::get_pin(byte* ptr) const
@@ -116,9 +135,9 @@ bool managed_pool_chunk::get_pin(byte* ptr) const
     return m_pin_bits.get(ind);
 }
 
-void managed_pool_chunk::set_mark(size_t i, bool mark)
+void managed_pool_chunk::set_mark(size_t idx, bool mark)
 {
-    m_mark_bits.set(i, mark);
+    m_mark_bits.set(idx, mark);
 }
 
 void managed_pool_chunk::set_mark(byte* ptr, bool mark)
@@ -127,9 +146,9 @@ void managed_pool_chunk::set_mark(byte* ptr, bool mark)
     m_mark_bits.set(ind, mark);
 }
 
-void managed_pool_chunk::set_pin(size_t i, bool pin)
+void managed_pool_chunk::set_pin(size_t idx, bool pin)
 {
-    m_pin_bits.set(i, pin);
+    m_pin_bits.set(idx, pin);
 }
 
 void managed_pool_chunk::set_pin(byte* ptr, bool pin)

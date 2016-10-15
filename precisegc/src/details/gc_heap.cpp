@@ -18,7 +18,7 @@ gc_heap::gc_heap(gc_compacting compacting)
     : m_compacting(compacting)
 {}
 
-gc_alloc_descriptor gc_heap::allocate(size_t size)
+gc_alloc_response gc_heap::allocate(size_t size)
 {
     if (size <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(size);
@@ -120,7 +120,7 @@ gc_heap::collect_stats gc_heap::parallel_collect(const threads::world_snapshot& 
     return stats;
 }
 
-gc_alloc_descriptor gc_heap::allocate_on_tlab(size_t size)
+gc_alloc_response gc_heap::allocate_on_tlab(size_t size)
 {
     assert(size <= LARGE_CELL_SIZE);
     static thread_local tlab_t& tlab = get_tlab();
@@ -133,7 +133,7 @@ gc_heap::tlab_t& gc_heap::get_tlab()
     return m_tlab_map[std::this_thread::get_id()];
 }
 
-void gc_heap::update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const heap_part_stat& stats)
+void gc_heap::update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const gc_heap_stat& stats)
 {
     m_heap_stat_map[&tlab.get_bucket_alloc(bucket_ind)] = stats;
 }
@@ -143,8 +143,8 @@ std::pair<size_t, size_t> gc_heap::compact_heap_part(size_t bucket_ind, tlab_t& 
     compacting::two_finger_compactor compactor;
     fixsize_alloc_t& bucket_alloc = tlab.get_bucket_alloc(bucket_ind);
 
-    heap_part_stat curr_stats = bucket_alloc.collect();
-    heap_part_stat prev_stats = m_heap_stat_map[&bucket_alloc];
+    gc_heap_stat curr_stats = bucket_alloc.collect();
+    gc_heap_stat prev_stats = m_heap_stat_map[&bucket_alloc];
 
     size_t freed  = curr_stats.mem_shrunk;
     size_t copied = 0;
@@ -203,7 +203,7 @@ void gc_heap::sweep()
     }
 }
 
-bool gc_heap::is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats)
+bool gc_heap::is_compacting_required(const gc_heap_stat& curr_stats, const gc_heap_stat& prev_stats)
 {
     return curr_stats.residency < RESIDENCY_COMPACTING_THRESHOLD
            || (curr_stats.residency < RESIDENCY_NON_COMPACTING_THRESHOLD

@@ -66,7 +66,7 @@ public:
 
     gc_heap(gc_compacting compacting);
 
-    gc_alloc_descriptor allocate(size_t size);
+    gc_alloc_response allocate(size_t size);
 
     collect_stats collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
@@ -75,11 +75,11 @@ private:
     static constexpr double RESIDENCY_EPS = 0.1;
 
     typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
-    typedef std::unordered_map<fixsize_alloc_t*, heap_part_stat> heap_stat_map_t;
+    typedef std::unordered_map<fixsize_alloc_t*, gc_heap_stat> heap_stat_map_t;
 
-    static bool is_compacting_required(const heap_part_stat& curr_stats, const heap_part_stat& prev_stats);
+    static bool is_compacting_required(const gc_heap_stat& curr_stats, const gc_heap_stat& prev_stats);
 
-    gc_alloc_descriptor allocate_on_tlab(size_t size);
+    gc_alloc_response allocate_on_tlab(size_t size);
     tlab_t& get_tlab();
 
     collect_stats serial_collect(const threads::world_snapshot& snapshot);
@@ -88,7 +88,7 @@ private:
     void sweep();
 
     std::pair<size_t, size_t> compact_heap_part(size_t bucket_ind, tlab_t& tlab, forwarding& frwd);
-    void update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const heap_part_stat& stats);
+    void update_heap_part_stat(size_t bucket_ind, tlab_t& tlab, const gc_heap_stat& stats);
 
     void fix_pointers(const forwarding& frwd);
     void parallel_fix_pointers(const forwarding& frwd, size_t threads_num);

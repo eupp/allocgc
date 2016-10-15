@@ -10,7 +10,7 @@ class serial_gc_mock : public precisegc::details::gc_strategy
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_type_meta type_meta;
     typedef precisegc::details::gc_word gc_word;
-    typedef precisegc::details::gc_alloc_descriptor gc_alloc_descriptor;
+    typedef precisegc::details::gc_alloc_response gc_alloc_descriptor;
     typedef precisegc::details::initiation_point_type initation_point_type;
     typedef precisegc::details::gc_options gc_options;
     typedef precisegc::details::gc_run_stats gc_stats;

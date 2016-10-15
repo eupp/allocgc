@@ -16,7 +16,7 @@
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/gc_alloc_descriptor.hpp>
+#include <libprecisegc/details/gc_alloc_response.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -53,26 +53,34 @@ public:
 
     memory_descriptor* get_descriptor();
 
-    bool all_unmarked() const noexcept;
-    void unmark();
+    bool contains(byte* ptr) const;
+
+    bool unused() const;
+
+    size_t count_pinned() const;
 
     double residency() const;
+
+    void unmark();
 
     iterator begin();
     iterator end();
     memory_range_type memory_range();
 
-    bool is_dead(byte* ptr) const;
-    void set_dead(byte* ptr);
+    bool is_live(size_t idx) const;
+    void set_live(size_t idx, bool live);
 
-    bool get_mark(size_t i) const;
-    bool get_pin(size_t i) const;
+    bool is_live(byte* ptr) const;
+    void set_live(byte* ptr, bool live);
+
+    bool get_mark(size_t idx) const;
+    bool get_pin(size_t idx) const;
 
     bool get_mark(byte* ptr) const override;
     bool get_pin(byte* ptr) const override;
 
-    void set_mark(size_t i, bool mark);
-    void set_pin(size_t i, bool pin);
+    void set_mark(size_t idx, bool mark);
+    void set_pin(size_t idx, bool pin);
 
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
@@ -94,7 +102,7 @@ private:
     uintptr m_mask;
     sync_bitset_t m_mark_bits;
     bitset_t m_pin_bits;
-    bitset_t m_dead_bits;
+    bitset_t m_live_bits;
 };
 
 }}}

@@ -50,12 +50,12 @@ bool gc_is_heap_ptr(const gc_word* ptr)
     return this_managed_thread::is_heap_ptr(ptr);
 }
 
-gc_alloc_descriptor gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     return gc_instance.allocate(obj_size, obj_cnt, tmeta);
 }
 
-void gc_commit(const gc_alloc_descriptor& ptr)
+void gc_commit(const gc_alloc_response& ptr)
 {
     gc_instance.commit(ptr);
 }

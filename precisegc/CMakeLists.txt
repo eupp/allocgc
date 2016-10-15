@@ -98,7 +98,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/dptr_storage.hpp
         include/libprecisegc/details/collectors/managed_object.hpp
         include/libprecisegc/details/collectors/memory_index.hpp
-        include/libprecisegc/details/gc_alloc_descriptor.hpp include/libprecisegc/details/allocators/mso_allocator.hpp include/libprecisegc/details/gc_type_meta_factory.hpp include/libprecisegc/details/allocators/mlo_allocator.hpp)
+        include/libprecisegc/details/gc_alloc_response.hpp include/libprecisegc/details/allocators/mso_allocator.hpp include/libprecisegc/details/gc_type_meta_factory.hpp include/libprecisegc/details/allocators/mlo_allocator.hpp include/libprecisegc/details/allocators/mpool_allocator.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
@@ -128,7 +128,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/core_allocator.cpp
         src/details/threads/stack_bitmap.cpp
         src/details/threads/managed_thread.cpp
-        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp src/details/collectors/memory_index.cpp src/details/allocators/mso_allocator.cpp)
+        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp src/details/collectors/memory_index.cpp src/details/allocators/mso_allocator.cpp src/details/allocators/mpool_allocator.cpp)
 
 
 find_package(Threads REQUIRED)

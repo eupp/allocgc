@@ -36,7 +36,7 @@ struct fix_ptrs_test : public ::testing::Test
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
-    gc_alloc_descriptor cell_ptr = alloc.allocate(OBJ_SIZE);
+    gc_alloc_response cell_ptr = alloc.allocate(OBJ_SIZE);
     cell_ptr.descriptor()->set_mark(cell_ptr.get(), true);
     cell_ptr.descriptor()->set_pin(cell_ptr.get(), false);
     byte* ptr = managed_object::get_object(cell_ptr.get());

@@ -45,13 +45,13 @@ public:
 //TEST_F(managed_pool_chunk_test, test_construct)
 //{
 //    EXPECT_TRUE(m_chunk.memory_available());
-//    EXPECT_TRUE(m_chunk.all_unmarked());
+//    EXPECT_TRUE(m_chunk.unused());
 //    EXPECT_NE(nullptr, m_chunk.get_descriptor());
 //}
 //
 //TEST_F(managed_pool_chunk_test, test_allocate)
 //{
-//    gc_alloc_descriptor cell_ptr = m_chunk.allocate(CELL_SIZE);
+//    gc_alloc_response cell_ptr = m_chunk.allocate(CELL_SIZE);
 //
 //    EXPECT_NE(nullptr, cell_ptr.get());
 //    EXPECT_EQ(cell_ptr.descriptor(), m_chunk.get_descriptor());

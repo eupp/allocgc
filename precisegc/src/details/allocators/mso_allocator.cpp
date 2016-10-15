@@ -18,7 +18,7 @@ mso_allocator::pointer_type mso_allocator::allocate(size_t size)
         byte* ptr = m_freelist;
         m_freelist = *reinterpret_cast<byte**>(m_freelist);
         memset(ptr, 0, size);
-        return gc_alloc_descriptor(ptr, size, collectors::memory_index::index(ptr));
+        return gc_alloc_response(ptr, size, collectors::memory_index::index(ptr));
     }
     if (m_top == m_end) {
         auto new_chunk = create_chunk(size);
@@ -27,7 +27,7 @@ mso_allocator::pointer_type mso_allocator::allocate(size_t size)
     }
     byte* ptr = m_top;
     m_top += size;
-    return gc_alloc_descriptor(ptr, size, &m_chunks.back());
+    return gc_alloc_response(ptr, size, &m_chunks.back());
 }
 
 void mso_allocator::deallocate(pointer_type ptr, size_t size)
@@ -35,22 +35,22 @@ void mso_allocator::deallocate(pointer_type ptr, size_t size)
     return;
 }
 
-heap_part_stat mso_allocator::collect()
+gc_heap_stat mso_allocator::collect()
 {
-    heap_part_stat stats;
+    gc_heap_stat stats;
     stats.mem_shrunk = 0;
     stats.residency  = 0;
 
     byte* curr = m_freelist;
     while (curr) {
         managed_pool_chunk* chk = static_cast<managed_pool_chunk*>(collectors::memory_index::index(curr));
-        chk->set_dead(curr);
+        chk->set_live(curr, false);
         curr = *reinterpret_cast<byte**>(curr);
     }
 
     for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
         stats.residency += it->residency();
-        if (it->all_unmarked()) {
+        if (it->unused()) {
             stats.mem_shrunk += it->size();
             call_destructors(it);
             it = destroy_chunk(it);
@@ -100,7 +100,7 @@ void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
 {
     using namespace collectors;
 
-    if (!chk->is_dead(ptr)) {
+    if (!chk->is_live(ptr)) {
 //        logging::debug() << "Call destructor addr=" << (void*) ptr;
 
         traceable_object_meta* meta = reinterpret_cast<traceable_object_meta*>(ptr);
@@ -151,7 +151,6 @@ mso_allocator::iterator_t mso_allocator::create_chunk(size_t cell_size)
 
 mso_allocator::iterator_t mso_allocator::destroy_chunk(typename chunk_list_t::iterator chk)
 {
-
     deallocate_block(chk->memory(), chk->size());
     return m_chunks.erase(chk);
 }

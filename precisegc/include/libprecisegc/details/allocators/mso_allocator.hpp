@@ -36,7 +36,7 @@ class mso_allocator : private utils::noncopyable, utils::nonmovable
     typedef typename chunk_list_t::iterator iterator_t;
 public:
     typedef utils::flattened_range<iterator_t> memory_range_type;
-    typedef gc_alloc_descriptor pointer_type;
+    typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
     mso_allocator();
@@ -45,7 +45,7 @@ public:
 
     void deallocate(pointer_type ptr, size_t size);
 
-    heap_part_stat collect();
+    gc_heap_stat collect();
 
     void sweep();
 

@@ -77,10 +77,13 @@ struct gc_pause_stat
     gc_clock::duration  duration;
 };
 
-struct heap_part_stat
+struct gc_heap_stat
 {
-    size_t mem_shrunk;
-    double residency;
+    size_t mem_used      = 0;
+    size_t mem_freed     = 0;
+    size_t mem_copied    = 0;
+    double mem_residency = 0;
+    size_t pinned_cnt    = 0;
 };
 
 struct gc_sweep_stat

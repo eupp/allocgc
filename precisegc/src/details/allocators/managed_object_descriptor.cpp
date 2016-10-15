@@ -80,7 +80,7 @@ void managed_object_descriptor::set_type_meta(byte* ptr, const gc_type_meta* tme
 managed_object_descriptor::pointer_type managed_object_descriptor::allocate(size_t size)
 {
     assert(size <= m_size);
-    return gc_alloc_descriptor(m_ptr, m_size, this);
+    return gc_alloc_response(m_ptr, m_size, this);
 }
 
 void managed_object_descriptor::deallocate(const pointer_type& ptr, size_t size)

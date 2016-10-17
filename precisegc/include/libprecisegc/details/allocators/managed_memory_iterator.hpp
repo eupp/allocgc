@@ -69,8 +69,8 @@ public:
     friend class managed_memory_iterator<MemoryDescriptor>;
 private:
     managed_memory_proxy(byte* ptr, MemoryDescriptor* descr)
-            : m_ptr(ptr)
-              , m_descr(descr)
+        : m_ptr(ptr)
+        , m_descr(descr)
     {
         assert(ptr && descr);
     }

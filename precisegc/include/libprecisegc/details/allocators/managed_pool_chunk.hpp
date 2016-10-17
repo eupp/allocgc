@@ -16,7 +16,7 @@
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/gc_alloc_response.hpp>
+#include <libprecisegc/details/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -34,12 +34,23 @@ private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
     typedef freelist_allocator<null_allocator, fixsize_policy> freelist_t;
+
+    struct object_meta
+    {
+        const gc_type_meta* m_tmeta;
+        size_t m_obj_cnt;
+    };
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
     typedef managed_memory_iterator<managed_pool_chunk> iterator;
     typedef boost::iterator_range<iterator> memory_range_type;
 
-    static size_t chunk_size(size_t cell_size)
+    static constexpr size_t meta_size()
+    {
+        return sizeof(object_meta);
+    }
+
+    static constexpr size_t chunk_size(size_t cell_size)
     {
         return cell_size * CHUNK_MAXSIZE;
     }
@@ -53,10 +64,15 @@ public:
 
     memory_descriptor* get_descriptor();
 
+    gc_alloc_response init(byte* ptr, const gc_alloc_request& rqst);
+    void destroy(byte* ptr);
+    void move(byte* from, byte* to);
+
     bool contains(byte* ptr) const;
 
     bool unused() const;
 
+    size_t count_lived() const;
     size_t count_pinned() const;
 
     double residency() const;
@@ -65,7 +81,6 @@ public:
 
     iterator begin();
     iterator end();
-    memory_range_type memory_range();
 
     bool is_live(size_t idx) const;
     void set_live(size_t idx, bool live);
@@ -91,6 +106,9 @@ public:
     const gc_type_meta* get_type_meta(byte* ptr) const override;
     void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
+    static byte* get_obj(byte* cell_start);
+    static object_meta* get_meta(byte* cell_start);
+
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
 
     size_t calc_cell_ind(byte* ptr) const;

@@ -47,6 +47,34 @@ memory_descriptor* managed_pool_chunk::get_descriptor()
     return this;
 }
 
+gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rqst)
+{
+    assert(contains(ptr));
+    assert((std::uintptr_t) ptr % m_cell_size == 0);
+    object_meta* meta = reinterpret_cast<object_meta*>(ptr);
+    meta->m_tmeta = rqst.type_meta();
+    meta->m_obj_cnt = rqst.obj_count();
+    return gc_alloc_response(ptr + sizeof(object_meta), rqst.alloc_size(), this);
+}
+
+void managed_pool_chunk::destroy(byte* ptr)
+{
+    assert(contains(ptr));
+    assert((std::uintptr_t) ptr % m_cell_size == 0);
+    if (is_live(ptr)) {
+        object_meta* meta = reinterpret_cast<object_meta*>(ptr);
+        meta->m_tmeta->destroy(ptr);
+    }
+}
+
+void managed_pool_chunk::move(byte* from, byte* to)
+{
+    memcpy(to, from, sizeof(object_meta));
+
+    const gc_type_meta* from_meta = reinterpret_cast<object_meta*>(from)->m_tmeta;
+    from_meta->move(from + sizeof(object_meta), to + sizeof(object_meta));
+}
+
 bool managed_pool_chunk::contains(byte* ptr) const
 {
     byte* mem_begin = memory();
@@ -57,6 +85,11 @@ bool managed_pool_chunk::contains(byte* ptr) const
 bool managed_pool_chunk::unused() const
 {
     return m_mark_bits.none();
+}
+
+size_t managed_pool_chunk::count_lived() const
+{
+    return m_live_bits.count();
 }
 
 size_t managed_pool_chunk::count_pinned() const
@@ -86,11 +119,6 @@ managed_pool_chunk::iterator managed_pool_chunk::end()
 {
     assert(memory());
     return iterator(memory() + size(), this);
-}
-
-managed_pool_chunk::memory_range_type managed_pool_chunk::memory_range()
-{
-    return memory_range_type(begin(), end());
 }
 
 bool managed_pool_chunk::is_live(size_t idx) const

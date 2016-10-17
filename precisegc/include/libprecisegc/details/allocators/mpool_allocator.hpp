@@ -19,6 +19,7 @@
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
+#include <libprecisegc/details/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -45,15 +46,9 @@ public:
 
     gc_alloc_response allocate(const gc_alloc_request& rqst);
 
-    gc_heap_stat collect();
+    gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
 private:
-    struct object_meta
-    {
-        const gc_type_meta* m_tmeta;
-        size_t m_obj_cnt;
-    };
-
     static gc_alloc_response make_obj(byte* ptr, memory_descriptor* descr, const gc_alloc_request& rqst);
 
     gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, bool call_gc);
@@ -68,14 +63,21 @@ private:
 
     bool contains(byte* ptr) const;
 
+    bool is_compaction_required(const gc_heap_stat& stat) const;
+
     // remove unused chunks and calculate some statistic
     void shrink(gc_heap_stat& stat);
+    void sweep(gc_heap_stat& stat);
+    void compact(compacting::forwarding& frwd, gc_heap_stat& stat);
+
+    size_t sweep(descriptor_t& descr);
 
     descriptor_list_t m_descrs;
     byte** m_freelist;
     byte*  m_top;
     byte*  m_end;
     size_t m_cell_idx;
+    double m_prev_residency;
 };
 
 }}}

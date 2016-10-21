@@ -50,7 +50,7 @@ memory_descriptor* managed_pool_chunk::get_descriptor()
 gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rqst)
 {
     assert(contains(ptr));
-    assert((std::uintptr_t) ptr % m_cell_size == 0);
+    assert(ptr == cell_start(ptr));
     object_meta* meta = reinterpret_cast<object_meta*>(ptr);
     meta->m_tmeta = rqst.type_meta();
     meta->m_obj_cnt = rqst.obj_count();
@@ -60,10 +60,12 @@ gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rq
 void managed_pool_chunk::destroy(byte* ptr)
 {
     assert(contains(ptr));
-    assert((std::uintptr_t) ptr % m_cell_size == 0);
-    if (is_live(ptr)) {
+    assert(ptr == cell_start(ptr));
+    size_t idx = calc_cell_ind(ptr);
+    if (is_live(idx)) {
         object_meta* meta = reinterpret_cast<object_meta*>(ptr);
         meta->m_tmeta->destroy(ptr);
+        set_live(idx, false);
     }
 }
 
@@ -101,7 +103,6 @@ void managed_pool_chunk::unmark()
 {
     m_mark_bits.reset_all();
     m_pin_bits.reset_all();
-    m_live_bits.reset_all();
 }
 
 double managed_pool_chunk::residency() const
@@ -119,6 +120,16 @@ managed_pool_chunk::iterator managed_pool_chunk::end()
 {
     assert(memory());
     return iterator(memory() + size(), this);
+}
+
+void managed_pool_chunk::commit(byte* ptr)
+{
+    set_live(ptr, true);
+}
+
+bool managed_pool_chunk::is_commited(byte* ptr) const
+{
+    return is_live(ptr);
 }
 
 bool managed_pool_chunk::is_live(size_t idx) const
@@ -185,7 +196,7 @@ void managed_pool_chunk::set_pin(byte* ptr, bool pin)
     m_pin_bits.set(ind, pin);
 }
 
-size_t managed_pool_chunk::cell_size() const
+size_t managed_pool_chunk::cell_size(byte* ptr) const
 {
     return m_cell_size;
 }
@@ -198,17 +209,24 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
     return reinterpret_cast<byte*>(res);
 }
 
+size_t managed_pool_chunk::object_count(byte* ptr) const
+{
+    return get_meta(ptr)->m_obj_cnt;
+}
+
+void managed_pool_chunk::set_object_count(byte* ptr, size_t cnt) const
+{
+    get_meta(ptr)->m_obj_cnt = cnt;
+}
+
 const gc_type_meta* managed_pool_chunk::get_type_meta(byte* ptr) const
 {
-    assert(m_chunk.contains(ptr));
-    return collectors::managed_object(ptr).meta()->get_type_meta();
+    return get_meta(ptr)->m_tmeta;
 }
 
 void managed_pool_chunk::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
 {
-    assert(m_chunk.contains(ptr));
-//    assert(ptr == cell_start(ptr));
-    collectors::managed_object(ptr).meta()->set_type_meta(tmeta);
+    get_meta(ptr)->m_tmeta = tmeta;
 }
 
 managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
@@ -230,6 +248,13 @@ size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 size_t managed_pool_chunk::get_log2_cell_size() const
 {
     return m_log2_cell_size;
+}
+
+managed_pool_chunk::object_meta* managed_pool_chunk::get_meta(byte* cell_start) const
+{
+    assert(m_chunk.contains(cell_start));
+    assert(cell_start == cell_start(cell_start));
+    object_meta* meta = reinterpret_cast<object_meta*>(cell_start - sizeof(object_meta));
 }
 
 }}}

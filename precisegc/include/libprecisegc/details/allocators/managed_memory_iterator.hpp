@@ -51,19 +51,19 @@ public:
         return m_descr->set_pin(m_ptr, pin);
     }
 
-    bool is_dead() const
-    {
-        return m_descr->id_dead(m_ptr);
-    }
-
-    void set_dead() const
-    {
-        return m_descr->set_dead(m_ptr);
-    }
-
     size_t cell_size() const
     {
         return m_descr->cell_size();
+    }
+
+    void destroy()
+    {
+        m_descr->destroy(m_ptr);
+    }
+
+    void move(const managed_memory_proxy& to)
+    {
+        m_descr->move(m_ptr, to.m_ptr);
     }
 
     friend class managed_memory_iterator<MemoryDescriptor>;

@@ -55,7 +55,7 @@ void managed_object_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bit = pin;
 }
 
-size_t managed_object_descriptor::cell_size() const
+size_t managed_object_descriptor::cell_size(byte* ptr) const
 {
     return m_size;
 }

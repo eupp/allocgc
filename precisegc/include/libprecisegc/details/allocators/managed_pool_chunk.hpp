@@ -82,32 +82,38 @@ public:
     iterator begin();
     iterator end();
 
+    void commit(byte* ptr) override;
+    bool is_commited(byte* ptr) const override;
+
+    bool get_mark(size_t idx) const;
+    bool get_pin(size_t idx) const;
+
+    void set_mark(size_t idx, bool mark);
+    void set_pin(size_t idx, bool pin);
+
+    bool get_mark(byte* ptr) const override;
+    bool get_pin(byte* ptr) const override;
+
+    void set_mark(byte* ptr, bool mark) override;
+    void set_pin(byte* ptr, bool pin) override;
+
+    size_t cell_size(byte* ptr) const override;
+    byte*  cell_start(byte* ptr) const override;
+
+    size_t object_count(byte* ptr) const override;
+    void   set_object_count(byte* ptr, size_t cnt) const override;
+
+    const gc_type_meta* get_type_meta(byte* ptr) const override;
+    void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
+private:
+//    static byte* get_obj(byte* cell_start);
+    object_meta* get_meta(byte* cell_start) const;
+
     bool is_live(size_t idx) const;
     void set_live(size_t idx, bool live);
 
     bool is_live(byte* ptr) const;
     void set_live(byte* ptr, bool live);
-
-    bool get_mark(size_t idx) const;
-    bool get_pin(size_t idx) const;
-
-    bool get_mark(byte* ptr) const override;
-    bool get_pin(byte* ptr) const override;
-
-    void set_mark(size_t idx, bool mark);
-    void set_pin(size_t idx, bool pin);
-
-    void set_mark(byte* ptr, bool mark) override;
-    void set_pin(byte* ptr, bool pin) override;
-
-    size_t cell_size() const override;
-    byte*  cell_start(byte* ptr) const override;
-
-    const gc_type_meta* get_type_meta(byte* ptr) const override;
-    void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
-private:
-    static byte* get_obj(byte* cell_start);
-    static object_meta* get_meta(byte* cell_start);
 
     static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
 

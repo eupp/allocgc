@@ -94,7 +94,7 @@ void indexed_managed_object::set_pin(bool pin) const
 size_t indexed_managed_object::cell_size() const
 {
     assert(m_descr);
-    return m_descr->cell_size();
+    return m_descr->cell_size(nullptr);
 }
 
 traceable_object_meta* indexed_managed_object::meta() const

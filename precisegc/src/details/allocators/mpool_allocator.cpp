@@ -2,6 +2,8 @@
 
 #include <tuple>
 
+#include <libprecisegc/details/compacting/two_finger_compactor.hpp>
+#include <libprecisegc/details/compacting/fix_ptrs.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -10,8 +12,14 @@ mpool_allocator::mpool_allocator()
     : m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
-    , m_cell_idx(0)
 {}
+
+mpool_allocator::~mpool_allocator()
+{
+    for (auto it = m_descrs.begin(); it != m_descrs.end(); ) {
+        it = destroy_descriptor(it);
+    }
+}
 
 gc_alloc_response mpool_allocator::allocate(const gc_alloc_request& rqst)
 {
@@ -31,7 +39,6 @@ gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size, const gc
         create_descriptor(blk, blk_size, 0);
         m_top = blk;
         m_end = blk + blk_size;
-        m_cell_idx = 0;
         return stack_allocation(size, rqst);
     } else if (m_freelist) {
         return freelist_allocation(size, rqst);
@@ -50,7 +57,6 @@ gc_alloc_response mpool_allocator::stack_allocation(size_t size, const gc_alloc_
     assert(m_top <= m_end - size);
 
     descriptor_t& descr = m_descrs.back();
-    descr.set_live(m_cell_idx++, true);
     byte* ptr = m_top;
     m_top += size;
     return descr.init(ptr, rqst);
@@ -67,7 +73,6 @@ gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_all
 
     memset(ptr, 0, size);
     descriptor_t* descr = static_cast<descriptor_t*>(collectors::memory_index::index(ptr));
-    descr->set_live(ptr, true);
     return descr->init(ptr, rqst);
 }
 
@@ -114,6 +119,7 @@ gc_heap_stat mpool_allocator::collect(compacting::forwarding& frwd)
     } else {
         sweep(stat);
     }
+    m_prev_residency = stat.mem_residency;
     return stat;
 }
 
@@ -144,14 +150,34 @@ size_t mpool_allocator::sweep(descriptor_t& descr)
 {
     byte* it  = descr.memory();
     byte* end = descr.memory() + descr.size();
-    for (size_t i = 0; it < end; it += descr.cell_size(), ++i) {
+    for (size_t i = 0; it < end; it += descr.cell_size(nullptr), ++i) {
         descr.destroy(it);
     }
 }
 
 void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
 {
+    compacting::two_finger_compactor compactor;
+    auto rng = memory_range();
+    stat.mem_copied += compactor(rng, frwd);
+}
 
+void mpool_allocator::fix(const compacting::forwarding& frwd)
+{
+    auto rng = memory_range();
+    compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
+}
+
+bool mpool_allocator::is_compaction_required(const gc_heap_stat& stat) const
+{
+    return stat.mem_residency < RESIDENCY_COMPACTING_THRESHOLD
+           || (stat.mem_residency < RESIDENCY_NON_COMPACTING_THRESHOLD
+               && std::abs(stat.mem_residency - m_prev_residency) < RESIDENCY_EPS);
+}
+
+memory_range_type mpool_allocator::memory_range()
+{
+    return utils::flatten_range(m_descrs.begin(), m_descrs.end());
 }
 
 }}}

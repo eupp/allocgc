@@ -49,7 +49,7 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
-    size_t cell_size() const override;
+    size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
     const gc_type_meta* get_type_meta(byte* ptr) const override;

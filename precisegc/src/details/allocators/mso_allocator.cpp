@@ -78,8 +78,8 @@ void mso_allocator::sweep()
 void mso_allocator::sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end)
 {
     byte* it = mem_start;
-    size_t cnt = (mem_end - it) / chk->cell_size();
-    size_t cell_size = chk->cell_size();
+    size_t cnt = (mem_end - it) / chk->cell_size(nullptr);
+    size_t cell_size = chk->cell_size(nullptr);
 
     for (size_t i = 0; i < cnt; ++i, it += cell_size) {
         if (!chk->get_mark(i)) {
@@ -120,8 +120,8 @@ void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
 void mso_allocator::call_destructors(iterator_t chk)
 {
     byte* it = chk->memory();
-    size_t cnt = chk->size() / chk->cell_size();
-    size_t cell_size = chk->cell_size();
+    size_t cnt = chk->size() / chk->cell_size(nullptr);
+    size_t cell_size = chk->cell_size(nullptr);
 
     for (size_t i = 0; i < cnt; ++i, it += cell_size) {
         call_destructor(it, chk);

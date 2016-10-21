@@ -17,7 +17,7 @@ public:
     MOCK_METHOD2(set_mark, void(byte* ptr, bool mark));
     MOCK_METHOD2(set_pin, void(byte* ptr, bool pin));
 
-    MOCK_CONST_METHOD0(cell_size, size_t(void));
+    size_t cell_size(byte* ptr);
     MOCK_CONST_METHOD1(cell_start, byte*(byte* ptr));
 
     MOCK_CONST_METHOD1(get_type_meta, const type_meta*(byte* ptr));

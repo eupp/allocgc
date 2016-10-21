@@ -14,7 +14,6 @@
 #include <libprecisegc/details/allocators/stl_adapter.hpp>
 
 #include <libprecisegc/details/utils/flatten_range.hpp>
-#include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
@@ -30,26 +29,33 @@ class mpool_allocator : private utils::noncopyable, private utils::nonmovable
     typedef managed_pool_chunk descriptor_t;
 
     typedef allocators::intrusive_list_allocator<
-            allocators::freelist_pool_chunk
+              allocators::freelist_pool_chunk
             , allocators::default_allocator
             , allocators::single_chunk_with_search_cache
             , utils::dummy_mutex
-    > chunk_pool_t;
+        > chunk_pool_t;
 
     typedef std::list<descriptor_t, stl_adapter<descriptor_t, chunk_pool_t>> descriptor_list_t;
     typedef typename descriptor_list_t::iterator iterator_t;
 public:
+    typedef utils::flattened_range<iterator_t> memory_range_type;
     typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
     mpool_allocator();
+    ~mpool_allocator();
 
     gc_alloc_response allocate(const gc_alloc_request& rqst);
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
+
+    // temporary until refactor tests
+    memory_range_type memory_range();
 private:
-    static gc_alloc_response make_obj(byte* ptr, memory_descriptor* descr, const gc_alloc_request& rqst);
+    static constexpr double RESIDENCY_COMPACTING_THRESHOLD = 0.5;
+    static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
+    static constexpr double RESIDENCY_EPS = 0.1;
 
     gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, bool call_gc);
     gc_alloc_response stack_allocation(size_t size, const gc_alloc_request& rqst);
@@ -76,7 +82,6 @@ private:
     byte** m_freelist;
     byte*  m_top;
     byte*  m_end;
-    size_t m_cell_idx;
     double m_prev_residency;
 };
 

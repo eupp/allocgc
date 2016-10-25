@@ -21,8 +21,6 @@ namespace precisegc { namespace details { namespace allocators {
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
     : m_chunk(chunk, size, cell_size)
     , m_cell_size(cell_size)
-    , m_log2_cell_size(log2(cell_size))
-    , m_mask(calc_mask(chunk, size, cell_size))
 {
     collectors::memory_index::add_to_index(chunk, size, this);
 }
@@ -57,7 +55,7 @@ gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rq
     return gc_alloc_response(ptr + sizeof(object_meta), rqst.alloc_size(), this);
 }
 
-void managed_pool_chunk::destroy(byte* ptr)
+size_t managed_pool_chunk::destroy(byte* ptr)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
@@ -66,7 +64,9 @@ void managed_pool_chunk::destroy(byte* ptr)
         object_meta* meta = reinterpret_cast<object_meta*>(ptr);
         meta->m_tmeta->destroy(ptr);
         set_live(idx, false);
+        return m_cell_size;
     }
+    return 0;
 }
 
 void managed_pool_chunk::move(byte* from, byte* to)
@@ -203,10 +203,10 @@ size_t managed_pool_chunk::cell_size(byte* ptr) const
 
 byte* managed_pool_chunk::cell_start(byte* ptr) const
 {
-    uintptr uiptr = reinterpret_cast<uintptr>(ptr);
-    uintptr res = (uiptr & m_mask);
-    assert(res % m_cell_size == 0);
-    return reinterpret_cast<byte*>(res);
+    std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
+    uintptr -= uintptr % cell_size(ptr);
+    assert(uintptr % cell_size(ptr) == 0);
+    return reinterpret_cast<byte*>(uintptr);
 }
 
 size_t managed_pool_chunk::object_count(byte* ptr) const
@@ -229,25 +229,12 @@ void managed_pool_chunk::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
     get_meta(ptr)->m_tmeta = tmeta;
 }
 
-managed_pool_chunk::uintptr managed_pool_chunk::calc_mask(byte* chunk,
-                                                          size_t chunk_size,
-                                                          size_t cell_size)
-{
-    size_t cell_size_bits = log2(cell_size);
-    return std::numeric_limits<uintptr>::max() << cell_size_bits;
-}
-
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 {
     assert(memory() <= ptr && ptr < memory() + size());
-    byte* cell_ptr = cell_start(ptr);
-    assert((cell_ptr - memory()) % pow2(m_log2_cell_size) == 0);
-    return (cell_ptr - memory()) >> m_log2_cell_size;
-}
-
-size_t managed_pool_chunk::get_log2_cell_size() const
-{
-    return m_log2_cell_size;
+    assert(ptr == cell_start(ptr));
+    assert((ptr - memory()) % m_cell_size == 0);
+    return (ptr - memory()) / m_cell_size;
 }
 
 managed_pool_chunk::object_meta* managed_pool_chunk::get_meta(byte* cell_start) const

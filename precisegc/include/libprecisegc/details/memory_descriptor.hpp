@@ -11,9 +11,6 @@ namespace precisegc { namespace details {
 class memory_descriptor
 {
 public:
-    typedef std::recursive_mutex mutex_type;
-    typedef std::unique_lock<mutex_type> lock_type;
-
     virtual ~memory_descriptor() {}
 
     virtual void commit(byte* ptr) = 0;

@@ -170,7 +170,8 @@ void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
             compacting::fix_ptrs(rng.begin(), rng.end(), frwd, tlab_bucket_policy::bucket_size(i));
         }
     }
-}
+}std::atomic<size_t> freed{0};
+    std::atomic<size_t> copied{0};
 
 void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
 {

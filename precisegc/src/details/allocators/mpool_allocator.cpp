@@ -21,9 +21,9 @@ mpool_allocator::~mpool_allocator()
     }
 }
 
-gc_alloc_response mpool_allocator::allocate(const gc_alloc_request& rqst)
+gc_alloc_response mpool_allocator::allocate(const gc_alloc_request& rqst, size_t aligned_size)
 {
-    size_t size = rqst.alloc_size() + descriptor_t::meta_size();
+    size_t size = aligned_size + descriptor_t::meta_size();
     if (m_top == m_end) {
         return try_expand_and_allocate(size, rqst, true);
     }
@@ -84,7 +84,7 @@ mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t
 
 iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
 {
-    sweep(*it);
+    sweep(*it, <#initializer#>);
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
 }
@@ -141,17 +141,16 @@ void mpool_allocator::shrink(gc_heap_stat& stat)
 void mpool_allocator::sweep(gc_heap_stat& stat)
 {
     for (auto& descr: m_descrs) {
-        stat.mem_freed += descr.lived_cnt() * descr.cell_size();
-        sweep(descr);
+        sweep(descr, stat);
     }
 }
 
-size_t mpool_allocator::sweep(descriptor_t& descr)
+size_t mpool_allocator::sweep(descriptor_t& descr, gc_heap_stat& stat)
 {
     byte* it  = descr.memory();
     byte* end = descr.memory() + descr.size();
     for (size_t i = 0; it < end; it += descr.cell_size(nullptr), ++i) {
-        descr.destroy(it);
+        stat.mem_freed += descr.destroy(it);
     }
 }
 
@@ -166,6 +165,11 @@ void mpool_allocator::fix(const compacting::forwarding& frwd)
 {
     auto rng = memory_range();
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
+}
+
+bool mpool_allocator::empty() const
+{
+    return m_descrs.empty();
 }
 
 bool mpool_allocator::is_compaction_required(const gc_heap_stat& stat) const

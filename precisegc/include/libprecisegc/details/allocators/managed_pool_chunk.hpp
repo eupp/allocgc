@@ -29,7 +29,6 @@ public:
     static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
     static const size_t CHUNK_MINSIZE = 4;
 private:
-    typedef std::uintptr_t uintptr;
     typedef allocators::stack_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
@@ -65,7 +64,7 @@ public:
     memory_descriptor* get_descriptor();
 
     gc_alloc_response init(byte* ptr, const gc_alloc_request& rqst);
-    void destroy(byte* ptr);
+    size_t destroy(byte* ptr);
     void move(byte* from, byte* to);
 
     bool contains(byte* ptr) const;
@@ -115,15 +114,10 @@ private:
     bool is_live(byte* ptr) const;
     void set_live(byte* ptr, bool live);
 
-    static uintptr calc_mask(byte* chunk, size_t chunk_size, size_t cell_size);
-
     size_t calc_cell_ind(byte* ptr) const;
-    size_t get_log2_cell_size() const;
 
     plain_pool_chunk m_chunk;
     size_t m_cell_size;
-    size_t m_log2_cell_size;
-    uintptr m_mask;
     sync_bitset_t m_mark_bits;
     bitset_t m_pin_bits;
     bitset_t m_live_bits;

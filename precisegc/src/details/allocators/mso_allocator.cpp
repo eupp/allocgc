@@ -1,171 +1,68 @@
 #include <libprecisegc/details/allocators/mso_allocator.hpp>
 
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <algorithm>
 
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
 mso_allocator::mso_allocator()
-    : m_freelist(nullptr)
-    , m_top(nullptr)
-    , m_end(nullptr)
-{}
-
-mso_allocator::pointer_type mso_allocator::allocate(size_t size)
 {
-    if (m_freelist) {
-        byte* ptr = m_freelist;
-        m_freelist = *reinterpret_cast<byte**>(m_freelist);
-        memset(ptr, 0, size);
-        return gc_alloc_response(ptr, size, collectors::memory_index::index(ptr));
-    }
-    if (m_top == m_end) {
-        auto new_chunk = create_chunk(size);
-        m_top = new_chunk->memory();
-        m_end = m_top + new_chunk->size();
-    }
-    byte* ptr = m_top;
-    m_top += size;
-    return gc_alloc_response(ptr, size, &m_chunks.back());
-}
-
-void mso_allocator::deallocate(pointer_type ptr, size_t size)
-{
-    return;
-}
-
-gc_heap_stat mso_allocator::collect()
-{
-    gc_heap_stat stats;
-    stats.mem_shrunk = 0;
-    stats.residency  = 0;
-
-    byte* curr = m_freelist;
-    while (curr) {
-        managed_pool_chunk* chk = static_cast<managed_pool_chunk*>(collectors::memory_index::index(curr));
-        chk->set_live(curr, false);
-        curr = *reinterpret_cast<byte**>(curr);
-    }
-
-    for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
-        stats.residency += it->residency();
-        if (it->unused()) {
-            stats.mem_shrunk += it->size();
-            call_destructors(it);
-            it = destroy_chunk(it);
-        } else {
-            ++it;
+    for (size_t i = 0; i < BUCKET_COUNT; i += 2) {
+        size_t sz_cls = 1ull << (i + MIN_CELL_SIZE);
+        m_buckets[i].first = sz_cls;
+        if (i + 1 < BUCKET_COUNT) {
+            m_buckets[i + 1].first = sz_cls + sz_cls / 2;
         }
     }
-    stats.residency /= m_chunks.size();
-    return stats;
 }
 
-void mso_allocator::sweep()
+gc_alloc_response mso_allocator::allocate(const gc_alloc_request& rqst)
 {
-    if (m_chunks.empty()) {
-        return;
-    }
-    m_freelist = nullptr;
-    auto last = std::prev(m_chunks.end());
-    for (auto chunk = m_chunks.begin(); chunk != last; ++chunk) {
-        sweep_chunk(chunk, chunk->memory(), chunk->memory() + chunk->size());
-    }
-    sweep_chunk(last, last->memory(), m_top);
+    auto it = std::lower_bound(m_buckets.begin(), m_buckets.end(), rqst.alloc_size(),
+                               [] (const bucket_t& a, const bucket_t& b) { return a.first < b.first; });
+    return it->second.allocate(rqst, it->first);
 }
 
-void mso_allocator::sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end)
+gc_heap_stat mso_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
-    byte* it = mem_start;
-    size_t cnt = (mem_end - it) / chk->cell_size(nullptr);
-    size_t cell_size = chk->cell_size(nullptr);
-
-    for (size_t i = 0; i < cnt; ++i, it += cell_size) {
-        if (!chk->get_mark(i)) {
-            logging::debug() << "Deallocate cell addr=" << (void*) it << ", size=" << cell_size;
-
-            call_destructor(it, chk);
-
-            byte** next = reinterpret_cast<byte**>(it);
-            *next = m_freelist;
-            m_freelist = it;
+    std::vector<std::function<void()>> tasks;
+    std::array<gc_heap_stat, BUCKET_COUNT> part_stats;
+    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
+        if (m_buckets[i].second.empty()) {
+            continue;
         }
+        tasks.emplace_back([this, i, &frwd, &part_stats] {
+            part_stats[i] = m_buckets[i].second.collect(frwd);
+        });
     }
+    thread_pool.run(tasks.begin(), tasks.end());
 
-    chk->unmark();
+    gc_heap_stat stat;
+    for (auto& part_stat: part_stats) {
+        stat.mem_used       += part_stat.mem_used;
+        stat.mem_freed      += part_stat.mem_freed;
+        stat.mem_copied     += part_stat.mem_copied;
+        stat.mem_residency  += part_stat.mem_residency;
+        stat.pinned_cnt     += part_stat.pinned_cnt;
+    }
+    stat.mem_residency /= part_stats.size();
+
+    return stat;
 }
 
-void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
+void mso_allocator::fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
-    using namespace collectors;
-
-    if (!chk->is_live(ptr)) {
-//        logging::debug() << "Call destructor addr=" << (void*) ptr;
-
-        traceable_object_meta* meta = reinterpret_cast<traceable_object_meta*>(ptr);
-        const gc_type_meta* tmeta = meta->get_type_meta();
-        byte* obj = ptr + sizeof(traceable_object_meta);
-
-        auto offsets = tmeta->offsets();
-        for (size_t offset: offsets) {
-            gc_word* word = reinterpret_cast<gc_word*>(obj + offset);
-            gc_handle_access::set<std::memory_order_relaxed>(*word, nullptr);
+    std::vector<std::function<void()>> tasks;
+    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
+        if (m_buckets[i].second.empty()) {
+            continue;
         }
-
-        tmeta->destroy(ptr + sizeof(traceable_object_meta));
+        tasks.emplace_back([this, i, &frwd] {
+            m_buckets[i].second.fix(frwd);
+        });
     }
-}
-
-void mso_allocator::call_destructors(iterator_t chk)
-{
-    byte* it = chk->memory();
-    size_t cnt = chk->size() / chk->cell_size(nullptr);
-    size_t cell_size = chk->cell_size(nullptr);
-
-    for (size_t i = 0; i < cnt; ++i, it += cell_size) {
-        call_destructor(it, chk);
-    }
-}
-
-bool mso_allocator::empty() const
-{
-    return m_chunks.empty();
-}
-
-double mso_allocator::residency() const
-{
-    double r = 0;
-    for (auto& chk: m_chunks) {
-        r += chk.residency();
-    }
-    return r / m_chunks.size();
-}
-
-mso_allocator::iterator_t mso_allocator::create_chunk(size_t cell_size)
-{
-    auto alloc_res = allocate_block(cell_size);
-    m_chunks.emplace_back(alloc_res.first, alloc_res.second, cell_size);
-    return std::prev(m_chunks.end());
-}
-
-mso_allocator::iterator_t mso_allocator::destroy_chunk(typename chunk_list_t::iterator chk)
-{
-    deallocate_block(chk->memory(), chk->size());
-    return m_chunks.erase(chk);
-}
-
-std::pair<byte*, size_t> mso_allocator::allocate_block(size_t cell_size)
-{
-    assert(PAGE_SIZE % cell_size == 0);
-    size_t chunk_size = chunk_t::chunk_size(cell_size);
-    return std::make_pair(core_allocator::allocate(chunk_size), chunk_size);
-}
-
-void mso_allocator::deallocate_block(byte* ptr, size_t size)
-{
-    assert(ptr);
-    core_allocator::deallocate(ptr, size);
+    thread_pool.run(tasks.begin(), tasks.end());
 }
 
 }}}

@@ -45,10 +45,12 @@ public:
     mpool_allocator();
     ~mpool_allocator();
 
-    gc_alloc_response allocate(const gc_alloc_request& rqst);
+    gc_alloc_response allocate(const gc_alloc_request& rqst, size_t aligned_size);
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
+
+    bool empty() const;
 
     // temporary until refactor tests
     memory_range_type memory_range();
@@ -76,7 +78,7 @@ private:
     void sweep(gc_heap_stat& stat);
     void compact(compacting::forwarding& frwd, gc_heap_stat& stat);
 
-    size_t sweep(descriptor_t& descr);
+    size_t sweep(descriptor_t& descr, gc_heap_stat& stat);
 
     descriptor_list_t m_descrs;
     byte** m_freelist;

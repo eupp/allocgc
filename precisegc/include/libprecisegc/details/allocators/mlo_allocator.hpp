@@ -1,7 +1,10 @@
 #ifndef DIPLOMA_MLO_ALLOCATOR_HPP
 #define DIPLOMA_MLO_ALLOCATOR_HPP
 
+#include <boost/range/iterator_range.hpp>
+
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
+#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 
 #include <libprecisegc/details/utils/flatten_range.hpp>
@@ -24,6 +27,62 @@ class mlo_allocator : private utils::noncopyable, private utils::nonmovable
     };
 
     typedef managed_object_descriptor descriptor_t;
+
+    class iterator: public boost::iterator_facade<
+              iterator
+            , descriptor_t
+            , boost::bidirectional_traversal_tag
+        >
+    {
+    public:
+        iterator(const iterator&) noexcept = default;
+        iterator(iterator&&) noexcept = default;
+
+        iterator& operator=(const iterator&) noexcept = default;
+        iterator& operator=(iterator&&) noexcept = default;
+
+        descriptor_t* operator->() const;
+    private:
+        friend class mlo_allocator;
+        friend class boost::iterator_core_access;
+
+        iterator(control_block* cblk) noexcept;
+
+        byte* memblk() const;
+
+        descriptor_t* get() const;
+
+        descriptor_t& dereference() const;
+        bool equal(const iterator& other) const noexcept;
+        void increment() noexcept;
+        void decrement() noexcept;
+
+        control_block* m_control_block;
+    };
+
+    class memory_iterator:
+              public managed_memory_iterator<descriptor_t>
+            , public boost::iterator_facade<
+                  memory_iterator
+                , managed_memory_iterator<descriptor_t>::value_type
+                , boost::random_access_traversal_tag
+                , managed_memory_iterator<descriptor_t>::reference
+            >
+    {
+    public:
+        memory_iterator(byte* ptr, descriptor_t* descr, control_block* cblk);
+    private:
+        void increment() noexcept;
+        void decrement() noexcept;
+
+        bool equal(const memory_iterator& other) const noexcept;
+
+        control_block* get_cblk();
+
+        control_block* m_cblk;
+    };
+
+    typedef boost::iterator_range<memory_iterator> memory_range_type;
 public:
     typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
@@ -40,10 +99,17 @@ private:
     static control_block* get_control_block(byte* memblk);
     static byte*          get_mem(byte* memblk);
 
+    void destroy(byte* ptr);
+
+    iterator begin();
+    iterator end();
+
+    memory_range_type memory_range();
+
     control_block* get_fake_block();
 
     byte* allocate_block(size_t size);
-    void deallocate_block(byte* ptr, size_t size);
+    void  deallocate_block(byte* ptr, size_t size);
 
     control_block  m_fake;
     control_block* m_head;

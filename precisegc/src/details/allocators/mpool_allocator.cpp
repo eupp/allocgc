@@ -84,7 +84,7 @@ mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t
 
 iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
 {
-    sweep(*it, <#initializer#>);
+    sweep(*it);
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
 }
@@ -141,17 +141,21 @@ void mpool_allocator::shrink(gc_heap_stat& stat)
 void mpool_allocator::sweep(gc_heap_stat& stat)
 {
     for (auto& descr: m_descrs) {
-        sweep(descr, stat);
+        stat.mem_freed += sweep(descr);
     }
 }
 
-size_t mpool_allocator::sweep(descriptor_t& descr, gc_heap_stat& stat)
+size_t mpool_allocator::sweep(descriptor_t& descr)
 {
-    byte* it  = descr.memory();
-    byte* end = descr.memory() + descr.size();
-    for (size_t i = 0; it < end; it += descr.cell_size(nullptr), ++i) {
-        stat.mem_freed += descr.destroy(it);
+    byte*  it   = descr.memory();
+    byte*  end  = descr.memory() + descr.size();
+    size_t size = descr.cell_size();
+
+    size_t freed = 0;
+    for (size_t i = 0; it < end; it += size, ++i) {
+        freed += descr.destroy(it);
     }
+    return freed;
 }
 
 void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)

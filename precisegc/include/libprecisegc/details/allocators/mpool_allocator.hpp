@@ -51,9 +51,6 @@ public:
     void fix(const compacting::forwarding& frwd);
 
     bool empty() const;
-
-    // temporary until refactor tests
-    memory_range_type memory_range();
 private:
     static constexpr double RESIDENCY_COMPACTING_THRESHOLD = 0.5;
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
@@ -69,6 +66,8 @@ private:
     std::pair<byte*, size_t> allocate_block(size_t cell_size);
     void deallocate_block(byte* ptr, size_t size);
 
+    memory_range_type memory_range();
+
     bool contains(byte* ptr) const;
 
     bool is_compaction_required(const gc_heap_stat& stat) const;
@@ -78,7 +77,7 @@ private:
     void sweep(gc_heap_stat& stat);
     void compact(compacting::forwarding& frwd, gc_heap_stat& stat);
 
-    size_t sweep(descriptor_t& descr, gc_heap_stat& stat);
+    size_t sweep(descriptor_t& descr);
 
     descriptor_list_t m_descrs;
     byte** m_freelist;

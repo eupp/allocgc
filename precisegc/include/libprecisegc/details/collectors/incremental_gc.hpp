@@ -10,7 +10,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.hpp>
-#include <libprecisegc/details/gc_alloc_response.hpp>
+#include <libprecisegc/details/gc_alloc_messaging.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

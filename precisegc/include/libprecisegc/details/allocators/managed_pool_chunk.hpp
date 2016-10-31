@@ -42,7 +42,6 @@ private:
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
     typedef managed_memory_iterator<managed_pool_chunk> iterator;
-    typedef boost::iterator_range<iterator> memory_range_type;
 
     static constexpr size_t meta_size()
     {
@@ -61,7 +60,7 @@ public:
     byte*  memory() const;
     size_t size() const;
 
-    memory_descriptor* get_descriptor();
+    memory_descriptor* descriptor();
 
     gc_alloc_response init(byte* ptr, const gc_alloc_request& rqst);
     size_t destroy(byte* ptr);
@@ -81,11 +80,13 @@ public:
     iterator begin();
     iterator end();
 
-    void commit(byte* ptr) override;
-    bool is_commited(byte* ptr) const override;
+    void set_initialized(byte* ptr) override;
+    bool is_initialized(byte* ptr) const override;
 
     bool get_mark(size_t idx) const;
     bool get_pin(size_t idx) const;
+
+    size_t cell_size() const;
 
     void set_mark(size_t idx, bool mark);
     void set_pin(size_t idx, bool pin);
@@ -105,14 +106,13 @@ public:
     const gc_type_meta* get_type_meta(byte* ptr) const override;
     void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
-//    static byte* get_obj(byte* cell_start);
     object_meta* get_meta(byte* cell_start) const;
 
-    bool is_live(size_t idx) const;
-    void set_live(size_t idx, bool live);
+    bool is_init(size_t idx) const;
+    void set_init(size_t idx, bool init);
 
-    bool is_live(byte* ptr) const;
-    void set_live(byte* ptr, bool live);
+    bool is_init(byte* ptr) const;
+    void set_init(byte* ptr, bool init);
 
     size_t calc_cell_ind(byte* ptr) const;
 
@@ -120,7 +120,7 @@ private:
     size_t m_cell_size;
     sync_bitset_t m_mark_bits;
     bitset_t m_pin_bits;
-    bitset_t m_live_bits;
+    bitset_t m_init_bits;
 };
 
 }}}

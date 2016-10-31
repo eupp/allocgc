@@ -13,8 +13,8 @@ class memory_descriptor
 public:
     virtual ~memory_descriptor() {}
 
-    virtual void commit(byte* ptr) = 0;
-    virtual bool is_commited(byte* ptr) const = 0;
+    virtual void set_initialized(byte* ptr) = 0;
+    virtual bool is_initialized(byte* ptr) const = 0;
 
     virtual bool get_mark(byte* ptr) const = 0;
     virtual bool get_pin(byte* ptr) const = 0;

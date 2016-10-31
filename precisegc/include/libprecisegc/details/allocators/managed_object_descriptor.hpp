@@ -2,13 +2,13 @@
 #define DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
 
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/gc_alloc_response.hpp>
-#include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -24,24 +24,24 @@ public:
         return ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
     }
 
-    managed_object_descriptor();
-    managed_object_descriptor(byte* ptr, size_t size, size_t obj_size);
+    managed_object_descriptor(size_t size);
     ~managed_object_descriptor();
 
-    pointer_type allocate(size_t size);
-    void deallocate(const pointer_type& ptr, size_t size);
+    size_t size() const;
 
-    bool contains(const pointer_type& ptr) const noexcept;
-    bool memory_available() const noexcept;
-    bool empty() const;
+    memory_descriptor* descriptor();
 
-    byte* get_mem() const;
-    size_t get_mem_size() const;
+    gc_alloc_response init(byte* ptr, const gc_alloc_request& rqst);
+    size_t destroy(byte* ptr);
 
-    memory_descriptor* get_descriptor();
+    void set_initialized(byte* ptr) override;
+    bool is_initialized(byte* ptr) const override;
 
-    iterator begin();
-    iterator end();
+    bool get_mark() const noexcept;
+    bool get_pin() const noexcept;
+
+    bool set_mark(bool mark) noexcept;
+    bool set_pin(bool pin) noexcept;
 
     bool get_mark(byte* ptr) const override;
     bool get_pin(byte* ptr) const override;
@@ -55,12 +55,18 @@ public:
     const gc_type_meta* get_type_meta(byte* ptr) const override;
     void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
+    struct object_meta
+    {
+        const gc_type_meta* m_tmeta;
+        size_t m_obj_cnt;
+    };
+
     bool check_ptr(byte* ptr) const;
 
-    byte* m_ptr;
     size_t m_size;
     bool m_mark_bit;
     bool m_pin_bit;
+    bool m_init_bit;
 };
 
 }}}

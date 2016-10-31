@@ -26,6 +26,13 @@ public:
         , m_descr(nullptr)
     {}
 
+    managed_memory_proxy(byte* ptr, MemoryDescriptor* descr)
+        : m_ptr(ptr)
+        , m_descr(descr)
+    {
+        assert(ptr && descr);
+    }
+
     byte* get() const noexcept
     {
         return m_ptr;
@@ -51,11 +58,6 @@ public:
         return m_descr->set_pin(m_ptr, pin);
     }
 
-    size_t cell_size() const
-    {
-        return m_descr->cell_size();
-    }
-
     void destroy()
     {
         m_descr->destroy(m_ptr);
@@ -68,27 +70,20 @@ public:
 
     friend class managed_memory_iterator<MemoryDescriptor>;
 private:
-    managed_memory_proxy(byte* ptr, MemoryDescriptor* descr)
-        : m_ptr(ptr)
-        , m_descr(descr)
-    {
-        assert(ptr && descr);
-    }
-
     byte* m_ptr;
     MemoryDescriptor* m_descr;
 };
 
 template <typename MemoryDescriptor>
-class managed_memory_iterator : public boost::iterator_facade<
-          managed_memory_iterator<MemoryDescriptor>
-        , const managed_memory_proxy<MemoryDescriptor>
-        , boost::random_access_traversal_tag
-        , const managed_memory_proxy<MemoryDescriptor>
-    >
+class managed_memory_iterator
 {
     typedef managed_memory_proxy<MemoryDescriptor> proxy_t;
 public:
+    typedef const proxy_t         value_type;
+    typedef ptrdiff_t             difference_type;
+    typedef const proxy_t*        pointer;
+    typedef const proxy_t         reference;
+
     managed_memory_iterator() noexcept = default;
     managed_memory_iterator(const managed_memory_iterator&) noexcept = default;
     managed_memory_iterator(managed_memory_iterator&&) noexcept = default;
@@ -100,7 +95,7 @@ public:
     {
         return &m_proxy;
     }
-private:
+protected:
     friend class managed_pool_chunk;
     friend class managed_object_descriptor;
     friend class boost::iterator_core_access;
@@ -114,34 +109,24 @@ private:
         return m_proxy;
     }
 
-    void increment() noexcept
+    byte* get_ptr() const
     {
-        advance(1);
+        return m_proxy.m_ptr;
     }
 
-    void decrement() noexcept
+    void  set_ptr(byte* ptr)
     {
-        advance(-1);
+        m_proxy.m_ptr = ptr;
     }
 
-    bool equal(const managed_memory_iterator& other) const noexcept
+    MemoryDescriptor* get_descriptor() const
     {
-        return m_proxy.get() == other.m_proxy.get();
+        return m_proxy.m_descr;
     }
 
-    void advance(ptrdiff_t n)
+    void set_descriptor(MemoryDescriptor* descr)
     {
-        m_proxy.m_ptr += n * cell_size();
-    }
-
-    ptrdiff_t distance_to(const managed_memory_iterator& other) const
-    {
-        return other.m_proxy.get() - m_proxy.get();
-    }
-
-    size_t cell_size() const
-    {
-        return m_proxy.cell_size();
+        m_proxy.m_descr = descr;
     }
 
     proxy_t m_proxy;

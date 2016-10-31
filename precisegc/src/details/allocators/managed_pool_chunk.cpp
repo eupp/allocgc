@@ -40,7 +40,7 @@ size_t managed_pool_chunk::size() const
     return m_chunk.get_mem_size();
 }
 
-memory_descriptor* managed_pool_chunk::get_descriptor()
+memory_descriptor* managed_pool_chunk::descriptor()
 {
     return this;
 }
@@ -60,10 +60,10 @@ size_t managed_pool_chunk::destroy(byte* ptr)
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     size_t idx = calc_cell_ind(ptr);
-    if (is_live(idx)) {
+    if (is_init(idx)) {
         object_meta* meta = reinterpret_cast<object_meta*>(ptr);
         meta->m_tmeta->destroy(ptr);
-        set_live(idx, false);
+        set_init(idx, false);
         return m_cell_size;
     }
     return 0;
@@ -91,7 +91,7 @@ bool managed_pool_chunk::unused() const
 
 size_t managed_pool_chunk::count_lived() const
 {
-    return m_live_bits.count();
+    return m_init_bits.count();
 }
 
 size_t managed_pool_chunk::count_pinned() const
@@ -122,34 +122,34 @@ managed_pool_chunk::iterator managed_pool_chunk::end()
     return iterator(memory() + size(), this);
 }
 
-void managed_pool_chunk::commit(byte* ptr)
+void managed_pool_chunk::set_initialized(byte* ptr)
 {
-    set_live(ptr, true);
+    set_init(ptr, true);
 }
 
-bool managed_pool_chunk::is_commited(byte* ptr) const
+bool managed_pool_chunk::is_initialized(byte* ptr) const
 {
-    return is_live(ptr);
+    return is_init(ptr);
 }
 
-bool managed_pool_chunk::is_live(size_t idx) const
+bool managed_pool_chunk::is_init(size_t idx) const
 {
-    return m_live_bits.get(idx);
+    return m_init_bits.get(idx);
 }
 
-void managed_pool_chunk::set_live(size_t idx, bool live)
+void managed_pool_chunk::set_init(size_t idx, bool init)
 {
-    m_live_bits.set(idx, live);
+    m_init_bits.set(idx, init);
 }
 
-bool managed_pool_chunk::is_live(byte* ptr) const
+bool managed_pool_chunk::is_init(byte* ptr) const
 {
-    return is_live(calc_cell_ind(ptr));
+    return is_init(calc_cell_ind(ptr));
 }
 
-void managed_pool_chunk::set_live(byte* ptr, bool live)
+void managed_pool_chunk::set_init(byte* ptr, bool init)
 {
-    set_live(calc_cell_ind(ptr), live);
+    set_init(calc_cell_ind(ptr), init);
 }
 
 bool managed_pool_chunk::get_mark(size_t idx) const
@@ -166,6 +166,11 @@ bool managed_pool_chunk::get_mark(byte* ptr) const
 bool managed_pool_chunk::get_pin(size_t idx) const
 {
     return m_pin_bits.get(idx);
+}
+
+size_t managed_pool_chunk::cell_size() const
+{
+    return m_cell_size;
 }
 
 bool managed_pool_chunk::get_pin(byte* ptr) const

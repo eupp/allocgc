@@ -46,7 +46,7 @@ public:
 //{
 //    EXPECT_TRUE(m_chunk.memory_available());
 //    EXPECT_TRUE(m_chunk.unused());
-//    EXPECT_NE(nullptr, m_chunk.get_descriptor());
+//    EXPECT_NE(nullptr, m_chunk.descriptor());
 //}
 //
 //TEST_F(managed_pool_chunk_test, test_allocate)
@@ -54,13 +54,13 @@ public:
 //    gc_alloc_response cell_ptr = m_chunk.allocate(CELL_SIZE);
 //
 //    EXPECT_NE(nullptr, cell_ptr.get());
-//    EXPECT_EQ(cell_ptr.descriptor(), m_chunk.get_descriptor());
-//    EXPECT_EQ(memory_index::index(cell_ptr.get()), m_chunk.get_descriptor());
+//    EXPECT_EQ(cell_ptr.descriptor(), m_chunk.descriptor());
+//    EXPECT_EQ(memory_index::index(cell_ptr.get()), m_chunk.descriptor());
 //}
 
 TEST_F(managed_pool_chunk_test, test_cell_start)
 {
-    memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.descriptor();
     byte* mem = m_chunk.memory();
     size_t mem_size = m_chunk.size();
 
@@ -86,7 +86,7 @@ struct test_type
 
 TEST_F(managed_pool_chunk_test, test_get_mark_pin)
 {
-    memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.descriptor();
     byte* mem = m_chunk.memory();
     size_t mem_size = m_chunk.size();
 
@@ -98,7 +98,7 @@ TEST_F(managed_pool_chunk_test, test_get_mark_pin)
 
 TEST_F(managed_pool_chunk_test, test_set_mark)
 {
-    memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.descriptor();
     byte* ptr = m_chunk.memory() + m_rand();
 
     descr->set_mark(ptr, true);
@@ -107,7 +107,7 @@ TEST_F(managed_pool_chunk_test, test_set_mark)
 
 TEST_F(managed_pool_chunk_test, test_set_pin)
 {
-    memory_descriptor* descr = m_chunk.get_descriptor();
+    memory_descriptor* descr = m_chunk.descriptor();
     byte* ptr = m_chunk.memory() + m_rand();
 
     descr->set_pin(ptr, true);

@@ -5,7 +5,7 @@
 
 #include <libprecisegc/gc_init_options.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/gc_alloc_response.hpp>
+#include <libprecisegc/details/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>

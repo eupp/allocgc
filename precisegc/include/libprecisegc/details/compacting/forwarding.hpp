@@ -16,7 +16,7 @@ public:
     forwarding(const forwarding&) = default;
     forwarding(forwarding&&) = default;
 
-    void create(byte* from, byte* to, size_t size);
+    void create(byte* from, byte* to);
 
     void forward(gc_word* handle) const;
 private:

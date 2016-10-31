@@ -34,19 +34,27 @@ private:
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
     typedef freelist_allocator<null_allocator, fixsize_policy> freelist_t;
 
-    struct object_meta
+    class memory_iterator:
+              public managed_memory_iterator<managed_pool_chunk>
+            , public boost::iterator_facade<
+                      memory_iterator
+                    , managed_memory_iterator<managed_pool_chunk>::value_type
+                    , boost::random_access_traversal_tag
+                    , managed_memory_iterator<managed_pool_chunk>::reference
+            >
     {
-        const gc_type_meta* m_tmeta;
-        size_t m_obj_cnt;
+    public:
+        memory_iterator(byte* ptr, managed_pool_chunk* descr);
+    private:
+        void increment();
+        void decrement();
+
+        bool equal(const memory_iterator& other) const;
     };
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
-    typedef managed_memory_iterator<managed_pool_chunk> iterator;
-
-    static constexpr size_t meta_size()
-    {
-        return sizeof(object_meta);
-    }
+    typedef memory_iterator iterator;
+//    typedef managed_memory_iterator<managed_pool_chunk> iterator;
 
     static constexpr size_t chunk_size(size_t cell_size)
     {
@@ -54,7 +62,6 @@ public:
     }
 
     managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
-
     ~managed_pool_chunk();
 
     byte*  memory() const;
@@ -106,8 +113,6 @@ public:
     const gc_type_meta* get_type_meta(byte* ptr) const override;
     void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
-    object_meta* get_meta(byte* cell_start) const;
-
     bool is_init(size_t idx) const;
     void set_init(size_t idx, bool init);
 
@@ -115,6 +120,8 @@ private:
     void set_init(byte* ptr, bool init);
 
     size_t calc_cell_ind(byte* ptr) const;
+
+    collectors::traceable_object_meta* get_meta(byte* ptr) const;
 
     plain_pool_chunk m_chunk;
     size_t m_cell_size;

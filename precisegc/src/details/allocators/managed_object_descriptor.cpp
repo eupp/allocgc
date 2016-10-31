@@ -20,18 +20,21 @@ managed_object_descriptor::~managed_object_descriptor()
 
 gc_alloc_response managed_object_descriptor::init(byte* ptr, const gc_alloc_request& rqst)
 {
-    object_meta* meta = reinterpret_cast<object_meta*>(ptr);
-    meta->m_tmeta = rqst.type_meta();
-    meta->m_obj_cnt = rqst.obj_count();
-    return gc_alloc_response(ptr + sizeof(object_meta), rqst.alloc_size(), this);
+    using namespace collectors;
+
+    traceable_object_meta* meta = managed_object::get_meta(ptr);
+    new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
+    return gc_alloc_response(managed_object::get_object(ptr), rqst.alloc_size(), this);
 }
 
 size_t managed_object_descriptor::destroy(byte* ptr)
 {
+    using namespace collectors;
+
     assert(check_ptr(ptr));
     if (m_init_bit) {
-        object_meta* meta = reinterpret_cast<object_meta*>(ptr);
-        meta->m_tmeta->destroy(ptr);
+        traceable_object_meta* meta = managed_object::get_meta(ptr);
+        meta->get_type_meta()->destroy(ptr);
         m_init_bit = false;
         return m_size;
     }
@@ -106,6 +109,16 @@ byte* managed_object_descriptor::cell_start(byte* ptr) const
     return ptr;
 }
 
+size_t managed_object_descriptor::object_count(byte* ptr) const
+{
+    return get_meta(ptr)->object_count();
+}
+
+void managed_object_descriptor::set_object_count(byte* ptr, size_t cnt) const
+{
+    get_meta(ptr)->set_object_count(cnt);
+}
+
 const gc_type_meta* managed_object_descriptor::get_type_meta(byte* ptr) const
 {
     assert(check_ptr(ptr));
@@ -133,6 +146,10 @@ bool managed_object_descriptor::check_ptr(byte* ptr) const
     return ptr == (reinterpret_cast<const byte*>(this) + sizeof(managed_object_descriptor));
 }
 
-
+collectors::traceable_object_meta* managed_object_descriptor::get_meta(byte* cell_start) const
+{
+    assert(check_ptr(cell_start));
+    return collectors::managed_object(cell_start).meta();
+}
 
 }}}

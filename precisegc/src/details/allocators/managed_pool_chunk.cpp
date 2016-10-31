@@ -5,30 +5,18 @@
 #include <utility>
 
 #include <libprecisegc/details/collectors/managed_object.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/utils/math.hpp>
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
-//managed_pool_chunk::managed_pool_chunk()
-//    : m_chunk()
-//    , m_cell_size(0)
-//    , m_log2_cell_size(0)
-//    , m_mask(0)
-//{}
-
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
     : m_chunk(chunk, size, cell_size)
     , m_cell_size(cell_size)
-{
-    collectors::memory_index::add_to_index(chunk, size, this);
-}
+{}
 
 managed_pool_chunk::~managed_pool_chunk()
-{
-    collectors::memory_index::remove_from_index(memory(), size());
-}
+{}
 
 byte* managed_pool_chunk::memory() const
 {
@@ -47,22 +35,26 @@ memory_descriptor* managed_pool_chunk::descriptor()
 
 gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rqst)
 {
+    using namespace collectors;
+
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    object_meta* meta = reinterpret_cast<object_meta*>(ptr);
-    meta->m_tmeta = rqst.type_meta();
-    meta->m_obj_cnt = rqst.obj_count();
-    return gc_alloc_response(ptr + sizeof(object_meta), rqst.alloc_size(), this);
+
+    traceable_object_meta* meta = managed_object::get_meta(ptr);
+    new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
+    return gc_alloc_response(managed_object::get_object(ptr), rqst.alloc_size(), this);
 }
 
 size_t managed_pool_chunk::destroy(byte* ptr)
 {
+    using namespace collectors;
+
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     size_t idx = calc_cell_ind(ptr);
     if (is_init(idx)) {
-        object_meta* meta = reinterpret_cast<object_meta*>(ptr);
-        meta->m_tmeta->destroy(ptr);
+        traceable_object_meta* meta = managed_object::get_meta(ptr);
+        meta->get_type_meta()->destroy(ptr);
         set_init(idx, false);
         return m_cell_size;
     }
@@ -71,10 +63,12 @@ size_t managed_pool_chunk::destroy(byte* ptr)
 
 void managed_pool_chunk::move(byte* from, byte* to)
 {
-    memcpy(to, from, sizeof(object_meta));
+    using namespace collectors;
 
-    const gc_type_meta* from_meta = reinterpret_cast<object_meta*>(from)->m_tmeta;
-    from_meta->move(from + sizeof(object_meta), to + sizeof(object_meta));
+    memcpy(to, from, sizeof(traceable_object_meta));
+
+    const gc_type_meta* from_meta = managed_object::get_meta(from)->get_type_meta();
+    from_meta->move(from + sizeof(traceable_object_meta), to + sizeof(traceable_object_meta));
 }
 
 bool managed_pool_chunk::contains(byte* ptr) const
@@ -216,37 +210,56 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
 
 size_t managed_pool_chunk::object_count(byte* ptr) const
 {
-    return get_meta(ptr)->m_obj_cnt;
+    return get_meta(ptr)->object_count();
 }
 
 void managed_pool_chunk::set_object_count(byte* ptr, size_t cnt) const
 {
-    get_meta(ptr)->m_obj_cnt = cnt;
+    get_meta(ptr)->set_object_count(cnt);
 }
 
 const gc_type_meta* managed_pool_chunk::get_type_meta(byte* ptr) const
 {
-    return get_meta(ptr)->m_tmeta;
+    return get_meta(ptr)->get_type_meta();
 }
 
 void managed_pool_chunk::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
 {
-    get_meta(ptr)->m_tmeta = tmeta;
+    get_meta(ptr)->set_type_meta(tmeta);
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 {
-    assert(memory() <= ptr && ptr < memory() + size());
+    assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     assert((ptr - memory()) % m_cell_size == 0);
     return (ptr - memory()) / m_cell_size;
 }
 
-managed_pool_chunk::object_meta* managed_pool_chunk::get_meta(byte* cell_start) const
+collectors::traceable_object_meta* managed_pool_chunk::get_meta(byte* ptr) const
 {
-    assert(m_chunk.contains(cell_start));
-    assert(cell_start == cell_start(cell_start));
-    object_meta* meta = reinterpret_cast<object_meta*>(cell_start - sizeof(object_meta));
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    return collectors::managed_object(ptr).meta();
+}
+
+managed_pool_chunk::memory_iterator::memory_iterator(byte* ptr, managed_pool_chunk* descr)
+    : managed_memory_iterator(ptr, descr)
+{}
+
+void managed_pool_chunk::memory_iterator::increment()
+{
+    set_ptr(get_ptr() + m_proxy.cell_size());
+}
+
+void managed_pool_chunk::memory_iterator::decrement()
+{
+    set_ptr(get_ptr() - m_proxy.cell_size());
+}
+
+bool managed_pool_chunk::memory_iterator::equal(const memory_iterator& other) const
+{
+    return get_ptr() == other.get_ptr();
 }
 
 }}}

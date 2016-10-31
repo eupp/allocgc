@@ -79,12 +79,15 @@ gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_all
 mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
 {
     m_descrs.emplace_back(blk, blk_size, cell_size);
-    return std::prev(m_descrs.end());
+    auto last = std::prev(m_descrs.end());
+    collectors::memory_index::add_to_index(blk, blk_size, &(*last));
+    return last;
 }
 
 iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
 {
     sweep(*it);
+    collectors::memory_index::remove_from_index(it->memory(), it->size());
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
 }
@@ -154,21 +157,72 @@ size_t mpool_allocator::sweep(descriptor_t& descr)
     size_t freed = 0;
     for (size_t i = 0; it < end; it += size, ++i) {
         freed += descr.destroy(it);
+        insert_into_freelist(it);
     }
     return freed;
 }
 
+void mpool_allocator::insert_into_freelist(byte* ptr)
+{
+
+}
+
 void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
 {
-    compacting::two_finger_compactor compactor;
+    typedef typename memory_range_type::iterator::value_type value_t;
+
     auto rng = memory_range();
-    stat.mem_copied += compactor(rng, frwd);
+
+    if (rng.begin() == rng.end()) {
+        return;
+    }
+
+    assert(std::all_of(rng.begin(), rng.end(),
+                       [&rng] (const value_t& p) { return p.cell_size() == rng.begin()->cell_size(); }
+    ));
+
+    // two-finger compacting
+
+    auto to = rng.begin();
+    auto from = rng.end();
+    size_t cell_size = to->cell_size();
+
+    while (from != to) {
+        to = std::find_if(to, from, [](value_t cell_ptr) {
+            return !cell_ptr.get_mark();
+        });
+
+        auto rev_from = std::find_if(reverse_iterator(from),
+                                     reverse_iterator(to),
+                                     [] (value_t cell_ptr) {
+                                         return cell_ptr.get_mark() && !cell_ptr.get_pin();
+                                     });
+
+        from = rev_from.base();
+        if (from != to) {
+            --from;
+
+            to->destroy();
+            to->set_mark(true);
+
+            from->move(*to);
+
+            from->destroy();
+            from->set_mark(false);
+
+            frwd.create(from->get(), to->get());
+
+            stat.mem_freed  += cell_size;
+            stat.mem_copied += cell_size;
+        }
+    }
 }
 
 void mpool_allocator::fix(const compacting::forwarding& frwd)
 {
     auto rng = memory_range();
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
+
 }
 
 bool mpool_allocator::empty() const

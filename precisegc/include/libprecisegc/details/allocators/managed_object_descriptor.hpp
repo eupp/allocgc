@@ -52,14 +52,13 @@ public:
     size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
+    size_t object_count(byte* ptr) const override;
+    void   set_object_count(byte* ptr, size_t cnt) const override;
+
     const gc_type_meta* get_type_meta(byte* ptr) const override;
     void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
 private:
-    struct object_meta
-    {
-        const gc_type_meta* m_tmeta;
-        size_t m_obj_cnt;
-    };
+    collectors::traceable_object_meta* get_meta(byte* cell_start) const;
 
     bool check_ptr(byte* ptr) const;
 

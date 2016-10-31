@@ -18,6 +18,10 @@ public:
         , m_count(count)
     {}
 
+    traceable_object_meta(const traceable_object_meta&) = default;
+
+    traceable_object_meta& operator=(const traceable_object_meta&) = default;
+
     size_t type_size() const noexcept
     {
         return get_type_meta()->type_size();

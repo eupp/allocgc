@@ -58,6 +58,11 @@ public:
         return m_descr->set_pin(m_ptr, pin);
     }
 
+    size_t cell_size() const
+    {
+        return m_descr->cell_size(m_ptr);
+    }
+
     void destroy()
     {
         m_descr->destroy(m_ptr);

@@ -9,13 +9,12 @@
 
 namespace precisegc { namespace details { namespace compacting {
 
-void forwarding::create(byte* from, byte* to, size_t size)
+void forwarding::create(byte* from, byte* to)
 {
     using namespace collectors;
 
     logging::debug() << "create forwarding: from " << (void*) from << " to " << (void*) to;
 
-//    move_cell(from, to, size);
     traceable_object_meta* meta = managed_object::get_meta(from);
     meta->set_forward_pointer(to);
 }

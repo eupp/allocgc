@@ -55,7 +55,7 @@ gc_alloc_response gc_heap::allocate_on_tlab(const gc_alloc_request& rqst)
     return tlab.allocate(rqst);
 }
 
-mso_alloc_t& gc_heap::get_tlab()
+gc_heap::mso_alloc_t& gc_heap::get_tlab()
 {
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
     return m_tlab_map[std::this_thread::get_id()];

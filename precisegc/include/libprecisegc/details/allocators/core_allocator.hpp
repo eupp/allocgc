@@ -46,6 +46,7 @@ public:
     static void deallocate(byte* ptr, size_t size);
 
     static void expand_heap();
+    static void set_heap_limit(size_t size);
 
     static size_t shrink();
 
@@ -59,6 +60,8 @@ private:
 
     static const size_t MAX_BUCKETIZE_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
 
+    static const size_t HEAP_START_LIMIT;
+
     static const double INCREASE_FACTOR;
     static const double MARK_THRESHOLD;
     static const double COLLECT_THRESHOLD;
@@ -70,8 +73,8 @@ private:
     static mutex_t mutex;
 
     static size_t heap_size;
-    static size_t cur_heap_size;
-    static size_t max_heap_size;
+    static size_t heap_limit;
+    static size_t heap_maxlimit;
 };
 
 }}}

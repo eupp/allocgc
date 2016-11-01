@@ -40,6 +40,8 @@ gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rq
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
 
+    set_init(ptr, true);
+
     traceable_object_meta* meta = managed_object::get_meta(ptr);
     new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
     return gc_alloc_response(managed_object::get_object(ptr), rqst.alloc_size(), this);
@@ -102,6 +104,11 @@ void managed_pool_chunk::unmark()
 double managed_pool_chunk::residency() const
 {
     return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
+}
+
+managed_pool_chunk::memory_range_type managed_pool_chunk::memory_range()
+{
+    return boost::make_iterator_range(begin(), end());
 }
 
 managed_pool_chunk::iterator managed_pool_chunk::begin()
@@ -242,6 +249,10 @@ collectors::traceable_object_meta* managed_pool_chunk::get_meta(byte* ptr) const
     assert(ptr == cell_start(ptr));
     return collectors::managed_object(ptr).meta();
 }
+
+managed_pool_chunk::memory_iterator::memory_iterator()
+    : managed_memory_iterator(nullptr, nullptr)
+{}
 
 managed_pool_chunk::memory_iterator::memory_iterator(byte* ptr, managed_pool_chunk* descr)
     : managed_memory_iterator(ptr, descr)

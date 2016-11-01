@@ -82,7 +82,7 @@ TEST_F(indexed_managed_object_test, test_cell_size)
 {
     auto idx_obj = indexed_managed_object::index(m_obj_ptr);
 
-    EXPECT_CALL(m_mock, cell_size())
+    EXPECT_CALL(m_mock, cell_size(m_obj_ptr))
             .Times(Exactly(1));
 
     idx_obj.cell_size();

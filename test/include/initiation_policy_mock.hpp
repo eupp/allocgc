@@ -5,7 +5,7 @@
 
 
 #include <libprecisegc/details/initiation_policy.hpp>
-
+/*
 class initiation_policy_mock : public precisegc::details::initiation_policy
 {
     typedef precisegc::details::gc_state gc_stat;
@@ -16,5 +16,6 @@ class initiation_policy_mock : public precisegc::details::initiation_policy
 public:
     MOCK_METHOD3(initiation_point, void(gc_launcher*, initiation_point_type, const initiation_point_data&));
 };
+ */
 
 #endif //DIPLOMA_INITATION_POLICY_MOCK_HPP

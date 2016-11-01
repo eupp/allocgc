@@ -82,12 +82,8 @@ private:
 template <typename MemoryDescriptor>
 class managed_memory_iterator
 {
-    typedef managed_memory_proxy<MemoryDescriptor> proxy_t;
 public:
-    typedef const proxy_t         value_type;
-    typedef ptrdiff_t             difference_type;
-    typedef const proxy_t*        pointer;
-    typedef const proxy_t         reference;
+    typedef managed_memory_proxy<MemoryDescriptor> proxy_t;
 
     managed_memory_iterator() noexcept = default;
     managed_memory_iterator(const managed_memory_iterator&) noexcept = default;
@@ -95,15 +91,9 @@ public:
 
     managed_memory_iterator& operator=(const managed_memory_iterator&) noexcept = default;
     managed_memory_iterator& operator=(managed_memory_iterator&&) noexcept = default;
-
-    const proxy_t* operator->()
-    {
-        return &m_proxy;
-    }
 protected:
     friend class managed_pool_chunk;
     friend class managed_object_descriptor;
-    friend class boost::iterator_core_access;
 
     managed_memory_iterator(byte* ptr, MemoryDescriptor* descr) noexcept
         : m_proxy(ptr, descr)

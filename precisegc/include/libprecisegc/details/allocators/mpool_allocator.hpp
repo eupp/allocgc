@@ -51,6 +51,8 @@ public:
     void fix(const compacting::forwarding& frwd);
 
     bool empty() const;
+
+    memory_range_type memory_range();
 private:
     static constexpr double RESIDENCY_COMPACTING_THRESHOLD = 0.5;
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
@@ -66,8 +68,6 @@ private:
 
     std::pair<byte*, size_t> allocate_block(size_t cell_size);
     void deallocate_block(byte* ptr, size_t size);
-
-    memory_range_type memory_range();
 
     bool contains(byte* ptr) const;
 

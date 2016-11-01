@@ -20,7 +20,7 @@ class garbage_collector : private utils::noncopyable, private utils::nonmovable
 public:
     garbage_collector();
 
-    void init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy);
+    void init(std::unique_ptr<gc_strategy> strategy);
 
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
@@ -42,8 +42,7 @@ public:
 
     bool compare(const gc_word& a, const gc_word& b);
 
-    void initiation_point(initiation_point_type ipt,
-                          const initiation_point_data& ipd = initiation_point_data::create_empty_data());
+    void initiation_point(initiation_point_type ipt, const gc_options& opt);
 
     bool is_printer_enabled() const;
     void set_printer_enabled(bool enabled);
@@ -53,7 +52,6 @@ public:
 
     gc_info  info() const;
     gc_stat  stats() const;
-    gc_state state() const;
 private:
     gc_alloc_response try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
@@ -61,7 +59,6 @@ private:
     static bool is_interior_offset(const gc_word& handle, ptrdiff_t shift);
 
     std::unique_ptr<gc_strategy> m_strategy;
-    std::unique_ptr<initiation_policy> m_initiation_policy;
     gc_manager m_manager;
     std::mutex m_gc_mutex;
 };

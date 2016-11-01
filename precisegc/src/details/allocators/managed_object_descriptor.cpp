@@ -21,7 +21,7 @@ managed_object_descriptor::~managed_object_descriptor()
 gc_alloc_response managed_object_descriptor::init(byte* ptr, const gc_alloc_request& rqst)
 {
     using namespace collectors;
-
+    m_init_bit = true;
     traceable_object_meta* meta = managed_object::get_meta(ptr);
     new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
     return gc_alloc_response(managed_object::get_object(ptr), rqst.alloc_size(), this);
@@ -41,22 +41,22 @@ size_t managed_object_descriptor::destroy(byte* ptr)
     return 0;
 }
 
-bool managed_object_descriptor::get_mark() const
+bool managed_object_descriptor::get_mark() const noexcept
 {
     return m_mark_bit;
 }
 
-bool managed_object_descriptor::get_pin() const
+bool managed_object_descriptor::get_pin() const noexcept
 {
     return m_pin_bit;
 }
 
-bool managed_object_descriptor::set_mark(bool mark)
+bool managed_object_descriptor::set_mark(bool mark) noexcept
 {
     m_mark_bit = mark;
 }
 
-bool managed_object_descriptor::set_pin(bool pin)
+bool managed_object_descriptor::set_pin(bool pin) noexcept
 {
     m_pin_bit = pin;
 }

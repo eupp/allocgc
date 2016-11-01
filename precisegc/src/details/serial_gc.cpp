@@ -21,12 +21,7 @@ serial_gc_base::serial_gc_base(gc_compacting compacting, size_t threads_availabl
 
 gc_alloc_response serial_gc_base::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
-    gc_alloc_response descr = m_heap.allocate(sizeof(traceable_object_meta) + obj_size * obj_cnt);
-    traceable_object_meta* meta = managed_object::get_meta(descr.get());
-    new (meta) traceable_object_meta(obj_cnt, tmeta);
-    return gc_alloc_response(managed_object::get_object(descr.get()),
-                               descr.size() - sizeof(traceable_object_meta),
-                               descr.descriptor());
+    return m_heap.allocate(gc_alloc_request(obj_size, obj_cnt, tmeta));
 }
 
 void serial_gc_base::commit(const gc_alloc_response& ptr)
@@ -58,25 +53,24 @@ void serial_gc_base::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
 
 gc_run_stats serial_gc_base::gc(const gc_options& options)
 {
-    if (options.phase != gc_phase::COLLECT) {
-        throw std::invalid_argument("serial_gc supports only gc_phase::COLLECT option");
+    using namespace threads;
+
+    if (options.kind != gc_kind::MARK_COLLECT) {
+        throw std::invalid_argument("serial_gc supports only full stop-the-world collection");
     }
 
-    using namespace threads;
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_marker.trace_pins(snapshot.get_pin_tracer());
     m_marker.concurrent_mark(m_threads_available - 1);
     m_marker.mark();
     m_dptr_storage.destroy_unmarked();
-    auto collect_stats = m_heap.collect(snapshot, m_threads_available);
 
-    gc_run_stats stats = {
-            .type           = gc_type::FULL_GC,
-            .mem_swept      = collect_stats.mem_swept,
-            .mem_copied     = collect_stats.mem_copied,
-            .pause_duration = snapshot.time_since_stop_the_world()
-    };
+    gc_run_stats stats;
+    stats.heap_stat = m_heap.collect(snapshot, m_threads_available);
+
+    stats.pause_stat.type       = gc_pause_type::MARK_COLLECT;
+    stats.pause_stat.duration   = snapshot.time_since_stop_the_world();
 
     return stats;
 }

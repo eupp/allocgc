@@ -20,8 +20,9 @@ mso_allocator::mso_allocator()
 gc_alloc_response mso_allocator::allocate(const gc_alloc_request& rqst)
 {
     size_t size = rqst.alloc_size() + sizeof(collectors::traceable_object_meta);
+    assert(size <= LARGE_CELL_SIZE);
     auto it = std::lower_bound(m_buckets.begin(), m_buckets.end(), size,
-                               [] (const bucket_t& a, const bucket_t& b) { return a.first < b.first; });
+                               [] (const bucket_t& a, size_t sz) { return a.first < sz; });
     return it->second.allocate(rqst, it->first);
 }
 

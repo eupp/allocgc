@@ -21,12 +21,7 @@ incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t thread
 
 gc_alloc_response incremental_gc_base::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
-    gc_alloc_response descr = m_heap.allocate(sizeof(traceable_object_meta) + obj_size * obj_cnt);
-    traceable_object_meta* meta = managed_object::get_meta(descr.get());
-    new (meta) traceable_object_meta(obj_cnt, tmeta);
-    return gc_alloc_response(managed_object::get_object(descr.get()),
-                               descr.size() - sizeof(traceable_object_meta),
-                               descr.descriptor());
+    return m_heap.allocate(gc_alloc_request(obj_size, obj_cnt, tmeta));
 }
 
 void incremental_gc_base::commit(const gc_alloc_response& alloc_descr)
@@ -67,18 +62,12 @@ void incremental_gc_base::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
 
 gc_run_stats incremental_gc_base::gc(const gc_options& options)
 {
-    if (options.phase == gc_phase::MARK && m_phase == gc_phase::IDLE) {
+    if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking();
-    } else if (options.phase == gc_phase::COLLECT) {
+    } else if (options.kind == gc_kind::COLLECT) {
         return sweep();
     }
-    gc_run_stats stats = {
-            .type           = gc_type::SKIP_GC,
-            .mem_swept      = 0,
-            .mem_copied     = 0,
-            .pause_duration = gc_clock::duration(0)
-    };
-    return stats;
+    return gc_run_stats();
 }
 
 gc_run_stats incremental_gc_base::start_marking()
@@ -91,13 +80,9 @@ gc_run_stats incremental_gc_base::start_marking()
     m_phase = gc_phase::MARK;
     m_marker.concurrent_mark(std::max((size_t) 1, m_threads_available - 1));
 
-    gc_run_stats stats = {
-            .type           = gc_type::TRACE_ROOTS,
-            .mem_swept      = 0,
-            .mem_copied     = 0,
-            .pause_duration = snapshot.time_since_stop_the_world()
-    };
-
+    gc_run_stats stats;
+    stats.pause_stat.type     = gc_pause_type::TRACE_ROOTS;
+    stats.pause_stat.duration = snapshot.time_since_stop_the_world();
     return stats;
 }
 
@@ -106,10 +91,10 @@ gc_run_stats incremental_gc_base::sweep()
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
-    gc_type type;
+    gc_pause_type type;
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     if (m_phase == gc_phase::IDLE) {
-        type = gc_type::FULL_GC;
+        type = gc_pause_type::MARK_COLLECT;
         m_marker.trace_roots(snapshot.get_root_tracer());
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_marker.trace_remset();
@@ -117,22 +102,22 @@ gc_run_stats incremental_gc_base::sweep()
         m_marker.concurrent_mark(m_threads_available - 1);
         m_marker.mark();
     } else if (m_phase == gc_phase::MARK) {
-        type = gc_type::COLLECT_GARBAGE;
+        type = gc_pause_type::COLLECT;
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_marker.trace_remset();
         m_marker.mark();
     }
     m_phase = gc_phase::COLLECT;
-    m_dptr_storage.destroy_unmarked();
-    auto collect_stats = m_heap.collect(snapshot, m_threads_available);
-    m_phase = gc_phase::IDLE;
 
-    gc_run_stats stats = gc_run_stats {
-            .type           = type,
-            .mem_swept      = collect_stats.mem_swept,
-            .mem_copied     = collect_stats.mem_copied,
-            .pause_duration = snapshot.time_since_stop_the_world()
-    };
+    m_dptr_storage.destroy_unmarked();
+
+    gc_run_stats stats;
+
+    stats.heap_stat           = m_heap.collect(snapshot, m_threads_available);
+    stats.pause_stat.type     = type;
+    stats.pause_stat.duration = snapshot.time_since_stop_the_world();
+
+    m_phase = gc_phase::IDLE;
 
     return stats;
 }

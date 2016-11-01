@@ -23,12 +23,10 @@ gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_met
 
 void gc_commit(const gc_alloc_response& ptr);
 
-void gc_initiation_point(initiation_point_type ipoint,
-                         const initiation_point_data& ipd = initiation_point_data::create_empty_data());
+void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt);
 
 gc_info  gc_get_info();
 gc_stat  gc_get_stats();
-gc_state gc_get_state();
 
 void gc_enable_print_stats();
 void gc_disable_print_stats();

@@ -13,16 +13,16 @@ public:
     virtual ~initiation_policy() {}
 
     virtual void initiation_point(gc_launcher* launcher,
-                                  initiation_point_type ipt,
-                                  const initiation_point_data& ipd) = 0;
+                                  initiation_point_type ipt
+                                  /*,const initiation_point_data& ipd*/) = 0;
 };
 
 class empty_policy : public initiation_policy
 {
 public:
     void initiation_point(gc_launcher* launcher,
-                          initiation_point_type ipt,
-                          const initiation_point_data& ipd) override
+                          initiation_point_type ipt
+                          /*,const initiation_point_data& ipd*/) override
     {
         return;
     }
@@ -32,8 +32,8 @@ class space_based_policy : public initiation_policy
 {
 public:
     void initiation_point(gc_launcher* launcher,
-                          initiation_point_type ipt,
-                          const initiation_point_data& ipd) override;
+                          initiation_point_type ipt
+                          /*,const initiation_point_data& ipd*/) override;
 
     space_based_policy(size_t start_heap_size,
                        double marking_threshold,
@@ -58,8 +58,8 @@ class growth_based_policy : public initiation_policy
 {
 public:
     void initiation_point(gc_launcher* launcher,
-                          initiation_point_type ipt,
-                          const initiation_point_data& ipd) override;
+                          initiation_point_type ipt
+                          /*,const initiation_point_data& ipd*/) override;
 
     growth_based_policy(size_t start_heap_size,
                         double freespace_divisor,

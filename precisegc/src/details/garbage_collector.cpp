@@ -20,10 +20,9 @@ garbage_collector::garbage_collector()
     collectors::memory_index::add_to_index(nullptr, 0, nullptr);
 }
 
-void garbage_collector::init(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
+void garbage_collector::init(std::unique_ptr<gc_strategy> strategy)
 {
     m_strategy = std::move(strategy);
-    m_initiation_policy = std::move(init_policy);
     m_manager.set_strategy(m_strategy.get());
 }
 
@@ -44,7 +43,6 @@ gc_alloc_response garbage_collector::allocate(size_t obj_size, size_t obj_cnt, c
     try {
         return try_allocate(obj_size, obj_cnt, tmeta);
     } catch (gc_bad_alloc& ) {
-        initiation_point(initiation_point_type::GC_BAD_ALLOC);
         return try_allocate(obj_size, obj_cnt, tmeta);
     }
 }
@@ -119,28 +117,24 @@ bool garbage_collector::compare(const gc_word& a, const gc_word& b)
     return a.rbarrier() == b.rbarrier();
 }
 
-void garbage_collector::initiation_point(initiation_point_type ipt, const initiation_point_data& ipd)
+void garbage_collector::initiation_point(initiation_point_type ipt, const gc_options& opt)
 {
-    assert(m_initiation_policy);
-
     gc_safe_scope safe_scope;
     std::lock_guard<std::mutex> lock(m_gc_mutex);
 
     if (ipt == initiation_point_type::USER_REQUEST) {
         logging::info() << "Thread initiates gc by user's request";
-        m_manager.gc(gc_phase::COLLECT);
-    } else if (ipt == initiation_point_type::GC_BAD_ALLOC) {
-        logging::info() << "GC_BAD_ALLOC received - Thread initiates gc";
-        m_manager.gc(gc_phase::COLLECT);
+        m_manager.gc(opt);
+    } else if (ipt == initiation_point_type::HEAP_LIMIT_EXCEEDED) {
+        logging::info() << "Heap limit exceeded - thread initiates gc";
+        m_manager.gc(opt);
     } else if (ipt == initiation_point_type::CONCURRENT_MARKING_FINISHED) {
         logging::info() << "Concurrent marking finished - Thread initiates gc";
-        m_manager.gc(gc_phase::COLLECT);
-    } else if (ipt == initiation_point_type::HEAP_EXPANSION) {
-        m_initiation_policy->initiation_point(&m_manager, ipt, ipd);
+        m_manager.gc(opt);
     } else if (ipt == initiation_point_type::START_MARKING) {
-        m_manager.gc(gc_phase::MARK);
+        m_manager.gc(opt);
     } else if (ipt == initiation_point_type::START_COLLECTING) {
-        m_manager.gc(gc_phase::COLLECT);
+        m_manager.gc(opt);
     }
 }
 
@@ -174,11 +168,6 @@ gc_stat garbage_collector::stats() const
 {
     gc_unsafe_scope unsafe_scope;
     return m_manager.stats();
-}
-
-gc_state garbage_collector::state() const
-{
-    return m_manager.state();
 }
 
 bool garbage_collector::is_interior_pointer(const gc_word& handle, byte* p)

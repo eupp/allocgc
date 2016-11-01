@@ -66,14 +66,22 @@ class mlo_allocator : private utils::noncopyable, private utils::nonmovable
               public managed_memory_iterator<descriptor_t>
             , public boost::iterator_facade<
                   memory_iterator
-                , managed_memory_iterator<descriptor_t>::value_type
+                , managed_memory_iterator<descriptor_t>::proxy_t
                 , boost::random_access_traversal_tag
-                , managed_memory_iterator<descriptor_t>::reference
+                , managed_memory_iterator<descriptor_t>::proxy_t
             >
     {
     public:
+        memory_iterator();
         memory_iterator(byte* ptr, descriptor_t* descr, control_block* cblk);
+
+        const proxy_t* operator->()
+        {
+            return &m_proxy;
+        }
     private:
+        friend class boost::iterator_core_access;
+
         void increment() noexcept;
         void decrement() noexcept;
 
@@ -96,6 +104,9 @@ public:
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
+
+    // temporary until refactor
+    memory_range_type memory_range();
 private:
     typedef std::mutex  mutex_t;
 
@@ -107,8 +118,6 @@ private:
 
     iterator begin();
     iterator end();
-
-    memory_range_type memory_range();
 
     control_block* get_fake_block();
 

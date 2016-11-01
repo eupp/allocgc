@@ -32,11 +32,16 @@ gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
     std::unique_ptr<byte, decltype(deleter)> memblk_owner(allocate_block(memblk_size), deleter);
 
     if (!memblk_owner) {
-        // call gc
-        memblk_owner = allocate_block(memblk_size);
+
+        gc_options opt;
+        opt.kind = gc_kind::COLLECT;
+        opt.gen  = 0;
+        gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
+
+        memblk_owner.reset(allocate_block(memblk_size));
         if (!memblk_owner) {
             core_allocator::expand_heap();
-            memblk_owner = allocate_block(memblk_size);
+            memblk_owner.reset(allocate_block(memblk_size));
             if (!memblk_owner) {
                 throw gc_bad_alloc();
             }
@@ -100,7 +105,7 @@ void mlo_allocator::fix(const compacting::forwarding& frwd)
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
-control_block* mlo_allocator::get_fake_block()
+mlo_allocator::control_block* mlo_allocator::get_fake_block()
 {
     return &m_fake;
 }
@@ -142,17 +147,17 @@ void mlo_allocator::destroy(byte* ptr)
     deallocate_block(ptr, size);
 }
 
-iterator mlo_allocator::begin()
+mlo_allocator::iterator mlo_allocator::begin()
 {
     return iterator(m_head);
 }
 
-iterator mlo_allocator::end()
+mlo_allocator::iterator mlo_allocator::end()
 {
     return iterator(get_fake_block());
 }
 
-memory_range_type mlo_allocator::memory_range()
+mlo_allocator::memory_range_type mlo_allocator::memory_range()
 {
     byte* cblk = reinterpret_cast<byte*>(m_head);
     return boost::make_iterator_range(
@@ -171,7 +176,7 @@ void mlo_allocator::deallocate_block(byte* ptr, size_t size)
     core_allocator::deallocate(ptr, size);
 }
 
-mlo_allocator::iterator::iterator(control_block* cblk)
+mlo_allocator::iterator::iterator(control_block* cblk) noexcept
     : m_control_block(cblk)
 {}
 
@@ -180,7 +185,7 @@ byte* mlo_allocator::iterator::memblk() const
     return reinterpret_cast<byte*>(m_control_block);
 }
 
-descriptor_t* mlo_allocator::iterator::get() const
+mlo_allocator::descriptor_t* mlo_allocator::iterator::get() const
 {
     return get_descriptor(reinterpret_cast<byte*>(m_control_block));
 }
@@ -190,25 +195,30 @@ mlo_allocator::descriptor_t& mlo_allocator::iterator::dereference() const
     return *get();
 }
 
-bool mlo_allocator::iterator::equal(const iterator& other) const
+bool mlo_allocator::iterator::equal(const iterator& other) const noexcept
 {
     return m_control_block == other.m_control_block;
 }
 
-void mlo_allocator::iterator::increment()
+void mlo_allocator::iterator::increment() noexcept
 {
     m_control_block = m_control_block->m_next;
 }
 
-void mlo_allocator::iterator::decrement()
+void mlo_allocator::iterator::decrement() noexcept
 {
     m_control_block = m_control_block->m_prev;
 }
 
-descriptor_t* mlo_allocator::iterator::operator->() const
+mlo_allocator::descriptor_t* mlo_allocator::iterator::operator->() const
 {
     return get();
 }
+
+mlo_allocator::memory_iterator::memory_iterator()
+    : managed_memory_iterator(nullptr, nullptr)
+    , m_cblk(nullptr)
+{}
 
 mlo_allocator::memory_iterator::memory_iterator(byte* ptr, descriptor_t* descr, control_block* cblk)
     : managed_memory_iterator(ptr, descr)
@@ -218,7 +228,7 @@ mlo_allocator::memory_iterator::memory_iterator(byte* ptr, descriptor_t* descr, 
     assert(descr == mlo_allocator::get_descriptor(reinterpret_cast<byte*>(cblk)));
 }
 
-void mlo_allocator::memory_iterator::increment()
+void mlo_allocator::memory_iterator::increment() noexcept
 {
     m_cblk = get_cblk()->m_next;
     byte* cblk = reinterpret_cast<byte*>(m_cblk);
@@ -226,7 +236,7 @@ void mlo_allocator::memory_iterator::increment()
     set_descriptor(mlo_allocator::get_descriptor(cblk));
 }
 
-void mlo_allocator::memory_iterator::decrement()
+void mlo_allocator::memory_iterator::decrement() noexcept
 {
     m_cblk = get_cblk()->m_prev;
     byte* cblk = reinterpret_cast<byte*>(m_cblk);
@@ -234,12 +244,12 @@ void mlo_allocator::memory_iterator::decrement()
     set_descriptor(mlo_allocator::get_descriptor(cblk));
 }
 
-bool mlo_allocator::memory_iterator::equal(const memory_iterator& other) const
+bool mlo_allocator::memory_iterator::equal(const memory_iterator& other) const noexcept
 {
     return m_cblk == other.m_cblk;
 }
 
-control_block* mlo_allocator::memory_iterator::get_cblk()
+mlo_allocator::control_block* mlo_allocator::memory_iterator::get_cblk()
 {
     return m_cblk;
 }

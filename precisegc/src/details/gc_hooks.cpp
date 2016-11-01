@@ -12,7 +12,7 @@ static garbage_collector gc_instance{};
 
 void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
 {
-    gc_instance.init(std::move(strategy), std::move(init_policy));
+    gc_instance.init(std::move(strategy));
 }
 
 void gc_register_root(gc_word* root)
@@ -60,9 +60,9 @@ void gc_commit(const gc_alloc_response& ptr)
     gc_instance.commit(ptr);
 }
 
-void gc_initiation_point(initiation_point_type ipoint, const initiation_point_data& ipd)
+void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt)
 {
-    gc_instance.initiation_point(ipoint, ipd);
+    gc_instance.initiation_point(ipoint, opt);
 }
 
 gc_info gc_get_info()
@@ -73,11 +73,6 @@ gc_info gc_get_info()
 gc_stat gc_get_stats()
 {
     return gc_instance.stats();
-}
-
-gc_state gc_get_state()
-{
-    return gc_instance.state();
 }
 
 void gc_enable_print_stats()

@@ -27,8 +27,9 @@ space_based_policy::space_based_policy(size_t start_heap_size,
 }
 
 void space_based_policy::initiation_point(gc_launcher* launcher,
-                                          initiation_point_type ipt, const initiation_point_data& ipd)
+                                          initiation_point_type ipt/*, const initiation_point_data& ipd*/)
 {
+    /*
     if (ipt == initiation_point_type::HEAP_EXPANSION) {
         size_t size = launcher->state().heap_size + ipd.alloc_size();
         if (size > m_sweeping_threshold * m_heap_size) {
@@ -47,6 +48,7 @@ void space_based_policy::initiation_point(gc_launcher* launcher,
             return launcher->gc(gc_phase::MARK);
         }
     }
+     */
 }
 
 size_t space_based_policy::heap_size() const
@@ -80,9 +82,10 @@ growth_based_policy::growth_based_policy(size_t start_heap_size, double freespac
     , m_max_heap_size(max_heap_size)
 { }
 
-void growth_based_policy::initiation_point(gc_launcher* launcher, initiation_point_type ipt,
-                                           const initiation_point_data& ipd)
+void growth_based_policy::initiation_point(gc_launcher* launcher, initiation_point_type ipt
+                                           /*,const initiation_point_data& ipd*/)
 {
+    /*
     if (ipt == initiation_point_type::HEAP_EXPANSION) {
         gc_state state = launcher->state();
         size_t gain = state.heap_gain + ipd.alloc_size();
@@ -96,6 +99,7 @@ void growth_based_policy::initiation_point(gc_launcher* launcher, initiation_poi
             return launcher->gc(gc_phase::MARK);
         }
     }
+     */
 }
 
 size_t growth_based_policy::heap_size() const

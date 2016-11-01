@@ -1,6 +1,7 @@
 #include <libprecisegc/details/allocators/mpool_allocator.hpp>
 
 #include <tuple>
+#include <iterator>
 
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
@@ -45,7 +46,10 @@ gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size,
         return freelist_allocation(size, rqst);
     } else {
         if (attempt_num == 0) {
-            // call gc
+            gc_options opt;
+            opt.kind = gc_kind::COLLECT;
+            opt.gen  = 0;
+            gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
         } else if (attempt_num == 1) {
             core_allocator::expand_heap();
         } else {
@@ -87,7 +91,7 @@ mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t
     return last;
 }
 
-iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
+mpool_allocator::iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
 {
     sweep(*it);
     collectors::memory_index::remove_from_index(it->memory(), it->size());
@@ -175,6 +179,7 @@ void mpool_allocator::insert_into_freelist(byte* ptr)
 void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
 {
     typedef typename memory_range_type::iterator::value_type value_t;
+    typedef std::reverse_iterator<typename memory_range_type::iterator> reverse_iterator;
 
     auto rng = memory_range();
 
@@ -242,7 +247,7 @@ bool mpool_allocator::is_compaction_required(const gc_heap_stat& stat) const
                && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
 }
 
-memory_range_type mpool_allocator::memory_range()
+mpool_allocator::memory_range_type mpool_allocator::memory_range()
 {
     return utils::flatten_range(m_descrs.begin(), m_descrs.end());
 }

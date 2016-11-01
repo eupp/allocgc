@@ -38,14 +38,22 @@ private:
               public managed_memory_iterator<managed_pool_chunk>
             , public boost::iterator_facade<
                       memory_iterator
-                    , managed_memory_iterator<managed_pool_chunk>::value_type
+                    , managed_memory_iterator<managed_pool_chunk>::proxy_t
                     , boost::random_access_traversal_tag
-                    , managed_memory_iterator<managed_pool_chunk>::reference
+                    , managed_memory_iterator<managed_pool_chunk>::proxy_t
             >
     {
     public:
+        memory_iterator();
         memory_iterator(byte* ptr, managed_pool_chunk* descr);
+
+        const proxy_t* operator->()
+        {
+            return &m_proxy;
+        }
     private:
+        friend class boost::iterator_core_access;
+
         void increment();
         void decrement();
 
@@ -54,7 +62,7 @@ private:
 public:
     typedef allocators::multi_block_chunk_tag chunk_tag;
     typedef memory_iterator iterator;
-//    typedef managed_memory_iterator<managed_pool_chunk> iterator;
+    typedef boost::iterator_range<memory_iterator> memory_range_type;
 
     static constexpr size_t chunk_size(size_t cell_size)
     {
@@ -83,6 +91,8 @@ public:
     double residency() const;
 
     void unmark();
+
+    memory_range_type memory_range();
 
     iterator begin();
     iterator end();

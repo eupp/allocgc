@@ -4,13 +4,15 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-double core_allocator::INCREASE_FACTOR      = 2.0;
-double core_allocator::MARK_THRESHOLD       = 0.6;
-double core_allocator::COLLECT_THRESHOLD    = 1.0;
+const size_t core_allocator::HEAP_START_LIMIT = 2 * 1024 * 1024;
 
+const double core_allocator::INCREASE_FACTOR      = 2.0;
+const double core_allocator::MARK_THRESHOLD       = 0.6;
+const double core_allocator::COLLECT_THRESHOLD    = 1.0;
+
+size_t core_allocator::heap_limit = 0;
 size_t core_allocator::heap_size = 0;
-size_t core_allocator::cur_heap_size = 0;
-size_t core_allocator::max_heap_size = 0;
+size_t core_allocator::heap_maxlimit = 0;
 
 core_allocator::mutex_t core_allocator::mutex{};
 core_allocator::freelist_alloc_t core_allocator::freelist{};
@@ -30,7 +32,7 @@ byte* core_allocator::allocate(size_t size)
     byte* page = nullptr;
     if (aligned_size <= MAX_BUCKETIZE_SIZE) {
         page = bucket_alloc.allocate(aligned_size);
-//        memset(page, 0, aligned_size);
+        memset(page, 0, aligned_size);
     } else {
         page = sys_allocator::allocate(aligned_size);
     }
@@ -68,20 +70,30 @@ core_allocator::memory_range_type core_allocator::memory_range()
 void core_allocator::expand_heap()
 {
     std::lock_guard<mutex_t> lock(mutex);
-    size_t increased_size = INCREASE_FACTOR * heap_size;
-    heap_size = std::min(increased_size, max_heap_size);
+    size_t increased_size = INCREASE_FACTOR * heap_limit;
+    heap_limit = std::min(increased_size, heap_maxlimit);
+}
+
+void core_allocator::set_heap_limit(size_t size)
+{
+    std::lock_guard<mutex_t> lock(mutex);
+    heap_limit = size == std::numeric_limits<size_t>::max() ? HEAP_START_LIMIT : size;
+    heap_maxlimit = size;
 }
 
 bool core_allocator::check_heap_size(size_t alloc_size)
 {
-    size_t size = cur_heap_size + alloc_size;
-    if (size > COLLECT_THRESHOLD * heap_size) {
+    size_t size = heap_size + alloc_size;
+    if (size > COLLECT_THRESHOLD * heap_limit) {
         return false;
     }
-    else if (size > MARK_THRESHOLD * heap_size) {
-        // call gc marking
+    else if (size > MARK_THRESHOLD * heap_limit) {
+        gc_options opt;
+        opt.kind = gc_kind::CONCURRENT_MARK;
+        opt.gen  = 0;
+        gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
     }
-    cur_heap_size += alloc_size;
+    heap_size += alloc_size;
     return true;
 }
 

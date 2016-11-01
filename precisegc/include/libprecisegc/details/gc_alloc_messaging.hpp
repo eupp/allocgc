@@ -60,7 +60,12 @@ private:
 class gc_alloc_response
 {
 public:
-    gc_alloc_response() = delete;
+    gc_alloc_response()
+        : m_ptr(nullptr)
+        , m_size(0)
+        , m_descr(nullptr)
+    {}
+
     gc_alloc_response(const gc_alloc_response&) = default;
     gc_alloc_response& operator=(const gc_alloc_response&) = default;
 

@@ -45,6 +45,13 @@ public:
         static_assert(std::is_same<void, typename std::result_of<functor_t()>::type>::value,
                       "Only void() tasks are supported");
 
+        if (m_threads.size() == 0) {
+            for (; first != last; ++first) {
+                (*first)();
+            }
+            return;
+        }
+
         std::unique_lock<std::mutex> lock(m_mutex);
         for (; first != last; ++first) {
             m_tasks.emplace_back(*first);

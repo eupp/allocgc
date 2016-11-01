@@ -12,6 +12,7 @@ mlo_allocator::mlo_allocator()
 
 mlo_allocator::~mlo_allocator()
 {
+    std::lock_guard<mutex_t> lock(m_mutex);
     for (auto it = begin(); it != end(); ) {
         auto next = std::next(it);
         destroy(it.memblk());
@@ -21,14 +22,28 @@ mlo_allocator::~mlo_allocator()
 
 gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 {
-    size_t chunk_size = descriptor_t::chunk_size(rqst.alloc_size());
+    size_t size = rqst.alloc_size() + sizeof(collectors::traceable_object_meta);
+    size_t chunk_size = descriptor_t::chunk_size(size);
     size_t memblk_size = chunk_size + sizeof(control_block) + sizeof(descriptor_t);
 
     auto deleter = [this, memblk_size] (byte* ptr) {
         deallocate_block(ptr, memblk_size);
     };
     std::unique_ptr<byte, decltype(deleter)> memblk_owner(allocate_block(memblk_size), deleter);
-    byte*  memblk = memblk_owner.get();
+
+    if (!memblk_owner) {
+        // call gc
+        memblk_owner = allocate_block(memblk_size);
+        if (!memblk_owner) {
+            core_allocator::expand_heap();
+            memblk_owner = allocate_block(memblk_size);
+            if (!memblk_owner) {
+                throw gc_bad_alloc();
+            }
+        }
+    }
+
+    byte* memblk = memblk_owner.get();
 
     control_block* fake  = get_fake_block();
     control_block* cblk  = get_control_block(memblk);
@@ -40,6 +55,8 @@ gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 
     cblk->m_next = fake;
     cblk->m_prev = fake->m_prev;
+
+    std::lock_guard<mutex_t> lock(m_mutex);
 
     fake->m_prev->m_next = cblk;
     fake->m_prev = cblk;
@@ -54,26 +71,31 @@ gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 
 gc_heap_stat mlo_allocator::collect(compacting::forwarding& frwd)
 {
-    gc_heap_stat stat;
+    std::lock_guard<mutex_t> lock(m_mutex);
 
+    gc_heap_stat stat;
     for (auto it = begin(); it != end(); ) {
         auto next = std::next(it);
-        stat.mem_used += it->size();
+        stat.mem_before_gc += it->size();
         if (!it->get_mark()) {
             stat.mem_freed += it->size();
             destroy(it.memblk());
-        } else if (it->get_pin()) {
+        } else {
+            stat.mem_all  += it->size();
+            stat.mem_live += it->size();
+        }
+        if (it->get_pin()) {
             ++stat.pinned_cnt;
         }
         it = next;
     }
-    stat.mem_residency = 1;
-
     return stat;
 }
 
 void mlo_allocator::fix(const compacting::forwarding& frwd)
 {
+    std::lock_guard<mutex_t> lock(m_mutex);
+
     auto rng = memory_range();
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
@@ -103,9 +125,18 @@ byte* mlo_allocator::get_mem(byte* memblk)
 
 void mlo_allocator::destroy(byte* ptr)
 {
+    control_block* cblk = get_control_block(ptr);
     descriptor_t* descr = get_descriptor(ptr);
     size_t size = descr->size() + sizeof(control_block) + sizeof(descriptor_t);
+
     collectors::memory_index::remove_from_index(ptr, size);
+
+    if (cblk == m_head) {
+        m_head = cblk->m_next;
+    }
+    cblk->m_next->m_prev = cblk->m_prev;
+    cblk->m_prev->m_next = cblk->m_next;
+
     descr->destroy(get_mem(ptr));
     descr->~descriptor_t();
     deallocate_block(ptr, size);

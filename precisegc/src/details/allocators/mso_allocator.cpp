@@ -19,7 +19,8 @@ mso_allocator::mso_allocator()
 
 gc_alloc_response mso_allocator::allocate(const gc_alloc_request& rqst)
 {
-    auto it = std::lower_bound(m_buckets.begin(), m_buckets.end(), rqst.alloc_size(),
+    size_t size = rqst.alloc_size() + sizeof(collectors::traceable_object_meta);
+    auto it = std::lower_bound(m_buckets.begin(), m_buckets.end(), size,
                                [] (const bucket_t& a, const bucket_t& b) { return a.first < b.first; });
     return it->second.allocate(rqst, it->first);
 }
@@ -40,13 +41,8 @@ gc_heap_stat mso_allocator::collect(compacting::forwarding& frwd, thread_pool_t&
 
     gc_heap_stat stat;
     for (auto& part_stat: part_stats) {
-        stat.mem_used       += part_stat.mem_used;
-        stat.mem_freed      += part_stat.mem_freed;
-        stat.mem_copied     += part_stat.mem_copied;
-        stat.mem_residency  += part_stat.mem_residency;
-        stat.pinned_cnt     += part_stat.pinned_cnt;
+        stat += part_stat;
     }
-    stat.mem_residency /= part_stats.size();
 
     return stat;
 }

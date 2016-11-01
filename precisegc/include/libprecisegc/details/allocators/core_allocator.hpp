@@ -45,6 +45,8 @@ public:
 
     static void deallocate(byte* ptr, size_t size);
 
+    static void expand_heap();
+
     static size_t shrink();
 
     static memory_range_type memory_range();
@@ -57,9 +59,19 @@ private:
 
     static const size_t MAX_BUCKETIZE_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
 
+    static const double INCREASE_FACTOR;
+    static const double MARK_THRESHOLD;
+    static const double COLLECT_THRESHOLD;
+
+    static bool check_heap_size(size_t alloc_size);
+
     static bucket_alloc_t bucket_alloc;
     static freelist_alloc_t freelist;
     static mutex_t mutex;
+
+    static size_t heap_size;
+    static size_t cur_heap_size;
+    static size_t max_heap_size;
 };
 
 }}}

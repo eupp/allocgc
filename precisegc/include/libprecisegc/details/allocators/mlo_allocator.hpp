@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_MLO_ALLOCATOR_HPP
 #define DIPLOMA_MLO_ALLOCATOR_HPP
 
+#include <mutex>
+
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
@@ -95,6 +97,8 @@ public:
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
 private:
+    typedef std::mutex  mutex_t;
+
     static descriptor_t*  get_descriptor(byte* memblk);
     static control_block* get_control_block(byte* memblk);
     static byte*          get_mem(byte* memblk);
@@ -113,6 +117,7 @@ private:
 
     control_block  m_fake;
     control_block* m_head;
+    mutex_t m_mutex;
 };
 
 }}}

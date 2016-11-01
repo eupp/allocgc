@@ -79,12 +79,40 @@ struct gc_pause_stat
 
 struct gc_heap_stat
 {
-    size_t mem_used      = 0;
+    gc_heap_stat() = default;
+
+    gc_heap_stat(const gc_heap_stat&) = default;
+
+    gc_heap_stat& operator=(const gc_heap_stat&) = default;
+
+    gc_heap_stat& operator+=(const gc_heap_stat& other)
+    {
+        mem_all         += other.mem_all;
+        mem_live        += other.mem_live;
+        mem_freed       += other.mem_freed;
+        mem_copied      += other.mem_copied;
+        pinned_cnt      += other.pinned_cnt;
+
+        return *this;
+    }
+
+    double residency() const
+    {
+        return mem_live / mem_all;
+    }
+
+    size_t mem_before_gc = 0;
+    size_t mem_all       = 0;
+    size_t mem_live      = 0;
     size_t mem_freed     = 0;
     size_t mem_copied    = 0;
-    double mem_residency = 0;
     size_t pinned_cnt    = 0;
 };
+
+inline gc_heap_stat operator+(const gc_heap_stat& a, const gc_heap_stat& b)
+{
+    return gc_heap_stat(a) += b;
+}
 
 struct gc_sweep_stat
 {

@@ -23,14 +23,15 @@ mpool_allocator::~mpool_allocator()
 
 gc_alloc_response mpool_allocator::allocate(const gc_alloc_request& rqst, size_t aligned_size)
 {
-    size_t size = aligned_size + descriptor_t::meta_size();
     if (m_top == m_end) {
-        return try_expand_and_allocate(size, rqst, true);
+        return try_expand_and_allocate(aligned_size, rqst, 0);
     }
-    return stack_allocation(size, rqst);
+    return stack_allocation(aligned_size, rqst);
 }
 
-gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, bool call_gc)
+gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size,
+                                                           const gc_alloc_request& rqst,
+                                                           size_t attempt_num)
 {
     byte*  blk;
     size_t blk_size;
@@ -43,12 +44,14 @@ gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size, const gc
     } else if (m_freelist) {
         return freelist_allocation(size, rqst);
     } else {
-        if (call_gc) {
+        if (attempt_num == 0) {
             // call gc
+        } else if (attempt_num == 1) {
+            core_allocator::expand_heap();
         } else {
             throw gc_bad_alloc();
         }
-        return try_expand_and_allocate(size, rqst, false);
+        return try_expand_and_allocate(size, rqst, ++attempt_num);
     }
 }
 
@@ -122,19 +125,20 @@ gc_heap_stat mpool_allocator::collect(compacting::forwarding& frwd)
     } else {
         sweep(stat);
     }
-    m_prev_residency = stat.mem_residency;
+    m_prev_residency = stat.residency();
     return stat;
 }
 
 void mpool_allocator::shrink(gc_heap_stat& stat)
 {
     for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
-        stat.mem_used += it->size();
+        stat.mem_before_gc += it->size();
         if (it->unused()) {
             stat.mem_freed += it->size();
             it = destroy_descriptor(it);
         } else {
-            stat.mem_residency += it->residency();
+            stat.mem_all    += it->size();
+            stat.mem_live   += it->cell_size() * it->count_lived();
             stat.pinned_cnt += it->count_pinned();
             ++it;
         }
@@ -144,7 +148,8 @@ void mpool_allocator::shrink(gc_heap_stat& stat)
 void mpool_allocator::sweep(gc_heap_stat& stat)
 {
     for (auto& descr: m_descrs) {
-        stat.mem_freed += sweep(descr);
+        size_t freed    = sweep(descr);
+        stat.mem_freed += freed;
     }
 }
 
@@ -232,9 +237,9 @@ bool mpool_allocator::empty() const
 
 bool mpool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
-    return stat.mem_residency < RESIDENCY_COMPACTING_THRESHOLD
-           || (stat.mem_residency < RESIDENCY_NON_COMPACTING_THRESHOLD
-               && std::abs(stat.mem_residency - m_prev_residency) < RESIDENCY_EPS);
+    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
+           || (stat.residency()< RESIDENCY_NON_COMPACTING_THRESHOLD
+               && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
 }
 
 memory_range_type mpool_allocator::memory_range()

@@ -24,7 +24,7 @@ public:
     void deregister_page(const byte* page, size_t size);
 
     gc_state state() const override;
-    gc_stat stats() const;
+    gc_stat  stats() const;
 
     gc_strategy* get_strategy() const;
     void set_strategy(gc_strategy* strategy);

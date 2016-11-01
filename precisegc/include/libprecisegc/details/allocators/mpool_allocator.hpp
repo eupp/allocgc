@@ -56,7 +56,8 @@ private:
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
     static constexpr double RESIDENCY_EPS = 0.1;
 
-    gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, bool call_gc);
+    gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst,
+                                                  size_t attempt_num);
     gc_alloc_response stack_allocation(size_t size, const gc_alloc_request& rqst);
     gc_alloc_response freelist_allocation(size_t size, const gc_alloc_request& rqst);
 

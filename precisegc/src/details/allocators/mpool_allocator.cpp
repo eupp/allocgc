@@ -38,7 +38,7 @@ gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size,
     size_t blk_size;
     std::tie(blk, blk_size) = allocate_block(size);
     if (blk) {
-        create_descriptor(blk, blk_size, 0);
+        create_descriptor(blk, blk_size, size);
         m_top = blk;
         m_end = blk + blk_size;
         return stack_allocation(size, rqst);
@@ -165,7 +165,7 @@ size_t mpool_allocator::sweep(descriptor_t& descr)
 
     size_t freed = 0;
     for (size_t i = 0; it < end; it += size, ++i) {
-        freed += descr.destroy(it);
+        freed += descr.destroy(it + sizeof(collectors::traceable_object_meta));
         insert_into_freelist(it);
     }
     return freed;
@@ -178,54 +178,9 @@ void mpool_allocator::insert_into_freelist(byte* ptr)
 
 void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
 {
-    typedef typename memory_range_type::iterator::value_type value_t;
-    typedef std::reverse_iterator<typename memory_range_type::iterator> reverse_iterator;
-
+    compacting::two_finger_compactor compactor;
     auto rng = memory_range();
-
-    if (rng.begin() == rng.end()) {
-        return;
-    }
-
-    assert(std::all_of(rng.begin(), rng.end(),
-                       [&rng] (const value_t& p) { return p.cell_size() == rng.begin()->cell_size(); }
-    ));
-
-    // two-finger compacting
-
-    auto to = rng.begin();
-    auto from = rng.end();
-    size_t cell_size = to->cell_size();
-
-    while (from != to) {
-        to = std::find_if(to, from, [](value_t cell_ptr) {
-            return !cell_ptr.get_mark();
-        });
-
-        auto rev_from = std::find_if(reverse_iterator(from),
-                                     reverse_iterator(to),
-                                     [] (value_t cell_ptr) {
-                                         return cell_ptr.get_mark() && !cell_ptr.get_pin();
-                                     });
-
-        from = rev_from.base();
-        if (from != to) {
-            --from;
-
-            to->destroy();
-            to->set_mark(true);
-
-            from->move(*to);
-
-            from->destroy();
-            from->set_mark(false);
-
-            frwd.create(from->get(), to->get());
-
-            stat.mem_freed  += cell_size;
-            stat.mem_copied += cell_size;
-        }
-    }
+    compactor(rng, frwd, stat);
 }
 
 void mpool_allocator::fix(const compacting::forwarding& frwd)

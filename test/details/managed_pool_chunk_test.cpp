@@ -27,7 +27,7 @@ public:
 
     managed_pool_chunk_test()
         : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
-        , m_rand(0, PAGE_SIZE - 1)
+        , m_rand(0, CELL_COUNT)
     {}
 
     ~managed_pool_chunk_test()
@@ -90,16 +90,17 @@ TEST_F(managed_pool_chunk_test, test_get_mark_pin)
     byte* mem = m_chunk.memory();
     size_t mem_size = m_chunk.size();
 
-    for (byte* ptr = mem; ptr < mem + mem_size; ++ptr) {
-        ASSERT_FALSE(descr->get_mark(ptr));
-        ASSERT_FALSE(descr->get_pin(ptr));
+    for (byte* ptr = mem; ptr < mem + mem_size; ptr += CELL_SIZE) {
+        byte* obj = ptr + sizeof(collectors::traceable_object_meta);
+        ASSERT_FALSE(descr->get_mark(obj));
+        ASSERT_FALSE(descr->get_pin(obj));
     }
 }
 
 TEST_F(managed_pool_chunk_test, test_set_mark)
 {
     memory_descriptor* descr = m_chunk.descriptor();
-    byte* ptr = m_chunk.memory() + m_rand();
+    byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand() + sizeof(collectors::traceable_object_meta);
 
     descr->set_mark(ptr, true);
     ASSERT_EQ(descr->get_mark(ptr), true);
@@ -108,7 +109,7 @@ TEST_F(managed_pool_chunk_test, test_set_mark)
 TEST_F(managed_pool_chunk_test, test_set_pin)
 {
     memory_descriptor* descr = m_chunk.descriptor();
-    byte* ptr = m_chunk.memory() + m_rand();
+    byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand() + sizeof(collectors::traceable_object_meta);
 
     descr->set_pin(ptr, true);
     ASSERT_EQ(descr->get_pin(ptr), true);

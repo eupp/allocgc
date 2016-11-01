@@ -12,7 +12,7 @@ managed_object_descriptor::managed_object_descriptor(size_t size)
     , m_pin_bit(false)
     , m_init_bit(false)
 {
-    assert(size > LARGE_CELL_SIZE);
+//    assert(size > LARGE_CELL_SIZE);
 }
 
 managed_object_descriptor::~managed_object_descriptor()

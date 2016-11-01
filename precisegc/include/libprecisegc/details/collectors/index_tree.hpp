@@ -87,9 +87,9 @@ public:
     void add_to_index(const byte* mem, size_t size, T* entry)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
-        assert(size % PAGE_SIZE == 0);
+//        assert(size % PAGE_SIZE == 0);
         const byte* mem_end = mem + size;
-        for (const byte* it = mem; it != mem_end; it += PAGE_SIZE) {
+        for (const byte* it = mem; it < mem_end; it += PAGE_SIZE) {
             add_page_to_index(it, entry);
         }
     }
@@ -97,9 +97,9 @@ public:
     void remove_from_index(const byte* mem, size_t size)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
-        assert(size % PAGE_SIZE == 0);
+//        assert(size % PAGE_SIZE == 0);
         const byte* mem_end = mem + size;
-        for (const byte* it = mem; it != mem_end; it += PAGE_SIZE) {
+        for (const byte* it = mem; it < mem_end; it += PAGE_SIZE) {
             remove_page_from_index(it);
         }
     }

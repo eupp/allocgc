@@ -27,9 +27,9 @@ public:
 
     typedef std::vector<entry> containter_t;
 
-    void create(byte* from, byte* to, size_t obj_size)
+    void create(byte* from, byte* to)
     {
-        memcpy(to, from, obj_size);
+//        memcpy(to, from, obj_size);
         m_frwd_list.emplace_back(from, to);
     }
 

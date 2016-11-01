@@ -46,7 +46,7 @@ TEST_F(fix_ptrs_test, test_fix_ptrs)
     from = reinterpret_cast<byte*>(&val2);
 
     test_forwarding forwarding;
-    forwarding.create(from, to, OBJ_SIZE);
+    forwarding.create(from, to);
 
     auto rng = alloc.memory_range();
     fix_ptrs(rng.begin(), rng.end(), forwarding);

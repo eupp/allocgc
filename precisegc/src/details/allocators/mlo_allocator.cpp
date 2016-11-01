@@ -8,7 +8,10 @@ namespace precisegc { namespace details { namespace allocators {
 
 mlo_allocator::mlo_allocator()
     : m_head(get_fake_block())
-{}
+{
+    m_fake.m_next = get_fake_block();
+    m_fake.m_prev = get_fake_block();
+}
 
 mlo_allocator::~mlo_allocator()
 {

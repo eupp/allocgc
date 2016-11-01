@@ -11,7 +11,8 @@
 namespace precisegc { namespace details { namespace allocators {
 
 managed_pool_chunk::managed_pool_chunk(byte* chunk, size_t size, size_t cell_size)
-    : m_chunk(chunk, size, cell_size)
+    : m_memory(chunk)
+    , m_size(size)
     , m_cell_size(cell_size)
 {}
 
@@ -20,12 +21,12 @@ managed_pool_chunk::~managed_pool_chunk()
 
 byte* managed_pool_chunk::memory() const
 {
-    return m_chunk.get_mem();
+    return m_memory;
 }
 
 size_t managed_pool_chunk::size() const
 {
-    return m_chunk.get_mem_size();
+    return m_size;
 }
 
 memory_descriptor* managed_pool_chunk::descriptor()
@@ -40,16 +41,20 @@ gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rq
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
 
-    set_init(ptr, true);
-
     traceable_object_meta* meta = managed_object::get_meta(ptr);
     new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
-    return gc_alloc_response(managed_object::get_object(ptr), rqst.alloc_size(), this);
+
+    byte* obj = managed_object::get_object(ptr);
+    set_init(obj, true);
+
+    return gc_alloc_response(obj, rqst.alloc_size(), this);
 }
 
 size_t managed_pool_chunk::destroy(byte* ptr)
 {
     using namespace collectors;
+
+    ptr -= sizeof(traceable_object_meta);
 
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
@@ -67,10 +72,13 @@ void managed_pool_chunk::move(byte* from, byte* to)
 {
     using namespace collectors;
 
-    memcpy(to, from, sizeof(traceable_object_meta));
+    managed_object obj_from(from);
+    managed_object obj_to(to);
 
-    const gc_type_meta* from_meta = managed_object::get_meta(from)->get_type_meta();
-    from_meta->move(from + sizeof(traceable_object_meta), to + sizeof(traceable_object_meta));
+    memcpy(obj_to.meta(), obj_from.meta(), sizeof(traceable_object_meta));
+
+    const gc_type_meta* from_meta = obj_from.meta()->get_type_meta();
+    from_meta->move(from, to);
 }
 
 bool managed_pool_chunk::contains(byte* ptr) const
@@ -114,13 +122,13 @@ managed_pool_chunk::memory_range_type managed_pool_chunk::memory_range()
 managed_pool_chunk::iterator managed_pool_chunk::begin()
 {
     assert(memory());
-    return iterator(memory(), this);
+    return iterator(memory() + sizeof(collectors::traceable_object_meta), this);
 }
 
 managed_pool_chunk::iterator managed_pool_chunk::end()
 {
     assert(memory());
-    return iterator(memory() + size(), this);
+    return iterator(memory() + size() + sizeof(collectors::traceable_object_meta), this);
 }
 
 void managed_pool_chunk::set_initialized(byte* ptr)
@@ -145,11 +153,13 @@ void managed_pool_chunk::set_init(size_t idx, bool init)
 
 bool managed_pool_chunk::is_init(byte* ptr) const
 {
+    ptr -= sizeof(collectors::traceable_object_meta);
     return is_init(calc_cell_ind(ptr));
 }
 
 void managed_pool_chunk::set_init(byte* ptr, bool init)
 {
+    ptr -= sizeof(collectors::traceable_object_meta);
     set_init(calc_cell_ind(ptr), init);
 }
 
@@ -160,6 +170,7 @@ bool managed_pool_chunk::get_mark(size_t idx) const
 
 bool managed_pool_chunk::get_mark(byte* ptr) const
 {
+    ptr -= sizeof(collectors::traceable_object_meta);
     size_t ind = calc_cell_ind(ptr);
     return m_mark_bits.get(ind);
 }
@@ -176,6 +187,7 @@ size_t managed_pool_chunk::cell_size() const
 
 bool managed_pool_chunk::get_pin(byte* ptr) const
 {
+    ptr -= sizeof(collectors::traceable_object_meta);
     size_t ind = calc_cell_ind(ptr);
     return m_pin_bits.get(ind);
 }
@@ -187,6 +199,7 @@ void managed_pool_chunk::set_mark(size_t idx, bool mark)
 
 void managed_pool_chunk::set_mark(byte* ptr, bool mark)
 {
+    ptr -= sizeof(collectors::traceable_object_meta);
     size_t ind = calc_cell_ind(ptr);
     m_mark_bits.set(ind, mark);
 }
@@ -198,6 +211,7 @@ void managed_pool_chunk::set_pin(size_t idx, bool pin)
 
 void managed_pool_chunk::set_pin(byte* ptr, bool pin)
 {
+    ptr -= sizeof(collectors::traceable_object_meta);
     size_t ind = calc_cell_ind(ptr);
     m_pin_bits.set(ind, pin);
 }
@@ -239,14 +253,13 @@ size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    assert((ptr - memory()) % m_cell_size == 0);
     return (ptr - memory()) / m_cell_size;
 }
 
 collectors::traceable_object_meta* managed_pool_chunk::get_meta(byte* ptr) const
 {
     assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
+//    assert(ptr == cell_start(ptr));
     return collectors::managed_object(ptr).meta();
 }
 

@@ -2,9 +2,10 @@
 
 #include <unordered_set>
 
-#include <libprecisegc/details/allocators/mso_allocator.hpp>
+#include <libprecisegc/details/allocators/mpool_allocator.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/types.hpp>
 
 #include "rand_util.h"
@@ -15,22 +16,30 @@ using namespace precisegc::details::allocators;
 using namespace precisegc::details::compacting;
 
 namespace {
-static const size_t OBJ_SIZE = 64;      // PAGE_SIZE / OBJECTS_PER_PAGE;
+static const size_t OBJ_SIZE = 16;      // PAGE_SIZE / OBJECTS_PER_PAGE;
+static const size_t ALLOC_SIZE = 64;
 
 struct test_type
 {
     byte data[OBJ_SIZE];
 };
 
-typedef mso_allocator allocator_t;
+const gc_type_meta* tmeta = gc_type_meta_factory<test_type>::create();
+
+typedef mpool_allocator allocator_t;
 
 }
 
 template <typename Compactor>
 struct compactor_test : public ::testing::Test
 {
+    compactor_test()
+        : rqst(OBJ_SIZE, 1, tmeta)
+    {}
+
     allocator_t alloc;
     Compactor compactor;
+    gc_alloc_request rqst;
 };
 
 typedef ::testing::Types<two_finger_compactor> test_compactor_types;
@@ -58,9 +67,9 @@ TYPED_TEST(compactor_test, test_compact_1)
 {
     static const size_t OBJ_COUNT = 5;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        gc_alloc_response cell_ptr = this->alloc.allocate(OBJ_SIZE);
-        cell_ptr.set_mark(false);
-        cell_ptr.set_pin(false);
+        gc_alloc_response rsp = this->alloc.allocate(this->rqst, ALLOC_SIZE);
+        rsp.set_mark(false);
+        rsp.set_pin(false);
     }
 
     auto rng = this->alloc.memory_range();
@@ -84,10 +93,12 @@ TYPED_TEST(compactor_test, test_compact_1)
     byte* exp_to = it1->get();
     byte* exp_from = it4->get();
 
+    gc_heap_stat stat;
     test_forwarding frwd;
-    size_t copied = this->compactor(rng, frwd);
+    this->compactor(rng, frwd, stat);
 
-    ASSERT_EQ(OBJ_SIZE, copied);
+    ASSERT_EQ(ALLOC_SIZE, stat.mem_freed);
+    ASSERT_EQ(ALLOC_SIZE, stat.mem_copied);
 
     auto frwd_list = frwd.get_forwarding_list();
     ASSERT_EQ(1, frwd_list.size());
@@ -112,9 +123,9 @@ TYPED_TEST(compactor_test, test_compact_2)
     const size_t ALLOC_CNT = 4 * LIVE_CNT;
 
     for (size_t i = 0; i < ALLOC_CNT; ++i) {
-        gc_alloc_response cell_ptr = this->alloc.allocate(OBJ_SIZE);
-        cell_ptr.set_mark(false);
-        cell_ptr.set_pin(false);
+        gc_alloc_response rsp = this->alloc.allocate(this->rqst, ALLOC_SIZE);
+        rsp.set_mark(false);
+        rsp.set_pin(false);
     }
 
     uniform_rand_generator<size_t> rand_gen(0, ALLOC_CNT - 1);
@@ -129,10 +140,11 @@ TYPED_TEST(compactor_test, test_compact_2)
         it->set_mark(true);
     }
 
+    gc_heap_stat stat;
     test_forwarding frwd;
-    size_t copied = this->compactor(rng, frwd);
+    this->compactor(rng, frwd, stat);
 
-    ASSERT_LE(copied, OBJ_SIZE * LIVE_CNT);
+    ASSERT_GE(ALLOC_SIZE * LIVE_CNT, stat.mem_copied);
 
     auto live_begin = rng.begin();
     auto live_end = std::next(live_begin, LIVE_CNT);
@@ -156,25 +168,27 @@ TYPED_TEST(compactor_test, test_compact_3)
     size_t exp_pin_cnt = 0;
     std::unordered_set<byte*> pinned;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        gc_alloc_response cell_ptr = this->alloc.allocate(OBJ_SIZE);
+        gc_alloc_response rsp = this->alloc.allocate(this->rqst, ALLOC_SIZE);
         bool pin = pin_gen();
         bool mark = mark_gen() || pin;
-        cell_ptr.set_mark(mark);
-        cell_ptr.set_pin(pin);
+        rsp.set_mark(mark);
+        rsp.set_pin(pin);
         if (mark) {
             exp_mark_cnt++;
         }
         if (pin) {
             exp_pin_cnt++;
-            pinned.insert(cell_ptr.get());
+            pinned.insert(rsp.get());
         }
     }
 
     auto rng = this->alloc.memory_range();
-    test_forwarding frwd;
-    size_t copied = this->compactor(rng, frwd);
 
-    EXPECT_LE(copied, exp_mark_cnt * OBJ_SIZE);
+    gc_heap_stat stat;
+    test_forwarding frwd;
+    this->compactor(rng, frwd, stat);
+
+    EXPECT_GE(exp_mark_cnt * ALLOC_SIZE, stat.mem_copied);
 
     size_t pin_cnt = 0;
     size_t mark_cnt = 0;

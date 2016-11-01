@@ -30,7 +30,7 @@ public:
         : m_ptr(ptr)
         , m_descr(descr)
     {
-        assert(ptr && descr);
+//        assert(ptr && descr);
     }
 
     byte* get() const noexcept

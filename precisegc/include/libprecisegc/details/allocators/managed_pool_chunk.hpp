@@ -133,7 +133,8 @@ private:
 
     collectors::traceable_object_meta* get_meta(byte* ptr) const;
 
-    plain_pool_chunk m_chunk;
+    byte* m_memory;
+    size_t m_size;
     size_t m_cell_size;
     sync_bitset_t m_mark_bits;
     bitset_t m_pin_bits;

@@ -12,14 +12,14 @@ namespace precisegc { namespace details { namespace compacting {
 struct two_finger_compactor
 {
     template <typename Range, typename Forwarding>
-    size_t operator()(Range& rng, Forwarding& frwd) const
+    void operator()(Range& rng, Forwarding& frwd, gc_heap_stat& stat) const
     {
         typedef typename Range::iterator iterator_t;
         typedef typename iterator_t::value_type value_t;
         typedef std::reverse_iterator<typename Range::iterator> reverse_iterator;
 
         if (rng.begin() == rng.end()) {
-            return 0;
+            return;
         }
 
         assert(std::all_of(rng.begin(), rng.end(),
@@ -53,11 +53,12 @@ struct two_finger_compactor
                 from->destroy();
                 from->set_mark(false);
 
-                frwd.create(from->get(), to->get(), cell_size);
-                ++copied_cnt;
+                frwd.create(from->get(), to->get());
+
+                stat.mem_freed  += cell_size;
+                stat.mem_copied += cell_size;
             }
         }
-        return copied_cnt * cell_size;
     }
 };
 

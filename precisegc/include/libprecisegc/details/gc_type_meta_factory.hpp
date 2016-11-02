@@ -7,6 +7,7 @@
 
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
 
 namespace precisegc { namespace details {
@@ -20,14 +21,24 @@ template <typename T>
 class gc_type_meta_instance : public gc_type_meta
 {
 public:
-    void destroy(byte* ptr) const override
+    void destroy(byte* ptr, size_t obj_cnt) const override
     {
-        reinterpret_cast<T*>(ptr)->~T();
+        size_t obj_size = type_size();
+        for (size_t i = 0; i < obj_cnt; ++i, ptr += obj_size) {
+            for (size_t offset: offsets()) {
+                gc_word* word = reinterpret_cast<gc_word*>(ptr + offset);
+                gc_handle_access::set<std::memory_order_relaxed>(*word, nullptr);
+            }
+            reinterpret_cast<T*>(ptr)->~T();
+        }
     }
 
-    void move(byte* from, byte* to) const override
+    void move(byte* from, byte* to, size_t obj_cnt) const override
     {
-        move_impl(from, to);
+        size_t obj_size = type_size();
+        for (size_t i = 0; i < obj_cnt; ++i, from += obj_size, to += obj_size) {
+            move_impl(from, to);
+        }
     }
 
     friend class gc_type_meta_factory<T>;
@@ -58,7 +69,7 @@ template <typename T>
 class gc_type_meta_factory : private utils::nonconstructible
 {
 public:
-    static gc_type_meta* get()
+    static const gc_type_meta* get()
     {
         return meta.load(std::memory_order_acquire);
     }
@@ -80,7 +91,7 @@ public:
     {
         static_assert(std::is_same<typename Iter::value_type, size_t>::value, "Offsets should have size_t type");
 
-        gc_type_meta* tmeta = get();
+        const gc_type_meta* tmeta = get();
         if (tmeta != nullptr) {
             return tmeta;
         }
@@ -93,11 +104,11 @@ public:
         return meta.load(std::memory_order_relaxed);
     }
 private:
-    static std::atomic<gc_type_meta*> meta;
+    static std::atomic<const gc_type_meta*> meta;
 };
 
 template <typename T>
-std::atomic<gc_type_meta*> gc_type_meta_factory<T>::meta{nullptr};
+std::atomic<const gc_type_meta*> gc_type_meta_factory<T>::meta{nullptr};
 
 }}
 

@@ -28,7 +28,16 @@ managed_object_descriptor::managed_object_descriptor(byte* ptr, size_t size, siz
 
 managed_object_descriptor::~managed_object_descriptor()
 {
+    using namespace collectors;
+
+    if (!m_ptr) {
+        return;
+    }
+
     collectors::memory_index::remove_from_index(m_ptr, m_size);
+    byte* obj = collectors::managed_object::get_object(m_ptr);
+    collectors::traceable_object_meta* obj_meta = collectors::managed_object::get_meta(m_ptr);
+    obj_meta->get_type_meta()->destroy(obj, obj_meta->object_count());
 }
 
 bool managed_object_descriptor::get_mark(byte* ptr) const

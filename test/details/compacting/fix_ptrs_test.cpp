@@ -56,7 +56,7 @@ TEST_F(fix_ptrs_test, test_fix_ptrs)
     forwarding.create(from, to, OBJ_SIZE);
 
     auto rng = alloc.memory_range();
-    fix_ptrs(rng.begin(), rng.end(), forwarding, OBJ_SIZE);
+    fix_ptrs(rng.begin(), rng.end(), forwarding);
 
     ASSERT_EQ(to, from);
 }

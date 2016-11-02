@@ -48,8 +48,8 @@ public:
         return m_is_movable;
     }
 
-    virtual void destroy(byte* ptr) const = 0;
-    virtual void move(byte* from, byte* to) const = 0;
+    virtual void destroy(byte* ptr, size_t obj_cnt) const = 0;
+    virtual void move(byte* from, byte* to, size_t obj_cnt) const = 0;
 protected:
     template <typename Iter>
     gc_type_meta(size_t type_size,

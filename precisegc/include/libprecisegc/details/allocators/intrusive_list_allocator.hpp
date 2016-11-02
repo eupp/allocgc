@@ -106,25 +106,27 @@ private:
             , typename std::iterator_traits<typename Chunk::iterator>::value_type
          >
     {
-        class proxy
-        {
-        public:
-            proxy(const pointer_type& ptr)
-                    : m_ptr(ptr)
-            {}
-
-            const pointer_type* operator->()
-            {
-                return &m_ptr;
-            }
-        private:
-            pointer_type m_ptr;
-        };
     public:
         typedef typename mem_iterator::iterator_adaptor_::value_type       value_type;
         typedef typename mem_iterator::iterator_adaptor_::reference        reference;
         typedef typename mem_iterator::iterator_adaptor_::pointer          pointer;
         typedef typename mem_iterator::iterator_adaptor_::difference_type  difference_type;
+    private:
+        class proxy
+        {
+        public:
+            proxy(const reference& ptr)
+                    : m_ref(ptr)
+            {}
+
+            const reference* operator->()
+            {
+                return &m_ref;
+            }
+        private:
+            reference m_ref;
+        };
+    public:
 
         mem_iterator(const mem_iterator&) noexcept = default;
         mem_iterator(mem_iterator&&) noexcept = default;

@@ -72,9 +72,8 @@ TEST(gc_type_meta_factory_test, test_create)
 TEST(gc_type_meta_factory_test, test_destroy)
 {
     typedef gc_type_meta_factory<type_with_dtor> factory;
-    factory::create();
 
-    gc_type_meta* tmeta = factory::get();
+    const gc_type_meta* tmeta = factory::create();
     ASSERT_NE(nullptr, tmeta);
     ASSERT_FALSE(type_with_dtor::dtor_called);
 
@@ -82,7 +81,7 @@ TEST(gc_type_meta_factory_test, test_destroy)
     byte* ptr = reinterpret_cast<byte*>(&storage);
     new (ptr) type_with_dtor();
 
-    tmeta->destroy(ptr);
+    tmeta->destroy(ptr, 1);
 
     ASSERT_TRUE(type_with_dtor::dtor_called);
 }
@@ -90,9 +89,8 @@ TEST(gc_type_meta_factory_test, test_destroy)
 TEST(gc_type_meta_factory_test, test_move)
 {
     typedef gc_type_meta_factory<type_with_move_ctor> factory;
-    factory::create();
 
-    gc_type_meta* tmeta = factory::get();
+    const gc_type_meta* tmeta = factory::create();
     ASSERT_NE(nullptr, tmeta);
     ASSERT_FALSE(type_with_move_ctor::move_ctor_called);
 
@@ -103,7 +101,7 @@ TEST(gc_type_meta_factory_test, test_move)
     std::aligned_storage<sizeof(type_with_move_ctor)> to_storage;
     byte* to = reinterpret_cast<byte*>(&to_storage);
 
-    tmeta->move(from, to);
+    tmeta->move(from, to, 1);
 
     ASSERT_TRUE(type_with_move_ctor::move_ctor_called);
     ASSERT_EQ(to, (byte*) type_with_move_ctor::to_ptr);
@@ -112,9 +110,8 @@ TEST(gc_type_meta_factory_test, test_move)
 TEST(gc_type_meta_factory_test, test_forbidden_move)
 {
     typedef gc_type_meta_factory<nonmovable_type> factory;
-    factory::create();
 
-    gc_type_meta* tmeta = factory::get();
+    const gc_type_meta* tmeta = factory::create();
     ASSERT_NE(nullptr, tmeta);
 
     std::aligned_storage<sizeof(nonmovable_type)> from_storage;
@@ -125,7 +122,7 @@ TEST(gc_type_meta_factory_test, test_forbidden_move)
     byte* to = reinterpret_cast<byte*>(&to_storage);
 
     ASSERT_FALSE(tmeta->is_movable());
-    ASSERT_THROW(tmeta->move(from, to), forbidden_move_exception);
+    ASSERT_THROW(tmeta->move(from, to, 1), forbidden_move_exception);
 }
 
 TEST(gc_type_meta_factory_test, test_multithreading)

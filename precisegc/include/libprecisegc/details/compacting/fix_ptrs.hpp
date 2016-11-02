@@ -10,7 +10,7 @@
 namespace precisegc { namespace details { namespace compacting {
 
 template <typename Iterator, typename Forwarding>
-void fix_ptrs(const Iterator& first, const Iterator& last, const Forwarding& frwd, size_t obj_size)
+void fix_ptrs(const Iterator& first, const Iterator& last, const Forwarding& frwd)
 {
     using namespace collectors;
 

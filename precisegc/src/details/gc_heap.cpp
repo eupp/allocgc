@@ -167,9 +167,12 @@ void gc_heap::fix_pointers(const gc_heap::forwarding& frwd)
         auto& tlab = kv.second;
         for (size_t i = 0; i < tlab_bucket_policy::BUCKET_COUNT; ++i) {
             auto rng = tlab.memory_range(i);
-            compacting::fix_ptrs(rng.begin(), rng.end(), frwd, tlab_bucket_policy::bucket_size(i));
+            compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
         }
     }
+
+    auto rng = m_loa.memory_range();
+    compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
 void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
@@ -185,7 +188,7 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
             auto rng = tlab.memory_range(i);
             if (!rng.empty()) {
                 tasks.emplace_back([this, rng, i, &tlab, &frwd] {
-                    compacting::fix_ptrs(rng.begin(), rng.end(), frwd, tlab_bucket_policy::bucket_size(i));
+                    compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
                 });
             }
         }

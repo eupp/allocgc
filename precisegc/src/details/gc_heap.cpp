@@ -194,6 +194,9 @@ void gc_heap::parallel_fix_pointers(const forwarding& frwd, size_t threads_num)
         }
     }
     thread_pool.run(tasks.begin(), tasks.end());
+
+    auto rng = m_loa.memory_range();
+    compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
 void gc_heap::sweep()

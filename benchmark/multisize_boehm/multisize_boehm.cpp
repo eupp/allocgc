@@ -58,17 +58,17 @@
 
 using namespace std;
 
-static const int kStretchTreeDepth    = 14; //18;
+static const int kStretchTreeDepth    = 16; //18;
 static const int kLongLivedTreeDepth  = 12; //16;
 static const int kArraySize  = 500000;      //500000;
 static const int kMinTreeDepth = 4;         //4
-static const int kMaxTreeDepth = 10;        //16;
+static const int kMaxTreeDepth = 12;        //16;
 
 // distribution of size of nodes
-static const double smallProb  = 0.6;
-static const double mediumProb = 0.2;
-static const double largeProb  = 0.15;
-static const double xlargeProb = 0.05;
+static const double smallProb  = 0.7;
+static const double mediumProb = 0.25;
+static const double largeProb  = 0.049;
+static const double xlargeProb = 0.001;
 
 
 struct NodeBase
@@ -109,7 +109,7 @@ struct SmallNode : public NodeBase
     {}
 };
 
-// 168b -> 256b
+// 184b -> 192b
 struct MediumNode : public NodeBase
 {
     MediumNode() = default;
@@ -331,12 +331,12 @@ int main (int argc, const char* argv[])
 
 #if defined(PRECISE_GC)
     gc_init_options ops;
-//    ops.heapsize    = 900 * 1024 * 1024;      // 1Gb
+    ops.heapsize    = 1024 * 1024 * 1024;      // 1Gb
     ops.algo        = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
-    ops.initiation        = gc_initiation::SPACE_BASED;
+    ops.initiation  = gc_initiation::SPACE_BASED;
     ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
     ops.loglevel    = gc_loglevel::SILENT;
-    ops.print_stat  = false;
+    ops.print_stat  = true;
 //    ops.threads_available = 1;
     gc_init(ops);
 #elif defined(BDW_GC)

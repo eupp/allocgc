@@ -16,7 +16,7 @@ bool managed_thread_accessor::is_heap_ptr(const managed_thread* thread, const gc
 
 bool managed_thread_accessor::is_type_meta_requested(const managed_thread* thread)
 {
-    return thread->is_type_meta_requested();
+    return thread && thread->is_type_meta_requested();
 }
 
 void managed_thread_accessor::register_managed_object_child(managed_thread* thread, gc_word* child)

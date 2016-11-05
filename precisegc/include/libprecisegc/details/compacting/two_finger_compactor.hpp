@@ -46,9 +46,11 @@ struct two_finger_compactor
                 --from;
 
                 auto to_obj = collectors::managed_object::make(to->get());
-                const gc_type_meta* to_meta = to_obj.meta()->get_type_meta();
-                to_meta->destroy(to_obj.object(), 0);
-                to->set_mark(true);
+                if (!to->is_dead()) {
+                    const gc_type_meta* to_meta = to_obj.meta()->get_type_meta();
+                    to_meta->destroy(to_obj.object(), to_obj.meta()->object_count());
+                    to->set_mark(true);
+                }
 
                 auto from_obj = collectors::managed_object::make(from->get());
                 const gc_type_meta* from_meta = from_obj.meta()->get_type_meta();
@@ -56,7 +58,7 @@ struct two_finger_compactor
                 size_t from_obj_cnt = from_obj.meta()->object_count();
 
                 memcpy(to->get(), from->get(), sizeof(collectors::traceable_object_meta));
-                to_meta->move(from_obj.object(), to_obj.object(), from_obj_cnt);
+                from_meta->move(from_obj.object(), to_obj.object(), from_obj_cnt);
 
                 from_meta->destroy(from_obj.object(), from_obj_cnt);
                 from->set_mark(false);

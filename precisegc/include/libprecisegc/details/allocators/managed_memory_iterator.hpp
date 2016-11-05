@@ -53,7 +53,7 @@ public:
 
     bool is_dead() const
     {
-        return m_descr->id_dead(m_ptr);
+        return m_descr->is_dead(m_ptr);
     }
 
     void set_dead() const

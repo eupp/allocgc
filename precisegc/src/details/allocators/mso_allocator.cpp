@@ -47,6 +47,14 @@ heap_part_stat mso_allocator::collect()
         chk->set_dead(curr);
         curr = *reinterpret_cast<byte**>(curr);
     }
+    if (m_top && !m_chunks.empty()) {
+        auto& last = m_chunks.back();
+        byte* last_end = last.memory() + last.size();
+        size_t cell_size = last.cell_size();
+        for (byte* it = m_top; it < last_end; it += cell_size) {
+            last.set_dead(it);
+        }
+    }
 
     for (auto it = m_chunks.begin(), end = m_chunks.end(); it != end; ) {
         stats.residency += it->residency();
@@ -68,11 +76,10 @@ void mso_allocator::sweep()
         return;
     }
     m_freelist = nullptr;
-    auto last = std::prev(m_chunks.end());
+    auto last = m_chunks.end();
     for (auto chunk = m_chunks.begin(); chunk != last; ++chunk) {
         sweep_chunk(chunk, chunk->memory(), chunk->memory() + chunk->size());
     }
-    sweep_chunk(last, last->memory(), m_top);
 }
 
 void mso_allocator::sweep_chunk(iterator_t chk, byte* mem_start, byte* mem_end)
@@ -105,7 +112,9 @@ void mso_allocator::call_destructor(byte* ptr, iterator_t chk)
 
         traceable_object_meta* meta = reinterpret_cast<traceable_object_meta*>(ptr);
         const gc_type_meta* tmeta = meta->get_type_meta();
-        tmeta->destroy(ptr + sizeof(traceable_object_meta), meta->object_count());
+        if (tmeta) {
+            tmeta->destroy(ptr + sizeof(traceable_object_meta), meta->object_count());
+        }
     }
 }
 

@@ -8,12 +8,9 @@ namespace precisegc { namespace details { namespace allocators {
 
 mso_allocator::mso_allocator()
 {
-    for (size_t i = 0; i < BUCKET_COUNT; i += 2) {
+    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
         size_t sz_cls = 1ull << (i + MIN_CELL_SIZE_BITS_CNT);
         m_buckets[i].first = sz_cls;
-        if (i + 1 < BUCKET_COUNT) {
-            m_buckets[i + 1].first = sz_cls + sz_cls / 2;
-        }
     }
 }
 

@@ -12,7 +12,7 @@ using namespace precisegc::details::compacting;
 using namespace precisegc::details::collectors;
 
 namespace {
-static const size_t OBJ_SIZE = 64;
+static const size_t OBJ_SIZE = 64 - sizeof(traceable_object_meta);
 
 struct test_type
 {

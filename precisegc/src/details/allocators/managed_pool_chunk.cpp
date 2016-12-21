@@ -61,7 +61,10 @@ size_t managed_pool_chunk::destroy(byte* ptr)
     size_t idx = calc_cell_ind(ptr);
     if (is_init(idx)) {
         traceable_object_meta* meta = managed_object::get_meta(ptr);
-        meta->get_type_meta()->destroy(ptr);
+        const gc_type_meta* tmeta = meta->get_type_meta();
+        if (tmeta) {
+            tmeta->destroy(ptr);
+        }
         set_init(idx, false);
         return m_cell_size;
     }

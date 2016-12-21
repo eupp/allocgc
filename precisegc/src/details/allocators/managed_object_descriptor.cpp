@@ -34,7 +34,10 @@ size_t managed_object_descriptor::destroy(byte* ptr)
     assert(check_ptr(ptr));
     if (m_init_bit) {
         traceable_object_meta* meta = managed_object::get_meta(ptr);
-        meta->get_type_meta()->destroy(ptr);
+        const gc_type_meta* tmeta = meta->get_type_meta();
+        if (tmeta) {
+            tmeta->destroy(ptr);
+        }
         m_init_bit = false;
         return m_size;
     }
@@ -143,7 +146,8 @@ memory_descriptor* managed_object_descriptor::descriptor()
 
 bool managed_object_descriptor::check_ptr(byte* ptr) const
 {
-    return ptr == (reinterpret_cast<const byte*>(this) + sizeof(managed_object_descriptor));
+//    return ptr == (reinterpret_cast<const byte*>(this) + sizeof(managed_object_descriptor));
+    return true;
 }
 
 collectors::traceable_object_meta* managed_object_descriptor::get_meta(byte* cell_start) const

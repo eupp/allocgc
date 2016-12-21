@@ -33,9 +33,9 @@ public:
     gc_heap_stat collect(compacting::forwarding& frwd, thread_pool_t& thread_pool);
     void fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool);
 private:
-    // we have buckets for each 2^k size and also one more bucket between each pair of these buckets
-    // i.g. [32, 48, 64, 96, 128, 192, 256, ...]
-    static const size_t BUCKET_COUNT = 2 * (LARGE_CELL_SIZE_BITS_CNT - MIN_CELL_SIZE_BITS_CNT + 1) - 1;
+    // we have buckets for each 2^k size
+    // i.g. [32, 64, 128, 256, ...]
+    static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_BITS_CNT - MIN_CELL_SIZE_BITS_CNT + 1;
 
     typedef std::pair<size_t, mpool_allocator> bucket_t;
 

@@ -47,12 +47,12 @@ class list_allocator : private utils::ebo<UpstreamAlloc>,
     {
         return ptr + sizeof(control_block);
     }
-
+public:
     class iterator: public boost::iterator_facade<
-          iterator
-        , const byte*
-        , boost::bidirectional_traversal_tag
-        , const byte*
+              iterator
+            , byte*
+            , boost::bidirectional_traversal_tag
+            , byte*
         >
     {
     public:
@@ -67,9 +67,11 @@ class list_allocator : private utils::ebo<UpstreamAlloc>,
 
         iterator(control_block* cblk) noexcept
             : m_cblk(cblk)
-        {}
+        {
+            assert(cblk);
+        }
 
-        const byte* dereference() const
+        byte* dereference() const
         {
             return get_memblk(get_blk_by_cblk(m_cblk));
         }
@@ -91,7 +93,7 @@ class list_allocator : private utils::ebo<UpstreamAlloc>,
 
         control_block* m_cblk;
     };
-public:
+
     typedef byte* pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 

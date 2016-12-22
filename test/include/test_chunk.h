@@ -133,12 +133,12 @@ public:
         m_available = true;
     }
 
-    byte* get_mem() const
+    byte* memory() const
     {
         return m_mem;
     }
 
-    size_t get_mem_size() const
+    size_t size() const
     {
         return m_size;
     }

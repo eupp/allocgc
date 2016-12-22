@@ -38,8 +38,8 @@ public:
     bool memory_available() const;
     bool empty() const;
 
-    byte* get_mem() const;
-    size_t get_mem_size() const;
+    byte*  memory() const;
+    size_t size() const;
 private:
     byte*  m_chunk;
     size_t m_size;

@@ -211,7 +211,7 @@ public:
         for (auto it = begin(); it != end(); ) {
             auto next = std::next(it);
             if (it.chunk()->empty()) {
-                freed += it.chunk()->get_mem_size();
+                freed += it.chunk()->size();
                 destroy_memblk(it.cblk());
             }
             it = next;
@@ -308,8 +308,8 @@ private:
         Chunk* chunk = get_chunk(cblk);
         get_chunk(cblk)->~Chunk();
 
-        upstream_deallocate(chunk->get_mem(),
-                            chunk->get_mem_size() + sizeof(control_block) + sizeof(Chunk));
+        upstream_deallocate(chunk->memory(),
+                            chunk->size() + sizeof(control_block) + sizeof(Chunk));
     }
 
     byte* upstream_allocate(size_t size)

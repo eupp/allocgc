@@ -7,11 +7,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 mlo_allocator::mlo_allocator()
-    : m_head(get_fake_block())
-{
-    m_fake.m_next = get_fake_block();
-    m_fake.m_prev = get_fake_block();
-}
+{ }
 
 mlo_allocator::~mlo_allocator()
 {
@@ -25,54 +21,35 @@ mlo_allocator::~mlo_allocator()
 
 gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 {
-    size_t size = rqst.alloc_size() + sizeof(collectors::traceable_object_meta);
-    size_t chunk_size = descriptor_t::chunk_size(size);
-    size_t memblk_size = chunk_size + sizeof(control_block) + sizeof(descriptor_t);
+    size_t size = rqst.alloc_size() + sizeof(descriptor_t) + sizeof(collectors::traceable_object_meta);
+    size_t memblk_size = m_alloc.align_size(size, PAGE_SIZE);
 
     auto deleter = [this, memblk_size] (byte* ptr) {
-        deallocate_block(ptr, memblk_size);
+        deallocate_blk(ptr, memblk_size);
     };
-    std::unique_ptr<byte, decltype(deleter)> memblk_owner(allocate_block(memblk_size), deleter);
+    std::unique_ptr<byte, decltype(deleter)> memblk(allocate_blk(memblk_size), deleter);
 
-    if (!memblk_owner) {
-
+    if (!memblk) {
         gc_options opt;
         opt.kind = gc_kind::COLLECT;
         opt.gen  = 0;
         gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
 
-        memblk_owner.reset(allocate_block(memblk_size));
-        if (!memblk_owner) {
+        memblk.reset(allocate_blk(memblk_size));
+        if (!memblk) {
             core_allocator::expand_heap();
-            memblk_owner.reset(allocate_block(memblk_size));
-            if (!memblk_owner) {
+            memblk.reset(allocate_blk(memblk_size));
+            if (!memblk) {
                 throw gc_bad_alloc();
             }
         }
     }
 
-    byte* memblk = memblk_owner.get();
-
-    control_block* fake  = get_fake_block();
-    control_block* cblk  = get_control_block(memblk);
-    descriptor_t*  descr = get_descriptor(memblk);
-
+    descriptor_t* descr = get_descr(memblk.get());
     new (descr) descriptor_t(rqst.alloc_size());
+    collectors::memory_index::add_to_index(align_by_page(memblk.get()), m_alloc.get_blk_size(memblk_size), descr);
 
-    collectors::memory_index::add_to_index(memblk, chunk_size, descr);
-
-    cblk->m_next = fake;
-    cblk->m_prev = fake->m_prev;
-
-    std::lock_guard<mutex_t> lock(m_mutex);
-
-    fake->m_prev->m_next = cblk;
-    fake->m_prev = cblk;
-
-    if (m_head == fake) {
-        m_head = cblk;
-    }
-    memblk_owner.release();
+    memblk.release();
 
     return descr->init(get_mem(memblk), rqst);
 }
@@ -108,23 +85,6 @@ void mlo_allocator::fix(const compacting::forwarding& frwd)
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
-mlo_allocator::control_block* mlo_allocator::get_fake_block()
-{
-    return &m_fake;
-}
-
-mlo_allocator::control_block* mlo_allocator::get_control_block(byte* memblk)
-{
-    assert(memblk);
-    return reinterpret_cast<control_block*>(memblk);
-}
-
-mlo_allocator::descriptor_t* mlo_allocator::get_descriptor(byte* memblk)
-{
-    assert(memblk);
-    return reinterpret_cast<descriptor_t*>(memblk + sizeof(control_block));
-}
-
 byte* mlo_allocator::get_mem(byte* memblk)
 {
     assert(memblk);
@@ -147,7 +107,7 @@ void mlo_allocator::destroy(byte* ptr)
 
     descr->destroy(get_mem(ptr));
     descr->~descriptor_t();
-    deallocate_block(ptr, size);
+    deallocate_blk(ptr, size);
 }
 
 mlo_allocator::iterator mlo_allocator::begin()
@@ -169,14 +129,14 @@ mlo_allocator::memory_range_type mlo_allocator::memory_range()
     );
 }
 
-byte* mlo_allocator::allocate_block(size_t size)
+byte* mlo_allocator::allocate_blk(size_t size)
 {
-    return core_allocator::allocate(size);
+    return m_alloc.allocate(size);
 }
 
-void mlo_allocator::deallocate_block(byte* ptr, size_t size)
+void mlo_allocator::deallocate_blk(byte* ptr, size_t size)
 {
-    core_allocator::deallocate(ptr, size);
+    m_alloc.deallocate(ptr, size);
 }
 
 mlo_allocator::iterator::iterator(control_block* cblk) noexcept

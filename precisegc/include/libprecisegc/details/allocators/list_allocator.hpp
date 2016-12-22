@@ -23,9 +23,9 @@ class list_allocator : private utils::ebo<UpstreamAlloc>,
         control_block* m_prev;
     };
 
-    static constexpr size_t get_blk_size(size_t size)
+    static constexpr size_t get_memblk_size(size_t blk_size)
     {
-        return size + sizeof(control_block);
+        return blk_size - sizeof(control_block);
     }
 
     static constexpr control_block* get_cblk(byte* ptr)
@@ -98,6 +98,16 @@ public:
     typedef stateful_alloc_tag alloc_tag;
 
     typedef boost::iterator_range<iterator> memory_range_type;
+
+    static constexpr size_t get_blk_size(size_t size)
+    {
+        return size + sizeof(control_block);
+    }
+
+    static constexpr size_t align_size(size_t size, size_t alignment)
+    {
+        return get_memblk_size(((get_blk_size(size) + alignment - 1) / alignment) * alignment);
+    }
 
     list_allocator()
         : m_head(get_fake_block())

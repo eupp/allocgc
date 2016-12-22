@@ -5,6 +5,7 @@
 
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
@@ -17,6 +18,8 @@
 
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include "sys_allocator.hpp"
+#include "core_allocator.hpp"
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -108,7 +111,18 @@ public:
     // temporary until refactor
     memory_range_type memory_range();
 private:
-    typedef std::mutex  mutex_t;
+    typedef list_allocator<core_allocator> list_alloc_t;
+    typedef std::mutex mutex_t;
+
+    static constexpr byte* align_by_page(byte* ptr)
+    {
+        return reinterpret_cast<byte*>(reinterpret_cast<std::uintptr_t>(ptr) & ((~0ull) << PAGE_BITS_CNT));
+    }
+
+    static constexpr descriptor_t* get_descr(byte* blk)
+    {
+        return reinterpret_cast<descriptor_t*>(blk);
+    }
 
     static descriptor_t*  get_descriptor(byte* memblk);
     static control_block* get_control_block(byte* memblk);
@@ -119,14 +133,11 @@ private:
     iterator begin();
     iterator end();
 
-    control_block* get_fake_block();
+    byte* allocate_blk(size_t size);
+    void  deallocate_blk(byte* ptr, size_t size);
 
-    byte* allocate_block(size_t size);
-    void  deallocate_block(byte* ptr, size_t size);
-
-    control_block  m_fake;
-    control_block* m_head;
-    mutex_t m_mutex;
+    list_alloc_t m_alloc;
+    mutex_t      m_mutex;
 };
 
 }}}

@@ -12,8 +12,6 @@
 
 #include <libprecisegc/details/allocators/mlo_allocator.hpp>
 #include <libprecisegc/details/allocators/mso_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/cache_policies.hpp>
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 

@@ -60,7 +60,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
         include/libprecisegc/gc_pin.hpp
         include/libprecisegc/gc_ref.hpp
         include/libprecisegc/details/gc_word.hpp
@@ -73,17 +72,14 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/safepoint_lock.hpp
         include/libprecisegc/details/threads/this_managed_thread.hpp
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
         include/libprecisegc/details/allocators/managed_object_descriptor.hpp
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
-        include/libprecisegc/details/allocators/cache_policies.hpp
         include/libprecisegc/details/allocators/managed_memory_iterator.hpp
         include/libprecisegc/details/allocators/freelist_allocator.hpp
         include/libprecisegc/details/utils/get_ptr.hpp
         include/libprecisegc/details/allocators/pool.hpp
-        include/libprecisegc/details/allocators/stack_chunk.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
         include/libprecisegc/details/allocators/null_allocator.hpp
         include/libprecisegc/details/threads/pin_stack.hpp
@@ -128,7 +124,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
         src/details/allocators/managed_object_descriptor.cpp
-        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp
+        src/details/gc_manager.cpp
         src/details/allocators/core_allocator.cpp
         src/details/threads/stack_bitmap.cpp
         src/details/threads/managed_thread.cpp

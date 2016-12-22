@@ -9,17 +9,16 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/allocators/stack_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/null_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
-#include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
-#include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -29,7 +28,6 @@ public:
     static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
     static const size_t CHUNK_MINSIZE = 4;
 private:
-    typedef allocators::stack_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 

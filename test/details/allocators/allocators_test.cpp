@@ -4,10 +4,8 @@
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/pool_allocator.hpp>
-#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 
 #include "test_chunk.h"
@@ -25,13 +23,6 @@ namespace {
 static const size_t OBJ_SIZE = 64;
 
 typedef debug_layer<default_allocator> debug_allocator_t;
-
-typedef intrusive_list_allocator<
-          test_chunk
-        , debug_allocator_t
-        , always_expand
-        , utils::dummy_mutex
-    > intrusive_list_allocator_t;
 
 typedef list_allocator<
           debug_allocator_t

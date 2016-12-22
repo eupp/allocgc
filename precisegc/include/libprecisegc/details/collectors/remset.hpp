@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <thread>
 #include <mutex>
 
 #include <libprecisegc/details/collectors/managed_object.hpp>

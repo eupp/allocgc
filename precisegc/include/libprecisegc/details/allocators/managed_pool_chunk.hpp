@@ -32,7 +32,6 @@ private:
     typedef allocators::stack_chunk plain_pool_chunk;
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
-    typedef freelist_allocator<null_allocator, fixsize_policy> freelist_t;
 
     class memory_iterator:
               public managed_memory_iterator<managed_pool_chunk>

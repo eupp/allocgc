@@ -3,11 +3,8 @@
 
 #include <mutex>
 
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/pool_allocator.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -35,14 +32,8 @@ public:
         deallocate(reinterpret_cast<byte*>(ptr));
     }
 private:
-    typedef freelist_allocator<
-              intrusive_list_allocator<
-                      freelist_pool_chunk
-                    , default_allocator
-                    , single_chunk_with_search_cache
-                    , utils::dummy_mutex
-                >
-            , fixsize_policy
+    typedef pool_allocator<
+              default_allocator
         > alloc_t;
 
     static const size_t SHRINK_LOWER_BOUND = freelist_pool_chunk::DEFAULT_CHUNK_SIZE;
@@ -67,10 +58,10 @@ private:
     }
 
     alloc_t m_alloc;
-    size_t m_alloc_size;
-    size_t m_alloc_cnt;
-    size_t m_dealloc_cnt;
-    Lock m_lock;
+    size_t  m_alloc_size;
+    size_t  m_alloc_cnt;
+    size_t  m_dealloc_cnt;
+    Lock    m_lock;
 };
 
 }}}

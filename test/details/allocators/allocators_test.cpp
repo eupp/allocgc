@@ -5,6 +5,7 @@
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/allocators/pool_allocator.hpp>
 #include <libprecisegc/details/allocators/cache_policies.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
@@ -21,7 +22,7 @@ struct list_allocator_test : public ::testing::Test
 };
 
 namespace {
-static const size_t OBJ_SIZE = sizeof(size_t);
+static const size_t OBJ_SIZE = 64;
 
 typedef debug_layer<default_allocator> debug_allocator_t;
 
@@ -40,6 +41,10 @@ typedef list_allocator<
 typedef pool_allocator<
         debug_allocator_t
     > pool_allocator_t;
+
+typedef freelist_allocator<
+        debug_allocator_t
+    > freelist_allocator_t;
 
 TEST(list_allocator_test, test_allocate_1)
 {
@@ -128,6 +133,40 @@ TEST(pool_allocator_test, test_shrink)
 
     alloc.shrink(OBJ_SIZE);
 
+    ASSERT_EQ(0, alloc.upstream_allocator().get_allocated_mem_size());
+}
+
+TEST(freelist_allocator_test, test_allocate_1)
+{
+    freelist_allocator_t alloc;
+
+    size_t* ptr = (size_t*) alloc.allocate(OBJ_SIZE);
+    ASSERT_NE(nullptr, ptr);
+    *ptr = 42;
+
+    ASSERT_EQ(OBJ_SIZE, alloc.upstream_allocator().get_allocated_mem_size());
+}
+
+TEST(freelist_allocator_test, test_allocate_2)
+{
+    freelist_allocator_t alloc;
+
+    byte* ptr1 = alloc.allocate(OBJ_SIZE);
+    alloc.deallocate(ptr1, OBJ_SIZE);
+    ASSERT_EQ(OBJ_SIZE, alloc.upstream_allocator().get_allocated_mem_size());
+
+    byte* ptr2 = alloc.allocate(OBJ_SIZE);
+    ASSERT_EQ(ptr1, ptr2);
+    ASSERT_EQ(OBJ_SIZE, alloc.upstream_allocator().get_allocated_mem_size());
+}
+
+TEST(freelist_allocator_test, test_shrink)
+{
+    freelist_allocator_t alloc;
+
+    byte* ptr = alloc.allocate(OBJ_SIZE);
+    alloc.deallocate(ptr, OBJ_SIZE);
+    alloc.shrink();
     ASSERT_EQ(0, alloc.upstream_allocator().get_allocated_mem_size());
 }
 

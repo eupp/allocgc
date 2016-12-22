@@ -5,8 +5,7 @@
 #include <cstring>
 #include <utility>
 
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/pool_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>
@@ -28,11 +27,8 @@ class mpool_allocator : private utils::noncopyable, private utils::nonmovable
 {
     typedef managed_pool_chunk descriptor_t;
 
-    typedef allocators::intrusive_list_allocator<
-              allocators::freelist_pool_chunk
-            , allocators::default_allocator
-            , allocators::single_chunk_with_search_cache
-            , utils::dummy_mutex
+    typedef allocators::pool_allocator<
+              allocators::default_allocator
         > chunk_pool_t;
 
     typedef std::list<descriptor_t, stl_adapter<descriptor_t, chunk_pool_t>> descriptor_list_t;
@@ -58,8 +54,7 @@ private:
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
     static constexpr double RESIDENCY_EPS = 0.1;
 
-    gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst,
-                                                  size_t attempt_num);
+    gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, size_t attempt_num);
     gc_alloc_response stack_allocation(size_t size, const gc_alloc_request& rqst);
     gc_alloc_response freelist_allocation(size_t size, const gc_alloc_request& rqst);
 

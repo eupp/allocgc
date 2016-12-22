@@ -52,8 +52,8 @@ public:
 
     static memory_range_type memory_range();
 private:
-    typedef freelist_allocator<sys_allocator, varsize_policy> freelist_alloc_t;
-    typedef freelist_allocator<sys_allocator, fixsize_policy> fixsize_page_alloc_t;
+    typedef freelist_allocator<sys_allocator> freelist_alloc_t;
+    typedef freelist_allocator<sys_allocator> fixsize_page_alloc_t;
     typedef bucket_allocator<fixsize_page_alloc_t, page_bucket_policy> bucket_alloc_t;
 
     typedef std::mutex mutex_t;

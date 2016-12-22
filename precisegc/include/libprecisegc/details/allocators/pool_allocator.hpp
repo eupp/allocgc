@@ -65,7 +65,7 @@ public:
     byte* allocate(size_t size)
     {
         if (m_freelist) {
-            byte* ptr = m_freelist;
+            byte* ptr  = m_freelist;
             m_freelist = *reinterpret_cast<byte**>(m_freelist);
             return ptr;
         }

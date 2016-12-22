@@ -33,14 +33,6 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
     typedef allocators::mso_allocator mso_alloc_t;
     typedef allocators::mlo_allocator mlo_alloc_t;
-
-    typedef allocators::intrusive_list_allocator<
-            allocators::managed_object_descriptor,
-            allocators::core_allocator,
-            allocators::always_expand,
-            utils::safepoint_lock<std::recursive_mutex>
-        > loa_t;
-
     typedef compacting::forwarding forwarding;
 public:
     gc_heap(gc_compacting compacting);

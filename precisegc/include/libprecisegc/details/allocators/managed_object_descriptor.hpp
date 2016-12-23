@@ -16,13 +16,7 @@ class managed_object_descriptor : public memory_descriptor, private utils::nonco
 {
 public:
     typedef gc_alloc_response pointer_type;
-    typedef allocators::single_block_chunk_tag chunk_tag;
     typedef managed_memory_iterator<managed_object_descriptor> iterator;
-
-    static size_t chunk_size(size_t size)
-    {
-        return ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
-    }
 
     managed_object_descriptor(size_t size);
     ~managed_object_descriptor();

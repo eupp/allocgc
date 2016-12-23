@@ -5,10 +5,12 @@
 
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/details/allocators/gc_box.hpp>
+#include <libprecisegc/details/allocators/gc_cell.hpp>
+#include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
 #include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
-#include <libprecisegc/details/allocators/allocator_tag.hpp>
 
 #include <libprecisegc/details/utils/flatten_range.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
@@ -25,74 +27,76 @@ namespace precisegc { namespace details { namespace allocators {
 
 class mlo_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    struct control_block
-    {
-        control_block*   m_next;
-        control_block*   m_prev;
-    };
-
+    typedef list_allocator<core_allocator> list_alloc_t;
     typedef managed_object_descriptor descriptor_t;
+    typedef std::mutex mutex_t;
 
-    class iterator: public boost::iterator_facade<
-              iterator
+    class descriptor_iterator : public boost::iterator_adaptor<
+              descriptor_iterator
+            , typename list_alloc_t::iterator
             , descriptor_t
             , boost::bidirectional_traversal_tag
         >
     {
     public:
-        iterator(const iterator&) noexcept = default;
-        iterator(iterator&&) noexcept = default;
-
-        iterator& operator=(const iterator&) noexcept = default;
-        iterator& operator=(iterator&&) noexcept = default;
-
-        descriptor_t* operator->() const;
+        descriptor_iterator(const descriptor_iterator &) noexcept = default;
+        descriptor_iterator& operator=(const descriptor_iterator&) noexcept = default;
     private:
         friend class mlo_allocator;
         friend class boost::iterator_core_access;
 
-        iterator(control_block* cblk) noexcept;
+        descriptor_iterator(const typename list_alloc_t::iterator& it)
+            : descriptor_iterator::iterator_adaptor_(it)
+        {}
 
-        byte* memblk() const;
-
-        descriptor_t* get() const;
-
-        descriptor_t& dereference() const;
-        bool equal(const iterator& other) const noexcept;
-        void increment() noexcept;
-        void decrement() noexcept;
-
-        control_block* m_control_block;
+        descriptor_t& dereference() const
+        {
+            return *get_descr(*this->base());
+        }
     };
 
-    class memory_iterator:
-              public managed_memory_iterator<descriptor_t>
-            , public boost::iterator_facade<
-                  memory_iterator
-                , managed_memory_iterator<descriptor_t>::proxy_t
-                , boost::random_access_traversal_tag
-                , managed_memory_iterator<descriptor_t>::proxy_t
-            >
+    class memory_iterator : public boost::iterator_adaptor<
+              memory_iterator
+            , typename list_alloc_t::iterator
+            , gc_cell
+            , boost::bidirectional_traversal_tag
+        >
     {
     public:
-        memory_iterator();
-        memory_iterator(byte* ptr, descriptor_t* descr, control_block* cblk);
-
-        const proxy_t* operator->()
-        {
-            return &m_proxy;
-        }
+        memory_iterator(const memory_iterator&) noexcept = default;
+        memory_iterator& operator=(const memory_iterator&) noexcept = default;
     private:
+        friend class mlo_allocator;
         friend class boost::iterator_core_access;
 
-        void increment() noexcept;
-        void decrement() noexcept;
+        memory_iterator(const typename list_alloc_t::iterator& it)
+            : descriptor_iterator::iterator_adaptor_(it)
+            , m_cell(gc_cell::from_cell_start(get_memblk(*it), get_descr(*it)))
+        {}
 
-        bool equal(const memory_iterator& other) const noexcept;
+        gc_cell& dereference() const
+        {
+            return m_cell;
+        }
 
-        control_block* get_cblk();
+        void increment() noexcept
+        {
+            ++this->base_reference();
+            update_cell(this->base());
+        }
 
-        control_block* m_cblk;
+        void decrement() noexcept
+        {
+            --this->base_reference();
+            update_cell(this->base());
+        }
+
+        void update_cell(const typename list_alloc_t::iterator& it) noexcept
+        {
+            m_cell = gc_cell::from_cell_start(get_memblk(*it), get_descr(*it));
+        }
+
+        gc_cell m_cell;
     };
 
     typedef boost::iterator_range<memory_iterator> memory_range_type;
@@ -107,12 +111,16 @@ public:
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
-
-    // temporary until refactor
-    memory_range_type memory_range();
 private:
-    typedef list_allocator<core_allocator> list_alloc_t;
-    typedef std::mutex mutex_t;
+    static constexpr size_t get_memblk_size(size_t alloc_size)
+    {
+        return align_size(sizeof(descriptor_t) + gc_box::box_size(alloc_size));
+    }
+
+    static constexpr size_t align_size(size_t size)
+    {
+        return list_alloc_t::align_size(size, PAGE_SIZE);
+    }
 
     static constexpr byte* align_by_page(byte* ptr)
     {
@@ -124,20 +132,25 @@ private:
         return reinterpret_cast<descriptor_t*>(blk);
     }
 
-    static descriptor_t*  get_descriptor(byte* memblk);
-    static control_block* get_control_block(byte* memblk);
-    static byte*          get_mem(byte* memblk);
+    static constexpr byte* get_blk_by_descr(descriptor_t* descr);
 
-    void destroy(byte* ptr);
+    static constexpr byte* get_memblk(byte* blk)
+    {
+        return blk + sizeof(descriptor_t);
+    }
 
-    iterator begin();
-    iterator end();
+    void destroy(const descriptor_iterator& it);
+
+    descriptor_iterator descriptors_begin();
+    descriptor_iterator descriptors_end();
+
+    memory_iterator memory_begin();
+    memory_iterator memory_end();
 
     byte* allocate_blk(size_t size);
     void  deallocate_blk(byte* ptr, size_t size);
 
     list_alloc_t m_alloc;
-    mutex_t      m_mutex;
 };
 
 }}}

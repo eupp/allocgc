@@ -14,6 +14,11 @@ public:
     gc_box(const gc_box&) = delete;
     gc_box& operator=(const gc_box&) = delete;
 
+    static constexpr size_t box_size(size_t obj_size)
+    {
+        return obj_size + sizeof(box_meta);
+    }
+    
     static byte* create(byte* cell_start, const gc_alloc_request& rqst)
     {
         new (get_box_meta(cell_start)) box_meta(rqst);

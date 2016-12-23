@@ -43,6 +43,13 @@ enum class gc_kind {
     , SKIP
 };
 
+enum class gc_lifetime_tag {
+      FREE = 0
+    , ALLOCATED = 1
+    , GARBAGE = 2
+    , INITIALIZED = 4
+};
+
 typedef int     gc_gen;
 
 struct gc_info

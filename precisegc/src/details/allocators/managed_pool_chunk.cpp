@@ -87,7 +87,7 @@ void managed_pool_chunk::move(byte* from, byte* to)
 bool managed_pool_chunk::contains(byte* ptr) const
 {
     byte* mem_begin = memory();
-    byte* mem_end = memory() + size();
+    byte* mem_end   = memory() + size();
     return (mem_begin <= ptr) && (ptr < mem_end);
 }
 
@@ -134,16 +134,6 @@ managed_pool_chunk::iterator managed_pool_chunk::end()
     return iterator(memory() + size() + sizeof(collectors::traceable_object_meta), this);
 }
 
-void managed_pool_chunk::set_initialized(byte* ptr)
-{
-    set_init(ptr, true);
-}
-
-bool managed_pool_chunk::is_initialized(byte* ptr) const
-{
-    return is_init(ptr);
-}
-
 bool managed_pool_chunk::is_init(size_t idx) const
 {
     return m_init_bits.get(idx);
@@ -183,11 +173,6 @@ bool managed_pool_chunk::get_pin(size_t idx) const
     return m_pin_bits.get(idx);
 }
 
-size_t managed_pool_chunk::cell_size() const
-{
-    return m_cell_size;
-}
-
 bool managed_pool_chunk::get_pin(byte* ptr) const
 {
     ptr -= sizeof(collectors::traceable_object_meta);
@@ -219,6 +204,11 @@ void managed_pool_chunk::set_pin(byte* ptr, bool pin)
     m_pin_bits.set(ind, pin);
 }
 
+size_t managed_pool_chunk::cell_size() const
+{
+    return m_cell_size;
+}
+
 size_t managed_pool_chunk::cell_size(byte* ptr) const
 {
     return m_cell_size;
@@ -235,11 +225,6 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
 size_t managed_pool_chunk::object_count(byte* ptr) const
 {
     return get_meta(ptr)->object_count();
-}
-
-void managed_pool_chunk::set_object_count(byte* ptr, size_t cnt) const
-{
-    get_meta(ptr)->set_object_count(cnt);
 }
 
 const gc_type_meta* managed_pool_chunk::get_type_meta(byte* ptr) const
@@ -264,29 +249,6 @@ collectors::traceable_object_meta* managed_pool_chunk::get_meta(byte* ptr) const
     assert(contains(ptr));
 //    assert(ptr == cell_start(ptr));
     return collectors::managed_object(ptr).meta();
-}
-
-managed_pool_chunk::memory_iterator::memory_iterator()
-    : managed_memory_iterator(nullptr, nullptr)
-{}
-
-managed_pool_chunk::memory_iterator::memory_iterator(byte* ptr, managed_pool_chunk* descr)
-    : managed_memory_iterator(ptr, descr)
-{}
-
-void managed_pool_chunk::memory_iterator::increment()
-{
-    set_ptr(get_ptr() + m_proxy.cell_size());
-}
-
-void managed_pool_chunk::memory_iterator::decrement()
-{
-    set_ptr(get_ptr() - m_proxy.cell_size());
-}
-
-bool managed_pool_chunk::memory_iterator::equal(const memory_iterator& other) const
-{
-    return get_ptr() == other.get_ptr();
 }
 
 }}}

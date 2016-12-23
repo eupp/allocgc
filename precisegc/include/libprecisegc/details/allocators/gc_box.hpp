@@ -18,6 +18,11 @@ public:
     {
         return obj_size + sizeof(box_meta);
     }
+
+    static constexpr byte* cell_start(byte* obj_start)
+    {
+        return obj_start - sizeof(box_meta);
+    }
     
     static byte* create(byte* cell_start, const gc_alloc_request& rqst)
     {

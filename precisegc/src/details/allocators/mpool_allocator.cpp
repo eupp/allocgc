@@ -3,6 +3,7 @@
 #include <tuple>
 #include <iterator>
 
+#include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
@@ -63,10 +64,10 @@ gc_alloc_response mpool_allocator::stack_allocation(size_t size, const gc_alloc_
 {
     assert(m_top <= m_end - size);
 
-    descriptor_t& descr = m_descrs.back();
+    descriptor_t* descr = &m_descrs.back();
     byte* ptr = m_top;
     m_top += size;
-    return descr.init(ptr, rqst);
+    return init_cell(ptr, rqst, descr);
 }
 
 gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_alloc_request& rqst)
@@ -80,7 +81,13 @@ gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_all
 
     memset(ptr, 0, size);
     descriptor_t* descr = static_cast<descriptor_t*>(collectors::memory_index::index(ptr));
-    return descr->init(ptr, rqst);
+    return init_cell(ptr, rqst, descr);
+}
+
+gc_alloc_response mpool_allocator::init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr)
+{
+    byte* obj_start = gc_box::create(cell_start, rqst);
+    return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
 }
 
 mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
@@ -152,8 +159,7 @@ void mpool_allocator::shrink(gc_heap_stat& stat)
 void mpool_allocator::sweep(gc_heap_stat& stat)
 {
     for (auto& descr: m_descrs) {
-        size_t freed    = sweep(descr);
-        stat.mem_freed += freed;
+        stat.mem_freed += sweep(descr);
     }
 }
 
@@ -173,7 +179,9 @@ size_t mpool_allocator::sweep(descriptor_t& descr)
 
 void mpool_allocator::insert_into_freelist(byte* ptr)
 {
-
+    byte** next = reinterpret_cast<byte**>(ptr);
+    next[0]     = reinterpret_cast<byte*>(m_freelist);
+    m_freelist  = next;
 }
 
 void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
@@ -187,7 +195,6 @@ void mpool_allocator::fix(const compacting::forwarding& frwd)
 {
     auto rng = memory_range();
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
-
 }
 
 bool mpool_allocator::empty() const
@@ -198,7 +205,7 @@ bool mpool_allocator::empty() const
 bool mpool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
     return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
-           || (stat.residency()< RESIDENCY_NON_COMPACTING_THRESHOLD
+           || (stat.residency() < RESIDENCY_NON_COMPACTING_THRESHOLD
                && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
 }
 

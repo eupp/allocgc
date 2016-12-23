@@ -76,7 +76,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
-        include/libprecisegc/details/allocators/managed_memory_iterator.hpp
         include/libprecisegc/details/allocators/freelist_allocator.hpp
         include/libprecisegc/details/utils/get_ptr.hpp
         include/libprecisegc/details/allocators/pool.hpp

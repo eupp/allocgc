@@ -3,7 +3,6 @@
 
 #include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
@@ -16,7 +15,6 @@ class managed_object_descriptor : public memory_descriptor, private utils::nonco
 {
 public:
     typedef gc_alloc_response pointer_type;
-    typedef managed_memory_iterator<managed_object_descriptor> iterator;
 
     managed_object_descriptor(size_t size);
     ~managed_object_descriptor();

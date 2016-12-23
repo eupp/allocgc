@@ -9,12 +9,8 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/allocators/freelist_allocator.hpp>
-#include <libprecisegc/details/allocators/null_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
+#include <libprecisegc/details/allocators/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
-#include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
@@ -31,33 +27,42 @@ private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 
-    class memory_iterator:
-              public managed_memory_iterator<managed_pool_chunk>
-            , public boost::iterator_facade<
-                      memory_iterator
-                    , managed_memory_iterator<managed_pool_chunk>::proxy_t
-                    , boost::random_access_traversal_tag
-                    , managed_memory_iterator<managed_pool_chunk>::proxy_t
-            >
+    class memory_iterator: public boost::iterator_facade<
+              memory_iterator
+            , gc_cell
+            , boost::random_access_traversal_tag
+        >
     {
-    public:
-        memory_iterator();
-        memory_iterator(byte* ptr, managed_pool_chunk* descr);
-
-        const proxy_t* operator->()
-        {
-            return &m_proxy;
-        }
     private:
+        friend class managed_pool_chunk;
         friend class boost::iterator_core_access;
 
-        void increment();
-        void decrement();
+        memory_iterator(byte* ptr, managed_pool_chunk* descr);
 
-        bool equal(const memory_iterator& other) const;
+        gc_cell& dereference() const
+        {
+            return m_cell;
+        }
+
+        void increment()
+        {
+            m_cell.reset(m_cell.get() + m_cell_size);
+        }
+
+        void decrement()
+        {
+            m_cell.reset(m_cell.get() - m_cell_size);
+        }
+
+        bool equal(const memory_iterator& other) const
+        {
+            return m_cell.get() == other.m_cell.get();
+        }
+
+        gc_cell m_cell;
+        size_t  m_cell_size;
     };
 public:
-    typedef allocators::multi_block_chunk_tag chunk_tag;
     typedef memory_iterator iterator;
     typedef boost::iterator_range<memory_iterator> memory_range_type;
 
@@ -81,26 +86,20 @@ public:
     bool contains(byte* ptr) const;
 
     bool unused() const;
+    void unmark();
 
     size_t count_lived() const;
     size_t count_pinned() const;
 
     double residency() const;
 
-    void unmark();
-
     memory_range_type memory_range();
 
     iterator begin();
     iterator end();
 
-    void set_initialized(byte* ptr) override;
-    bool is_initialized(byte* ptr) const override;
-
     bool get_mark(size_t idx) const;
     bool get_pin(size_t idx) const;
-
-    size_t cell_size() const;
 
     void set_mark(size_t idx, bool mark);
     void set_pin(size_t idx, bool pin);
@@ -111,14 +110,15 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    size_t cell_size() const;
     size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
     size_t object_count(byte* ptr) const override;
-    void   set_object_count(byte* ptr, size_t cnt) const override;
 
     const gc_type_meta* get_type_meta(byte* ptr) const override;
-    void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
+
+
 private:
     bool is_init(size_t idx) const;
     void set_init(size_t idx, bool init);

@@ -5,8 +5,6 @@
 #include <iterator>
 #include <algorithm>
 
-#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
-
 namespace precisegc { namespace details { namespace compacting {
 
 struct two_finger_compactor

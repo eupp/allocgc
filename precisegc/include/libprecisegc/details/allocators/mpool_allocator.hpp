@@ -58,6 +58,7 @@ private:
     gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, size_t attempt_num);
     gc_alloc_response stack_allocation(size_t size, const gc_alloc_request& rqst);
     gc_alloc_response freelist_allocation(size_t size, const gc_alloc_request& rqst);
+    gc_alloc_response init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr);
 
     mpool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
     iterator_t destroy_descriptor(iterator_t it);

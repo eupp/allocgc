@@ -29,6 +29,7 @@ class mpool_allocator : private utils::noncopyable, private utils::nonmovable
 
     typedef allocators::pool_allocator<
               allocators::default_allocator
+            , utils::dummy_mutex
         > chunk_pool_t;
 
     typedef std::list<descriptor_t, stl_adapter<descriptor_t, chunk_pool_t>> descriptor_list_t;

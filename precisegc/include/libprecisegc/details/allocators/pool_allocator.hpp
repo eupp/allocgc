@@ -7,16 +7,17 @@
 #include <libprecisegc/details/allocators/default_allocator.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
-#include <libprecisegc/details/utils/flatten_range.hpp>
-#include <libprecisegc/details/utils/utility.hpp>
 
+#include <libprecisegc/details/utils/flatten_range.hpp>
+#include <libprecisegc/details/utils/dummy_mutex.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename UpstreamAlloc>
+template <typename UpstreamAlloc, typename Lock>
 class pool_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    typedef list_allocator<UpstreamAlloc> list_alloc_t;
+    typedef list_allocator<UpstreamAlloc, utils::dummy_mutex> list_alloc_t;
     typedef freelist_pool_chunk chunk_t;
 
     class chunk_iterator : public boost::iterator_adaptor<

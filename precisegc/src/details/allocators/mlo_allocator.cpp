@@ -1,7 +1,5 @@
 #include <libprecisegc/details/allocators/mlo_allocator.hpp>
 
-#include <libprecisegc/details/allocators/core_allocator.hpp>
-
 #include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 
@@ -21,35 +19,36 @@ mlo_allocator::~mlo_allocator()
 
 gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 {
-    size_t memblk_size = get_memblk_size(rqst.alloc_size());
+    size_t blk_size = get_blk_size(rqst.alloc_size());
 
-    auto deleter = [this, memblk_size] (byte* ptr) {
-        deallocate_blk(ptr, memblk_size);
+    auto deleter = [this, blk_size] (byte* ptr) {
+        std::lock_guard<mutex_t> lock(m_mutex);
+        deallocate_blk(ptr, blk_size);
     };
-    std::unique_ptr<byte, decltype(deleter)> memblk(allocate_blk(memblk_size), deleter);
+    std::unique_ptr<byte, decltype(deleter)> blk(allocate_blk(blk_size), deleter);
 
-    if (!memblk) {
+    if (!blk) {
         gc_options opt;
         opt.kind = gc_kind::COLLECT;
         opt.gen  = 0;
         gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
 
-        memblk.reset(allocate_blk(memblk_size));
-        if (!memblk) {
+        blk.reset(allocate_blk(blk_size));
+        if (!blk) {
             core_allocator::expand_heap();
-            memblk.reset(allocate_blk(memblk_size));
-            if (!memblk) {
+            blk.reset(allocate_blk(blk_size));
+            if (!blk) {
                 throw gc_bad_alloc();
             }
         }
     }
 
-    descriptor_t* descr = get_descr(memblk.get());
+    descriptor_t* descr = get_descr(blk.get());
     new (descr) descriptor_t(rqst.alloc_size());
-    byte* obj_start = gc_box::create(get_memblk(memblk.get()), rqst);
-    collectors::memory_index::add_to_index(align_by_page(memblk.get()), m_alloc.get_blk_size(memblk_size), descr);
+    byte* obj_start = gc_box::create(get_memblk(blk.get()), rqst);
+    collectors::memory_index::add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
-    memblk.release();
+    blk.release();
 
     return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
 }
@@ -82,18 +81,43 @@ void mlo_allocator::fix(const compacting::forwarding& frwd)
 
 void mlo_allocator::destroy(const descriptor_iterator& it)
 {
+    byte*  blk      = get_blk_by_descr(&(*it));
+    size_t blk_size = get_blk_size(it->size());
+
+    collectors::memory_index::remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
-    deallocate_blk(get_blk_by_descr(&(*it)), get_memblk_size(it->size()));
+    deallocate_blk(blk, blk_size);
 }
 
 byte* mlo_allocator::allocate_blk(size_t size)
 {
+    std::lock_guard<mutex_t> lock(m_mutex);
     return m_alloc.allocate(size);
 }
 
 void mlo_allocator::deallocate_blk(byte* ptr, size_t size)
 {
     m_alloc.deallocate(ptr, size);
+}
+
+mlo_allocator::descriptor_iterator mlo_allocator::descriptors_begin()
+{
+    return descriptor_iterator(m_alloc.begin());
+}
+
+mlo_allocator::descriptor_iterator mlo_allocator::descriptors_end()
+{
+    return descriptor_iterator(m_alloc.end());
+}
+
+mlo_allocator::memory_iterator mlo_allocator::memory_begin()
+{
+    return memory_iterator(m_alloc.begin());
+}
+
+mlo_allocator::memory_iterator mlo_allocator::memory_end()
+{
+    return memory_iterator(m_alloc.end());
 }
 
 }}}

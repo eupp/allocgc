@@ -6,13 +6,14 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
+#include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
-template <typename UpstreamAlloc>
+template <typename UpstreamAlloc, typename Lock>
 class list_allocator : private utils::ebo<UpstreamAlloc>,
                        private utils::noncopyable,
                        private utils::nonmovable
@@ -98,6 +99,10 @@ public:
     typedef stateful_alloc_tag alloc_tag;
 
     typedef boost::iterator_range<iterator> memory_range_type;
+    typedef utils::locked_range<
+              memory_range_type
+            , Lock
+        > locked_memory_range_type;
 
     static constexpr size_t get_blk_size(size_t size)
     {
@@ -139,6 +144,8 @@ public:
         cblk->m_next = fake;
         cblk->m_prev = fake->m_prev;
 
+        std::lock_guard<Lock> lock(m_lock);
+
         fake->m_prev->m_next = cblk;
         fake->m_prev = cblk;
 
@@ -151,6 +158,8 @@ public:
 
     void deallocate(byte* ptr, size_t size)
     {
+        std::unique_lock<Lock> lock(m_lock);
+
         control_block* cblk = get_cblk_by_memblk(ptr);
         if (cblk == m_head) {
             m_head = cblk->m_next;
@@ -158,11 +167,14 @@ public:
         cblk->m_next->m_prev = cblk->m_prev;
         cblk->m_prev->m_next = cblk->m_next;
 
+        lock.unlock();
+
         upstream_deallocate(get_blk_by_cblk(cblk), get_blk_size(size));
     }
 
     bool empty() const
     {
+        std::lock_guard<Lock> lock(m_lock);
         return m_head == &m_fake;
     }
 
@@ -179,6 +191,15 @@ public:
     memory_range_type memory_range()
     {
         return memory_range_type(begin(), end());
+    }
+
+    locked_memory_range_type locked_memory_range()
+    {
+        std::unique_lock<Lock> lock(m_lock);
+        return locked_memory_range_type(
+                memory_range(),
+                std::move(lock)
+        );
     }
 
     const UpstreamAlloc& upstream_allocator() const
@@ -203,6 +224,7 @@ private:
 
     control_block  m_fake;
     control_block* m_head;
+    Lock           m_lock;
 };
 
 }}}

@@ -26,11 +26,13 @@ typedef debug_layer<default_allocator> debug_allocator_t;
 
 typedef list_allocator<
           debug_allocator_t
+        , utils::dummy_mutex
     > list_allocator_t;
 }
 
 typedef pool_allocator<
-        debug_allocator_t
+          debug_allocator_t
+        , utils::dummy_mutex
     > pool_allocator_t;
 
 typedef freelist_allocator<

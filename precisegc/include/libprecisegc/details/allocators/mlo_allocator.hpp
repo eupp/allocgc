@@ -9,25 +9,24 @@
 #include <libprecisegc/details/allocators/gc_cell.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
+#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/sys_allocator.hpp>
 #include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
-#include <libprecisegc/details/allocators/managed_memory_iterator.hpp>
 
-#include <libprecisegc/details/utils/flatten_range.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
+#include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
-#include "sys_allocator.hpp"
-#include "core_allocator.hpp"
 
 namespace precisegc { namespace details { namespace allocators {
 
 class mlo_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    typedef list_allocator<core_allocator> list_alloc_t;
+    typedef list_allocator<core_allocator, utils::dummy_mutex> list_alloc_t;
     typedef managed_object_descriptor descriptor_t;
     typedef std::mutex mutex_t;
 
@@ -112,7 +111,7 @@ public:
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
 private:
-    static constexpr size_t get_memblk_size(size_t alloc_size)
+    static constexpr size_t get_blk_size(size_t alloc_size)
     {
         return align_size(sizeof(descriptor_t) + gc_box::box_size(alloc_size));
     }
@@ -132,7 +131,10 @@ private:
         return reinterpret_cast<descriptor_t*>(blk);
     }
 
-    static constexpr byte* get_blk_by_descr(descriptor_t* descr);
+    static constexpr byte* get_blk_by_descr(descriptor_t* descr)
+    {
+        return reinterpret_cast<byte*>(descr);
+    }
 
     static constexpr byte* get_memblk(byte* blk)
     {
@@ -151,6 +153,7 @@ private:
     void  deallocate_blk(byte* ptr, size_t size);
 
     list_alloc_t m_alloc;
+    mutex_t      m_mutex;
 };
 
 }}}

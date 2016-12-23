@@ -24,9 +24,9 @@ public:
         return obj_start - sizeof(box_meta);
     }
     
-    static byte* create(byte* cell_start, const gc_alloc_request& rqst)
+    static byte* create(byte* cell_start, size_t obj_count, const gc_type_meta* type_meta)
     {
-        new (get_box_meta(cell_start)) box_meta(rqst);
+        new(get_box_meta(cell_start)) box_meta(type_meta, obj_count);
         return get_obj_start(cell_start);
     }
 
@@ -91,10 +91,12 @@ private:
     class box_meta
     {
     public:
-        box_meta(const gc_alloc_request& rqst)
-            : m_type_meta(reinterpret_cast<std::uintptr_t>(rqst.type_meta()))
-            , m_count(rqst.obj_count())
-        {}
+        box_meta(const gc_type_meta* type_meta, size_t obj_count)
+            : m_type_meta(reinterpret_cast<std::uintptr_t>(type_meta))
+            , m_count(obj_count)
+        {
+            assert(obj_count > 0);
+        }
 
         size_t object_count() const noexcept
         {

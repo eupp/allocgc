@@ -45,7 +45,7 @@ gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 
     descriptor_t* descr = get_descr(blk.get());
     new (descr) descriptor_t(rqst.alloc_size());
-    byte* obj_start = gc_box::create(get_memblk(blk.get()), rqst);
+    byte* obj_start = descr->init_cell(get_memblk(blk.get()), rqst.obj_count(), rqst.type_meta());
     collectors::memory_index::add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
     blk.release();
@@ -58,13 +58,13 @@ gc_heap_stat mlo_allocator::collect(compacting::forwarding& frwd)
     gc_heap_stat stat;
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
         auto next = std::next(it);
-        stat.mem_before_gc += it->size();
+        stat.mem_before_gc += it->cell_size();
         if (!it->get_mark()) {
-            stat.mem_freed += it->size();
+            stat.mem_freed += it->cell_size();
             destroy(it);
         } else {
-            stat.mem_all  += it->size();
-            stat.mem_live += it->size();
+            stat.mem_all  += it->cell_size();
+            stat.mem_live += it->cell_size();
         }
         if (it->get_pin()) {
             ++stat.pinned_cnt;
@@ -82,7 +82,7 @@ void mlo_allocator::fix(const compacting::forwarding& frwd)
 void mlo_allocator::destroy(const descriptor_iterator& it)
 {
     byte*  blk      = get_blk_by_descr(&(*it));
-    size_t blk_size = get_blk_size(it->size());
+    size_t blk_size = get_blk_size(it->cell_size());
 
     collectors::memory_index::remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();

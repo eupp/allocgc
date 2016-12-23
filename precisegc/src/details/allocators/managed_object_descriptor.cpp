@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include <libprecisegc/details/collectors/managed_object.hpp>
+#include <libprecisegc/details/allocators/gc_box.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -11,38 +11,10 @@ managed_object_descriptor::managed_object_descriptor(size_t size)
     , m_mark_bit(false)
     , m_pin_bit(false)
     , m_init_bit(false)
-{
-//    assert(size > LARGE_CELL_SIZE);
-}
+{ }
 
 managed_object_descriptor::~managed_object_descriptor()
 {}
-
-gc_alloc_response managed_object_descriptor::init(byte* ptr, const gc_alloc_request& rqst)
-{
-    using namespace collectors;
-    m_init_bit = true;
-    traceable_object_meta* meta = managed_object::get_meta(ptr);
-    new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
-    return gc_alloc_response(managed_object::get_object(ptr), rqst.alloc_size(), this);
-}
-
-size_t managed_object_descriptor::destroy(byte* ptr)
-{
-    using namespace collectors;
-
-    assert(check_ptr(ptr));
-    if (m_init_bit) {
-        traceable_object_meta* meta = managed_object::get_meta(ptr);
-        const gc_type_meta* tmeta = meta->get_type_meta();
-        if (tmeta) {
-            tmeta->destroy(ptr);
-        }
-        m_init_bit = false;
-        return m_size;
-    }
-    return 0;
-}
 
 bool managed_object_descriptor::get_mark() const noexcept
 {
@@ -62,18 +34,6 @@ bool managed_object_descriptor::set_mark(bool mark) noexcept
 bool managed_object_descriptor::set_pin(bool pin) noexcept
 {
     m_pin_bit = pin;
-}
-
-void managed_object_descriptor::set_initialized(byte* ptr)
-{
-    check_ptr(ptr);
-    m_init_bit = true;
-}
-
-bool managed_object_descriptor::is_initialized(byte* ptr) const
-{
-    check_ptr(ptr);
-    return m_init_bit;
 }
 
 bool managed_object_descriptor::get_mark(byte* ptr) const
@@ -100,6 +60,16 @@ void managed_object_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bit = pin;
 }
 
+gc_lifetime_tag managed_object_descriptor::get_lifetime_tag(byte* ptr) const
+{
+    return get_lifetime_tag_by_bits(m_mark_bit, m_init_bit);
+}
+
+size_t managed_object_descriptor::cell_size() const
+{
+    return m_size;
+}
+
 size_t managed_object_descriptor::cell_size(byte* ptr) const
 {
     assert(check_ptr(ptr));
@@ -114,29 +84,43 @@ byte* managed_object_descriptor::cell_start(byte* ptr) const
 
 size_t managed_object_descriptor::object_count(byte* ptr) const
 {
-    return get_meta(ptr)->object_count();
-}
-
-void managed_object_descriptor::set_object_count(byte* ptr, size_t cnt) const
-{
-    get_meta(ptr)->set_object_count(cnt);
+    assert(check_ptr(ptr));
+    return gc_box::get_obj_count(ptr);
 }
 
 const gc_type_meta* managed_object_descriptor::get_type_meta(byte* ptr) const
 {
     assert(check_ptr(ptr));
-    return collectors::managed_object(ptr).meta()->get_type_meta();
+    return gc_box::get_type_meta(ptr);
 }
 
-void managed_object_descriptor::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
+byte* managed_object_descriptor::init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
 {
     assert(check_ptr(ptr));
-    collectors::managed_object(ptr).meta()->set_type_meta(tmeta);
+    return gc_box::create(ptr, obj_count, type_meta);
 }
 
-size_t managed_object_descriptor::size() const
+void managed_object_descriptor::mark_initilized(byte* ptr, const gc_type_meta* type_meta = nullptr)
 {
-    return m_size;
+    assert(check_ptr(ptr));
+    assert(type_meta || gc_box::get_type_meta(ptr));
+    gc_box::set_type_meta(ptr, type_meta);
+    m_init_bit = true;
+}
+
+void managed_object_descriptor::move(byte* to, byte* from, memory_descriptor* from_descr)
+{
+    assert(check_ptr(to));
+    assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
+    assert(from_descr->get_type_meta(from) != nullptr);
+    gc_box::create(to, from_descr->object_count(from), from_descr->get_type_meta(from));
+}
+
+void managed_object_descriptor::finalize(byte* ptr)
+{
+    assert(check_ptr(ptr));
+    assert(m_init_bit);
+    gc_box::destroy(ptr);
 }
 
 memory_descriptor* managed_object_descriptor::descriptor()
@@ -146,14 +130,7 @@ memory_descriptor* managed_object_descriptor::descriptor()
 
 bool managed_object_descriptor::check_ptr(byte* ptr) const
 {
-//    return ptr == (reinterpret_cast<const byte*>(this) + sizeof(managed_object_descriptor));
-    return true;
-}
-
-collectors::traceable_object_meta* managed_object_descriptor::get_meta(byte* cell_start) const
-{
-    assert(check_ptr(cell_start));
-    return collectors::managed_object(cell_start).meta();
+    return ptr == (reinterpret_cast<const byte*>(this) + sizeof(managed_object_descriptor));
 }
 
 }}}

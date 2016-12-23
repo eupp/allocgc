@@ -37,7 +37,14 @@ private:
         friend class managed_pool_chunk;
         friend class boost::iterator_core_access;
 
-        memory_iterator(byte* ptr, managed_pool_chunk* descr);
+        memory_iterator(byte* ptr, managed_pool_chunk* descr, size_t cell_size)
+            : m_cell(gc_cell::from_cell_start(ptr, descr))
+            , m_cell_size(cell_size)
+        {
+            assert(ptr);
+            assert(descr);
+            assert(cell_size > 0);
+        }
 
         gc_cell& dereference() const
         {
@@ -115,10 +122,7 @@ public:
     byte*  cell_start(byte* ptr) const override;
 
     size_t object_count(byte* ptr) const override;
-
     const gc_type_meta* get_type_meta(byte* ptr) const override;
-
-
 private:
     bool is_init(size_t idx) const;
     void set_init(size_t idx, bool init);

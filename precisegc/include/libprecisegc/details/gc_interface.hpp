@@ -50,6 +50,11 @@ enum class gc_lifetime_tag {
     , INITIALIZED = 4
 };
 
+inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
+{
+    return static_cast<gc_lifetime_tag>(((int) init_bit << 1) + (int) mark_bit);
+}
+
 typedef int     gc_gen;
 
 struct gc_info

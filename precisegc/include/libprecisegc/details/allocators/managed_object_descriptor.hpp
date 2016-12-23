@@ -1,9 +1,6 @@
 #ifndef DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
 #define DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
 
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/utils/block_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
@@ -19,39 +16,37 @@ public:
     managed_object_descriptor(size_t size);
     ~managed_object_descriptor();
 
-    size_t size() const;
+    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
 
     memory_descriptor* descriptor();
-
-    gc_alloc_response init(byte* ptr, const gc_alloc_request& rqst);
-    size_t destroy(byte* ptr);
-
-    void set_initialized(byte* ptr) override;
-    bool is_initialized(byte* ptr) const override;
 
     bool get_mark() const noexcept;
     bool get_pin() const noexcept;
 
-    bool set_mark(bool mark) noexcept;
-    bool set_pin(bool pin) noexcept;
-
     bool get_mark(byte* ptr) const override;
     bool get_pin(byte* ptr) const override;
+
+    bool set_mark(bool mark) noexcept;
+    bool set_pin(bool pin) noexcept;
 
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
+
+    size_t cell_size() const;
     size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
     size_t object_count(byte* ptr) const override;
-    void   set_object_count(byte* ptr, size_t cnt) const override;
 
     const gc_type_meta* get_type_meta(byte* ptr) const override;
-    void  set_type_meta(byte* ptr, const gc_type_meta* tmeta) override;
-private:
-    collectors::traceable_object_meta* get_meta(byte* cell_start) const;
 
+    void mark_initilized(byte* ptr, const gc_type_meta* type_meta = nullptr);
+
+    void move(byte* to, byte* from, memory_descriptor* from_descr);
+    void finalize(byte* ptr);
+private:
     bool check_ptr(byte* ptr) const;
 
     size_t m_size;

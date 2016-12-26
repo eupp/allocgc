@@ -88,8 +88,24 @@ bool managed_pool_chunk::is_init(size_t idx) const
     return m_init_bits.get(idx);
 }
 
+bool managed_pool_chunk::is_init(byte* ptr) const
+{
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    size_t idx = calc_cell_ind(ptr);
+    return m_init_bits.get(idx);
+}
+
 void managed_pool_chunk::set_init(size_t idx, bool init)
 {
+    m_init_bits.set(idx, init);
+}
+
+void managed_pool_chunk::set_init(byte* ptr, bool init)
+{
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    size_t idx = calc_cell_ind(ptr);
     m_init_bits.set(idx, init);
 }
 
@@ -190,7 +206,7 @@ void managed_pool_chunk::mark_initilized(byte* ptr)
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     assert(gc_box::get_type_meta(ptr));
-    set_init(calc_cell_ind(ptr), true);
+    set_init(ptr, true);
 }
 
 void managed_pool_chunk::mark_initilized(byte* ptr, const gc_type_meta* tmeta)
@@ -199,25 +215,35 @@ void managed_pool_chunk::mark_initilized(byte* ptr, const gc_type_meta* tmeta)
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     gc_box::set_type_meta(ptr, tmeta);
-    set_init(calc_cell_ind(ptr), true);
+    set_init(ptr, true);
+}
+
+void managed_pool_chunk::trace(byte* ptr, const gc_trace_callback& cb) const
+{
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::INITIALIZED ||
+           get_lifetime_tag(ptr) == gc_lifetime_tag::ALLOCATED);
+    gc_box::trace(ptr, cb);
 }
 
 void managed_pool_chunk::move(byte* to, byte* from, memory_descriptor* from_descr)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    assert(is_init(calc_cell_ind(ptr)));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
     assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
     gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
+    set_init(to, true);
 }
 
 void managed_pool_chunk::finalize(byte* ptr)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    assert(is_init(calc_cell_ind(ptr)));
+    assert(get_lifetime_tag(from) == gc_lifetime_tag::GARBAGE);
     gc_box::destroy(ptr);
+    set_init(ptr, false);
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const

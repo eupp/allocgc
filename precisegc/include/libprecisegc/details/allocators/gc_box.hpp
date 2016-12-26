@@ -26,13 +26,44 @@ public:
     
     static byte* create(byte* cell_start, size_t obj_count, const gc_type_meta* type_meta)
     {
+        assert(cell_start);
         new (get_box_meta(cell_start)) box_meta(type_meta, obj_count);
         return get_obj_start(cell_start);
+    }
+
+    static void trace(byte* cell_start, const gc_trace_callback& cb)
+    {
+        assert(cb);
+        assert(cell_start);
+        assert(get_type_meta(cell_start));
+
+        box_meta* meta = get_box_meta(cell_start);
+        const gc_type_meta* type_meta = get_type_meta(cell_start);
+
+        assert(type_meta);
+        assert(meta->object_count() > 0);
+        byte*  obj      = get_obj_start(cell_start);
+        size_t obj_cnt  = meta->object_count();
+        size_t obj_size = type_meta->type_size();
+
+        auto   offsets     = type_meta->offsets();
+        size_t offsets_cnt = offsets.size();
+        if (offsets.empty()) {
+            return;
+        }
+
+        for (size_t i = 0; i < obj_cnt; i++) {
+            for (size_t j = 0; j < offsets_cnt; j++) {
+                cb(reinterpret_cast<gc_word*>(obj + offsets[j]));
+            }
+            obj += obj_size;
+        }
     }
 
     static void move(byte* to, byte* from, size_t obj_count, const gc_type_meta* type_meta)
     {
         assert(type_meta);
+        assert(to && from);
         assert(obj_count > 0);
 
         new (get_box_meta(to)) box_meta(type_meta, obj_count);
@@ -47,6 +78,7 @@ public:
 
     static void destroy(byte* cell_start)
     {
+        assert(cell_start);
         assert(get_type_meta(cell_start));
         box_meta* meta = get_box_meta(cell_start);
         const gc_type_meta* type_meta = get_type_meta(cell_start);
@@ -63,32 +95,38 @@ public:
 
     static size_t get_obj_count(byte* cell_start) noexcept
     {
+        assert(cell_start);
         return get_box_meta(cell_start)->object_count();
     }
 
     static const gc_type_meta* get_type_meta(byte* cell_start) noexcept
     {
+        assert(cell_start);
         return get_box_meta(cell_start)->type_meta();
     }
 
     static void set_type_meta(byte* cell_start, const gc_type_meta* type_meta) noexcept
     {
+        assert(cell_start);
         return get_box_meta(cell_start)->set_type_meta(type_meta);
     }
 
     static bool is_forwarded(byte* cell_start) noexcept
     {
+        assert(cell_start);
         return get_box_meta(cell_start)->is_forwarded();
     }
 
     static byte* forward_pointer(byte* cell_start) noexcept
     {
+        assert(cell_start);
         assert(is_forwarded(cell_start));
         return *get_forward_pointer_address(cell_start);
     }
 
     static void set_forward_pointer(byte* cell_start, byte* forward_pointer) noexcept
     {
+        assert(cell_start);
         box_meta* meta = get_box_meta(cell_start);
         meta->set_forwarded();
         byte** forward_ptr_addr = get_forward_pointer_address(cell_start);

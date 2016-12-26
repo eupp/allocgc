@@ -1,10 +1,9 @@
 #ifndef DIPLOMA_CELL_DESCRIPTOR_H
 #define DIPLOMA_CELL_DESCRIPTOR_H
 
-#include <mutex>
-
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {
@@ -32,6 +31,7 @@ public:
     virtual void mark_initilized(byte* ptr) = 0;
     virtual void mark_initilized(byte* ptr, const gc_type_meta* tmeta) = 0;
 
+    virtual void trace(byte* ptr, const gc_trace_callback& cb) const = 0;
     virtual void move(byte* to, byte* from, memory_descriptor* from_descr) = 0;
     virtual void finalize(byte* ptr) = 0;
 };

@@ -84,9 +84,19 @@ public:
         return m_descr->get_type_meta(m_cell);
     }
 
-    void mark_initilized(const gc_type_meta* tmeta = nullptr)
+    void mark_initilized()
+    {
+        m_descr->mark_initilized(m_cell);
+    }
+
+    void mark_initilized(const gc_type_meta* tmeta)
     {
         m_descr->mark_initilized(m_cell, tmeta);
+    }
+
+    void trace(const gc_trace_callback& cb) const
+    {
+        m_descr->trace(m_cell, cb);
     }
 
     void move(const gc_cell& to)
@@ -102,7 +112,10 @@ private:
     gc_cell(byte* cell, memory_descriptor* descr)
         : m_cell(cell)
         , m_descr(descr)
-    { }
+    {
+        assert(m_cell);
+        assert(m_descr);
+    }
 
     byte*              m_cell;
     memory_descriptor* m_descr;

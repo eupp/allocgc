@@ -45,6 +45,7 @@ public:
     void mark_initilized(byte* ptr) override;
     void mark_initilized(byte* ptr, const gc_type_meta* type_meta) override;
 
+    void trace(byte* ptr, const gc_trace_callback& cb) const override;
     void move(byte* to, byte* from, memory_descriptor* from_descr) override;
     void finalize(byte* ptr) override;
 private:

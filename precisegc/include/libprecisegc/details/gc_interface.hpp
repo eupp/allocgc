@@ -2,9 +2,11 @@
 #define DIPLOMA_GC_INTERFACE_HPP
 
 #include <string>
+#include <functional>
 
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 
 namespace precisegc { namespace details {
 
@@ -51,6 +53,8 @@ inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
 }
 
 typedef int     gc_gen;
+
+typedef std::function<void(gc_word*)> gc_trace_callback;
 
 struct gc_info
 {

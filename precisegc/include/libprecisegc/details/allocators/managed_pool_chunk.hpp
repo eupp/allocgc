@@ -130,9 +130,13 @@ public:
     void mark_initilized(byte* ptr) override;
     void mark_initilized(byte* ptr, const gc_type_meta* tmeta) override;
 
+    void trace(byte* ptr, const gc_trace_callback& cb) const override;
     void move(byte* to, byte* from, memory_descriptor* from_descr) override;
     void finalize(byte* ptr) override;
 private:
+    bool is_init(byte* ptr) const;
+    void set_init(byte* ptr, bool init);
+
     bool is_init(size_t idx) const;
     void set_init(size_t idx, bool init);
 

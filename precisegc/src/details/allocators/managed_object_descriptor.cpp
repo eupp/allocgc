@@ -115,19 +115,29 @@ void managed_object_descriptor::mark_initilized(byte* ptr, const gc_type_meta* t
     m_init_bit = true;
 }
 
+void managed_object_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
+{
+    assert(check_ptr(ptr));
+    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::INITIALIZED ||
+           get_lifetime_tag(ptr) == gc_lifetime_tag::ALLOCATED);
+    gc_box::trace(ptr, cb);
+}
+
 void managed_object_descriptor::move(byte* to, byte* from, memory_descriptor* from_descr)
 {
     assert(check_ptr(to));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
     assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
     gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
+    m_init_bit = true;
 }
 
 void managed_object_descriptor::finalize(byte* ptr)
 {
     assert(check_ptr(ptr));
-    assert(m_init_bit);
+    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
     gc_box::destroy(ptr);
+    m_init_bit = false;
 }
 
 memory_descriptor* managed_object_descriptor::descriptor()

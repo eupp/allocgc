@@ -6,7 +6,7 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/gc_box.hpp>
-#include <libprecisegc/details/allocators/gc_cell.hpp>
+#include <libprecisegc/details/collectors/gc_cell.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/core_allocator.hpp>

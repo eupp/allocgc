@@ -16,9 +16,9 @@ public:
     managed_object_descriptor(size_t size);
     ~managed_object_descriptor();
 
-    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
-
     memory_descriptor* descriptor();
+
+    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
 
     bool get_mark() const noexcept;
     bool get_pin() const noexcept;
@@ -42,10 +42,11 @@ public:
 
     const gc_type_meta* get_type_meta(byte* ptr) const override;
 
-    void mark_initilized(byte* ptr, const gc_type_meta* type_meta = nullptr);
+    void mark_initilized(byte* ptr) override;
+    void mark_initilized(byte* ptr, const gc_type_meta* type_meta) override;
 
-    void move(byte* to, byte* from, memory_descriptor* from_descr);
-    void finalize(byte* ptr);
+    void move(byte* to, byte* from, memory_descriptor* from_descr) override;
+    void finalize(byte* ptr) override;
 private:
     bool check_ptr(byte* ptr) const;
 

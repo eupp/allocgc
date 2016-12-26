@@ -86,7 +86,7 @@ gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_all
 
 gc_alloc_response mpool_allocator::init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr)
 {
-    byte* obj_start = gc_box::create(cell_start, rqst.obj_count(), rqst.type_meta());
+    byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
     return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
 }
 

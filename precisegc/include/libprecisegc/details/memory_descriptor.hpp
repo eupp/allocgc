@@ -29,7 +29,8 @@ public:
 
     virtual const gc_type_meta* get_type_meta(byte* ptr) const = 0;
 
-    virtual void mark_initilized(byte* ptr, const gc_type_meta* tmeta = nullptr) = 0;
+    virtual void mark_initilized(byte* ptr) = 0;
+    virtual void mark_initilized(byte* ptr, const gc_type_meta* tmeta) = 0;
 
     virtual void move(byte* to, byte* from, memory_descriptor* from_descr) = 0;
     virtual void finalize(byte* ptr) = 0;

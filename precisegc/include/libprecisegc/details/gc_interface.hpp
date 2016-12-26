@@ -3,11 +3,6 @@
 
 #include <string>
 
-#include <boost/variant.hpp>
-
-#include <libprecisegc/details/utils/block_ptr.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 

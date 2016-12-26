@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_MANAGED_POOL_CHUNK_H
 #define DIPLOMA_MANAGED_POOL_CHUNK_H
 
+#include <cassert>
 #include <bitset>
 #include <cstdint>
 #include <memory>
@@ -9,7 +10,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/allocators/gc_cell.hpp>
+#include <libprecisegc/details/collectors/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
@@ -26,6 +27,8 @@ public:
 private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
+
+    typedef collectors::gc_cell gc_cell;
 
     class memory_iterator: public boost::iterator_facade<
               memory_iterator
@@ -86,9 +89,7 @@ public:
 
     memory_descriptor* descriptor();
 
-    gc_alloc_response init(byte* ptr, const gc_alloc_request& rqst);
-    size_t destroy(byte* ptr);
-    void move(byte* from, byte* to);
+    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
 
     bool contains(byte* ptr) const;
 
@@ -117,22 +118,25 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
+
     size_t cell_size() const;
     size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
     size_t object_count(byte* ptr) const override;
     const gc_type_meta* get_type_meta(byte* ptr) const override;
+
+    void mark_initilized(byte* ptr) override;
+    void mark_initilized(byte* ptr, const gc_type_meta* tmeta) override;
+
+    void move(byte* to, byte* from, memory_descriptor* from_descr) override;
+    void finalize(byte* ptr) override;
 private:
     bool is_init(size_t idx) const;
     void set_init(size_t idx, bool init);
 
-    bool is_init(byte* ptr) const;
-    void set_init(byte* ptr, bool init);
-
     size_t calc_cell_ind(byte* ptr) const;
-
-    collectors::traceable_object_meta* get_meta(byte* ptr) const;
 
     byte* m_memory;
     size_t m_size;

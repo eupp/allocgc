@@ -100,10 +100,17 @@ byte* managed_object_descriptor::init_cell(byte* ptr, size_t obj_count, const gc
     return gc_box::create(ptr, obj_count, type_meta);
 }
 
-void managed_object_descriptor::mark_initilized(byte* ptr, const gc_type_meta* type_meta = nullptr)
+void managed_object_descriptor::mark_initilized(byte* ptr)
 {
     assert(check_ptr(ptr));
-    assert(type_meta || gc_box::get_type_meta(ptr));
+    assert(gc_box::get_type_meta(ptr));
+    m_init_bit = true;
+}
+
+void managed_object_descriptor::mark_initilized(byte* ptr, const gc_type_meta* type_meta)
+{
+    assert(type_meta);
+    assert(check_ptr(ptr));
     gc_box::set_type_meta(ptr, type_meta);
     m_init_bit = true;
 }
@@ -112,8 +119,8 @@ void managed_object_descriptor::move(byte* to, byte* from, memory_descriptor* fr
 {
     assert(check_ptr(to));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
-    assert(from_descr->get_type_meta(from) != nullptr);
-    gc_box::create(to, from_descr->object_count(from), from_descr->get_type_meta(from));
+    assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
+    gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
 }
 
 void managed_object_descriptor::finalize(byte* ptr)

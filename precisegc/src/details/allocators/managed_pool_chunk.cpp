@@ -1,12 +1,6 @@
 #include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
 
-#include <cassert>
-#include <limits>
-#include <utility>
-
-#include <libprecisegc/details/collectors/managed_object.hpp>
-#include <libprecisegc/details/utils/math.hpp>
-#include <libprecisegc/details/logging.hpp>
+#include <libprecisegc/details/allocators/gc_box.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -34,54 +28,11 @@ memory_descriptor* managed_pool_chunk::descriptor()
     return this;
 }
 
-gc_alloc_response managed_pool_chunk::init(byte* ptr, const gc_alloc_request& rqst)
+byte * managed_pool_chunk::init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
 {
-    using namespace collectors;
-
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-
-    traceable_object_meta* meta = managed_object::get_meta(ptr);
-    new (meta) traceable_object_meta(rqst.obj_count(), rqst.type_meta());
-
-    byte* obj = managed_object::get_object(ptr);
-    set_init(obj, true);
-
-    return gc_alloc_response(obj, rqst.alloc_size(), this);
-}
-
-size_t managed_pool_chunk::destroy(byte* ptr)
-{
-    using namespace collectors;
-
-    ptr -= sizeof(traceable_object_meta);
-
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    if (is_init(idx)) {
-        traceable_object_meta* meta = managed_object::get_meta(ptr);
-        const gc_type_meta* tmeta = meta->get_type_meta();
-        if (tmeta) {
-            tmeta->destroy(ptr);
-        }
-        set_init(idx, false);
-        return m_cell_size;
-    }
-    return 0;
-}
-
-void managed_pool_chunk::move(byte* from, byte* to)
-{
-    using namespace collectors;
-
-    managed_object obj_from(from);
-    managed_object obj_to(to);
-
-    memcpy(obj_to.meta(), obj_from.meta(), sizeof(traceable_object_meta));
-
-    const gc_type_meta* from_meta = obj_from.meta()->get_type_meta();
-    from_meta->move(from, to);
+    return gc_box::create(ptr, obj_count, type_meta);
 }
 
 bool managed_pool_chunk::contains(byte* ptr) const
@@ -124,14 +75,12 @@ managed_pool_chunk::memory_range_type managed_pool_chunk::memory_range()
 
 managed_pool_chunk::iterator managed_pool_chunk::begin()
 {
-    assert(memory());
-    return iterator(memory() + sizeof(collectors::traceable_object_meta), this);
+    return iterator(memory(), this, m_cell_size);
 }
 
 managed_pool_chunk::iterator managed_pool_chunk::end()
 {
-    assert(memory());
-    return iterator(memory() + size() + sizeof(collectors::traceable_object_meta), this);
+    return iterator(memory() + size(), this, m_cell_size);
 }
 
 bool managed_pool_chunk::is_init(size_t idx) const
@@ -144,18 +93,6 @@ void managed_pool_chunk::set_init(size_t idx, bool init)
     m_init_bits.set(idx, init);
 }
 
-bool managed_pool_chunk::is_init(byte* ptr) const
-{
-    ptr -= sizeof(collectors::traceable_object_meta);
-    return is_init(calc_cell_ind(ptr));
-}
-
-void managed_pool_chunk::set_init(byte* ptr, bool init)
-{
-    ptr -= sizeof(collectors::traceable_object_meta);
-    set_init(calc_cell_ind(ptr), init);
-}
-
 bool managed_pool_chunk::get_mark(size_t idx) const
 {
     return m_mark_bits.get(idx);
@@ -163,7 +100,8 @@ bool managed_pool_chunk::get_mark(size_t idx) const
 
 bool managed_pool_chunk::get_mark(byte* ptr) const
 {
-    ptr -= sizeof(collectors::traceable_object_meta);
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
     size_t ind = calc_cell_ind(ptr);
     return m_mark_bits.get(ind);
 }
@@ -175,7 +113,8 @@ bool managed_pool_chunk::get_pin(size_t idx) const
 
 bool managed_pool_chunk::get_pin(byte* ptr) const
 {
-    ptr -= sizeof(collectors::traceable_object_meta);
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
     size_t ind = calc_cell_ind(ptr);
     return m_pin_bits.get(ind);
 }
@@ -187,7 +126,8 @@ void managed_pool_chunk::set_mark(size_t idx, bool mark)
 
 void managed_pool_chunk::set_mark(byte* ptr, bool mark)
 {
-    ptr -= sizeof(collectors::traceable_object_meta);
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
     size_t ind = calc_cell_ind(ptr);
     m_mark_bits.set(ind, mark);
 }
@@ -199,9 +139,16 @@ void managed_pool_chunk::set_pin(size_t idx, bool pin)
 
 void managed_pool_chunk::set_pin(byte* ptr, bool pin)
 {
-    ptr -= sizeof(collectors::traceable_object_meta);
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
     size_t ind = calc_cell_ind(ptr);
     m_pin_bits.set(ind, pin);
+}
+
+gc_lifetime_tag managed_pool_chunk::get_lifetime_tag(byte* ptr) const
+{
+    size_t idx = calc_cell_ind(ptr);
+    return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
 }
 
 size_t managed_pool_chunk::cell_size() const
@@ -211,11 +158,13 @@ size_t managed_pool_chunk::cell_size() const
 
 size_t managed_pool_chunk::cell_size(byte* ptr) const
 {
+    assert(contains(ptr));
     return m_cell_size;
 }
 
 byte* managed_pool_chunk::cell_start(byte* ptr) const
 {
+    assert(contains(ptr));
     std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
     uintptr -= uintptr % cell_size(ptr);
     assert(uintptr % cell_size(ptr) == 0);
@@ -224,17 +173,51 @@ byte* managed_pool_chunk::cell_start(byte* ptr) const
 
 size_t managed_pool_chunk::object_count(byte* ptr) const
 {
-    return get_meta(ptr)->object_count();
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    return gc_box::get_obj_count(ptr);
 }
 
 const gc_type_meta* managed_pool_chunk::get_type_meta(byte* ptr) const
 {
-    return get_meta(ptr)->get_type_meta();
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    return gc_box::get_type_meta(ptr);
 }
 
-void managed_pool_chunk::set_type_meta(byte* ptr, const gc_type_meta* tmeta)
+void managed_pool_chunk::mark_initilized(byte* ptr)
 {
-    get_meta(ptr)->set_type_meta(tmeta);
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    assert(gc_box::get_type_meta(ptr));
+    set_init(calc_cell_ind(ptr), true);
+}
+
+void managed_pool_chunk::mark_initilized(byte* ptr, const gc_type_meta* tmeta)
+{
+    assert(tmeta);
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    gc_box::set_type_meta(ptr, tmeta);
+    set_init(calc_cell_ind(ptr), true);
+}
+
+void managed_pool_chunk::move(byte* to, byte* from, memory_descriptor* from_descr)
+{
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    assert(is_init(calc_cell_ind(ptr)));
+    assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
+    assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
+    gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
+}
+
+void managed_pool_chunk::finalize(byte* ptr)
+{
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    assert(is_init(calc_cell_ind(ptr)));
+    gc_box::destroy(ptr);
 }
 
 size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
@@ -242,13 +225,6 @@ size_t managed_pool_chunk::calc_cell_ind(byte* ptr) const
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     return (ptr - memory()) / m_cell_size;
-}
-
-collectors::traceable_object_meta* managed_pool_chunk::get_meta(byte* ptr) const
-{
-    assert(contains(ptr));
-//    assert(ptr == cell_start(ptr));
-    return collectors::managed_object(ptr).meta();
 }
 
 }}}

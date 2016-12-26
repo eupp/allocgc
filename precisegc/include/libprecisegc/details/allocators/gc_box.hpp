@@ -26,15 +26,39 @@ public:
     
     static byte* create(byte* cell_start, size_t obj_count, const gc_type_meta* type_meta)
     {
-        new(get_box_meta(cell_start)) box_meta(type_meta, obj_count);
+        new (get_box_meta(cell_start)) box_meta(type_meta, obj_count);
         return get_obj_start(cell_start);
+    }
+
+    static void move(byte* to, byte* from, size_t obj_count, const gc_type_meta* type_meta)
+    {
+        assert(type_meta);
+        assert(obj_count > 0);
+
+        new (get_box_meta(to)) box_meta(type_meta, obj_count);
+
+        byte*  obj_from = get_obj_start(from);
+        byte*  obj_to   = get_obj_start(to);
+        size_t obj_size = type_meta->type_size();
+        for (size_t i = 0; i < obj_count; ++i, obj_from += obj_size, obj_to += obj_size) {
+            type_meta->move(from, to);
+        }
     }
 
     static void destroy(byte* cell_start)
     {
         assert(get_type_meta(cell_start));
-        const gc_type_meta* tmeta = get_type_meta(cell_start);
-        tmeta->destroy(get_obj_start(cell_start));
+        box_meta* meta = get_box_meta(cell_start);
+        const gc_type_meta* type_meta = get_type_meta(cell_start);
+
+        assert(type_meta);
+        assert(meta->object_count() > 0);
+        byte*  obj      = get_obj_start(cell_start);
+        size_t obj_cnt  = meta->object_count();
+        size_t obj_size = type_meta->type_size();
+        for (size_t i = 0; i < obj_cnt; ++i, obj += obj_size) {
+            type_meta->destroy(obj);
+        }
     }
 
     static size_t get_obj_count(byte* cell_start) noexcept

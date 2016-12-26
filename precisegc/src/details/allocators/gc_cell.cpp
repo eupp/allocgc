@@ -1,4 +1,4 @@
-#include <libprecisegc/details/allocators/gc_cell.hpp>
+#include <libprecisegc/details/collectors/gc_cell.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 

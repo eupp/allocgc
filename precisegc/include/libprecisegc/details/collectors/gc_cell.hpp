@@ -4,14 +4,14 @@
 #include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 
-namespace precisegc { namespace details { namespace allocators {
+namespace precisegc { namespace details { namespace collectors {
 
 class gc_cell
 {
 public:
     static gc_cell from_obj_start(byte* obj_start, memory_descriptor* descr)
     {
-        return gc_cell(gc_box::cell_start(obj_start), descr);
+        return gc_cell(allocators::gc_box::cell_start(obj_start), descr);
     }
 
     static gc_cell from_cell_start(byte* cell_start, memory_descriptor* descr)

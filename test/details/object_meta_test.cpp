@@ -4,8 +4,6 @@
 #include <type_traits>
 
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
-#include <libprecisegc/details/collectors/managed_object.hpp>
 
 using namespace precisegc::details;
 using namespace precisegc::details::collectors;

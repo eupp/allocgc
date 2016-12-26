@@ -8,8 +8,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
-
 #include <libprecisegc/details/allocators/mlo_allocator.hpp>
 #include <libprecisegc/details/allocators/mso_allocator.hpp>
 

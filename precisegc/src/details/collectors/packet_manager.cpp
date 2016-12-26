@@ -1,21 +1,24 @@
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 
+#include <cassert>
+
 #include <libprecisegc/details/utils/make_unique.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
 mark_packet::mark_packet()
     : m_size(0)
     , m_next(nullptr)
-{}
+{ }
 
-void mark_packet::push(managed_object obj)
+void mark_packet::push(byte* obj)
 {
     assert(!is_full());
     m_data[m_size++] = obj;
 }
 
-managed_object mark_packet::pop()
+byte* mark_packet::pop()
 {
     assert(m_size > 0);
     return m_data[--m_size];

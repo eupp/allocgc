@@ -14,7 +14,6 @@
 #include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>

@@ -3,8 +3,6 @@
 #include <cassert>
 
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
-#include <libprecisegc/details/collectors/managed_object.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace compacting {
@@ -46,8 +44,8 @@ void forwarding::forward(gc_word* handle) const
 
 void forwarding::move_cell(byte* from, byte* to, size_t size)
 {
-    assert(from);
     assert(to);
+    assert(from);
     memcpy(to, from, size);
 }
 

@@ -5,7 +5,6 @@
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/utils/to_string.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
-#include <libprecisegc/details/collectors/managed_object.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

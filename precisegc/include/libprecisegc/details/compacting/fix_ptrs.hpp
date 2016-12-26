@@ -4,8 +4,6 @@
 #include <cstddef>
 
 #include <libprecisegc/details/gc_word.hpp>
-#include <libprecisegc/details/collectors/managed_object.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 
 namespace precisegc { namespace details { namespace compacting {
 

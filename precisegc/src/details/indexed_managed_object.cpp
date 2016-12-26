@@ -5,7 +5,6 @@
 
 #include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

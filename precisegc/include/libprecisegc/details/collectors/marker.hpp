@@ -10,7 +10,7 @@
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/collectors/remset.hpp>
-#include <libprecisegc/details/collectors/gc_cell.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>

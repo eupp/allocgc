@@ -4,7 +4,7 @@
 #include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 
-namespace precisegc { namespace details { namespace collectors {
+namespace precisegc { namespace details {
 
 class gc_cell
 {
@@ -84,14 +84,14 @@ public:
         return m_descr->get_type_meta(m_cell);
     }
 
-    void mark_initilized()
+    void commit(bool mark)
     {
-        m_descr->mark_initilized(m_cell);
+        m_descr->commit(m_cell, mark);
     }
 
-    void mark_initilized(const gc_type_meta* tmeta)
+    void commit(bool mark, const gc_type_meta* type_meta)
     {
-        m_descr->mark_initilized(m_cell, tmeta);
+        m_descr->commit(m_cell, mark, type_meta);
     }
 
     void trace(const gc_trace_callback& cb) const
@@ -121,6 +121,6 @@ private:
     memory_descriptor* m_descr;
 };
 
-}}}
+}}
 
 #endif //DIPLOMA_GC_CELL_HPP

@@ -25,11 +25,14 @@ gc_alloc_response incremental_gc_base::allocate(size_t obj_size, size_t obj_cnt,
     return m_heap.allocate(gc_alloc_request(obj_size, obj_cnt, tmeta));
 }
 
-void incremental_gc_base::commit(const gc_alloc_response& alloc_descr)
+void incremental_gc_base::commit(gc_cell& cell)
 {
-    if (m_phase == gc_phase::MARK) {
-        alloc_descr.descriptor()->set_mark(alloc_descr.get(), true);
-    }
+    cell.commit(m_phase == gc_phase::MARK);
+}
+
+void incremental_gc_base::commit(gc_cell& cell, const gc_type_meta* type_meta)
+{
+    cell.commit(m_phase == gc_phase::MARK, type_meta);
 }
 
 byte* incremental_gc_base::rbarrier(const gc_word& handle)

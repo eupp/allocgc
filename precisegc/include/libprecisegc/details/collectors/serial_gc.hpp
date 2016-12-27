@@ -20,7 +20,9 @@ public:
     serial_gc_base(gc_compacting compacting, size_t threads_available);
 
     gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
-    void commit(const gc_alloc_response& ptr) override;
+
+    void commit(gc_cell& cell) override;
+    void commit(gc_cell& ptr, const gc_type_meta* type_meta) override;
 
     byte* rbarrier(const gc_word& handle) override;
     void  wbarrier(gc_word& dst, const gc_word& src) override;

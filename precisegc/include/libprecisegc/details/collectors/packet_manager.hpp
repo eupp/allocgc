@@ -6,7 +6,7 @@
 #include <memory>
 #include <mutex>
 
-#include <libprecisegc/details/collectors/gc_cell.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/types.hpp>
 

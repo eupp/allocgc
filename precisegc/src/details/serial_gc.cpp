@@ -24,9 +24,14 @@ gc_alloc_response serial_gc_base::allocate(size_t obj_size, size_t obj_cnt, cons
     return m_heap.allocate(gc_alloc_request(obj_size, obj_cnt, tmeta));
 }
 
-void serial_gc_base::commit(const gc_alloc_response& ptr)
+void serial_gc_base::commit(gc_cell& cell)
 {
-    return;
+    cell.commit(false);
+}
+
+void serial_gc_base::commit(gc_cell& cell, const gc_type_meta* type_meta)
+{
+    cell.commit(false, type_meta);
 }
 
 byte* serial_gc_base::rbarrier(const gc_word& handle)

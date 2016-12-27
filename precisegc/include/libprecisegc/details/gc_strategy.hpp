@@ -4,9 +4,10 @@
 #include <chrono>
 
 #include <libprecisegc/gc_init_options.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
+#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
-#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/utils/block_ptr.hpp>
 
 namespace precisegc { namespace details {
@@ -17,7 +18,9 @@ public:
     virtual ~gc_strategy() {}
 
     virtual gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) = 0;
-    virtual void commit(const gc_alloc_response& alloc_dscr) = 0;
+
+    virtual void commit(gc_cell& cell) = 0;
+    virtual void commit(gc_cell& cell, const gc_type_meta* type_meta) = 0;
 
     virtual byte* rbarrier(const gc_word& handle) = 0;
     virtual void  wbarrier(gc_word& dst, const gc_word& src) = 0;

@@ -18,7 +18,7 @@ class serial_gc_mock : public precisegc::details::gc_strategy
     typedef precisegc::details::gc_info gc_info;
 public:
     MOCK_METHOD3(allocate, gc_alloc_descriptor (size_t obj_size, size_t obj_cnt, const type_meta* tmeta));
-    MOCK_METHOD1(commit, void(const gc_alloc_descriptor&));
+    MOCK_METHOD1(commit, void(const gc_alloc_descriptor&))const gc_cell&;
 
     MOCK_METHOD1(rbarrier, byte*(const gc_word&));
     MOCK_METHOD2(wbarrier, void(gc_word&, const gc_word&));

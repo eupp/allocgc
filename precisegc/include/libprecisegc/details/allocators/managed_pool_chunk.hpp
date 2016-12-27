@@ -10,7 +10,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/collectors/gc_cell.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_alloc_messaging.hpp>
@@ -127,8 +127,8 @@ public:
     size_t object_count(byte* ptr) const override;
     const gc_type_meta* get_type_meta(byte* ptr) const override;
 
-    void mark_initilized(byte* ptr) override;
-    void mark_initilized(byte* ptr, const gc_type_meta* tmeta) override;
+    void commit(byte* ptr, bool mark) override;
+    void commit(byte* ptr, bool mark, const gc_type_meta* type_meta) override;
 
     void trace(byte* ptr, const gc_trace_callback& cb) const override;
     void move(byte* to, byte* from, memory_descriptor* from_descr) override;

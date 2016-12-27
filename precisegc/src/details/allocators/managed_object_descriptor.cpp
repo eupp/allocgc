@@ -100,18 +100,20 @@ byte* managed_object_descriptor::init_cell(byte* ptr, size_t obj_count, const gc
     return gc_box::create(ptr, obj_count, type_meta);
 }
 
-void managed_object_descriptor::mark_initilized(byte* ptr)
+void managed_object_descriptor::commit(byte* ptr, bool mark)
 {
     assert(check_ptr(ptr));
     assert(gc_box::get_type_meta(ptr));
+    m_mark_bit = mark;
     m_init_bit = true;
 }
 
-void managed_object_descriptor::mark_initilized(byte* ptr, const gc_type_meta* type_meta)
+void managed_object_descriptor::commit(byte* ptr, bool mark, const gc_type_meta* type_meta)
 {
     assert(type_meta);
     assert(check_ptr(ptr));
     gc_box::set_type_meta(ptr, type_meta);
+    m_mark_bit = mark;
     m_init_bit = true;
 }
 

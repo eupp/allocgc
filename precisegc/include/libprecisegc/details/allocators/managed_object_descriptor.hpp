@@ -42,8 +42,8 @@ public:
 
     const gc_type_meta* get_type_meta(byte* ptr) const override;
 
-    void mark_initilized(byte* ptr) override;
-    void mark_initilized(byte* ptr, const gc_type_meta* type_meta) override;
+    void commit(byte* ptr, bool mark) override;
+    void commit(byte* ptr, bool mark, const gc_type_meta* type_meta) override;
 
     void trace(byte* ptr, const gc_trace_callback& cb) const override;
     void move(byte* to, byte* from, memory_descriptor* from_descr) override;

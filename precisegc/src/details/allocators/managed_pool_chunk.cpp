@@ -201,21 +201,25 @@ const gc_type_meta* managed_pool_chunk::get_type_meta(byte* ptr) const
     return gc_box::get_type_meta(ptr);
 }
 
-void managed_pool_chunk::mark_initilized(byte* ptr)
+void managed_pool_chunk::commit(byte* ptr, bool mark)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     assert(gc_box::get_type_meta(ptr));
-    set_init(ptr, true);
+    size_t idx = calc_cell_ind(ptr);
+    set_mark(idx, mark);
+    set_init(idx, true);
 }
 
-void managed_pool_chunk::mark_initilized(byte* ptr, const gc_type_meta* tmeta)
+void managed_pool_chunk::commit(byte* ptr, bool mark, const gc_type_meta* type_meta)
 {
-    assert(tmeta);
+    assert(type_meta);
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    gc_box::set_type_meta(ptr, tmeta);
-    set_init(ptr, true);
+    gc_box::set_type_meta(ptr, type_meta);
+    size_t idx = calc_cell_ind(ptr);
+    set_mark(idx, mark);
+    set_init(idx, true);
 }
 
 void managed_pool_chunk::trace(byte* ptr, const gc_trace_callback& cb) const

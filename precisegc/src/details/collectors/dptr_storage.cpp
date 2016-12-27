@@ -1,4 +1,5 @@
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
+#include <libprecisegc/details/logging.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -26,6 +27,9 @@ void dptr_storage::forward_derived_ptr(byte* from, byte* to)
 {
     dptr_descriptor* dscr = get_descriptor(from);
     ptrdiff_t offset = dscr->m_derived - dscr->m_origin;
+
+    logging::debug() << "fix ptr: from " << (void*) dscr->m_origin << " to " << (void*) (to + offset);
+
     dscr->m_origin  = to;
     dscr->m_derived = to + offset;
 }

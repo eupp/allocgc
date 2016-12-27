@@ -10,11 +10,12 @@
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/collectors/remset.hpp>
+#include <libprecisegc/details/collectors/gc_cell.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/collectors/trace_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 
@@ -49,13 +50,15 @@ public:
     {
         auto output_packet = m_packet_manager->pop_output_packet();
         tracer.trace([this, &output_packet] (gc_word* root) {
-            byte* p = gc_handle_access::get<std::memory_order_relaxed>(*root);
-            indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(p));
-            if (idx_obj) {
-                idx_obj.set_mark(true);
-                push_root_to_packet(idx_obj.object(), output_packet);
+            byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+            byte* obj_start = dptr_storage::get_origin(ptr);
+            if (obj_start) {
+                gc_cell cell = memory_index::index_object(obj_start);
+                cell.set_mark(true);
+                push_root_to_packet(cell, output_packet);
+
+                logging::debug() << "root: " << (void*) root;
             }
-            logging::debug() << "root: " << (void*) root;
         });
         m_packet_manager->push_packet(std::move(output_packet));
     }
@@ -65,14 +68,14 @@ public:
     {
         auto output_packet = m_packet_manager->pop_output_packet();
         tracer.trace([this, &output_packet] (byte* ptr) {
+            if (ptr) {
+                gc_cell cell = memory_index::index_object(ptr);
+                cell.set_mark(true);
+                cell.set_pin(true);
+                push_root_to_packet(cell, output_packet);
 
-            indexed_managed_object idx_obj = indexed_managed_object::index_by_indirect_ptr(ptr);
-            if (idx_obj) {
-                idx_obj.set_mark(true);
-                idx_obj.set_pin(true);
-                push_root_to_packet(idx_obj.object(), output_packet);
+                logging::debug() << "pin: " << (void*) ptr;
             }
-            logging::debug() << "pin: " << (void*) ptr;
         });
         m_packet_manager->push_packet(std::move(output_packet));
     }
@@ -81,15 +84,16 @@ public:
     {
         assert(m_remset);
         m_remset->flush_buffers();
-        logging::info() << "remset size: " << m_remset->size();
         auto output_packet = m_packet_manager->pop_output_packet();
         for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
-            indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(*it));
-            if (idx_obj) {
-                idx_obj.set_mark(true);
-                push_root_to_packet(idx_obj.object(), output_packet);
+            byte* obj_start = dptr_storage::get_origin(*it);
+            if (obj_start) {
+                gc_cell cell = memory_index::index_object(obj_start);
+                cell.set_mark(true);
+                push_root_to_packet(cell, output_packet);
+
+                logging::debug() << "remset ptr: " << (void*) dptr_storage::get(*it);
             }
-            logging::debug() << "remset ptr: " << (void*) dptr_storage::get(*it);
         }
         m_remset->clear();
         m_packet_manager->push_packet(std::move(output_packet));
@@ -131,7 +135,7 @@ private:
                     for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
                         byte* ptr = m_remset->get();
                         if (ptr) {
-                            push_to_packet(managed_object(ptr), output_packet);
+                            push_to_packet(memory_index::index_object(ptr), output_packet);
                         } else {
                             break;
                         }
@@ -161,9 +165,10 @@ private:
                 output_packet = m_packet_manager->pop_output_packet();
             }
             while (!input_packet->is_empty()) {
-                trace_ptr(input_packet->pop(), [this, &output_packet] (byte* ptr) {
-                    push_to_packet(managed_object(ptr), output_packet);
-                });
+                gc_cell cell = input_packet->pop();
+                cell.trace(gc_trace_callback{[this, &output_packet] (gc_word* handle) {
+                    trace(handle, output_packet);
+                }});
             }
 
             auto empty_packet = std::move(input_packet);
@@ -172,16 +177,16 @@ private:
         }
     }
 
-    void push_root_to_packet(byte* obj_start, packet_manager::mark_packet_handle& output_packet)
+    void push_root_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet)
     {
         if (output_packet->is_full()) {
             m_packet_manager->push_packet(std::move(output_packet));
             output_packet = m_packet_manager->pop_output_packet();
         }
-        output_packet->push(managed_object(obj_start));
+        output_packet->push(cell);
     }
 
-    void push_to_packet(managed_object obj, packet_manager::mark_packet_handle& output_packet)
+    void push_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet)
     {
         if (output_packet->is_full()) {
             size_t attempts = 0;
@@ -195,7 +200,20 @@ private:
                 throw marking_overflow_exception();
             }
         }
-        output_packet->push(obj);
+        output_packet->push(cell);
+    }
+
+    void trace(gc_word* handle, packet_manager::mark_packet_handle& output_packet)
+    {
+        byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
+        byte* obj_start = dptr_storage::get_origin(ptr);
+        if (obj_start) {
+            gc_cell cell = memory_index::index_object(obj_start);
+            if (!cell.get_mark()) {
+                cell.set_mark(true);
+                push_to_packet(cell, output_packet);
+            }
+        }
     }
 
     packet_manager* m_packet_manager;

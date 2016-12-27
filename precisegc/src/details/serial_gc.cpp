@@ -85,8 +85,8 @@ serial_gc::serial_gc(size_t threads_available)
 gc_info serial_gc::info() const
 {
     static gc_info inf = {
-        .incremental_flag           = false,
-        .support_concurrent_marking    = false,
+        .incremental_flag                = false,
+        .support_concurrent_marking      = false,
         .support_concurrent_collecting   = false
     };
     return inf;
@@ -111,8 +111,8 @@ void serial_compacting_gc::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
 gc_info serial_compacting_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag           = false,
-            .support_concurrent_marking    = false,
+            .incremental_flag                = false,
+            .support_concurrent_marking      = false,
             .support_concurrent_collecting   = false
     };
     return inf;

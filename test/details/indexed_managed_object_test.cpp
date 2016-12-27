@@ -2,7 +2,6 @@
 #include <gmock/gmock.h>
 
 #include <libprecisegc/details/collectors/memory_index.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 
 #include "memory_descriptor_mock.h"
 #include "page_ptr.h"

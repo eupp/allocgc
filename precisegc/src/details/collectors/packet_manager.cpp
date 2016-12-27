@@ -12,13 +12,13 @@ mark_packet::mark_packet()
     , m_next(nullptr)
 { }
 
-void mark_packet::push(byte* obj)
+void mark_packet::push(const gc_cell& cell)
 {
     assert(!is_full());
-    m_data[m_size++] = obj;
+    m_data[m_size++] = cell;
 }
 
-byte* mark_packet::pop()
+gc_cell mark_packet::pop()
 {
     assert(m_size > 0);
     return m_data[--m_size];

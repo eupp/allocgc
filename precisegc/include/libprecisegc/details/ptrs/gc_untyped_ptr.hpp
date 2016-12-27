@@ -5,7 +5,6 @@
 #include <cstdint>
 #include <atomic>
 
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/types.hpp>
 

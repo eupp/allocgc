@@ -80,12 +80,14 @@ gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_all
     assert(contains(ptr));
 
     memset(ptr, 0, size);
-    descriptor_t* descr = static_cast<descriptor_t*>(collectors::memory_index::index(ptr));
+    descriptor_t* descr = static_cast<descriptor_t*>(collectors::memory_index::index_memory(ptr));
     return init_cell(ptr, rqst, descr);
 }
 
 gc_alloc_response mpool_allocator::init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr)
 {
+    assert(descr);
+    assert(cell_start);
     byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
     return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
 }

@@ -46,8 +46,8 @@ bool gc_is_root(const gc_word* ptr)
 bool gc_is_heap_ptr(const gc_word* ptr)
 {
     using namespace threads;
-    return collectors::memory_index::index(reinterpret_cast<const byte*>(ptr)) != nullptr;
-    return this_managed_thread::is_heap_ptr(ptr);
+    using namespace collectors;
+    return memory_index::index_memory(reinterpret_cast<const byte*>(ptr)) != nullptr;
 }
 
 gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)

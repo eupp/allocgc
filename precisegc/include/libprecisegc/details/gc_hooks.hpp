@@ -6,7 +6,6 @@
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/initiation_policy.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {

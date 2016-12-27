@@ -3,7 +3,6 @@
 #include <libprecisegc/gc_new.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;

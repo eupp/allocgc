@@ -55,7 +55,7 @@ public:
 //
 //    EXPECT_NE(nullptr, cell_ptr.get());
 //    EXPECT_EQ(cell_ptr.descriptor(), m_chunk.descriptor());
-//    EXPECT_EQ(memory_index::index(cell_ptr.get()), m_chunk.descriptor());
+//    EXPECT_EQ(memory_index::index_memory(cell_ptr.get()), m_chunk.descriptor());
 //}
 
 TEST_F(managed_pool_chunk_test, test_cell_start)

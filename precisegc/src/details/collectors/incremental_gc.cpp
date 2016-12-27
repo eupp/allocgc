@@ -7,6 +7,7 @@
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -42,9 +43,12 @@ void incremental_gc_base::wbarrier(gc_word& dst, const gc_word& src)
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
     gc_handle_access::set<std::memory_order_release>(dst, ptr);
     if (m_phase == gc_phase::MARK) {
-        indexed_managed_object idx_obj = indexed_managed_object::index(dptr_storage::get_origin(ptr));
-        if (idx_obj && !idx_obj.get_mark()) {
-            m_remset.add(idx_obj.object());
+        byte* obj_start = dptr_storage::get_origin(ptr);
+        if (obj_start) {
+            gc_cell cell = memory_index::index_object(obj_start);
+            if (!cell.get_mark()) {
+                m_remset.add(obj_start);
+            }
         }
     }
 }
@@ -131,8 +135,8 @@ incremental_gc::incremental_gc(size_t threads_available)
 gc_info incremental_gc::info() const
 {
     static gc_info inf = {
-            .incremental_flag           = true,
-            .support_concurrent_marking    = true,
+            .incremental_flag                = true,
+            .support_concurrent_marking      = true,
             .support_concurrent_collecting   = false
     };
 

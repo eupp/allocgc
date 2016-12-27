@@ -7,7 +7,6 @@
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

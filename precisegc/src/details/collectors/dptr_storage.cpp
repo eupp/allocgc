@@ -1,7 +1,5 @@
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
 
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-
 namespace precisegc { namespace details { namespace collectors {
 
 byte* dptr_storage::get(byte* ptr)

@@ -131,7 +131,9 @@ void managed_object_descriptor::move(byte* to, byte* from, memory_descriptor* fr
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
     assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
     gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
+    from_descr->set_mark(from, false);
     m_init_bit = true;
+    m_mark_bit = true;
 }
 
 void managed_object_descriptor::finalize(byte* ptr)

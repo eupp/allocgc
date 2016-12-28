@@ -233,19 +233,22 @@ void managed_pool_chunk::trace(byte* ptr, const gc_trace_callback& cb) const
 
 void managed_pool_chunk::move(byte* to, byte* from, memory_descriptor* from_descr)
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
+    assert(contains(to));
+    assert(to == cell_start(to));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
     assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
     gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
-    set_init(to, true);
+    from_descr->set_mark(from, false);
+    size_t idx = calc_cell_ind(to);
+    set_mark(idx, true);
+    set_init(idx, true);
 }
 
 void managed_pool_chunk::finalize(byte* ptr)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    assert(get_lifetime_tag(from) == gc_lifetime_tag::GARBAGE);
+    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
     gc_box::destroy(ptr);
     set_init(ptr, false);
 }

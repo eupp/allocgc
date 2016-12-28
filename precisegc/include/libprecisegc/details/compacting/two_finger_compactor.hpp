@@ -29,31 +29,26 @@ struct two_finger_compactor
         size_t cell_size = to->cell_size();
         size_t copied_cnt = 0;
         while (from != to) {
-            to = std::find_if(to, from, [](value_t cell_ptr) {
-                return !cell_ptr.get_mark();
+            to = std::find_if(to, from, [](value_t cell) {
+                return cell.get_lifetime_tag() == gc_lifetime_tag::FREE;
             });
 
             auto rev_from = std::find_if(reverse_iterator(from),
                                          reverse_iterator(to),
-                                         [] (value_t cell_ptr) {
-                                             return cell_ptr.get_mark() && !cell_ptr.get_pin();
+                                         [] (value_t cell) {
+                                             return  cell.get_lifetime_tag() == gc_lifetime_tag::INITIALIZED &&
+                                                    !cell.get_pin();
                                          });
 
             from = rev_from.base();
             if (from != to) {
                 --from;
 
-                to->destroy();
-                to->set_mark(true);
-
                 from->move(*to);
-
-                from->destroy();
-                from->set_mark(false);
-
+                from->finalize();
                 frwd.create(from->get(), to->get());
 
-                stat.mem_freed  += cell_size;
+//                stat.mem_freed  += cell_size;
                 stat.mem_copied += cell_size;
             }
         }

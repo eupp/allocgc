@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/mlo_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;
@@ -10,17 +10,17 @@ namespace {
 static const size_t OBJ_SIZE = 64;
 }
 
-struct mlo_allocator_test : public ::testing::Test
+struct gc_lo_allocator_test : public ::testing::Test
 {
-    mlo_allocator_test()
+    gc_lo_allocator_test()
         : rqst(OBJ_SIZE, 1, nullptr)
     {}
 
-    mlo_allocator alloc;
+    gc_lo_allocator alloc;
     gc_alloc_request rqst;
 };
 
-TEST_F(mlo_allocator_test, test_allocate_1)
+TEST_F(gc_lo_allocator_test, test_allocate_1)
 {
     gc_alloc_response rsp = alloc.allocate(rqst);
 
@@ -29,7 +29,7 @@ TEST_F(mlo_allocator_test, test_allocate_1)
     ASSERT_NE(nullptr, rsp.descriptor());
 }
 
-TEST_F(mlo_allocator_test, test_allocate_2)
+TEST_F(gc_lo_allocator_test, test_allocate_2)
 {
     gc_alloc_response rsp1 = alloc.allocate(rqst);
     gc_alloc_response rsp2 = alloc.allocate(rqst);
@@ -39,7 +39,7 @@ TEST_F(mlo_allocator_test, test_allocate_2)
     ASSERT_NE(rsp1.get(), rsp2.get());
 }
 
-TEST_F(mlo_allocator_test, test_collect)
+TEST_F(gc_lo_allocator_test, test_collect)
 {
     gc_alloc_response rsps[3];
     for (auto& rsp: rsps) {

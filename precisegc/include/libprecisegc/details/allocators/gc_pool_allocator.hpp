@@ -1,14 +1,14 @@
-#ifndef DIPLOMA_MPOOL_ALLOCATOR_HPP
-#define DIPLOMA_MPOOL_ALLOCATOR_HPP
+#ifndef DIPLOMA_GC_POOL_ALLOCATOR_HPP
+#define DIPLOMA_GC_POOL_ALLOCATOR_HPP
 
 #include <list>
 #include <cstring>
 #include <utility>
 
 #include <libprecisegc/details/allocators/pool_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/gc_pool_descriptor.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/stl_adapter.hpp>
 
@@ -23,9 +23,9 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class mpool_allocator : private utils::noncopyable, private utils::nonmovable
+class gc_pool_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    typedef managed_pool_chunk descriptor_t;
+    typedef gc_pool_descriptor descriptor_t;
 
     typedef allocators::pool_allocator<
               allocators::default_allocator
@@ -39,8 +39,8 @@ public:
     typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
-    mpool_allocator();
-    ~mpool_allocator();
+    gc_pool_allocator();
+    ~gc_pool_allocator();
 
     gc_alloc_response allocate(const gc_alloc_request& rqst, size_t aligned_size);
 
@@ -60,7 +60,7 @@ private:
     gc_alloc_response freelist_allocation(size_t size, const gc_alloc_request& rqst);
     gc_alloc_response init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr);
 
-    mpool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
+    gc_pool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
     iterator_t destroy_descriptor(iterator_t it);
 
     std::pair<byte*, size_t> allocate_block(size_t cell_size);
@@ -88,4 +88,4 @@ private:
 
 }}}
 
-#endif //DIPLOMA_MPOOL_ALLOCATOR_HPP
+#endif //DIPLOMA_GC_POOL_ALLOCATOR_HPP

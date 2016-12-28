@@ -1,17 +1,17 @@
-#ifndef DIPLOMA_MLO_ALLOCATOR_HPP
-#define DIPLOMA_MLO_ALLOCATOR_HPP
+#ifndef DIPLOMA_GC_LO_ALLOCATOR_HPP
+#define DIPLOMA_GC_LO_ALLOCATOR_HPP
 
 #include <mutex>
 
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/gc_box.hpp>
-#include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/allocators/list_allocator.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
 #include <libprecisegc/details/allocators/sys_allocator.hpp>
-#include <libprecisegc/details/allocators/managed_object_descriptor.hpp>
+#include <libprecisegc/details/allocators/list_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_object_descriptor.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
 
 #include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
@@ -24,10 +24,10 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class mlo_allocator : private utils::noncopyable, private utils::nonmovable
+class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    typedef list_allocator<core_allocator, utils::dummy_mutex> list_alloc_t;
-    typedef managed_object_descriptor descriptor_t;
+    typedef list_allocator<gc_core_allocator, utils::dummy_mutex> list_alloc_t;
+    typedef gc_object_descriptor descriptor_t;
     typedef std::mutex mutex_t;
 
     class descriptor_iterator : public boost::iterator_adaptor<
@@ -41,7 +41,7 @@ class mlo_allocator : private utils::noncopyable, private utils::nonmovable
         descriptor_iterator(const descriptor_iterator &) noexcept = default;
         descriptor_iterator& operator=(const descriptor_iterator&) noexcept = default;
     private:
-        friend class mlo_allocator;
+        friend class gc_lo_allocator;
         friend class boost::iterator_core_access;
 
         descriptor_iterator(const typename list_alloc_t::iterator& it)
@@ -65,7 +65,7 @@ class mlo_allocator : private utils::noncopyable, private utils::nonmovable
         memory_iterator(const memory_iterator&) noexcept = default;
         memory_iterator& operator=(const memory_iterator&) noexcept = default;
     private:
-        friend class mlo_allocator;
+        friend class gc_lo_allocator;
         friend class boost::iterator_core_access;
 
         memory_iterator(const typename list_alloc_t::iterator& it)
@@ -103,8 +103,8 @@ public:
     typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
-    mlo_allocator();
-    ~mlo_allocator();
+    gc_lo_allocator();
+    ~gc_lo_allocator();
 
     gc_alloc_response allocate(const gc_alloc_request& rqst);
 
@@ -158,4 +158,4 @@ private:
 
 }}}
 
-#endif //DIPLOMA_MLO_ALLOCATOR_HPP
+#endif //DIPLOMA_GC_LO_ALLOCATOR_HPP

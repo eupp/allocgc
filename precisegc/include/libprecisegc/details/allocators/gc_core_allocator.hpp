@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_CORE_ALLOCATOR_HPP
-#define DIPLOMA_CORE_ALLOCATOR_HPP
+#ifndef DIPLOMA_GC_CORE_ALLOCATOR_HPP
+#define DIPLOMA_GC_CORE_ALLOCATOR_HPP
 
 #include <cstddef>
 #include <cstdint>
@@ -19,7 +19,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class core_allocator
+class gc_core_allocator
 {
     class page_bucket_policy
     {
@@ -34,12 +34,12 @@ public:
     typedef stateless_alloc_tag alloc_tag;
     typedef boost::iterator_range<byte*> memory_range_type;
 
-    core_allocator() = default;
-    core_allocator(const core_allocator&) = default;
-    core_allocator(core_allocator&&) = default;
+    gc_core_allocator() = default;
+    gc_core_allocator(const gc_core_allocator&) = default;
+    gc_core_allocator(gc_core_allocator&&) = default;
 
-    core_allocator& operator=(const core_allocator&) = default;
-    core_allocator& operator=(core_allocator&&) = default;
+    gc_core_allocator& operator=(const gc_core_allocator&) = default;
+    gc_core_allocator& operator=(gc_core_allocator&&) = default;
 
     static byte* allocate(size_t size);
 
@@ -79,4 +79,4 @@ private:
 
 }}}
 
-#endif //DIPLOMA_CORE_ALLOCATOR_HPP
+#endif //DIPLOMA_GC_CORE_ALLOCATOR_HPP

@@ -2,9 +2,9 @@
 
 #include <unordered_set>
 
-#include <libprecisegc/details/allocators/mpool_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -26,7 +26,7 @@ struct test_type
 
 const gc_type_meta* tmeta = gc_type_meta_factory<test_type>::create();
 
-typedef mpool_allocator allocator_t;
+typedef gc_pool_allocator allocator_t;
 
 }
 

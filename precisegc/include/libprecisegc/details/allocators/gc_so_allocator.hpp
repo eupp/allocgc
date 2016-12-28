@@ -1,11 +1,11 @@
-#ifndef DIPLOMA_MSO_ALLOCATOR_HPP
-#define DIPLOMA_MSO_ALLOCATOR_HPP
+#ifndef DIPLOMA_GC_SO_ALLOCATOR_HPP
+#define DIPLOMA_GC_SO_ALLOCATOR_HPP
 
 #include <cstring>
 #include <array>
 #include <utility>
 
-#include <libprecisegc/details/allocators/mpool_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/stl_adapter.hpp>
 
@@ -19,14 +19,14 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class mso_allocator : private utils::noncopyable, private utils::nonmovable
+class gc_so_allocator : private utils::noncopyable, private utils::nonmovable
 {
 public:
     typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
     typedef utils::static_thread_pool thread_pool_t;
 
-    mso_allocator();
+    gc_so_allocator();
 
     gc_alloc_response allocate(const gc_alloc_request& rqst);
 
@@ -37,11 +37,11 @@ private:
     // i.g. [32, 64, 128, 256, ...]
     static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_BITS_CNT - MIN_CELL_SIZE_BITS_CNT + 1;
 
-    typedef std::pair<size_t, mpool_allocator> bucket_t;
+    typedef std::pair<size_t, gc_pool_allocator> bucket_t;
 
     std::array<bucket_t, BUCKET_COUNT> m_buckets;
 };
 
 }}}
 
-#endif //DIPLOMA_MSO_ALLOCATOR_HPP
+#endif //DIPLOMA_GC_SO_ALLOCATOR_HPP

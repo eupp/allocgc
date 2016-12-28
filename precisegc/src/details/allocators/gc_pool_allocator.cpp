@@ -1,4 +1,4 @@
-#include <libprecisegc/details/allocators/mpool_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 
 #include <tuple>
 #include <iterator>
@@ -10,20 +10,20 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-mpool_allocator::mpool_allocator()
+gc_pool_allocator::gc_pool_allocator()
     : m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
 {}
 
-mpool_allocator::~mpool_allocator()
+gc_pool_allocator::~gc_pool_allocator()
 {
     for (auto it = m_descrs.begin(); it != m_descrs.end(); ) {
         it = destroy_descriptor(it);
     }
 }
 
-gc_alloc_response mpool_allocator::allocate(const gc_alloc_request& rqst, size_t aligned_size)
+gc_alloc_response gc_pool_allocator::allocate(const gc_alloc_request& rqst, size_t aligned_size)
 {
     if (m_top == m_end) {
         return try_expand_and_allocate(aligned_size, rqst, 0);
@@ -31,7 +31,7 @@ gc_alloc_response mpool_allocator::allocate(const gc_alloc_request& rqst, size_t
     return stack_allocation(aligned_size, rqst);
 }
 
-gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size,
+gc_alloc_response gc_pool_allocator::try_expand_and_allocate(size_t size,
                                                            const gc_alloc_request& rqst,
                                                            size_t attempt_num)
 {
@@ -52,7 +52,7 @@ gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size,
             opt.gen  = 0;
             gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
         } else if (attempt_num == 1) {
-            core_allocator::expand_heap();
+            gc_core_allocator::expand_heap();
         } else {
             throw gc_bad_alloc();
         }
@@ -60,7 +60,7 @@ gc_alloc_response mpool_allocator::try_expand_and_allocate(size_t size,
     }
 }
 
-gc_alloc_response mpool_allocator::stack_allocation(size_t size, const gc_alloc_request& rqst)
+gc_alloc_response gc_pool_allocator::stack_allocation(size_t size, const gc_alloc_request& rqst)
 {
     assert(m_top <= m_end - size);
 
@@ -70,7 +70,7 @@ gc_alloc_response mpool_allocator::stack_allocation(size_t size, const gc_alloc_
     return init_cell(ptr, rqst, descr);
 }
 
-gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_alloc_request& rqst)
+gc_alloc_response gc_pool_allocator::freelist_allocation(size_t size, const gc_alloc_request& rqst)
 {
     assert(m_freelist);
 
@@ -84,7 +84,7 @@ gc_alloc_response mpool_allocator::freelist_allocation(size_t size, const gc_all
     return init_cell(ptr, rqst, descr);
 }
 
-gc_alloc_response mpool_allocator::init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr)
+gc_alloc_response gc_pool_allocator::init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr)
 {
     assert(descr);
     assert(cell_start);
@@ -92,7 +92,7 @@ gc_alloc_response mpool_allocator::init_cell(byte* cell_start, const gc_alloc_re
     return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
 }
 
-mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
+gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
 {
     m_descrs.emplace_back(blk, blk_size, cell_size);
     auto last = std::prev(m_descrs.end());
@@ -100,7 +100,7 @@ mpool_allocator::iterator_t mpool_allocator::create_descriptor(byte* blk, size_t
     return last;
 }
 
-mpool_allocator::iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
+gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it)
 {
     sweep(*it);
     collectors::memory_index::remove_from_index(it->memory(), it->size());
@@ -108,18 +108,18 @@ mpool_allocator::iterator_t mpool_allocator::destroy_descriptor(iterator_t it)
     return m_descrs.erase(it);
 }
 
-std::pair<byte*, size_t> mpool_allocator::allocate_block(size_t cell_size)
+std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size)
 {
     size_t chunk_size = descriptor_t::chunk_size(cell_size);
-    return std::make_pair(core_allocator::allocate(chunk_size), chunk_size);
+    return std::make_pair(gc_core_allocator::allocate(chunk_size), chunk_size);
 }
 
-void mpool_allocator::deallocate_block(byte* ptr, size_t size)
+void gc_pool_allocator::deallocate_block(byte* ptr, size_t size)
 {
-    core_allocator::deallocate(ptr, size);
+    gc_core_allocator::deallocate(ptr, size);
 }
 
-bool mpool_allocator::contains(byte* ptr) const
+bool gc_pool_allocator::contains(byte* ptr) const
 {
     for (auto& descr: m_descrs) {
         if (descr.contains(ptr)) {
@@ -129,7 +129,7 @@ bool mpool_allocator::contains(byte* ptr) const
     return false;
 }
 
-gc_heap_stat mpool_allocator::collect(compacting::forwarding& frwd)
+gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 {
     gc_heap_stat stat;
     shrink(stat);
@@ -142,7 +142,7 @@ gc_heap_stat mpool_allocator::collect(compacting::forwarding& frwd)
     return stat;
 }
 
-void mpool_allocator::shrink(gc_heap_stat& stat)
+void gc_pool_allocator::shrink(gc_heap_stat& stat)
 {
     for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
         stat.mem_before_gc += it->size();
@@ -158,14 +158,14 @@ void mpool_allocator::shrink(gc_heap_stat& stat)
     }
 }
 
-void mpool_allocator::sweep(gc_heap_stat& stat)
+void gc_pool_allocator::sweep(gc_heap_stat& stat)
 {
     for (auto& descr: m_descrs) {
         stat.mem_freed += sweep(descr);
     }
 }
 
-size_t mpool_allocator::sweep(descriptor_t& descr)
+size_t gc_pool_allocator::sweep(descriptor_t& descr)
 {
     byte*  it   = descr.memory();
     byte*  end  = descr.memory() + descr.size();
@@ -179,39 +179,39 @@ size_t mpool_allocator::sweep(descriptor_t& descr)
     return freed;
 }
 
-void mpool_allocator::insert_into_freelist(byte* ptr)
+void gc_pool_allocator::insert_into_freelist(byte* ptr)
 {
     byte** next = reinterpret_cast<byte**>(ptr);
     next[0]     = reinterpret_cast<byte*>(m_freelist);
     m_freelist  = next;
 }
 
-void mpool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
+void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
 {
     compacting::two_finger_compactor compactor;
     auto rng = memory_range();
     compactor(rng, frwd, stat);
 }
 
-void mpool_allocator::fix(const compacting::forwarding& frwd)
+void gc_pool_allocator::fix(const compacting::forwarding& frwd)
 {
     auto rng = memory_range();
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
-bool mpool_allocator::empty() const
+bool gc_pool_allocator::empty() const
 {
     return m_descrs.empty();
 }
 
-bool mpool_allocator::is_compaction_required(const gc_heap_stat& stat) const
+bool gc_pool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
     return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
            || (stat.residency() < RESIDENCY_NON_COMPACTING_THRESHOLD
                && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
 }
 
-mpool_allocator::memory_range_type mpool_allocator::memory_range()
+gc_pool_allocator::memory_range_type gc_pool_allocator::memory_range()
 {
     return utils::flatten_range(m_descrs.begin(), m_descrs.end());
 }

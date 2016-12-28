@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/mpool_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;
@@ -8,7 +8,7 @@ using namespace precisegc::details::allocators;
 
 namespace {
 static const size_t OBJ_SIZE = 16;
-static const size_t ALLOC_SIZE = OBJ_SIZE + sizeof(collectors::traceable_object_meta);
+static const size_t ALLOC_SIZE = gc_box::box_size(OBJ_SIZE);
 static const size_t CHUNK_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * ALLOC_SIZE;
 }
 
@@ -18,7 +18,7 @@ struct mpool_allocator_test : public ::testing::Test
         : rqst(OBJ_SIZE, 1, nullptr)
     {}
 
-    mpool_allocator alloc;
+    gc_pool_allocator alloc;
     gc_alloc_request rqst;
 };
 

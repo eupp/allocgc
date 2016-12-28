@@ -39,7 +39,6 @@ set(precisegc_TESTS
         include/incremental_gc_mock.hpp
         details/space_based_policy_test.cpp
         details/utils/dynarray_test.cpp
-        details/ptrs/trace_ptr_test.cpp
         details/utils/base_offset_test.cpp
         details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp
         include/test_descriptor.hpp
@@ -52,8 +51,8 @@ set(precisegc_TESTS
         details/compacting/compactor_test.cpp
         include/test_forwarding.hpp
         details/compacting/fix_ptrs_test.cpp
-        details/allocators/mlo_allocator_test.cpp
-        details/allocators/mpool_allocator_test.cpp)
+        details/allocators/gc_lo_allocator_test.cpp
+        details/allocators/mpool_allocator_test.cpp details/allocators/gc_box_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

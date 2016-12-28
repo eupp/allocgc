@@ -4,8 +4,8 @@
 #include <utility>
 
 #include <libprecisegc/details/collectors/memory_index.hpp>
-#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_pool_descriptor.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 
 #include "rand_util.h"
@@ -17,13 +17,13 @@ using namespace precisegc::details::collectors;
 namespace {
 const size_t CELL_SIZE  = 64;
 const size_t CELL_COUNT = 64;
-const size_t CHUNK_SIZE = managed_pool_chunk::chunk_size(CELL_COUNT * CELL_SIZE);
+const size_t CHUNK_SIZE = gc_pool_descriptor::chunk_size(CELL_COUNT * CELL_SIZE);
 }
 
 class managed_pool_chunk_test : public ::testing::Test
 {
 public:
-    typedef debug_layer<core_allocator> allocator_t;
+    typedef debug_layer<gc_core_allocator> allocator_t;
 
     managed_pool_chunk_test()
         : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
@@ -38,7 +38,7 @@ public:
     }
 
     allocator_t m_alloc;
-    managed_pool_chunk m_chunk;
+    gc_pool_descriptor m_chunk;
     uniform_rand_generator<size_t> m_rand;
 };
 

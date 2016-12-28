@@ -19,9 +19,14 @@ public:
         return obj_size + sizeof(box_meta);
     }
 
-    static constexpr byte* cell_start(byte* obj_start)
+    static constexpr byte* get_cell_start(byte* obj_start)
     {
         return obj_start - sizeof(box_meta);
+    }
+
+    static constexpr byte* get_obj_start(byte* cell_start)
+    {
+        return cell_start + sizeof(box_meta);
     }
     
     static byte* create(byte* cell_start, size_t obj_count, const gc_type_meta* type_meta)
@@ -138,11 +143,6 @@ private:
     static constexpr box_meta* get_box_meta(byte* cell_start)
     {
         reinterpret_cast<box_meta*>(cell_start);
-    }
-
-    static constexpr byte* get_obj_start(byte* cell_start)
-    {
-        return cell_start + sizeof(box_meta);
     }
 
     static constexpr byte** get_forward_pointer_address(byte* cell_start)

@@ -1,7 +1,7 @@
 #include <libprecisegc/gc.hpp>
 
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/threads/thread_manager.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 #include <libprecisegc/details/gc_factory.hpp>
@@ -18,7 +18,7 @@ int gc_init(const gc_init_options& options)
         logging::init(std::clog, options.loglevel);
         threads::thread_manager::instance().register_main_thread(threads::frame_address());
 
-        allocators::core_allocator::set_heap_limit(options.heapsize);
+        allocators::gc_core_allocator::set_heap_limit(options.heapsize);
 
         auto strategy = gc_factory::create_gc(options);
         auto init_policy = gc_factory::create_initiation_policy(strategy.get(), options);

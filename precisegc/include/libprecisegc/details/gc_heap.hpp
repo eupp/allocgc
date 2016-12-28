@@ -8,8 +8,8 @@
 #include <memory>
 #include <unordered_map>
 
-#include <libprecisegc/details/allocators/mlo_allocator.hpp>
-#include <libprecisegc/details/allocators/mso_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_so_allocator.hpp>
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
@@ -27,8 +27,8 @@ namespace precisegc { namespace details {
 
 class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
-    typedef allocators::mso_allocator mso_alloc_t;
-    typedef allocators::mlo_allocator mlo_alloc_t;
+    typedef allocators::gc_so_allocator mso_alloc_t;
+    typedef allocators::gc_lo_allocator mlo_alloc_t;
     typedef compacting::forwarding forwarding;
 public:
     gc_heap(gc_compacting compacting);

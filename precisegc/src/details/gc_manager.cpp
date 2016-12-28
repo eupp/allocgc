@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include <libprecisegc/details/logging.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 
 namespace precisegc { namespace details {
 
@@ -30,7 +30,7 @@ void gc_manager::gc(const gc_options& opt)
     if (run_stats.pause_stat.type == gc_pause_type::SKIP) {
         return;
     }
-    allocators::core_allocator::shrink();
+    allocators::gc_core_allocator::shrink();
 
     logging::info() << "GC pause (" << gc_pause_type_to_str(run_stats.pause_stat.type)
                     << ") duration "<< duration_to_str(run_stats.pause_stat.duration);

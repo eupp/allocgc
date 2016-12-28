@@ -1,4 +1,4 @@
-#include <libprecisegc/details/allocators/mso_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_so_allocator.hpp>
 
 #include <algorithm>
 
@@ -6,7 +6,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-mso_allocator::mso_allocator()
+gc_so_allocator::gc_so_allocator()
 {
     for (size_t i = 0; i < BUCKET_COUNT; ++i) {
         size_t sz_cls = 1ull << (i + MIN_CELL_SIZE_BITS_CNT);
@@ -14,16 +14,16 @@ mso_allocator::mso_allocator()
     }
 }
 
-gc_alloc_response mso_allocator::allocate(const gc_alloc_request& rqst)
+gc_alloc_response gc_so_allocator::allocate(const gc_alloc_request& rqst)
 {
-    size_t size = rqst.alloc_size() + sizeof(collectors::traceable_object_meta);
+    size_t size = gc_box::box_size(rqst.alloc_size());
     assert(size <= LARGE_CELL_SIZE);
     auto it = std::lower_bound(m_buckets.begin(), m_buckets.end(), size,
                                [] (const bucket_t& a, size_t sz) { return a.first < sz; });
     return it->second.allocate(rqst, it->first);
 }
 
-gc_heap_stat mso_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
+gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
     std::vector<std::function<void()>> tasks;
     std::array<gc_heap_stat, BUCKET_COUNT> part_stats;
@@ -45,7 +45,7 @@ gc_heap_stat mso_allocator::collect(compacting::forwarding& frwd, thread_pool_t&
     return stat;
 }
 
-void mso_allocator::fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool)
+void gc_so_allocator::fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
     std::vector<std::function<void()>> tasks;
     for (size_t i = 0; i < BUCKET_COUNT; ++i) {

@@ -16,7 +16,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
-        include/libprecisegc/details/allocators/core_allocator.hpp
+        include/libprecisegc/details/allocators/gc_core_allocator.hpp
         include/libprecisegc/details/collectors/index_tree.hpp
         include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/debug_layer.hpp
@@ -24,7 +24,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/bitmap_pool_chunk.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
-        include/libprecisegc/details/allocators/managed_pool_chunk.hpp
+        include/libprecisegc/details/allocators/gc_pool_descriptor.hpp
         include/libprecisegc/details/memory_descriptor.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/threads/pending_call.hpp
@@ -69,7 +69,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/safepoint_lock.hpp
         include/libprecisegc/details/threads/this_managed_thread.hpp
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
-        include/libprecisegc/details/allocators/managed_object_descriptor.hpp
+        include/libprecisegc/details/allocators/gc_object_descriptor.hpp
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
@@ -89,10 +89,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/remset.hpp
         include/libprecisegc/details/collectors/dptr_storage.hpp
         include/libprecisegc/details/collectors/memory_index.hpp
-        include/libprecisegc/details/allocators/mso_allocator.hpp
+        include/libprecisegc/details/allocators/gc_so_allocator.hpp
         include/libprecisegc/details/gc_type_meta_factory.hpp
-        include/libprecisegc/details/allocators/mlo_allocator.hpp
-        include/libprecisegc/details/allocators/mpool_allocator.hpp
+        include/libprecisegc/details/allocators/gc_lo_allocator.hpp
+        include/libprecisegc/details/allocators/gc_pool_allocator.hpp
         include/libprecisegc/details/gc_alloc_messaging.hpp
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/pool_allocator.hpp
@@ -105,7 +105,7 @@ set(precisegc_LIB_SRCS
         src/details/ptrs/gc_untyped_ptr.cpp
         src/details/logging.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
-        src/details/allocators/managed_pool_chunk.cpp
+        src/details/allocators/gc_pool_descriptor.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp
@@ -121,9 +121,9 @@ set(precisegc_LIB_SRCS
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
-        src/details/allocators/managed_object_descriptor.cpp
+        src/details/allocators/gc_object_descriptor.cpp
         src/details/gc_manager.cpp
-        src/details/allocators/core_allocator.cpp
+        src/details/allocators/gc_core_allocator.cpp
         src/details/threads/stack_bitmap.cpp
         src/details/threads/managed_thread.cpp
         src/details/threads/static_root_set.cpp
@@ -131,9 +131,9 @@ set(precisegc_LIB_SRCS
         src/details/collectors/remset.cpp
         src/details/collectors/dptr_storage.cpp
         src/details/collectors/memory_index.cpp
-        src/details/allocators/mso_allocator.cpp
-        src/details/allocators/mpool_allocator.cpp
-        src/details/allocators/mlo_allocator.cpp
+        src/details/allocators/gc_so_allocator.cpp
+        src/details/allocators/gc_pool_allocator.cpp
+        src/details/allocators/gc_lo_allocator.cpp
         src/details/allocators/gc_cell.cpp)
 
 

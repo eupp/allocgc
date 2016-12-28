@@ -2,7 +2,7 @@
 
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
-#include <libprecisegc/details/allocators/mpool_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 
 #include "test_forwarding.hpp"
 
@@ -19,7 +19,7 @@ struct test_type
     byte data[OBJ_SIZE];
 };
 
-typedef mpool_allocator allocator_t;
+typedef gc_pool_allocator allocator_t;
 
 }
 

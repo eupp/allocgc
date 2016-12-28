@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_MANAGED_POOL_CHUNK_H
-#define DIPLOMA_MANAGED_POOL_CHUNK_H
+#ifndef DIPLOMA_GC_POOL_DESCRIPTOR_HPP
+#define DIPLOMA_GC_POOL_DESCRIPTOR_HPP
 
 #include <cassert>
 #include <bitset>
@@ -19,7 +19,7 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class managed_pool_chunk : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
+class gc_pool_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
     static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
@@ -28,8 +28,6 @@ private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 
-    typedef collectors::gc_cell gc_cell;
-
     class memory_iterator: public boost::iterator_facade<
               memory_iterator
             , gc_cell
@@ -37,10 +35,10 @@ private:
         >
     {
     private:
-        friend class managed_pool_chunk;
+        friend class gc_pool_descriptor;
         friend class boost::iterator_core_access;
 
-        memory_iterator(byte* ptr, managed_pool_chunk* descr, size_t cell_size)
+        memory_iterator(byte* ptr, gc_pool_descriptor* descr, size_t cell_size)
             : m_cell(gc_cell::from_cell_start(ptr, descr))
             , m_cell_size(cell_size)
         {
@@ -81,8 +79,8 @@ public:
         return cell_size * CHUNK_MAXSIZE;
     }
 
-    managed_pool_chunk(byte* chunk, size_t size, size_t cell_size);
-    ~managed_pool_chunk();
+    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size);
+    ~gc_pool_descriptor();
 
     byte*  memory() const;
     size_t size() const;
@@ -142,14 +140,14 @@ private:
 
     size_t calc_cell_ind(byte* ptr) const;
 
-    byte* m_memory;
-    size_t m_size;
-    size_t m_cell_size;
+    byte*         m_memory;
+    size_t        m_size;
+    size_t        m_cell_size;
+    bitset_t      m_pin_bits;
+    bitset_t      m_init_bits;
     sync_bitset_t m_mark_bits;
-    bitset_t m_pin_bits;
-    bitset_t m_init_bits;
 };
 
 }}}
 
-#endif //DIPLOMA_MANAGED_POOL_CHUNK_H
+#endif // DIPLOMA_GC_POOL_DESCRIPTOR_HPP

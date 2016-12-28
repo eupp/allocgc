@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
-#define DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
+#ifndef DIPLOMA_GC_OBJECT_DESCRIPTOR_HPP
+#define DIPLOMA_GC_OBJECT_DESCRIPTOR_HPP
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
@@ -8,13 +8,13 @@
 
 namespace precisegc { namespace details { namespace allocators {
 
-class managed_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
+class gc_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
     typedef gc_alloc_response pointer_type;
 
-    managed_object_descriptor(size_t size);
-    ~managed_object_descriptor();
+    gc_object_descriptor(size_t size);
+    ~gc_object_descriptor();
 
     memory_descriptor* descriptor();
 
@@ -52,11 +52,11 @@ private:
     bool check_ptr(byte* ptr) const;
 
     size_t m_size;
-    bool m_mark_bit;
-    bool m_pin_bit;
-    bool m_init_bit;
+    bool   m_mark_bit;
+    bool   m_pin_bit;
+    bool   m_init_bit;
 };
 
 }}}
 
-#endif //DIPLOMA_MANAGED_LARGE_OBJECT_DESCRIPTOR_HPP
+#endif // DIPLOMA_GC_OBJECT_DESCRIPTOR_HPP

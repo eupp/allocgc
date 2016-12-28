@@ -1,14 +1,14 @@
-#include <libprecisegc/details/allocators/mlo_allocator.hpp>
+#include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 
 #include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
-mlo_allocator::mlo_allocator()
+gc_lo_allocator::gc_lo_allocator()
 { }
 
-mlo_allocator::~mlo_allocator()
+gc_lo_allocator::~gc_lo_allocator()
 {
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
         auto next = std::next(it);
@@ -17,7 +17,7 @@ mlo_allocator::~mlo_allocator()
     }
 }
 
-gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
+gc_alloc_response gc_lo_allocator::allocate(const gc_alloc_request& rqst)
 {
     size_t blk_size = get_blk_size(rqst.alloc_size());
 
@@ -35,7 +35,7 @@ gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
 
         blk.reset(allocate_blk(blk_size));
         if (!blk) {
-            core_allocator::expand_heap();
+            gc_core_allocator::expand_heap();
             blk.reset(allocate_blk(blk_size));
             if (!blk) {
                 throw gc_bad_alloc();
@@ -53,7 +53,7 @@ gc_alloc_response mlo_allocator::allocate(const gc_alloc_request& rqst)
     return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
 }
 
-gc_heap_stat mlo_allocator::collect(compacting::forwarding& frwd)
+gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
 {
     gc_heap_stat stat;
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
@@ -74,12 +74,12 @@ gc_heap_stat mlo_allocator::collect(compacting::forwarding& frwd)
     return stat;
 }
 
-void mlo_allocator::fix(const compacting::forwarding& frwd)
+void gc_lo_allocator::fix(const compacting::forwarding& frwd)
 {
     compacting::fix_ptrs(memory_begin(), memory_end(), frwd);
 }
 
-void mlo_allocator::destroy(const descriptor_iterator& it)
+void gc_lo_allocator::destroy(const descriptor_iterator& it)
 {
     byte*  blk      = get_blk_by_descr(&(*it));
     size_t blk_size = get_blk_size(it->cell_size());
@@ -89,33 +89,33 @@ void mlo_allocator::destroy(const descriptor_iterator& it)
     deallocate_blk(blk, blk_size);
 }
 
-byte* mlo_allocator::allocate_blk(size_t size)
+byte* gc_lo_allocator::allocate_blk(size_t size)
 {
     std::lock_guard<mutex_t> lock(m_mutex);
     return m_alloc.allocate(size);
 }
 
-void mlo_allocator::deallocate_blk(byte* ptr, size_t size)
+void gc_lo_allocator::deallocate_blk(byte* ptr, size_t size)
 {
     m_alloc.deallocate(ptr, size);
 }
 
-mlo_allocator::descriptor_iterator mlo_allocator::descriptors_begin()
+gc_lo_allocator::descriptor_iterator gc_lo_allocator::descriptors_begin()
 {
     return descriptor_iterator(m_alloc.begin());
 }
 
-mlo_allocator::descriptor_iterator mlo_allocator::descriptors_end()
+gc_lo_allocator::descriptor_iterator gc_lo_allocator::descriptors_end()
 {
     return descriptor_iterator(m_alloc.end());
 }
 
-mlo_allocator::memory_iterator mlo_allocator::memory_begin()
+gc_lo_allocator::memory_iterator gc_lo_allocator::memory_begin()
 {
     return memory_iterator(m_alloc.begin());
 }
 
-mlo_allocator::memory_iterator mlo_allocator::memory_end()
+gc_lo_allocator::memory_iterator gc_lo_allocator::memory_end()
 {
     return memory_iterator(m_alloc.end());
 }

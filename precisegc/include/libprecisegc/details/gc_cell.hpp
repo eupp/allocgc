@@ -19,7 +19,10 @@ public:
         return gc_cell(cell_start, descr);
     }
 
-    gc_cell() = delete;
+    gc_cell()
+        : m_cell(nullptr)
+        , m_descr(nullptr)
+    {}
 
     gc_cell(const gc_cell&) = default;
     gc_cell& operator=(const gc_cell&) = default;
@@ -41,31 +44,37 @@ public:
 
     bool get_mark() const
     {
+        assert(is_initialized());
         return m_descr->get_mark(m_cell);
     }
 
     bool get_pin() const
     {
+        assert(is_initialized());
         return m_descr->get_pin(m_cell);
     }
 
     void set_mark(bool mark)
     {
+        assert(is_initialized());
         m_descr->set_mark(m_cell, mark);
     }
 
     void set_pin(bool pin)
     {
+        assert(is_initialized());
         m_descr->set_pin(m_cell, pin);
     }
 
     gc_lifetime_tag get_lifetime_tag() const
     {
+        assert(is_initialized());
         return m_descr->get_lifetime_tag(m_cell);
     }
 
     size_t cell_size() const
     {
+        assert(is_initialized());
         return m_descr->cell_size(m_cell);
     }
 
@@ -76,36 +85,43 @@ public:
 
     size_t object_count() const
     {
+        assert(is_initialized());
         return m_descr->object_count(m_cell);
     }
 
     const gc_type_meta* get_type_meta() const
     {
+        assert(is_initialized());
         return m_descr->get_type_meta(m_cell);
     }
 
     void commit(bool mark)
     {
+        assert(is_initialized());
         m_descr->commit(m_cell, mark);
     }
 
     void commit(bool mark, const gc_type_meta* type_meta)
     {
+        assert(is_initialized());
         m_descr->commit(m_cell, mark, type_meta);
     }
 
     void trace(const gc_trace_callback& cb) const
     {
+        assert(is_initialized());
         m_descr->trace(m_cell, cb);
     }
 
     void move(const gc_cell& to)
     {
+        assert(is_initialized());
         to.m_descr->move(to.m_cell, m_cell, m_descr);
     }
 
     void finalize()
     {
+        assert(is_initialized());
         m_descr->finalize(m_cell);
     }
 private:
@@ -113,8 +129,12 @@ private:
         : m_cell(cell)
         , m_descr(descr)
     {
-        assert(m_cell);
-        assert(m_descr);
+        assert(is_initialized());
+    }
+
+    bool is_initialized() const
+    {
+        return m_cell && m_descr;
     }
 
     byte*              m_cell;

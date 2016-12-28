@@ -47,7 +47,7 @@ private:
             assert(cell_size > 0);
         }
 
-        gc_cell& dereference() const
+        gc_cell& dereference()
         {
             return m_cell;
         }

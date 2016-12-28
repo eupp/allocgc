@@ -69,11 +69,11 @@ class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
         friend class boost::iterator_core_access;
 
         memory_iterator(const typename list_alloc_t::iterator& it)
-            : descriptor_iterator::iterator_adaptor_(it)
+            : memory_iterator::iterator_adaptor_(it)
             , m_cell(gc_cell::from_cell_start(get_memblk(*it), get_descr(*it)))
         {}
 
-        gc_cell& dereference() const
+        gc_cell& dereference()
         {
             return m_cell;
         }

@@ -224,7 +224,7 @@ private:
 
     control_block  m_fake;
     control_block* m_head;
-    Lock           m_lock;
+    mutable Lock   m_lock;
 };
 
 }}}

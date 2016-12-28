@@ -9,6 +9,57 @@ namespace precisegc { namespace details { namespace allocators {
 
 class gc_box
 {
+    static const std::uintptr_t FORWARD_BIT = 1;
+
+    class box_meta
+    {
+    public:
+        box_meta(const gc_type_meta* type_meta, size_t obj_count)
+                : m_type_meta(reinterpret_cast<std::uintptr_t>(type_meta))
+                  , m_count(obj_count)
+        {
+            assert(obj_count > 0);
+        }
+
+        size_t object_count() const noexcept
+        {
+            return m_count;
+        }
+
+        const gc_type_meta* type_meta() const noexcept
+        {
+            return reinterpret_cast<const gc_type_meta*>(m_type_meta & ~FORWARD_BIT);
+        }
+
+        void set_type_meta(const gc_type_meta* cls_meta) noexcept
+        {
+            std::uintptr_t frwd_bit = is_forwarded() ? FORWARD_BIT : 0;
+            m_type_meta = reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit;
+        }
+
+        bool is_forwarded() const noexcept
+        {
+            return m_type_meta & FORWARD_BIT;
+        }
+
+        void set_forwarded() noexcept
+        {
+            m_type_meta |= FORWARD_BIT;
+        }
+    private:
+        std::uintptr_t m_type_meta;
+        size_t         m_count;
+    };
+
+    static constexpr box_meta* get_box_meta(byte* cell_start)
+    {
+        return reinterpret_cast<box_meta*>(cell_start);
+    }
+
+    static constexpr byte** get_forward_pointer_address(byte* cell_start)
+    {
+        return reinterpret_cast<byte**>(get_obj_start(cell_start));
+    }
 public:
     gc_box() = delete;
     gc_box(const gc_box&) = delete;
@@ -137,58 +188,6 @@ public:
         byte** forward_ptr_addr = get_forward_pointer_address(cell_start);
         *forward_ptr_addr = forward_pointer;
     }
-private:
-    static const std::uintptr_t FORWARD_BIT = 1;
-
-    static constexpr box_meta* get_box_meta(byte* cell_start)
-    {
-        reinterpret_cast<box_meta*>(cell_start);
-    }
-
-    static constexpr byte** get_forward_pointer_address(byte* cell_start)
-    {
-        return reinterpret_cast<byte**>(get_obj_start(cell_start));
-    }
-
-    class box_meta
-    {
-    public:
-        box_meta(const gc_type_meta* type_meta, size_t obj_count)
-            : m_type_meta(reinterpret_cast<std::uintptr_t>(type_meta))
-            , m_count(obj_count)
-        {
-            assert(obj_count > 0);
-        }
-
-        size_t object_count() const noexcept
-        {
-            return m_count;
-        }
-
-        const gc_type_meta* type_meta() const noexcept
-        {
-            return reinterpret_cast<const gc_type_meta*>(m_type_meta & ~FORWARD_BIT);
-        }
-
-        void set_type_meta(const gc_type_meta* cls_meta) noexcept
-        {
-            std::uintptr_t frwd_bit = is_forwarded() ? FORWARD_BIT : 0;
-            m_type_meta = reinterpret_cast<std::uintptr_t>(cls_meta) | frwd_bit;
-        }
-
-        bool is_forwarded() const noexcept
-        {
-            return m_type_meta & FORWARD_BIT;
-        }
-
-        void set_forwarded() noexcept
-        {
-            m_type_meta |= FORWARD_BIT;
-        }
-    private:
-        std::uintptr_t m_type_meta;
-        size_t         m_count;
-    };
 };
 
 }}}

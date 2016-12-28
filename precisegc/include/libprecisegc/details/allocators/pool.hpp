@@ -34,6 +34,7 @@ public:
 private:
     typedef pool_allocator<
               default_allocator
+            , utils::dummy_mutex
         > alloc_t;
 
     static const size_t SHRINK_LOWER_BOUND = freelist_pool_chunk::DEFAULT_CHUNK_SIZE;

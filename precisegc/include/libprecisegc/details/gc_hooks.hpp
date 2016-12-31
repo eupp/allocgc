@@ -18,9 +18,10 @@ void gc_deregister_root(gc_word* root);
 bool gc_is_root(const gc_word* ptr);
 bool gc_is_heap_ptr(const gc_word* ptr);
 
-gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
+allocators::gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
-void gc_commit(const gc_alloc_response& ptr);
+void gc_commit(gc_cell& cell);
+void gc_commit(gc_cell& cell, const gc_type_meta* type_meta);
 
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt);
 

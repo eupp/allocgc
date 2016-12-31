@@ -10,7 +10,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_heap.hpp>
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -21,7 +21,7 @@ class incremental_gc_base : public gc_strategy, private utils::noncopyable, priv
 public:
     incremental_gc_base(gc_compacting compacting, size_t threads_available);
 
-    gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
+    allocators::gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
 
     void commit(gc_cell& cell) override;
     void commit(gc_cell& cell, const gc_type_meta* type_meta) override;

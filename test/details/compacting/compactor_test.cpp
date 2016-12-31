@@ -178,7 +178,7 @@ TYPED_TEST(compactor_test, test_compact_3)
         }
         if (pin) {
             exp_pin_cnt++;
-            pinned.insert(rsp.get());
+            pinned.insert(rsp.obj_start());
         }
     }
 

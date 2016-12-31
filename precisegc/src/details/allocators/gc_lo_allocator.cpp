@@ -45,12 +45,13 @@ gc_alloc_response gc_lo_allocator::allocate(const gc_alloc_request& rqst)
 
     descriptor_t* descr = get_descr(blk.get());
     new (descr) descriptor_t(rqst.alloc_size());
-    byte* obj_start = descr->init_cell(get_memblk(blk.get()), rqst.obj_count(), rqst.type_meta());
+    byte* cell_start = get_memblk(blk.get());
+    byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
     collectors::memory_index::add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
     blk.release();
 
-    return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
+    return gc_alloc_response(obj_start, rqst.alloc_size(), gc_cell::from_cell_start(cell_start, descr));
 }
 
 gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)

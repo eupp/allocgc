@@ -26,7 +26,7 @@ TEST_F(mpool_allocator_test, test_allocate_1)
 {
     gc_alloc_response rsp = alloc.allocate(rqst, ALLOC_SIZE);
 
-    ASSERT_NE(nullptr, rsp.get());
+    ASSERT_NE(nullptr, rsp.obj_start());
     ASSERT_LE(OBJ_SIZE, rsp.size());
     ASSERT_NE(nullptr, rsp.descriptor());
 }
@@ -36,9 +36,9 @@ TEST_F(mpool_allocator_test, test_allocate_2)
     gc_alloc_response rsp1 = alloc.allocate(rqst, ALLOC_SIZE);
     gc_alloc_response rsp2 = alloc.allocate(rqst, ALLOC_SIZE);
 
-    ASSERT_NE(nullptr, rsp1.get());
-    ASSERT_NE(nullptr, rsp2.get());
-    ASSERT_NE(rsp1.get(), rsp2.get());
+    ASSERT_NE(nullptr, rsp1.obj_start());
+    ASSERT_NE(nullptr, rsp2.obj_start());
+    ASSERT_NE(rsp1.obj_start(), rsp2.obj_start());
 }
 
 TEST_F(mpool_allocator_test, test_collect)

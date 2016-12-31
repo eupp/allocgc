@@ -19,7 +19,7 @@
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
 
@@ -33,13 +33,13 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
 public:
     gc_heap(gc_compacting compacting);
 
-    gc_alloc_response allocate(const gc_alloc_request& rqst);
+    allocators::gc_alloc_response allocate(const allocators::gc_alloc_request& rqst);
 
     gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
     typedef std::unordered_map<std::thread::id, mso_alloc_t> tlab_map_t;
 
-    gc_alloc_response allocate_on_tlab(const gc_alloc_request& rqst);
+    allocators::gc_alloc_response allocate_on_tlab(const allocators::gc_alloc_request& rqst);
     mso_alloc_t& get_tlab();
 
     mlo_alloc_t m_loa;

@@ -50,14 +50,19 @@ bool gc_is_heap_ptr(const gc_word* ptr)
     return memory_index::index_memory(reinterpret_cast<const byte*>(ptr)) != nullptr;
 }
 
-gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     return gc_instance.allocate(obj_size, obj_cnt, tmeta);
 }
 
-void gc_commit(const gc_alloc_response& ptr)
+void gc_commit(gc_cell& cell)
 {
-    gc_instance.commit(ptr);
+    gc_instance.commit(cell);
+}
+
+void gc_commit(gc_cell& cell, const gc_type_meta* type_meta)
+{
+    gc_instance.commit(cell, type_meta);
 }
 
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt)

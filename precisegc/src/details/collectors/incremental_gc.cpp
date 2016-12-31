@@ -20,9 +20,9 @@ incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t thread
     , m_threads_available(threads_available)
 {}
 
-gc_alloc_response incremental_gc_base::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response incremental_gc_base::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
-    return m_heap.allocate(gc_alloc_request(obj_size, obj_cnt, tmeta));
+    return m_heap.allocate(allocators::gc_alloc_request(obj_size, obj_cnt, tmeta));
 }
 
 void incremental_gc_base::commit(gc_cell& cell)

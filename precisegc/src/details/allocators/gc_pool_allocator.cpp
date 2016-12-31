@@ -89,7 +89,7 @@ gc_alloc_response gc_pool_allocator::init_cell(byte* cell_start, const gc_alloc_
     assert(descr);
     assert(cell_start);
     byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
-    return gc_alloc_response(obj_start, rqst.alloc_size(), descr);
+    return gc_alloc_response(obj_start, rqst.alloc_size(), gc_cell::from_cell_start(cell_start, descr));
 }
 
 gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
@@ -102,7 +102,7 @@ gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, si
 
 gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it)
 {
-    sweep(*it);
+    sweep(* it, false);
     collectors::memory_index::remove_from_index(it->memory(), it->size());
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
@@ -161,11 +161,11 @@ void gc_pool_allocator::shrink(gc_heap_stat& stat)
 void gc_pool_allocator::sweep(gc_heap_stat& stat)
 {
     for (auto& descr: m_descrs) {
-        stat.mem_freed += sweep(descr);
+        stat.mem_freed += sweep(descr, true);
     }
 }
 
-size_t gc_pool_allocator::sweep(descriptor_t& descr)
+size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
 {
     byte*  it   = descr.memory();
     byte*  end  = descr.memory() + descr.size();
@@ -173,8 +173,13 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr)
 
     size_t freed = 0;
     for (size_t i = 0; it < end; it += size, ++i) {
-        freed += descr.destroy(it + sizeof(collectors::traceable_object_meta));
-        insert_into_freelist(it);
+        if (descr.get_lifetime_tag(it) == gc_lifetime_tag::GARBAGE) {
+            descr.finalize(it);
+            freed += size;
+            if (add_to_freelist) {
+                insert_into_freelist(it);
+            }
+        }
     }
     return freed;
 }

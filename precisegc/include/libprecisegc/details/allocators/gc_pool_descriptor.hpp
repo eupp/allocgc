@@ -13,7 +13,7 @@
 #include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 
@@ -34,6 +34,13 @@ private:
             , boost::random_access_traversal_tag
         >
     {
+    public:
+        memory_iterator()
+            : m_cell_size(0)
+        {}
+
+        memory_iterator(const memory_iterator&) = default;
+        memory_iterator& operator=(const memory_iterator&) = default;
     private:
         friend class gc_pool_descriptor;
         friend class boost::iterator_core_access;

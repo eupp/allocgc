@@ -24,9 +24,10 @@ public:
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
+    allocators::gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
-    void commit(const gc_alloc_response& ptr);
+    void commit(gc_cell& cell);
+    void commit(gc_cell& cell, const gc_type_meta* type_meta);
 
     byte* rbarrier(const gc_word& handle);
     void  wbarrier(gc_word& dst, const gc_word& src);
@@ -52,9 +53,9 @@ public:
     gc_info  info() const;
     gc_stat  stats() const;
 private:
-    gc_alloc_response try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
+    allocators::gc_alloc_response try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
-    static bool is_interior_pointer(const gc_word& handle, byte* p);
+    static bool is_interior_pointer(const gc_word& handle, byte* iptr);
     static bool is_interior_offset(const gc_word& handle, ptrdiff_t shift);
 
     std::unique_ptr<gc_strategy> m_strategy;

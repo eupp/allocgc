@@ -36,7 +36,7 @@ TEST_F(fix_ptrs_test, test_fix_ptrs)
                                            OBJ_SIZE + sizeof(traceable_object_meta));
     rsp.set_mark(true);
     rsp.set_pin(false);
-    byte* ptr = managed_object::get_object(rsp.get());
+    byte* ptr = managed_object::get_object(rsp.obj_start());
 
     test_type val1;
     byte* to = reinterpret_cast<byte*>(&val1);

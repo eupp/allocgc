@@ -20,7 +20,7 @@
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
 #include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 

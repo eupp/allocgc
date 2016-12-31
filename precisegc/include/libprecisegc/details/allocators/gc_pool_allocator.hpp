@@ -17,7 +17,7 @@
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
+#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -75,7 +75,7 @@ private:
     void sweep(gc_heap_stat& stat);
     void compact(compacting::forwarding& frwd, gc_heap_stat& stat);
 
-    size_t sweep(descriptor_t& descr);
+    size_t sweep(descriptor_t& descr, bool add_to_freelist);
 
     void insert_into_freelist(byte* ptr);
 

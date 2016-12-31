@@ -19,7 +19,7 @@ class serial_gc_base : public gc_strategy, private utils::noncopyable, private u
 public:
     serial_gc_base(gc_compacting compacting, size_t threads_available);
 
-    gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
+    allocators::gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
 
     void commit(gc_cell& cell) override;
     void commit(gc_cell& ptr, const gc_type_meta* type_meta) override;

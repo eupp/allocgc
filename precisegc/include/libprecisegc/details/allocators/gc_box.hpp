@@ -1,8 +1,9 @@
 #ifndef DIPLOMA_GC_BOX_HPP
 #define DIPLOMA_GC_BOX_HPP
 
-#include <libprecisegc/details/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

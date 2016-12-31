@@ -38,7 +38,7 @@ std::unique_ptr<gc_strategy> garbage_collector::set_strategy(std::unique_ptr<gc_
     return std::move(strategy);
 }
 
-gc_alloc_response garbage_collector::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response garbage_collector::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     try {
         return try_allocate(obj_size, obj_cnt, tmeta);
@@ -47,16 +47,22 @@ gc_alloc_response garbage_collector::allocate(size_t obj_size, size_t obj_cnt, c
     }
 }
 
-gc_alloc_response garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     assert(m_strategy);
     return m_strategy->allocate(obj_size, obj_cnt, tmeta);
 }
 
-void garbage_collector::commit(const gc_alloc_response& ptr)
+void garbage_collector::commit(gc_cell& cell)
 {
     assert(m_strategy);
-    m_strategy->commit(ptr);
+    m_strategy->commit(cell);
+}
+
+void garbage_collector::commit(gc_cell& cell, const gc_type_meta* meta)
+{
+    assert(m_strategy);
+    m_strategy->commit(cell, meta);
 }
 
 byte* garbage_collector::rbarrier(const gc_word& handle)
@@ -170,12 +176,13 @@ gc_stat garbage_collector::stats() const
     return m_manager.stats();
 }
 
-bool garbage_collector::is_interior_pointer(const gc_word& handle, byte* p)
+bool garbage_collector::is_interior_pointer(const gc_word& handle, byte* iptr)
 {
-    auto idx_ptr = collectors::indexed_managed_object::index(handle.rbarrier());
-    byte* cell_begin = idx_ptr.object();
-    byte* cell_end   = cell_begin + idx_ptr.cell_size();
-    return (cell_begin <= p) && (p < cell_end);
+    byte* ptr = handle.rbarrier();
+    memory_descriptor* descr = collectors::memory_index::index_memory(ptr);
+    byte* cell_begin = descr->cell_start(ptr);
+    byte* cell_end   = cell_begin + descr->cell_size(ptr);
+    return (cell_begin <= iptr) && (iptr < cell_end);
 }
 
 bool garbage_collector::is_interior_offset(const gc_word& handle, ptrdiff_t shift)

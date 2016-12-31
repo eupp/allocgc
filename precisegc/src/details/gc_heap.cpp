@@ -18,7 +18,7 @@ gc_heap::gc_heap(gc_compacting compacting)
     : m_compacting(compacting)
 {}
 
-gc_alloc_response gc_heap::allocate(const gc_alloc_request& rqst)
+allocators::gc_alloc_response gc_heap::allocate(const allocators::gc_alloc_request& rqst)
 {
     if (rqst.alloc_size() <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(rqst);
@@ -49,7 +49,7 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
     return stat;
 }
 
-gc_alloc_response gc_heap::allocate_on_tlab(const gc_alloc_request& rqst)
+allocators::gc_alloc_response gc_heap::allocate_on_tlab(const allocators::gc_alloc_request& rqst)
 {
     static thread_local mso_alloc_t& tlab = get_tlab();
     return tlab.allocate(rqst);

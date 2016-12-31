@@ -58,7 +58,7 @@ template <typename T>
 class gc_type_meta_factory : private utils::nonconstructible
 {
 public:
-    static gc_type_meta* get()
+    static const gc_type_meta* get()
     {
         return meta.load(std::memory_order_acquire);
     }
@@ -80,24 +80,24 @@ public:
     {
         static_assert(std::is_same<typename Iter::value_type, size_t>::value, "Offsets should have size_t type");
 
-        gc_type_meta* tmeta = get();
-        if (tmeta != nullptr) {
-            return tmeta;
+        const gc_type_meta* type_meta = get();
+        if (type_meta != nullptr) {
+            return type_meta;
         }
 
         std::unique_ptr<gc_type_meta> meta_owner(new internals::gc_type_meta_instance<T>(offsets_begin, offsets_end));
-        if (meta.compare_exchange_strong(tmeta, meta_owner.get(), std::memory_order_acq_rel)) {
+        if (meta.compare_exchange_strong(type_meta, meta_owner.get(), std::memory_order_acq_rel)) {
             meta_owner.release();
         }
 
         return meta.load(std::memory_order_relaxed);
     }
 private:
-    static std::atomic<gc_type_meta*> meta;
+    static std::atomic<const gc_type_meta*> meta;
 };
 
 template <typename T>
-std::atomic<gc_type_meta*> gc_type_meta_factory<T>::meta{nullptr};
+std::atomic<const gc_type_meta*> gc_type_meta_factory<T>::meta{nullptr};
 
 }}
 

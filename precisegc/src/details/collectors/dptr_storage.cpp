@@ -1,5 +1,6 @@
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/logging.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -50,7 +51,7 @@ byte* dptr_storage::make_derived(byte* ptr, ptrdiff_t offset)
 
 void dptr_storage::destroy_unmarked()
 {
-    while (m_head && !indexed_managed_object::get_mark(m_head->m_origin)) {
+    while (m_head && !memory_index::index_object(m_head->m_origin).get_mark()) {
         dptr_descriptor* next = m_head->m_next;
         m_pool.destroy(m_head);
         m_head = next;
@@ -63,7 +64,7 @@ void dptr_storage::destroy_unmarked()
     dptr_descriptor* prev = m_head;
     dptr_descriptor* curr = m_head->m_next;
     while (curr) {
-        if (!indexed_managed_object::get_mark(curr->m_origin)) {
+        if (!memory_index::index_object(m_head->m_origin).get_mark()) {
             dptr_descriptor* next = curr->m_next;
             m_pool.destroy(curr);
             prev->m_next = next;

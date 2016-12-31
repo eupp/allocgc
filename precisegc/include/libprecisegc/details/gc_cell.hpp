@@ -54,13 +54,13 @@ public:
         return m_descr->get_pin(m_cell);
     }
 
-    void set_mark(bool mark)
+    void set_mark(bool mark) const
     {
         assert(is_initialized());
         m_descr->set_mark(m_cell, mark);
     }
 
-    void set_pin(bool pin)
+    void set_pin(bool pin) const
     {
         assert(is_initialized());
         m_descr->set_pin(m_cell, pin);
@@ -95,13 +95,13 @@ public:
         return m_descr->get_type_meta(m_cell);
     }
 
-    void commit(bool mark)
+    void commit(bool mark) const
     {
         assert(is_initialized());
         m_descr->commit(m_cell, mark);
     }
 
-    void commit(bool mark, const gc_type_meta* type_meta)
+    void commit(bool mark, const gc_type_meta* type_meta) const
     {
         assert(is_initialized());
         m_descr->commit(m_cell, mark, type_meta);
@@ -113,13 +113,13 @@ public:
         m_descr->trace(m_cell, cb);
     }
 
-    void move(const gc_cell& to)
+    void move(const gc_cell& to) const
     {
         assert(is_initialized());
         to.m_descr->move(to.m_cell, m_cell, m_descr);
     }
 
-    void finalize()
+    void finalize() const
     {
         assert(is_initialized());
         m_descr->finalize(m_cell);

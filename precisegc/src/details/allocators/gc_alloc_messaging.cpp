@@ -36,7 +36,7 @@ size_t gc_alloc_request::obj_size() const noexcept
     return m_obj_size;
 }
 
-const gc_type_meta* gc_alloc_request::type_meta() const
+const gc_type_meta* gc_alloc_request::type_meta() const noexcept
 {
     return m_type_meta;
 }

@@ -16,8 +16,8 @@ class gc_box
     {
     public:
         box_meta(const gc_type_meta* type_meta, size_t obj_count)
-                : m_type_meta(reinterpret_cast<std::uintptr_t>(type_meta))
-                  , m_count(obj_count)
+            : m_type_meta(reinterpret_cast<std::uintptr_t>(type_meta))
+            , m_count(obj_count)
         {
             assert(obj_count > 0);
         }
@@ -69,6 +69,11 @@ public:
     static constexpr size_t box_size(size_t obj_size)
     {
         return obj_size + sizeof(box_meta);
+    }
+
+    static constexpr size_t obj_size(size_t box_size)
+    {
+        return box_size - sizeof(box_meta);
     }
 
     static constexpr byte* get_cell_start(byte* obj_start)
@@ -129,7 +134,7 @@ public:
         byte*  obj_to   = get_obj_start(to);
         size_t obj_size = type_meta->type_size();
         for (size_t i = 0; i < obj_count; ++i, obj_from += obj_size, obj_to += obj_size) {
-            type_meta->move(from, to);
+            type_meta->move(obj_from, obj_to);
         }
     }
 

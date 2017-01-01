@@ -48,9 +48,10 @@ const gc_type_meta* test_type::type_meta =
 struct gc_box_test : public ::testing::Test
 {
     gc_box_test()
-        : cell_start(reinterpret_cast<byte*>(&storage))
+        : memory(new byte[STORAGE_SIZE])
+        , cell_start(memory.get())
     {
-        obj_start = gc_box::create(cell_start, 1, test_type::type_meta);
+        obj_start = gc_box::create(cell_start, OBJ_CNT, test_type::type_meta);
         obj1 = reinterpret_cast<test_type*>(obj_start);
         obj2 = reinterpret_cast<test_type*>(obj_start + sizeof(test_type));
         new (obj1) test_type();
@@ -60,7 +61,7 @@ struct gc_box_test : public ::testing::Test
     static const size_t OBJ_CNT = 2;
     static const size_t STORAGE_SIZE = gc_box::box_size(OBJ_CNT * sizeof(test_type));
 
-    std::aligned_storage<STORAGE_SIZE> storage;
+    std::unique_ptr<byte[]> memory;
     byte* cell_start;
     byte* obj_start;
     test_type* obj1;
@@ -69,7 +70,7 @@ struct gc_box_test : public ::testing::Test
 
 TEST_F(gc_box_test, test_create)
 {
-    EXPECT_EQ(1, gc_box::get_obj_count(cell_start));
+    EXPECT_EQ((size_t) OBJ_CNT, gc_box::get_obj_count(cell_start));
     EXPECT_EQ(test_type::type_meta, gc_box::get_type_meta(cell_start));
     EXPECT_EQ(0, obj1->m_ptr1);
     EXPECT_EQ(0, obj1->m_ptr2);
@@ -82,7 +83,7 @@ TEST_F(gc_box_test, test_trace)
 {
     std::unordered_set<byte*> expected_set;
     byte* it = obj_start;
-    for (size_t i = 0; i < 2 * OBJ_CNT; ++i, it += sizeof(test_type)) {
+    for (size_t i = 0; i < 2 * OBJ_CNT; ++i, it += sizeof(std::uintptr_t)) {
         expected_set.insert(it);
     }
 
@@ -96,8 +97,8 @@ TEST_F(gc_box_test, test_trace)
 
 TEST_F(gc_box_test, test_move)
 {
-    std::aligned_storage<STORAGE_SIZE> to_storage;
-    byte* to = reinterpret_cast<byte*>(&to_storage);
+    std::unique_ptr<byte[]> to_storage(new byte[STORAGE_SIZE]);
+    byte* to = to_storage.get();
     test_type* to_obj1 = reinterpret_cast<test_type*>(gc_box::get_obj_start(to));
     test_type* to_obj2 = reinterpret_cast<test_type*>(gc_box::get_obj_start(to) + sizeof(test_type));
 

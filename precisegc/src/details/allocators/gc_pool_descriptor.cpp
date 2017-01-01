@@ -49,7 +49,7 @@ bool gc_pool_descriptor::unused() const
 
 size_t gc_pool_descriptor::count_lived() const
 {
-    return m_init_bits.count();
+    return m_mark_bits.count();
 }
 
 size_t gc_pool_descriptor::count_pinned() const

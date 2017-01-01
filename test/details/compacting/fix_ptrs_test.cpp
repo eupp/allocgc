@@ -11,7 +11,7 @@ using namespace precisegc::details::allocators;
 using namespace precisegc::details::compacting;
 
 namespace {
-static const size_t OBJ_SIZE = 32;
+static const size_t OBJ_SIZE = gc_box::obj_size(32);
 
 struct test_type
 {

@@ -18,7 +18,6 @@ set(precisegc_TESTS
         details/allocators/pool_chunk_test.cpp
         details/allocators/bucket_allocator_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
-        details/indexed_managed_object_test.cpp
         include/page_ptr.h
         details/managed_pool_chunk_test.cpp
         include/rand_util.h
@@ -43,7 +42,6 @@ set(precisegc_TESTS
         details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp
         include/test_descriptor.hpp
         details/utils/barrier_test.cpp
-        details/object_meta_test.cpp
         details/gc_handle_test.cpp
         details/allocators/allocators_test.cpp
         details/threads/pin_stack_test.cpp
@@ -52,7 +50,7 @@ set(precisegc_TESTS
         include/test_forwarding.hpp
         details/compacting/fix_ptrs_test.cpp
         details/allocators/gc_lo_allocator_test.cpp
-        details/allocators/mpool_allocator_test.cpp details/allocators/gc_box_test.cpp)
+        details/allocators/mpool_allocator_test.cpp details/allocators/gc_box_test.cpp details/collectors/memory_index_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

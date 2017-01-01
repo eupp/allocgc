@@ -53,6 +53,7 @@ public:
 //    typedef debug_layer<gc_core_allocator> allocator_t;
     typedef pool_allocator<
               default_allocator
+            , utils::dummy_mutex
         > list_alloc_t;
 
     typedef bucket_allocator<list_alloc_t, test_bucket_policy> bucket_allocator_t;

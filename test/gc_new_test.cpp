@@ -1,20 +1,13 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/gc_new.hpp>
+#include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;
-
-namespace {
-
-collectors::traceable_object_meta* get_meta(byte* ptr)
-{
-    return collectors::indexed_managed_object::get_meta(ptr);
-}
-
-}
+using namespace precisegc::details::collectors;
 
 TEST(gc_new_test, test_gc_new_int)
 {
@@ -46,15 +39,15 @@ TEST(gc_new_test, test_meta)
 {
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
-    collectors::traceable_object_meta* obj_meta = get_meta((byte*) pin.get());
-    const gc_type_meta* cls_meta = obj_meta->get_type_meta();
+    gc_cell cell = memory_index::index_object((byte*) pin.get());
+    const gc_type_meta* type_meta = cell.get_type_meta();
 
-    ASSERT_EQ(1, obj_meta->object_count());
+    ASSERT_EQ(1, cell.object_count());
 
-    ASSERT_NE(nullptr, cls_meta);
-    ASSERT_EQ(sizeof(node0), cls_meta->type_size());
-    ASSERT_EQ(1, cls_meta->offsets().size());
-    ASSERT_EQ(0, cls_meta->offsets()[0]);
+    ASSERT_NE(nullptr, type_meta);
+    ASSERT_EQ(sizeof(node0), type_meta->type_size());
+    ASSERT_EQ(1, type_meta->offsets().size());
+    ASSERT_EQ(0, type_meta->offsets()[0]);
 }
 
 namespace {
@@ -86,14 +79,14 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    collectors::traceable_object_meta* obj_meta = get_meta((byte*) ptr.pin().get());
-    const gc_type_meta* cls_meta = obj_meta->get_type_meta();
+    gc_cell cell = memory_index::index_object((byte*) ptr.pin().get());
+    const gc_type_meta* type_meta = cell.get_type_meta();
 
-    ASSERT_NE(nullptr, cls_meta);
-    ASSERT_EQ(sizeof(node1), cls_meta->type_size());
-    ASSERT_EQ(2, cls_meta->offsets().size());
-    ASSERT_EQ(0, cls_meta->offsets()[0]);
-    ASSERT_EQ(sizeof(gc_ptr<node1>), cls_meta->offsets()[1]);
+    ASSERT_NE(nullptr, type_meta);
+    ASSERT_EQ(sizeof(node1), type_meta->type_size());
+    ASSERT_EQ(2, type_meta->offsets().size());
+    ASSERT_EQ(0, type_meta->offsets()[0]);
+    ASSERT_EQ(sizeof(gc_ptr<node1>), type_meta->offsets()[1]);
 }
 
 namespace {

@@ -29,7 +29,7 @@ public:
     virtual const gc_type_meta* get_type_meta(byte* ptr) const = 0;
 
     virtual void commit(byte* ptr, bool mark) = 0;
-    virtual void commit(byte* ptr, bool mark, const gc_type_meta* tmeta) = 0;
+    virtual void commit(byte* ptr, bool mark, const gc_type_meta* type_meta) = 0;
 
     virtual void trace(byte* ptr, const gc_trace_callback& cb) const = 0;
     virtual void move(byte* to, byte* from, memory_descriptor* from_descr) = 0;

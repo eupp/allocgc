@@ -40,7 +40,8 @@ struct test_type
 size_t test_type::dtor_call_cnt = 0;
 size_t test_type::move_ctor_call_cnt = 0;
 
-const gc_type_meta* test_type::type_meta = gc_type_meta_factory<test_type>::create({0, sizeof(std::uintptr_t)});
+const gc_type_meta* test_type::type_meta =
+        gc_type_meta_factory<test_type>::create(std::vector<size_t>{0, sizeof(std::uintptr_t)});
 
 }
 
@@ -102,7 +103,7 @@ TEST_F(gc_box_test, test_move)
 
     gc_box::move(to, cell_start, OBJ_CNT, test_type::type_meta);
 
-    EXPECT_EQ(OBJ_CNT, gc_box::get_obj_count(to));
+    EXPECT_EQ((size_t) OBJ_CNT, gc_box::get_obj_count(to));
     EXPECT_EQ(test_type::type_meta, gc_box::get_type_meta(to));
     EXPECT_EQ(0, to_obj1->m_ptr1);
     EXPECT_EQ(0, to_obj1->m_ptr2);

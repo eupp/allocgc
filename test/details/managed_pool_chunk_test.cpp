@@ -7,6 +7,7 @@
 #include <libprecisegc/details/allocators/gc_pool_descriptor.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
+#include <libprecisegc/details/allocators/gc_box.hpp>
 
 #include "rand_util.h"
 
@@ -75,7 +76,7 @@ namespace {
 const size_t OBJ_SIZE = 8;
 const size_t OBJ_CNT = 2;
 
-static_assert(OBJ_CNT * OBJ_SIZE + sizeof(traceable_object_meta) <= CELL_SIZE,
+static_assert(gc_box::box_size(OBJ_CNT * OBJ_SIZE) <= CELL_SIZE,
               "managed_pool_chunk_test assertion failed");
 
 struct test_type
@@ -91,16 +92,15 @@ TEST_F(managed_pool_chunk_test, test_get_mark_pin)
     size_t mem_size = m_chunk.size();
 
     for (byte* ptr = mem; ptr < mem + mem_size; ptr += CELL_SIZE) {
-        byte* obj = ptr + sizeof(collectors::traceable_object_meta);
-        ASSERT_FALSE(descr->get_mark(obj));
-        ASSERT_FALSE(descr->get_pin(obj));
+        ASSERT_FALSE(descr->get_mark(ptr));
+        ASSERT_FALSE(descr->get_pin(ptr));
     }
 }
 
 TEST_F(managed_pool_chunk_test, test_set_mark)
 {
     memory_descriptor* descr = m_chunk.descriptor();
-    byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand() + sizeof(collectors::traceable_object_meta);
+    byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand();
 
     descr->set_mark(ptr, true);
     ASSERT_EQ(descr->get_mark(ptr), true);
@@ -109,7 +109,7 @@ TEST_F(managed_pool_chunk_test, test_set_mark)
 TEST_F(managed_pool_chunk_test, test_set_pin)
 {
     memory_descriptor* descr = m_chunk.descriptor();
-    byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand() + sizeof(collectors::traceable_object_meta);
+    byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand();
 
     descr->set_pin(ptr, true);
     ASSERT_EQ(descr->get_pin(ptr), true);

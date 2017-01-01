@@ -143,7 +143,7 @@ auto gc_new(size_t n)
     if (!type_meta) {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (begin++) U();
-        type_meta = gc_type_meta_factory<T>::create(this_managed_thread::gc_ptr_offsets());
+        type_meta = gc_type_meta_factory<U>::create(this_managed_thread::gc_ptr_offsets());
     } else {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (begin++) U();

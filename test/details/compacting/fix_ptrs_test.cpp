@@ -9,10 +9,9 @@
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 using namespace precisegc::details::compacting;
-using namespace precisegc::details::collectors;
 
 namespace {
-static const size_t OBJ_SIZE = 64 - sizeof(traceable_object_meta);
+static const size_t OBJ_SIZE = 32;
 
 struct test_type
 {
@@ -32,11 +31,10 @@ struct fix_ptrs_test : public ::testing::Test
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
-    gc_alloc_response rsp = alloc.allocate(gc_alloc_request(OBJ_SIZE, 1, tmeta),
-                                           OBJ_SIZE + sizeof(traceable_object_meta));
+    gc_alloc_response rsp = alloc.allocate(gc_alloc_request(OBJ_SIZE, 1, tmeta), gc_box::box_size(OBJ_SIZE));
     rsp.set_mark(true);
     rsp.set_pin(false);
-    byte* ptr = managed_object::get_object(rsp.obj_start());
+    byte* ptr = rsp.obj_start();
 
     test_type val1;
     byte* to = reinterpret_cast<byte*>(&val1);

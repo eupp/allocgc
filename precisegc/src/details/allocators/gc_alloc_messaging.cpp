@@ -76,6 +76,11 @@ void gc_alloc_response::set_pin(bool pin)
     m_cell.set_pin(pin);
 }
 
+gc_lifetime_tag gc_alloc_response::get_lifetime_tag() const
+{
+    m_cell.get_lifetime_tag();
+}
+
 void gc_alloc_response::commit()
 {
     gc_commit(m_cell);

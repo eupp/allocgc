@@ -226,8 +226,8 @@ void gc_pool_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::INITIALIZED ||
-           get_lifetime_tag(ptr) == gc_lifetime_tag::ALLOCATED);
+//    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::INITIALIZED ||
+//           get_lifetime_tag(ptr) == gc_lifetime_tag::ALLOCATED);
     gc_box::trace(ptr, cb);
 }
 
@@ -236,7 +236,7 @@ void gc_pool_descriptor::move(byte* to, byte* from, memory_descriptor* from_desc
     assert(contains(to));
     assert(to == cell_start(to));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
-    assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
+    assert(from_descr->get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
     gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
     from_descr->set_mark(from, false);
     size_t idx = calc_cell_ind(to);

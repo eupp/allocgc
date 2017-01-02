@@ -44,7 +44,7 @@ enum class gc_lifetime_tag {
       FREE = 0
     , ALLOCATED = 1
     , GARBAGE = 2
-    , INITIALIZED = 4
+    , INITIALIZED = 3
 };
 
 inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)

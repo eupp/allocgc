@@ -22,7 +22,7 @@ typedef gc_pool_allocator allocator_t;
 
 }
 
-static const gc_type_meta* tmeta = gc_type_meta_factory<test_type>::create(std::vector<size_t>({0}));
+static const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create(std::vector<size_t>({0}));
 
 struct fix_ptrs_test : public ::testing::Test
 {
@@ -31,7 +31,7 @@ struct fix_ptrs_test : public ::testing::Test
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
-    gc_alloc_response rsp = alloc.allocate(gc_alloc_request(OBJ_SIZE, 1, tmeta), gc_box::box_size(OBJ_SIZE));
+    gc_alloc_response rsp = alloc.allocate(gc_alloc_request(OBJ_SIZE, 1, type_meta), gc_box::box_size(OBJ_SIZE));
     rsp.set_mark(true);
     rsp.set_pin(false);
     byte* ptr = rsp.obj_start();

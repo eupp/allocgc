@@ -57,8 +57,9 @@ class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
     class memory_iterator : public boost::iterator_adaptor<
               memory_iterator
             , typename list_alloc_t::iterator
-            , const gc_cell
+            , gc_cell
             , boost::bidirectional_traversal_tag
+            , gc_cell
         >
     {
     public:
@@ -73,7 +74,7 @@ class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
             , m_cell(gc_cell::from_cell_start(get_memblk(*it), get_descr(*it)))
         {}
 
-        const gc_cell& dereference() const
+        gc_cell dereference() const
         {
             return m_cell;
         }

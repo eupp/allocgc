@@ -30,8 +30,9 @@ private:
 
     class memory_iterator: public boost::iterator_facade<
               memory_iterator
-            , const gc_cell
+            , gc_cell
             , boost::random_access_traversal_tag
+            , gc_cell
         >
     {
     public:
@@ -54,7 +55,7 @@ private:
             assert(cell_size > 0);
         }
 
-        const gc_cell& dereference() const
+        gc_cell dereference() const
         {
             return m_cell;
         }

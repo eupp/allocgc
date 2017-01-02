@@ -68,6 +68,8 @@ public:
     bool get_pin() const;
     void set_pin(bool pin);
 
+    gc_lifetime_tag get_lifetime_tag() const;
+
     void commit();
     void commit(const gc_type_meta* type_meta);
 private:

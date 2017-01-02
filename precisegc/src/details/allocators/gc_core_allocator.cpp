@@ -54,6 +54,8 @@ void gc_core_allocator::deallocate(byte* ptr, size_t size)
     } else {
         freelist.deallocate(ptr, aligned_size);
     }
+
+    heap_size -= size;
 }
 
 size_t gc_core_allocator::shrink()

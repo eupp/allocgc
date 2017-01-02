@@ -60,7 +60,7 @@ gc_run_stats serial_gc_base::gc(const gc_options& options)
 {
     using namespace threads;
 
-    if (options.kind != gc_kind::MARK_COLLECT || options.kind != gc_kind::COLLECT) {
+    if ((options.kind != gc_kind::MARK_COLLECT) && (options.kind != gc_kind::COLLECT)) {
         return gc_run_stats();
 //        throw std::invalid_argument("serial_gc doessupports only full stop-the-world collection");
     }

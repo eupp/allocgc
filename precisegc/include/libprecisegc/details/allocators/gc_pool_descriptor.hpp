@@ -124,6 +124,7 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    gc_lifetime_tag get_lifetime_tag(size_t idx) const;
     gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
 
     size_t cell_size() const;
@@ -138,6 +139,8 @@ public:
 
     void trace(byte* ptr, const gc_trace_callback& cb) const override;
     void move(byte* to, byte* from, memory_descriptor* from_descr) override;
+
+    void finalize(size_t i);
     void finalize(byte* ptr) override;
 private:
     bool is_init(byte* ptr) const;

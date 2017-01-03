@@ -161,10 +161,15 @@ void gc_pool_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bits.set(ind, pin);
 }
 
+gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(size_t idx) const
+{
+    return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
+}
+
 gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(byte* ptr) const
 {
     size_t idx = calc_cell_ind(ptr);
-    return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
+    return get_lifetime_tag(idx);
 }
 
 size_t gc_pool_descriptor::cell_size() const
@@ -242,6 +247,13 @@ void gc_pool_descriptor::move(byte* to, byte* from, memory_descriptor* from_desc
     size_t idx = calc_cell_ind(to);
     set_mark(idx, true);
     set_init(idx, true);
+}
+
+void gc_pool_descriptor::finalize(size_t i)
+{
+    assert(get_lifetime_tag(i) == gc_lifetime_tag::GARBAGE);
+    gc_box::destroy(m_memory + i * cell_size());
+    set_init(i, false);
 }
 
 void gc_pool_descriptor::finalize(byte* ptr)

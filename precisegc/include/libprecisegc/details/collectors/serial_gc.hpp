@@ -31,6 +31,8 @@ public:
 
     gc_run_stats gc(const gc_options& options) override;
 private:
+    gc_run_stats sweep();
+
     gc_heap m_heap;
     dptr_storage m_dptr_storage;
     packet_manager m_packet_manager;

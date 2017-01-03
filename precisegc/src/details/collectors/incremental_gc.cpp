@@ -72,7 +72,9 @@ gc_run_stats incremental_gc_base::gc(const gc_options& options)
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking();
     } else if (options.kind == gc_kind::COLLECT) {
-        return sweep();
+        gc_run_stats stats = sweep();
+        allocators::gc_core_allocator::shrink();
+        return stats;
     }
     return gc_run_stats();
 }

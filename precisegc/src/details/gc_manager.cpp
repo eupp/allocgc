@@ -30,7 +30,6 @@ void gc_manager::gc(const gc_options& opt)
     if (run_stats.pause_stat.type == gc_pause_type::SKIP) {
         return;
     }
-    allocators::gc_core_allocator::shrink();
 
     logging::info() << "GC pause (" << gc_pause_type_to_str(run_stats.pause_stat.type)
                     << ") duration "<< duration_to_str(run_stats.pause_stat.duration);
@@ -84,7 +83,7 @@ void gc_manager::set_print_stats_flag(bool value)
 
 bool gc_manager::check_gc_kind(gc_kind kind)
 {
-    if (kind == gc_kind::CONCURRENT_MARK && m_strategy->info().incremental_flag) {
+    if (kind == gc_kind::CONCURRENT_MARK && !m_strategy->info().incremental_flag) {
         return false;
     }
     return true;

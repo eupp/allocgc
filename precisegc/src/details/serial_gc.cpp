@@ -58,12 +58,19 @@ void serial_gc_base::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
 
 gc_run_stats serial_gc_base::gc(const gc_options& options)
 {
-    using namespace threads;
-
     if ((options.kind != gc_kind::MARK_COLLECT) && (options.kind != gc_kind::COLLECT)) {
         return gc_run_stats();
 //        throw std::invalid_argument("serial_gc doessupports only full stop-the-world collection");
     }
+
+    gc_run_stats stats = sweep();
+    allocators::gc_core_allocator::shrink();
+    return stats;
+}
+
+gc_run_stats serial_gc_base::sweep()
+{
+    using namespace threads;
 
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());

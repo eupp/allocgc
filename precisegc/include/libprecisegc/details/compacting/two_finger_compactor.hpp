@@ -30,8 +30,14 @@ struct two_finger_compactor
         size_t copied_cnt = 0;
         while (from != to) {
             to = std::find_if(to, from, [](value_t cell) {
-                return cell.get_lifetime_tag() == gc_lifetime_tag::FREE;
+                return cell.get_lifetime_tag() == gc_lifetime_tag::FREE ||
+                       cell.get_lifetime_tag() == gc_lifetime_tag::GARBAGE;
             });
+
+            if (to->get_lifetime_tag() == gc_lifetime_tag::GARBAGE) {
+                stat.mem_freed += cell_size;
+                to->finalize();
+            }
 
             auto rev_from = std::find_if(reverse_iterator(from),
                                          reverse_iterator(to),

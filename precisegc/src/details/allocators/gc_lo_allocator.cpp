@@ -80,11 +80,20 @@ void gc_lo_allocator::fix(const compacting::forwarding& frwd)
     compacting::fix_ptrs(memory_begin(), memory_end(), frwd);
 }
 
+void gc_lo_allocator::finalize()
+{
+    for (auto it = descriptors_begin(); it != descriptors_end(); ++it) {
+        it->set_mark(false);
+        it->set_pin(false);
+    }
+}
+
 void gc_lo_allocator::destroy(const descriptor_iterator& it)
 {
     byte*  blk      = get_blk_by_descr(&(*it));
     size_t blk_size = get_blk_size(it->cell_size());
 
+    it->finalize(get_memblk(blk));
     collectors::memory_index::remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
     deallocate_blk(blk, blk_size);

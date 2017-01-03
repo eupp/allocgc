@@ -111,6 +111,7 @@ public:
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
+    void finalize();
 private:
     static constexpr size_t get_blk_size(size_t alloc_size)
     {

@@ -204,6 +204,13 @@ void gc_pool_allocator::fix(const compacting::forwarding& frwd)
     compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
+void gc_pool_allocator::finalize()
+{
+    for (auto& descr: m_descrs) {
+        descr.unmark();
+    }
+}
+
 bool gc_pool_allocator::empty() const
 {
     return m_descrs.empty();

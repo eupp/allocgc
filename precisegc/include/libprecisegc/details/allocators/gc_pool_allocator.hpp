@@ -46,6 +46,7 @@ public:
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
+    void finalize();
 
     bool empty() const;
 

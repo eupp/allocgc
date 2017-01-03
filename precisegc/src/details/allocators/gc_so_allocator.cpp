@@ -59,4 +59,11 @@ void gc_so_allocator::fix(const compacting::forwarding& frwd, thread_pool_t& thr
     thread_pool.run(tasks.begin(), tasks.end());
 }
 
+void gc_so_allocator::finalize()
+{
+    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
+        m_buckets[i].second.finalize();
+    }
+}
+
 }}}

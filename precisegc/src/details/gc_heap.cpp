@@ -46,6 +46,11 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
         snapshot.fix_roots(frwd);
     }
 
+    for (auto& kv: m_tlab_map) {
+        kv.second.finalize();
+    }
+    m_loa.finalize();
+
     return stat;
 }
 

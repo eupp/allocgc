@@ -125,7 +125,7 @@ void gc_object_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
     gc_box::trace(ptr, cb);
 }
 
-void gc_object_descriptor::move(byte* to, byte* from, memory_descriptor* from_descr)
+void gc_object_descriptor::move(byte* to, byte* from, gc_memory_descriptor* from_descr)
 {
     assert(check_ptr(to));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
@@ -144,7 +144,7 @@ void gc_object_descriptor::finalize(byte* ptr)
     m_init_bit = false;
 }
 
-memory_descriptor* gc_object_descriptor::descriptor()
+gc_memory_descriptor* gc_object_descriptor::descriptor()
 {
     return this;
 }

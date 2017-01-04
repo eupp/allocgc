@@ -25,7 +25,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
         include/libprecisegc/details/allocators/gc_pool_descriptor.hpp
-        include/libprecisegc/details/memory_descriptor.hpp
+        include/libprecisegc/details/gc_memory_descriptor.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
@@ -38,7 +38,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/scoped_thread.hpp
         include/libprecisegc/details/utils/scope_guard.hpp
         include/libprecisegc/details/threads/posix_thread.hpp
-        include/libprecisegc/details/garbage_collector.hpp
+        include/libprecisegc/details/gc_facade.hpp
         include/libprecisegc/details/collectors/marker.hpp
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/utils/system_error.hpp
@@ -47,7 +47,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/make_reverse_iterator.hpp
         include/libprecisegc/details/allocators/allocator_tag.hpp
         include/libprecisegc/details/utils/bitset.hpp
-        include/libprecisegc/details/initiation_policy.hpp
         include/libprecisegc/details/collectors/serial_gc.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
@@ -111,8 +110,7 @@ set(precisegc_LIB_SRCS
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/garbage_collector.cpp
-        src/details/collectors/initiation_policy.cpp
+        src/details/gc_facade.cpp
         src/details/serial_gc.cpp
         src/details/collectors/incremental_gc.cpp
         src/details/allocators/freelist_pool_chunk.cpp

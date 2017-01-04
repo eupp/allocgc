@@ -3,14 +3,14 @@
 
 #include <libprecisegc/details/threads/static_root_set.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_facade.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details {
 
-static garbage_collector gc_instance{};
+static gc_facade gc_instance{};
 
-void gc_initialize(std::unique_ptr<gc_strategy> strategy, std::unique_ptr<initiation_policy> init_policy)
+void gc_initialize(std::unique_ptr<gc_strategy> strategy)
 {
     gc_instance.init(std::move(strategy));
 }

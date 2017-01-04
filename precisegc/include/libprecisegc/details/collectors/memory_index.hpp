@@ -3,14 +3,14 @@
 
 #include <libprecisegc/details/collectors/index_tree.hpp>
 #include <libprecisegc/details/gc_cell.hpp>
-#include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/gc_memory_descriptor.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
 class memory_index
 {
 public:
-    static inline void add_to_index(const byte* mem, size_t size, memory_descriptor* entry)
+    static inline void add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry)
     {
         indexer.add_to_index(mem, size, entry);
     }
@@ -20,7 +20,7 @@ public:
         indexer.remove_from_index(mem, size);
     }
 
-    static inline memory_descriptor* index_memory(const byte* mem)
+    static inline gc_memory_descriptor* index_memory(const byte* mem)
     {
         return indexer.index(mem);
     }
@@ -30,7 +30,7 @@ public:
         return gc_cell::from_obj_start(obj_start, index_memory(obj_start));
     }
 private:
-    typedef index_tree<memory_descriptor> index_tree_t;
+    typedef index_tree<gc_memory_descriptor> index_tree_t;
 
     static index_tree_t indexer;
 };

@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_facade.hpp>
 
 #include "incremental_gc_mock.hpp"
 #include "initiation_policy_mock.hpp"
@@ -30,7 +30,7 @@ using ::testing::Field;
 //        collector.init(std::move(gc_strategy_owner), std::move(policy_mock_owner));
 //    }
 //
-//    garbage_collector collector;
+//    gc_facade collector;
 //    incremental_gc_mock* gc_mock;
 //    initiation_policy_mock* policy_mock;
 //};

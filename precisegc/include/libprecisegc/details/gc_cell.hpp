@@ -2,19 +2,19 @@
 #define DIPLOMA_GC_CELL_HPP
 
 #include <libprecisegc/details/allocators/gc_box.hpp>
-#include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/gc_memory_descriptor.hpp>
 
 namespace precisegc { namespace details {
 
 class gc_cell
 {
 public:
-    static gc_cell from_obj_start(byte* obj_start, memory_descriptor* descr)
+    static gc_cell from_obj_start(byte* obj_start, gc_memory_descriptor* descr)
     {
         return gc_cell(allocators::gc_box::get_cell_start(obj_start), descr);
     }
 
-    static gc_cell from_cell_start(byte* cell_start, memory_descriptor* descr)
+    static gc_cell from_cell_start(byte* cell_start, gc_memory_descriptor* descr)
     {
         return gc_cell(cell_start, descr);
     }
@@ -37,7 +37,7 @@ public:
         m_cell = cell_start;
     }
 
-    memory_descriptor* descriptor() const
+    gc_memory_descriptor* descriptor() const
     {
         return m_descr;
     }
@@ -125,7 +125,7 @@ public:
         m_descr->finalize(m_cell);
     }
 private:
-    gc_cell(byte* cell, memory_descriptor* descr)
+    gc_cell(byte* cell, gc_memory_descriptor* descr)
         : m_cell(cell)
         , m_descr(descr)
     {
@@ -138,7 +138,7 @@ private:
     }
 
     byte*              m_cell;
-    memory_descriptor* m_descr;
+    gc_memory_descriptor* m_descr;
 };
 
 }}

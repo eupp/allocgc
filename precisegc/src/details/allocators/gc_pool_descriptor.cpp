@@ -23,7 +23,7 @@ size_t gc_pool_descriptor::size() const
     return m_size;
 }
 
-memory_descriptor* gc_pool_descriptor::descriptor()
+gc_memory_descriptor* gc_pool_descriptor::descriptor()
 {
     return this;
 }
@@ -236,7 +236,7 @@ void gc_pool_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
     gc_box::trace(ptr, cb);
 }
 
-void gc_pool_descriptor::move(byte* to, byte* from, memory_descriptor* from_descr)
+void gc_pool_descriptor::move(byte* to, byte* from, gc_memory_descriptor* from_descr)
 {
     assert(contains(to));
     assert(to == cell_start(to));

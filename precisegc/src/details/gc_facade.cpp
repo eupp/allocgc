@@ -1,4 +1,4 @@
-#include <libprecisegc/details/garbage_collector.hpp>
+#include <libprecisegc/details/gc_facade.hpp>
 
 #include <cassert>
 #include <memory>
@@ -12,7 +12,7 @@
 
 namespace precisegc { namespace details {
 
-garbage_collector::garbage_collector()
+gc_facade::gc_facade()
     : m_manager(nullptr)
 {
     logging::touch();
@@ -20,25 +20,25 @@ garbage_collector::garbage_collector()
     collectors::memory_index::add_to_index(nullptr, 0, nullptr);
 }
 
-void garbage_collector::init(std::unique_ptr<gc_strategy> strategy)
+void gc_facade::init(std::unique_ptr<gc_strategy> strategy)
 {
     m_strategy = std::move(strategy);
     m_manager.set_strategy(m_strategy.get());
 }
 
-gc_strategy* garbage_collector::get_strategy() const
+gc_strategy* gc_facade::get_strategy() const
 {
     return m_strategy.get();
 }
 
-std::unique_ptr<gc_strategy> garbage_collector::set_strategy(std::unique_ptr<gc_strategy> strategy)
+std::unique_ptr<gc_strategy> gc_facade::set_strategy(std::unique_ptr<gc_strategy> strategy)
 {
     strategy.swap(m_strategy);
     m_manager.set_strategy(m_strategy.get());
     return std::move(strategy);
 }
 
-allocators::gc_alloc_response garbage_collector::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response gc_facade::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     try {
         return try_allocate(obj_size, obj_cnt, tmeta);
@@ -47,37 +47,37 @@ allocators::gc_alloc_response garbage_collector::allocate(size_t obj_size, size_
     }
 }
 
-allocators::gc_alloc_response garbage_collector::try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response gc_facade::try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     assert(m_strategy);
     return m_strategy->allocate(obj_size, obj_cnt, tmeta);
 }
 
-void garbage_collector::commit(gc_cell& cell)
+void gc_facade::commit(gc_cell& cell)
 {
     assert(m_strategy);
     m_strategy->commit(cell);
 }
 
-void garbage_collector::commit(gc_cell& cell, const gc_type_meta* meta)
+void gc_facade::commit(gc_cell& cell, const gc_type_meta* meta)
 {
     assert(m_strategy);
     m_strategy->commit(cell, meta);
 }
 
-byte* garbage_collector::rbarrier(const gc_word& handle)
+byte* gc_facade::rbarrier(const gc_word& handle)
 {
     assert(m_strategy);
     return m_strategy->rbarrier(handle);
 }
 
-void garbage_collector::wbarrier(gc_word& dst, const gc_word& src)
+void gc_facade::wbarrier(gc_word& dst, const gc_word& src)
 {
     assert(m_strategy);
     m_strategy->wbarrier(dst, src);
 }
 
-void garbage_collector::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
+void gc_facade::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
 {
     assert(m_strategy);
     // this assertion doesn't work properly in current version
@@ -85,7 +85,7 @@ void garbage_collector::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
     m_strategy->interior_wbarrier(handle, offset);
 }
 
-byte* garbage_collector::pin(const gc_word& handle)
+byte* gc_facade::pin(const gc_word& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -95,14 +95,14 @@ byte* garbage_collector::pin(const gc_word& handle)
     return ptr;
 }
 
-void garbage_collector::unpin(byte* ptr)
+void gc_facade::unpin(byte* ptr)
 {
     if (ptr) {
         threads::this_managed_thread::unpin(ptr);
     }
 }
 
-byte* garbage_collector::push_pin(const gc_word& handle)
+byte* gc_facade::push_pin(const gc_word& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -110,20 +110,20 @@ byte* garbage_collector::push_pin(const gc_word& handle)
     return ptr;
 }
 
-void garbage_collector::pop_pin(byte* ptr)
+void gc_facade::pop_pin(byte* ptr)
 {
     if (ptr) {
         threads::this_managed_thread::pop_pin(ptr);
     }
 }
 
-bool garbage_collector::compare(const gc_word& a, const gc_word& b)
+bool gc_facade::compare(const gc_word& a, const gc_word& b)
 {
     gc_unsafe_scope unsafe_scope;
     return a.rbarrier() == b.rbarrier();
 }
 
-void garbage_collector::initiation_point(initiation_point_type ipt, const gc_options& opt)
+void gc_facade::initiation_point(initiation_point_type ipt, const gc_options& opt)
 {
     gc_safe_scope safe_scope;
     std::lock_guard<std::mutex> lock(m_gc_mutex);
@@ -144,48 +144,48 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const gc_opt
     }
 }
 
-bool garbage_collector::is_printer_enabled() const
+bool gc_facade::is_printer_enabled() const
 {
     return m_manager.print_stats_flag();
 }
 
-void garbage_collector::set_printer_enabled(bool enabled)
+void gc_facade::set_printer_enabled(bool enabled)
 {
     m_manager.set_print_stats_flag(enabled);
 }
 
-void garbage_collector::register_page(const byte* page, size_t size)
+void gc_facade::register_page(const byte* page, size_t size)
 {
     m_manager.register_page(page, size);
 }
 
-void garbage_collector::deregister_page(const byte* page, size_t size)
+void gc_facade::deregister_page(const byte* page, size_t size)
 {
     m_manager.deregister_page(page, size);
 }
 
-gc_info garbage_collector::info() const
+gc_info gc_facade::info() const
 {
     assert(m_strategy);
     return m_strategy->info();
 }
 
-gc_stat garbage_collector::stats() const
+gc_stat gc_facade::stats() const
 {
     gc_unsafe_scope unsafe_scope;
     return m_manager.stats();
 }
 
-bool garbage_collector::is_interior_pointer(const gc_word& handle, byte* iptr)
+bool gc_facade::is_interior_pointer(const gc_word& handle, byte* iptr)
 {
     byte* ptr = handle.rbarrier();
-    memory_descriptor* descr = collectors::memory_index::index_memory(ptr);
+    gc_memory_descriptor* descr = collectors::memory_index::index_memory(ptr);
     byte* cell_begin = descr->cell_start(ptr);
     byte* cell_end   = cell_begin + descr->cell_size(ptr);
     return (cell_begin <= iptr) && (iptr < cell_end);
 }
 
-bool garbage_collector::is_interior_offset(const gc_word& handle, ptrdiff_t shift)
+bool gc_facade::is_interior_offset(const gc_word& handle, ptrdiff_t shift)
 {
     return is_interior_pointer(handle, handle.rbarrier() + shift);
 }

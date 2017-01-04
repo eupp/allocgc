@@ -7,17 +7,16 @@
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
-#include <libprecisegc/details/initiation_policy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
 #include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {
 
-class garbage_collector : private utils::noncopyable, private utils::nonmovable
+class gc_facade : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    garbage_collector();
+    gc_facade();
 
     void init(std::unique_ptr<gc_strategy> strategy);
 

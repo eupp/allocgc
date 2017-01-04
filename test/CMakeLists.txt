@@ -14,12 +14,12 @@ set(precisegc_TESTS
         gc_new_test.cpp
         details/gc_untyped_ptr_test.cpp
         gc_environment.cpp
-        details/index_tree_test.cpp
+        details/collectors/index_tree_test.cpp
         details/allocators/pool_chunk_test.cpp
         details/allocators/bucket_allocator_test.cpp
         details/allocators/pow2_bucket_policy_test.cpp
         include/page_ptr.h
-        details/managed_pool_chunk_test.cpp
+        details/allocators/managed_pool_chunk_test.cpp
         include/rand_util.h
         gc_ptr_test.cpp
         details/threads/pending_call_test.cpp
@@ -29,6 +29,7 @@ set(precisegc_TESTS
         details/threads/stw_manager_test.cpp
         details/threads/managed_thread_test.cpp
         details/threads/thread_manager_test.cpp
+        include/test_descriptor.hpp
 
         details/utils/flattened_range_test.cpp
         details/utils/bitset_test.cpp
@@ -36,11 +37,10 @@ set(precisegc_TESTS
         include/serial_gc_mock.hpp
         include/initiation_policy_mock.hpp
         include/incremental_gc_mock.hpp
-        details/space_based_policy_test.cpp
         details/utils/dynarray_test.cpp
         details/utils/base_offset_test.cpp
-        details/utils/static_thread_pool_test.cpp details/collectors/marker_test.cpp
-        include/test_descriptor.hpp
+        details/utils/static_thread_pool_test.cpp
+        details/collectors/marker_test.cpp
         details/utils/barrier_test.cpp
         details/gc_handle_test.cpp
         details/allocators/allocators_test.cpp
@@ -50,7 +50,9 @@ set(precisegc_TESTS
         include/test_forwarding.hpp
         details/compacting/fix_ptrs_test.cpp
         details/allocators/gc_lo_allocator_test.cpp
-        details/allocators/mpool_allocator_test.cpp details/allocators/gc_box_test.cpp details/collectors/memory_index_test.cpp)
+        details/allocators/mpool_allocator_test.cpp
+        details/allocators/gc_box_test.cpp
+        details/collectors/memory_index_test.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

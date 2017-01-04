@@ -8,10 +8,10 @@
 
 namespace precisegc { namespace details {
 
-class memory_descriptor
+class gc_memory_descriptor
 {
 public:
-    virtual ~memory_descriptor() {}
+    virtual ~gc_memory_descriptor() {}
 
     virtual bool get_mark(byte* ptr) const = 0;
     virtual bool get_pin(byte* ptr) const = 0;
@@ -32,7 +32,7 @@ public:
     virtual void commit(byte* ptr, bool mark, const gc_type_meta* type_meta) = 0;
 
     virtual void trace(byte* ptr, const gc_trace_callback& cb) const = 0;
-    virtual void move(byte* to, byte* from, memory_descriptor* from_descr) = 0;
+    virtual void move(byte* to, byte* from, gc_memory_descriptor* from_descr) = 0;
     virtual void finalize(byte* ptr) = 0;
 };
 

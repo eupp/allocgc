@@ -2,13 +2,13 @@
 #define DIPLOMA_GC_OBJECT_DESCRIPTOR_HPP
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/memory_descriptor.hpp>
+#include <libprecisegc/details/gc_memory_descriptor.hpp>
 #include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 #include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
-class gc_object_descriptor : public memory_descriptor, private utils::noncopyable, private utils::nonmovable
+class gc_object_descriptor : public gc_memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
     typedef gc_alloc_response pointer_type;
@@ -16,7 +16,7 @@ public:
     gc_object_descriptor(size_t size);
     ~gc_object_descriptor();
 
-    memory_descriptor* descriptor();
+    gc_memory_descriptor* descriptor();
 
     byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
 
@@ -46,7 +46,7 @@ public:
     void commit(byte* ptr, bool mark, const gc_type_meta* type_meta) override;
 
     void trace(byte* ptr, const gc_trace_callback& cb) const override;
-    void move(byte* to, byte* from, memory_descriptor* from_descr) override;
+    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
     void finalize(byte* ptr) override;
 private:
     bool check_ptr(byte* ptr) const;

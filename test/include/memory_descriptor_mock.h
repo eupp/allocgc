@@ -5,13 +5,13 @@
 
 #include "libprecisegc/details/allocators/gc_pool_descriptor.hpp"
 
-class memory_descriptor_mock : public precisegc::details::memory_descriptor
+class memory_descriptor_mock : public precisegc::details::gc_memory_descriptor
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_type_meta gc_type_meta;
     typedef precisegc::details::gc_lifetime_tag gc_lifetime_tag;
     typedef precisegc::details::gc_trace_callback gc_trace_callback;
-    typedef precisegc::details::memory_descriptor memory_descriptor;
+    typedef precisegc::details::gc_memory_descriptor memory_descriptor;
 public:
     MOCK_CONST_METHOD1(get_mark, bool(byte*));
     MOCK_CONST_METHOD1(get_pin, bool(byte*));

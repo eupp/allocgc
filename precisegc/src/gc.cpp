@@ -21,8 +21,7 @@ int gc_init(const gc_init_options& options)
         allocators::gc_core_allocator::set_heap_limit(options.heapsize);
 
         auto strategy = gc_factory::create_gc(options);
-        auto init_policy = gc_factory::create_initiation_policy(strategy.get(), options);
-        gc_initialize(std::move(strategy), std::move(init_policy));
+        gc_initialize(std::move(strategy));
 
         if (options.print_stat) {
             gc_enable_print_stats();

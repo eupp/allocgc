@@ -57,7 +57,7 @@ public:
         return m_size;
     }
 
-    inline memory_descriptor* descriptor() const noexcept
+    inline gc_memory_descriptor* descriptor() const noexcept
     {
         return m_cell.descriptor();
     }

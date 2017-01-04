@@ -132,7 +132,7 @@ void garbage_collector::initiation_point(initiation_point_type ipt, const gc_opt
         logging::info() << "Thread initiates gc by user's request";
         m_manager.gc(opt);
     } else if (ipt == initiation_point_type::HEAP_LIMIT_EXCEEDED) {
-        logging::info() << "Heap limit exceeded - thread initiates gc";
+//        logging::info() << "Heap limit exceeded - thread initiates gc";
         m_manager.gc(opt);
     } else if (ipt == initiation_point_type::CONCURRENT_MARKING_FINISHED) {
         logging::info() << "Concurrent marking finished - Thread initiates gc";

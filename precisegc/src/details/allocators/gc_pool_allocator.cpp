@@ -102,7 +102,7 @@ gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, si
 
 gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it)
 {
-    sweep(* it, false);
+    sweep(*it, false);
     collectors::memory_index::remove_from_index(it->memory(), it->size());
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
@@ -133,6 +133,9 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 {
     gc_heap_stat stat;
     shrink(stat);
+    m_top = nullptr;
+    m_end = m_top;
+    m_freelist = nullptr;
     if (is_compaction_required(stat)) {
         compact(frwd, stat);
     } else {
@@ -179,6 +182,8 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
             if (add_to_freelist) {
                 insert_into_freelist(it);
             }
+        } else if (descr.get_lifetime_tag(i) == gc_lifetime_tag::FREE && add_to_freelist) {
+            insert_into_freelist(it);
         }
     }
     return freed;
@@ -186,6 +191,8 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
 
 void gc_pool_allocator::insert_into_freelist(byte* ptr)
 {
+    assert(contains(ptr));
+
     byte** next = reinterpret_cast<byte**>(ptr);
     next[0]     = reinterpret_cast<byte*>(m_freelist);
     m_freelist  = next;

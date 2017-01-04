@@ -7,7 +7,6 @@
 
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_word.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
 
 namespace precisegc { namespace details {
@@ -21,43 +20,33 @@ template <typename T>
 class gc_type_meta_instance : public gc_type_meta
 {
 public:
-    void destroy(byte* ptr, size_t obj_cnt) const override
+    void destroy(byte* ptr) const override
     {
-        size_t obj_size = type_size();
-        for (size_t i = 0; i < obj_cnt; ++i, ptr += obj_size) {
-            for (size_t offset: offsets()) {
-                gc_word* word = reinterpret_cast<gc_word*>(ptr + offset);
-                gc_handle_access::set<std::memory_order_relaxed>(*word, nullptr);
-            }
-            reinterpret_cast<T*>(ptr)->~T();
-        }
+        reinterpret_cast<T*>(ptr)->~T();
     }
 
-    void move(byte* from, byte* to, size_t obj_cnt) const override
+    void move(byte* from, byte* to) const override
     {
-        size_t obj_size = type_size();
-        for (size_t i = 0; i < obj_cnt; ++i, from += obj_size, to += obj_size) {
-            move_impl(from, to);
-        }
+        move_impl(from, to);
     }
 
     friend class gc_type_meta_factory<T>;
 private:
     template <typename Iter>
     gc_type_meta_instance(Iter offsets_first, Iter offsets_last)
-        : gc_type_meta(sizeof(T), std::is_move_constructible<T>::value, offsets_first, offsets_last)
+            : gc_type_meta(sizeof(T), std::is_move_constructible<T>::value, offsets_first, offsets_last)
     {}
 
     template <typename U = T>
     auto move_impl(byte* from, byte* to) const
-        -> typename std::enable_if<std::is_move_constructible<U>::value>::type
+    -> typename std::enable_if<std::is_move_constructible<U>::value>::type
     {
         new (to) T(std::move(*reinterpret_cast<T*>(from)));
     }
 
     template <typename U = T>
     auto move_impl(byte* from, byte* to) const
-        -> typename std::enable_if<!std::is_move_constructible<U>::value>::type
+    -> typename std::enable_if<!std::is_move_constructible<U>::value>::type
     {
         throw forbidden_move_exception(from);
     }

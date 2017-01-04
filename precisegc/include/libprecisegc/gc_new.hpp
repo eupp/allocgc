@@ -102,13 +102,8 @@ auto gc_new(Args&&... args)
 
     gc_unsafe_scope unsafe_scope;
 
-<<<<<<< HEAD
-    const gc_type_meta* tmeta = gc_type_meta_factory<T>::get();
-    gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, tmeta);
-=======
     const gc_type_meta* type_meta = gc_type_meta_factory<T>::get();
     gc_alloc_response rsp = gc_allocate(sizeof(T), 1, type_meta);
->>>>>>> refactor
 
     if (!type_meta) {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);

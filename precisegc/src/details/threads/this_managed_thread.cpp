@@ -22,12 +22,12 @@ std::thread::native_handle_type this_managed_thread::get_native_handle()
     return this_thread->native_handle();
 }
 
-bool this_managed_thread::is_stack_ptr(const gc_word* ptr)
+bool this_managed_thread::is_stack_ptr(const gc_handle* ptr)
 {
     return managed_thread_accessor::is_stack_ptr(this_thread, ptr);
 }
 
-bool this_managed_thread::is_heap_ptr(const gc_word* ptr)
+bool this_managed_thread::is_heap_ptr(const gc_handle* ptr)
 {
     return managed_thread_accessor::is_heap_ptr(this_thread, ptr);
 }
@@ -37,7 +37,7 @@ bool this_managed_thread::is_type_meta_requested()
     return managed_thread_accessor::is_type_meta_requested(this_thread);
 }
 
-void this_managed_thread::register_managed_object_child(gc_word* child)
+void this_managed_thread::register_managed_object_child(gc_handle* child)
 {
     managed_thread_accessor::register_managed_object_child(this_thread, child);
 }
@@ -57,17 +57,17 @@ void this_managed_thread::pop_from_gc_new_stack()
     managed_thread_accessor::pop_from_gc_new_stack(this_thread);
 }
 
-void this_managed_thread::register_root(gc_word* root)
+void this_managed_thread::register_root(gc_handle* root)
 {
     managed_thread_accessor::register_root(this_thread, root);
 }
 
-void this_managed_thread::deregister_root(gc_word* root)
+void this_managed_thread::deregister_root(gc_handle* root)
 {
     managed_thread_accessor::deregister_root(this_thread, root);
 }
 
-bool this_managed_thread::is_root(const gc_word* ptr)
+bool this_managed_thread::is_root(const gc_handle* ptr)
 {
     return managed_thread_accessor::is_root(this_thread, ptr);
 }

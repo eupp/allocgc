@@ -19,6 +19,7 @@ public:
         gc_ops.compacting   = gc_compacting::DISABLED;
         gc_ops.loglevel     = gc_loglevel::DEBUG;
         gc_ops.print_stat   = true;
+        gc_ops.heapsize     = 128 * 1024 * 1024;
 
         int res = gc_init(gc_ops);
         assert(res == 0);

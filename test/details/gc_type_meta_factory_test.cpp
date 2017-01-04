@@ -73,7 +73,7 @@ TEST(gc_type_meta_factory_test, test_destroy)
 {
     typedef gc_type_meta_factory<type_with_dtor> factory;
 
-    const gc_type_meta* tmeta = factory::create();
+    const gc_type_meta* tmeta = factory::get();
     ASSERT_NE(nullptr, tmeta);
     ASSERT_FALSE(type_with_dtor::dtor_called);
 
@@ -90,7 +90,7 @@ TEST(gc_type_meta_factory_test, test_move)
 {
     typedef gc_type_meta_factory<type_with_move_ctor> factory;
 
-    const gc_type_meta* tmeta = factory::create();
+    const gc_type_meta* tmeta = factory::get();
     ASSERT_NE(nullptr, tmeta);
     ASSERT_FALSE(type_with_move_ctor::move_ctor_called);
 
@@ -111,7 +111,7 @@ TEST(gc_type_meta_factory_test, test_forbidden_move)
 {
     typedef gc_type_meta_factory<nonmovable_type> factory;
 
-    const gc_type_meta* tmeta = factory::create();
+    const gc_type_meta* tmeta = factory::get();
     ASSERT_NE(nullptr, tmeta);
 
     std::aligned_storage<sizeof(nonmovable_type)> from_storage;

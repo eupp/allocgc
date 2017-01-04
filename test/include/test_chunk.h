@@ -12,7 +12,6 @@ class test_chunk
     typedef precisegc::details::byte byte;
 public:
     typedef byte* pointer_type;
-    typedef precisegc::details::allocators::single_block_chunk_tag chunk_tag;
 
     static size_t chunk_size(size_t cell_size)
     {
@@ -133,12 +132,12 @@ public:
         m_available = true;
     }
 
-    byte* get_mem() const
+    byte* memory() const
     {
         return m_mem;
     }
 
-    size_t get_mem_size() const
+    size_t size() const
     {
         return m_size;
     }

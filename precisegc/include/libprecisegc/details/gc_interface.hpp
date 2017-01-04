@@ -2,21 +2,17 @@
 #define DIPLOMA_GC_INTERFACE_HPP
 
 #include <string>
+#include <functional>
 
-#include <boost/variant.hpp>
-
-#include <libprecisegc/details/utils/block_ptr.hpp>
-#include <libprecisegc/details/collectors/indexed_managed_object.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 
 namespace precisegc { namespace details {
 
 enum class initiation_point_type {
       USER_REQUEST
-    , GC_BAD_ALLOC
-    , HEAP_EXPANSION
+    , HEAP_LIMIT_EXCEEDED
     , CONCURRENT_MARKING_FINISHED
     // for debugging
     , START_MARKING
@@ -24,9 +20,10 @@ enum class initiation_point_type {
 };
 
 enum class gc_pause_type {
-      GC
+      MARK_COLLECT
     , TRACE_ROOTS
-    , SWEEP_HEAP
+    , COLLECT
+    , SKIP
     , count
 };
 
@@ -36,12 +33,28 @@ enum class gc_phase {
     , COLLECT
 };
 
-enum class gc_type {
-      FULL_GC
-    , TRACE_ROOTS
-    , COLLECT_GARBAGE
-    , SKIP_GC
+enum class gc_kind {
+      MARK_COLLECT
+    , CONCURRENT_MARK
+    , COLLECT
+    , SKIP
 };
+
+enum class gc_lifetime_tag {
+      FREE = 0
+    , ALLOCATED = 1
+    , GARBAGE = 2
+    , INITIALIZED = 3
+};
+
+inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
+{
+    return static_cast<gc_lifetime_tag>(((int) init_bit << 1) + (int) mark_bit);
+}
+
+typedef int     gc_gen;
+
+typedef std::function<void(gc_handle*)> gc_trace_callback;
 
 struct gc_info
 {
@@ -52,130 +65,86 @@ struct gc_info
 
 struct gc_options
 {
-    gc_phase    phase;
-};
-
-struct gc_run_stats
-{
-    gc_type             type;
-    size_t              mem_swept;
-    size_t              mem_copied;
-    gc_clock::duration  pause_duration;
-};
-
-struct gc_state
-{
-    size_t              heap_size;
-    size_t              heap_gain;
-    gc_clock::duration  last_gc_time;
-    gc_clock::duration  last_gc_duration;
+    gc_kind     kind;
+    gc_gen      gen;
 };
 
 struct gc_pause_stat
 {
-    gc_pause_type       type;
-    gc_clock::duration  duration;
+    gc_pause_type       type      = gc_pause_type::SKIP;
+    gc_clock::duration  duration  = gc_clock::duration(0);
 };
 
-struct heap_part_stat
+struct gc_heap_stat
 {
-    size_t mem_shrunk;
-    double residency;
-};
+    gc_heap_stat() = default;
 
-struct gc_sweep_stat
-{
-    size_t      shrunk;
-    size_t      swept;
-};
+    gc_heap_stat(const gc_heap_stat&) = default;
 
-struct incremental_gc_ops
-{
-    gc_phase    phase;
-    bool        concurrent_flag;
-    size_t      threads_num;
+    gc_heap_stat& operator=(const gc_heap_stat&) = default;
 
-    friend bool operator==(const incremental_gc_ops& a, const incremental_gc_ops& b)
+    gc_heap_stat& operator+=(const gc_heap_stat& other)
     {
-        return a.phase == b.phase && a.concurrent_flag == b.concurrent_flag && a.threads_num == b.threads_num;
+        mem_all         += other.mem_all;
+        mem_live        += other.mem_live;
+        mem_freed       += other.mem_freed;
+        mem_copied      += other.mem_copied;
+        pinned_cnt      += other.pinned_cnt;
+
+        return *this;
     }
 
-    friend bool operator!=(const incremental_gc_ops& a, const incremental_gc_ops& b)
+    double residency() const
     {
-        return !(a == b);
+        return mem_live / mem_all;
     }
+
+    size_t mem_before_gc = 0;
+    size_t mem_all       = 0;
+    size_t mem_live      = 0;
+    size_t mem_freed     = 0;
+    size_t mem_copied    = 0;
+    size_t pinned_cnt    = 0;
+};
+
+inline gc_heap_stat operator+(const gc_heap_stat& a, const gc_heap_stat& b)
+{
+    return gc_heap_stat(a) += b;
+}
+
+struct gc_run_stats
+{
+    gc_heap_stat    heap_stat;
+    gc_pause_stat   pause_stat;
 };
 
 class gc_launcher
 {
 public:
-    virtual gc_state state() const = 0;
-    virtual void gc(gc_phase phase) = 0;
+    virtual void gc(const gc_options& opt) = 0;
 };
 
-class initiation_point_data
+inline const char* gc_pause_type_to_str(gc_pause_type pause_type)
 {
-    struct heap_expansion_data
-    {
-        size_t alloc_size;
-    };
-
-    struct empty_data {};
-
-    typedef boost::variant<heap_expansion_data, empty_data> variant_t;
-public:
-    initiation_point_data(const initiation_point_data&) = default;
-    initiation_point_data(initiation_point_data&&) = default;
-
-    initiation_point_data& operator=(const initiation_point_data&) = default;
-    initiation_point_data& operator=(initiation_point_data&&) = default;
-
-    static initiation_point_data create_heap_expansion_data(size_t alloc_size)
-    {
-        heap_expansion_data data = { alloc_size };
-        return initiation_point_data(data);
-    }
-
-    static initiation_point_data create_empty_data()
-    {
-        return initiation_point_data(empty_data());
-    }
-
-    size_t alloc_size() const
-    {
-        const heap_expansion_data* data = boost::get<heap_expansion_data>(&m_data);
-        assert(data);
-        return data->alloc_size;
-    }
-private:
-    initiation_point_data(const variant_t& data)
-        : m_data(data)
-    {}
-
-    variant_t m_data;
-};
-
-inline const char* pause_type_to_str(gc_pause_type pause_type)
-{
-    if (pause_type == gc_pause_type::GC) {
+    if (pause_type == gc_pause_type::MARK_COLLECT) {
         return "full gc";
     } else if (pause_type == gc_pause_type::TRACE_ROOTS) {
         return "trace roots";
-    } else if (pause_type == gc_pause_type::SWEEP_HEAP) {
-        return "sweep heap";
+    } else if (pause_type == gc_pause_type::COLLECT) {
+        return "collect";
     } else {
         return "undefined";
     }
 }
 
-inline const char* gc_type_to_str(gc_type type)
+inline const char* gc_kind_to_str(gc_kind type)
 {
-    if (type == gc_type::FULL_GC) {
-        return "full gc";
-    } else if (type == gc_type::TRACE_ROOTS) {
-        return "trace roots";
-    } else if (type == gc_type::COLLECT_GARBAGE) {
-        return "collect garbage";
+    if (type == gc_kind::MARK_COLLECT) {
+        return "mark collect";
+    } else if (type == gc_kind::CONCURRENT_MARK) {
+        return "concurrent mark";
+    } else if (type == gc_kind::COLLECT) {
+        return "collect";
     } else {
         return "undefined";
     }

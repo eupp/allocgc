@@ -69,12 +69,12 @@ bool freelist_pool_chunk::empty() const
     return m_alloc_cnt == 0;
 }
 
-byte* freelist_pool_chunk::get_mem() const
+byte* freelist_pool_chunk::memory() const
 {
     return m_chunk;
 }
 
-size_t freelist_pool_chunk::get_mem_size() const
+size_t freelist_pool_chunk::size() const
 {
     return m_size;
 }

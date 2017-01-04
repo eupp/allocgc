@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/managed_pool_chunk.hpp>
+#include <libprecisegc/details/allocators/gc_pool_descriptor.hpp>
 
 #include "deoptimize.hpp"
 
@@ -84,12 +84,12 @@ NONIUS_BENCHMARK("pool_chunks.freelist_pool_chunk.deallocate", [](nonius::chrono
     chunk_deallocate_benchmark<freelist_pool_chunk>(meter);
 });
 
-NONIUS_BENCHMARK("pool_chunks.managed_pool_chunk.allocate", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("pool_chunks.gc_pool_descriptor.allocate", [](nonius::chronometer meter)
 {
-    chunk_allocate_benchmark<managed_pool_chunk>(meter);
+    chunk_allocate_benchmark<gc_pool_descriptor>(meter);
 });
 
-NONIUS_BENCHMARK("pool_chunks.managed_pool_chunk.deallocate", [](nonius::chronometer meter)
+NONIUS_BENCHMARK("pool_chunks.gc_pool_descriptor.deallocate", [](nonius::chronometer meter)
 {
-    chunk_deallocate_benchmark<managed_pool_chunk>(meter);
+    chunk_deallocate_benchmark<gc_pool_descriptor>(meter);
 });

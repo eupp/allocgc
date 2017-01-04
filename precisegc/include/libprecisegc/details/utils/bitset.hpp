@@ -29,7 +29,7 @@ public:
 
     bitset_block(const bitset_block&) = default;
 
-    ull  load() const
+    ull load() const
     {
         return m_val;
     }
@@ -106,6 +106,14 @@ class bitset
 public:
     bitset() = default;
     bitset(const bitset& other) = default;
+
+    template <typename Block_>
+    bitset(const bitset<N, Block_>& other)
+    {
+        for (size_t i = 0; i < BLOCK_CNT; ++i) {
+            m_blocks[i].store(other.m_blocks[i].load());
+        }
+    }
 
     bool get(size_t i) const
     {
@@ -263,6 +271,40 @@ public:
         return bitset(*this) >>= pos;
     }
 
+    bitset& operator~()
+    {
+        for (size_t i = 0; i < BLOCK_CNT; ++i) {
+            m_blocks[i].store(~m_blocks[i].load());
+        }
+        return *this;
+    }
+
+    bitset& operator|=(const bitset& other)
+    {
+        for (size_t i = 0; i < BLOCK_CNT; ++i) {
+            m_blocks[i].fetch_or(other.m_blocks[i].load());
+        }
+        return *this;
+    }
+
+    bitset& operator&=(const bitset& other)
+    {
+        for (size_t i = 0; i < BLOCK_CNT; ++i) {
+            m_blocks[i].fetch_and(other.m_blocks[i].load());
+        }
+        return *this;
+    }
+
+    friend bitset operator|(const bitset& a, const bitset& b)
+    {
+        return bitset(a) |= b;
+    }
+
+    friend bitset operator&(const bitset& a, const bitset& b)
+    {
+        return bitset(a) &= b;
+    }
+
     void swap(bitset& other)
     {
         for (size_t i = 0; i < BLOCK_CNT; ++i) {
@@ -276,6 +318,9 @@ public:
     {
         a.swap(b);
     }
+
+    template <size_t N_, typename Block_>
+    friend class bitset;
 private:
     static const ull ZERO = 0;
     static const ull ONE  = 1;

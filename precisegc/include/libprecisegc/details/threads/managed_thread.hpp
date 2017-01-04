@@ -77,12 +77,12 @@ private:
         , m_stack_map(stack_start_addr ? stack_start_addr : return_address())
     {}
 
-    bool is_stack_ptr(const gc_word* ptr) const
+    bool is_stack_ptr(const gc_handle* ptr) const
     {
         return m_stack_map.is_stack_ptr(ptr);
     }
 
-    bool is_heap_ptr(const gc_word* ptr) const
+    bool is_heap_ptr(const gc_handle* ptr) const
     {
         return m_new_stack.is_heap_ptr(reinterpret_cast<const byte*>(ptr));
     }
@@ -92,7 +92,7 @@ private:
         return m_new_stack.is_meta_requsted();
     }
 
-    void register_managed_object_child(gc_word* child) const
+    void register_managed_object_child(gc_handle* child) const
     {
         m_new_stack.register_child(reinterpret_cast<byte*>(child));
     }
@@ -112,19 +112,19 @@ private:
         m_new_stack.pop_entry();
     }
 
-    void register_root(gc_word* root)
+    void register_root(gc_handle* root)
     {
 //        logging::debug() << "register root " << root;
         m_stack_map.register_root(root);
     }
 
-    void deregister_root(gc_word* root)
+    void deregister_root(gc_handle* root)
     {
 //        logging::debug() << "deregister root " << root;
         m_stack_map.deregister_root(root);
     }
 
-    bool is_root(const gc_word* ptr) const
+    bool is_root(const gc_handle* ptr) const
     {
         return m_stack_map.contains(ptr);
     }

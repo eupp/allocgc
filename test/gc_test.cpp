@@ -220,10 +220,10 @@
 //    serial_gc_test()
 //        : gc_test(utils::make_unique<collectors::serial_gc>(utils::make_unique<collectors::empty_policy>()))
 //    {
-//        garbage_collector = static_cast<collectors::serial_gc*>(gc_get_strategy());
+//        gc_facade = static_cast<collectors::serial_gc*>(gc_get_strategy());
 //    }
 //
-//    collectors::serial_gc* garbage_collector;
+//    collectors::serial_gc* gc_facade;
 //};
 //
 //struct incremental_gc_test : public gc_test
@@ -231,17 +231,17 @@
 //    incremental_gc_test()
 //        : gc_test(utils::make_unique<collectors::incremental_gc>(utils::make_unique<collectors::incremental_empty_policy>()))
 //    {
-//        garbage_collector = static_cast<collectors::incremental_gc*>(gc_get_strategy());
+//        gc_facade = static_cast<collectors::incremental_gc*>(gc_get_strategy());
 //    }
 //
-//    collectors::incremental_gc* garbage_collector;
+//    collectors::incremental_gc* gc_facade;
 //};
 //
 //// This test doesn't check anything.
 //// Consider it is passed if nothing will crash or hang.
 //TEST_F(serial_gc_test, test_serial_gc)
 //{
-//    garbage_collector->gc();
+//    gc_facade->gc();
 //    gc_finished = true;
 //    print_tree(root_raw);
 //}
@@ -254,7 +254,7 @@
 //    ops.concurrent_flag = true;
 //    ops.threads_num     = 1;
 //
-//    garbage_collector->gc_increment(ops);
+//    gc_facade->gc_increment(ops);
 //
 //    std::this_thread::sleep_for(std::chrono::milliseconds(10));
 //
@@ -262,7 +262,7 @@
 //    ops.concurrent_flag = false;
 //    ops.threads_num     = 0;
 //
-//    garbage_collector->gc_increment(ops);
+//    gc_facade->gc_increment(ops);
 //
 //    gc_finished = true;
 //    print_tree(root_raw);
@@ -277,7 +277,7 @@
 //    ops.concurrent_flag = false;
 //    ops.threads_num     = 1;
 //
-//    garbage_collector->gc_increment(ops);
+//    gc_facade->gc_increment(ops);
 //
 //    gc_finished = true;
 //    print_tree(root_raw);

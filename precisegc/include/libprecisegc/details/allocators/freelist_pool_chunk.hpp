@@ -15,7 +15,6 @@ class freelist_pool_chunk : private utils::noncopyable, private utils::nonmovabl
 {
 public:
     typedef byte* pointer_type;
-    typedef allocators::multi_block_chunk_tag chunk_tag;
 
     static const size_t CHUNK_MAXSIZE = std::numeric_limits<size_t>::max();
     static const size_t DEFAULT_CHUNK_SIZE = 32;
@@ -38,8 +37,8 @@ public:
     bool memory_available() const;
     bool empty() const;
 
-    byte* get_mem() const;
-    size_t get_mem_size() const;
+    byte*  memory() const;
+    size_t size() const;
 private:
     byte*  m_chunk;
     size_t m_size;

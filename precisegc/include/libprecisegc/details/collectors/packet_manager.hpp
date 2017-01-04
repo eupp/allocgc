@@ -6,8 +6,9 @@
 #include <memory>
 #include <mutex>
 
-#include <libprecisegc/details/collectors/managed_object.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -18,8 +19,8 @@ class mark_packet : private utils::noncopyable, private utils::nonmovable
 public:
     mark_packet();
 
-    void push(managed_object obj);
-    managed_object pop();
+    void    push(const gc_cell& cell);
+    gc_cell pop();
 
     bool is_full() const;
     bool is_almost_full() const;
@@ -29,8 +30,9 @@ public:
     friend class packet_manager;
 private:
     static const size_t SIZE = 512;
-    managed_object m_data[SIZE];
-    size_t m_size;
+
+    gc_cell      m_data[SIZE];
+    size_t       m_size;
     mark_packet* m_next;
 };
 

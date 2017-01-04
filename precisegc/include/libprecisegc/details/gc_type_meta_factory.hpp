@@ -91,13 +91,13 @@ public:
     {
         static_assert(std::is_same<typename Iter::value_type, size_t>::value, "Offsets should have size_t type");
 
-        const gc_type_meta* tmeta = get();
-        if (tmeta != nullptr) {
-            return tmeta;
+        const gc_type_meta* type_meta = get();
+        if (type_meta != nullptr) {
+            return type_meta;
         }
 
         std::unique_ptr<gc_type_meta> meta_owner(new internals::gc_type_meta_instance<T>(offsets_begin, offsets_end));
-        if (meta.compare_exchange_strong(tmeta, meta_owner.get(), std::memory_order_acq_rel)) {
+        if (meta.compare_exchange_strong(type_meta, meta_owner.get(), std::memory_order_acq_rel)) {
             meta_owner.release();
         }
 

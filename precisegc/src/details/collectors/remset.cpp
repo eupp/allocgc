@@ -1,5 +1,7 @@
 #include <libprecisegc/details/collectors/remset.hpp>
 
+#include <cassert>
+
 namespace precisegc { namespace details { namespace collectors {
 
 void remset::add(byte* ptr)

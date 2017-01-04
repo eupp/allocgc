@@ -3,25 +3,20 @@
 
 #include <cstddef>
 
-#include <libprecisegc/details/gc_word.hpp>
-#include <libprecisegc/details/collectors/managed_object.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
 
 namespace precisegc { namespace details { namespace compacting {
 
 template <typename Iterator, typename Forwarding>
 void fix_ptrs(const Iterator& first, const Iterator& last, const Forwarding& frwd)
 {
-    using namespace collectors;
-
     for (auto it = first; it != last; ++it) {
-        if (!it->get_mark()) {
-            continue;
+        if (it->get_mark()) {
+            it->trace(gc_trace_callback{[&frwd] (gc_handle* handle) {
+                frwd.forward(handle);
+            }});
         }
-        auto obj = managed_object(managed_object::get_object(it->get()));
-        obj.trace_children([&frwd] (gc_word* handle) {
-            frwd.forward(handle);
-        });
     }
 }
 

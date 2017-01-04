@@ -4,10 +4,9 @@
 #include <mutex>
 
 #include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/intrusive_list_allocator.hpp>
+#include <libprecisegc/details/allocators/pool_allocator.hpp>
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
-#include <libprecisegc/details/allocators/core_allocator.hpp>
-#include <libprecisegc/details/allocators/cache_policies.hpp>
+#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/types.hpp>
 
@@ -51,12 +50,10 @@ struct test_bucket_policy
 class bucket_allocator_test : public ::testing::Test
 {
 public:
-//    typedef debug_layer<core_allocator> allocator_t;
-    typedef intrusive_list_allocator<
-            test_chunk,
-            default_allocator,
-            single_chunk_cache,
-            std::mutex
+//    typedef debug_layer<gc_core_allocator> allocator_t;
+    typedef pool_allocator<
+              default_allocator
+            , utils::dummy_mutex
         > list_alloc_t;
 
     typedef bucket_allocator<list_alloc_t, test_bucket_policy> bucket_allocator_t;

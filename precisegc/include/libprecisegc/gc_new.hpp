@@ -14,7 +14,6 @@
 #include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/collectors/traceable_object_meta.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
@@ -99,28 +98,30 @@ auto gc_new(Args&&... args)
 {
     using namespace precisegc::details;
     using namespace precisegc::details::threads;
+    using namespace precisegc::details::allocators;
 
     gc_unsafe_scope unsafe_scope;
 
+<<<<<<< HEAD
     const gc_type_meta* tmeta = gc_type_meta_factory<T>::get();
     gc_alloc_descriptor descr = gc_allocate(sizeof(T), 1, tmeta);
+=======
+    const gc_type_meta* type_meta = gc_type_meta_factory<T>::get();
+    gc_alloc_response rsp = gc_allocate(sizeof(T), 1, type_meta);
+>>>>>>> refactor
 
-    if (!tmeta) {
-        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
-        new (descr.get()) T(std::forward<Args>(args)...);
-        descr.descriptor()->set_type_meta(descr.get(),
-                                          gc_type_meta_factory<T>::create(this_managed_thread::gc_ptr_offsets()));
+    if (!type_meta) {
+        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
+        new (rsp.obj_start()) T(std::forward<Args>(args)...);
+        rsp.commit(gc_type_meta_factory<T>::create(this_managed_thread::gc_ptr_offsets()));
     } else {
-        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), false);
-        new (descr.get()) T(std::forward<Args>(args)...);
+        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
+        new (rsp.obj_start()) T(std::forward<Args>(args)...);
+        rsp.commit();
     }
 
-    gc_commit(descr);
-
-//    logging::debug() << "allocate cell addr=" << (void*) descr.get();
-
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(
-            reinterpret_cast<T*>(descr.get())
+            reinterpret_cast<T*>(rsp.obj_start())
     );
 };
 
@@ -130,24 +131,26 @@ auto gc_new(size_t n)
 {
     using namespace precisegc::details;
     using namespace precisegc::details::threads;
+    using namespace precisegc::details::allocators;
 
     typedef typename std::remove_extent<T>::type U;
 
     gc_unsafe_scope unsafe_scope;
 
-    const gc_type_meta* tmeta = gc_type_meta_factory<U>::get();
-    gc_alloc_descriptor descr = gc_allocate(sizeof(U), n, tmeta);
+    const gc_type_meta* type_meta = gc_type_meta_factory<U>::get();
+    gc_alloc_response rsp = gc_allocate(sizeof(U), n, type_meta);
 
-    U* begin = reinterpret_cast<U*>(descr.get());
+    bool type_meta_requested = (type_meta == nullptr);
+
+    U* begin = reinterpret_cast<U*>(rsp.obj_start());
     U* end = begin + n;
 
-    if (!tmeta) {
-        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), true);
+    if (!type_meta) {
+        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (begin++) U();
-        descr.descriptor()->set_type_meta(descr.get(),
-                                          gc_type_meta_factory<U>::create(this_managed_thread::gc_ptr_offsets()));
+        type_meta = gc_type_meta_factory<U>::create(this_managed_thread::gc_ptr_offsets());
     } else {
-        gc_new_stack::stack_entry stack_entry(descr.get(), descr.size(), false);
+        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (begin++) U();
     }
 
@@ -155,10 +158,14 @@ auto gc_new(size_t n)
         new (it) U();
     }
 
-    gc_commit(descr);
+    if (type_meta_requested) {
+        rsp.commit(type_meta);
+    } else {
+        rsp.commit();
+    }
 
     return precisegc::internals::gc_ptr_factory<U[]>::create(
-            reinterpret_cast<U*>(descr.get())
+            reinterpret_cast<U*>(rsp.obj_start())
     );
 };
 

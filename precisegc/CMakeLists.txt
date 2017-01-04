@@ -7,7 +7,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/libprecisegc.hpp
 
         include/libprecisegc/details/gc_type_meta.hpp
-        include/libprecisegc/details/collectors/traceable_object_meta.hpp
         include/libprecisegc/details/gc_heap.hpp
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.hpp
@@ -17,7 +16,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
-        include/libprecisegc/details/allocators/core_allocator.hpp
+        include/libprecisegc/details/allocators/gc_core_allocator.hpp
         include/libprecisegc/details/collectors/index_tree.hpp
         include/libprecisegc/details/types.hpp
         include/libprecisegc/details/allocators/debug_layer.hpp
@@ -25,9 +24,8 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/bitmap_pool_chunk.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
-        include/libprecisegc/details/allocators/managed_pool_chunk.hpp
-        include/libprecisegc/details/memory_descriptor.hpp
-        include/libprecisegc/details/collectors/indexed_managed_object.hpp
+        include/libprecisegc/details/allocators/gc_pool_descriptor.hpp
+        include/libprecisegc/details/gc_memory_descriptor.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
@@ -40,17 +38,15 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/scoped_thread.hpp
         include/libprecisegc/details/utils/scope_guard.hpp
         include/libprecisegc/details/threads/posix_thread.hpp
-        include/libprecisegc/details/garbage_collector.hpp
+        include/libprecisegc/details/gc_facade.hpp
         include/libprecisegc/details/collectors/marker.hpp
         include/libprecisegc/details/utils/locked_range.hpp
-        include/libprecisegc/details/collectors/trace_ptr.hpp
         include/libprecisegc/details/utils/system_error.hpp
         include/libprecisegc/details/gc_strategy.hpp
         include/libprecisegc/details/utils/to_string.hpp
         include/libprecisegc/details/utils/make_reverse_iterator.hpp
         include/libprecisegc/details/allocators/allocator_tag.hpp
         include/libprecisegc/details/utils/bitset.hpp
-        include/libprecisegc/details/initiation_policy.hpp
         include/libprecisegc/details/collectors/serial_gc.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
@@ -60,10 +56,9 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/default_allocator.hpp
         include/libprecisegc/details/utils/dynarray.hpp
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
         include/libprecisegc/gc_pin.hpp
         include/libprecisegc/gc_ref.hpp
-        include/libprecisegc/details/gc_word.hpp
+        include/libprecisegc/details/gc_handle.hpp
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/utils/base_offset.hpp
         include/libprecisegc/details/gc_factory.hpp
@@ -73,17 +68,13 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/safepoint_lock.hpp
         include/libprecisegc/details/threads/this_managed_thread.hpp
         include/libprecisegc/details/threads/managed_thread_accessor.hpp
-        include/libprecisegc/details/allocators/intrusive_list_allocator.hpp
-        include/libprecisegc/details/allocators/managed_object_descriptor.hpp
+        include/libprecisegc/details/allocators/gc_object_descriptor.hpp
         include/libprecisegc/details/gc_manager.hpp
         include/libprecisegc/details/utils/block_ptr.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
-        include/libprecisegc/details/allocators/cache_policies.hpp
-        include/libprecisegc/details/allocators/managed_memory_iterator.hpp
         include/libprecisegc/details/allocators/freelist_allocator.hpp
         include/libprecisegc/details/utils/get_ptr.hpp
         include/libprecisegc/details/allocators/pool.hpp
-        include/libprecisegc/details/allocators/stack_chunk.hpp
         include/libprecisegc/details/allocators/sys_allocator.hpp
         include/libprecisegc/details/allocators/null_allocator.hpp
         include/libprecisegc/details/threads/pin_stack.hpp
@@ -96,9 +87,16 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/compacting/two_finger_compactor.hpp
         include/libprecisegc/details/collectors/remset.hpp
         include/libprecisegc/details/collectors/dptr_storage.hpp
-        include/libprecisegc/details/collectors/managed_object.hpp
         include/libprecisegc/details/collectors/memory_index.hpp
-        include/libprecisegc/details/gc_alloc_descriptor.hpp include/libprecisegc/details/allocators/mso_allocator.hpp include/libprecisegc/details/gc_type_meta_factory.hpp include/libprecisegc/details/allocators/mlo_allocator.hpp)
+        include/libprecisegc/details/allocators/gc_so_allocator.hpp
+        include/libprecisegc/details/gc_type_meta_factory.hpp
+        include/libprecisegc/details/allocators/gc_lo_allocator.hpp
+        include/libprecisegc/details/allocators/gc_pool_allocator.hpp
+        include/libprecisegc/details/allocators/gc_alloc_messaging.hpp
+        include/libprecisegc/details/allocators/list_allocator.hpp
+        include/libprecisegc/details/allocators/pool_allocator.hpp
+        include/libprecisegc/details/gc_cell.hpp
+        include/libprecisegc/details/allocators/gc_box.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
@@ -106,15 +104,13 @@ set(precisegc_LIB_SRCS
         src/details/ptrs/gc_untyped_ptr.cpp
         src/details/logging.cpp
         src/details/allocators/bitmap_pool_chunk.cpp
-        src/details/allocators/managed_pool_chunk.cpp
-        src/details/indexed_managed_object.cpp
+        src/details/allocators/gc_pool_descriptor.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
-        src/details/garbage_collector.cpp
-        src/details/collectors/initiation_policy.cpp
+        src/details/gc_facade.cpp
         src/details/serial_gc.cpp
         src/details/collectors/incremental_gc.cpp
         src/details/allocators/freelist_pool_chunk.cpp
@@ -123,12 +119,20 @@ set(precisegc_LIB_SRCS
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/threads/this_managed_thread.cpp
         src/details/threads/managed_thread_accessor.cpp
-        src/details/allocators/managed_object_descriptor.cpp
-        src/details/gc_manager.cpp src/details/allocators/stack_chunk.cpp
-        src/details/allocators/core_allocator.cpp
+        src/details/allocators/gc_object_descriptor.cpp
+        src/details/gc_manager.cpp
+        src/details/allocators/gc_core_allocator.cpp
         src/details/threads/stack_bitmap.cpp
         src/details/threads/managed_thread.cpp
-        src/details/threads/static_root_set.cpp src/details/compacting/forwarding.cpp src/details/collectors/remset.cpp src/details/collectors/dptr_storage.cpp src/details/collectors/memory_index.cpp src/details/allocators/mso_allocator.cpp)
+        src/details/threads/static_root_set.cpp
+        src/details/compacting/forwarding.cpp
+        src/details/collectors/remset.cpp
+        src/details/collectors/dptr_storage.cpp
+        src/details/collectors/memory_index.cpp
+        src/details/allocators/gc_so_allocator.cpp
+        src/details/allocators/gc_pool_allocator.cpp
+        src/details/allocators/gc_lo_allocator.cpp
+        src/details/allocators/gc_alloc_messaging.cpp)
 
 
 find_package(Threads REQUIRED)

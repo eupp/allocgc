@@ -3,7 +3,7 @@
 
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
-#include <libprecisegc/details/gc_word.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {

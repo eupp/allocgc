@@ -65,19 +65,19 @@ void gc_facade::commit(gc_cell& cell, const gc_type_meta* meta)
     m_strategy->commit(cell, meta);
 }
 
-byte* gc_facade::rbarrier(const gc_word& handle)
+byte* gc_facade::rbarrier(const gc_handle& handle)
 {
     assert(m_strategy);
     return m_strategy->rbarrier(handle);
 }
 
-void gc_facade::wbarrier(gc_word& dst, const gc_word& src)
+void gc_facade::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     assert(m_strategy);
     m_strategy->wbarrier(dst, src);
 }
 
-void gc_facade::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
+void gc_facade::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     assert(m_strategy);
     // this assertion doesn't work properly in current version
@@ -85,7 +85,7 @@ void gc_facade::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
     m_strategy->interior_wbarrier(handle, offset);
 }
 
-byte* gc_facade::pin(const gc_word& handle)
+byte* gc_facade::pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -102,7 +102,7 @@ void gc_facade::unpin(byte* ptr)
     }
 }
 
-byte* gc_facade::push_pin(const gc_word& handle)
+byte* gc_facade::push_pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -117,7 +117,7 @@ void gc_facade::pop_pin(byte* ptr)
     }
 }
 
-bool gc_facade::compare(const gc_word& a, const gc_word& b)
+bool gc_facade::compare(const gc_handle& a, const gc_handle& b)
 {
     gc_unsafe_scope unsafe_scope;
     return a.rbarrier() == b.rbarrier();
@@ -176,7 +176,7 @@ gc_stat gc_facade::stats() const
     return m_manager.stats();
 }
 
-bool gc_facade::is_interior_pointer(const gc_word& handle, byte* iptr)
+bool gc_facade::is_interior_pointer(const gc_handle& handle, byte* iptr)
 {
     byte* ptr = handle.rbarrier();
     gc_memory_descriptor* descr = collectors::memory_index::index_memory(ptr);
@@ -185,7 +185,7 @@ bool gc_facade::is_interior_pointer(const gc_word& handle, byte* iptr)
     return (cell_begin <= iptr) && (iptr < cell_end);
 }
 
-bool gc_facade::is_interior_offset(const gc_word& handle, ptrdiff_t shift)
+bool gc_facade::is_interior_offset(const gc_handle& handle, ptrdiff_t shift)
 {
     return is_interior_pointer(handle, handle.rbarrier() + shift);
 }

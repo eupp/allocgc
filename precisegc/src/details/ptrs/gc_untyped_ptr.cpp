@@ -57,12 +57,12 @@ gc_untyped_ptr& gc_untyped_ptr::operator=(const gc_untyped_ptr& other)
     return *this;
 }
 
-gc_word::pin_guard gc_untyped_ptr::untyped_pin() const
+gc_handle::pin_guard gc_untyped_ptr::untyped_pin() const
 {
     return m_handle.pin();
 }
 
-gc_word::stack_pin_guard gc_untyped_ptr::push_untyped_pin() const
+gc_handle::stack_pin_guard gc_untyped_ptr::push_untyped_pin() const
 {
     return m_handle.push_pin();
 }

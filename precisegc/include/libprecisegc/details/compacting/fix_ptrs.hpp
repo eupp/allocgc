@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include <libprecisegc/details/gc_word.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 
 namespace precisegc { namespace details { namespace compacting {
@@ -13,7 +13,7 @@ void fix_ptrs(const Iterator& first, const Iterator& last, const Forwarding& frw
 {
     for (auto it = first; it != last; ++it) {
         if (it->get_mark()) {
-            it->trace(gc_trace_callback{[&frwd] (gc_word* handle) {
+            it->trace(gc_trace_callback{[&frwd] (gc_handle* handle) {
                 frwd.forward(handle);
             }});
         }

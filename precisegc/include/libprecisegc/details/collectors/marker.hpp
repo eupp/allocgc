@@ -49,7 +49,7 @@ public:
     void trace_roots(Traceable&& tracer)
     {
         auto output_packet = m_packet_manager->pop_output_packet();
-        tracer.trace([this, &output_packet] (gc_word* root) {
+        tracer.trace([this, &output_packet] (gc_handle* root) {
             byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
             byte* obj_start = dptr_storage::get_origin(ptr);
             if (obj_start) {
@@ -166,7 +166,7 @@ private:
             }
             while (!input_packet->is_empty()) {
                 gc_cell cell = input_packet->pop();
-                cell.trace(gc_trace_callback{[this, &output_packet] (gc_word* handle) {
+                cell.trace(gc_trace_callback{[this, &output_packet] (gc_handle* handle) {
                     trace(handle, output_packet);
                 }});
             }
@@ -203,7 +203,7 @@ private:
         output_packet->push(cell);
     }
 
-    void trace(gc_word* handle, packet_manager::mark_packet_handle& output_packet)
+    void trace(gc_handle* handle, packet_manager::mark_packet_handle& output_packet)
     {
         byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
         byte* obj_start = dptr_storage::get_origin(ptr);

@@ -116,7 +116,7 @@ public:
 
         for (size_t i = 0; i < obj_cnt; i++) {
             for (size_t j = 0; j < offsets_cnt; j++) {
-                cb(reinterpret_cast<gc_word*>(obj + offsets[j]));
+                cb(reinterpret_cast<gc_handle*>(obj + offsets[j]));
             }
             obj += obj_size;
         }

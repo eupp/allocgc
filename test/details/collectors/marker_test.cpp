@@ -31,7 +31,7 @@ struct test_root_set
         }
     }
 
-    std::vector<gc_word*> roots;
+    std::vector<gc_handle*> roots;
 };
 
 struct test_pin_set
@@ -79,7 +79,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
     memory_index::index_object((byte*) pin.get()).set_mark(false);
     if (depth == mark_depth) {
         root_set.roots.push_back(
-                reinterpret_cast<gc_word*>(&precisegc::internals::gc_ptr_access<node>::get_untyped(ptr))
+                reinterpret_cast<gc_handle*>(&precisegc::internals::gc_ptr_access<node>::get_untyped(ptr))
         );
     }
     mark_tree(ptr->m_left, depth + 1, mark_depth, root_set);

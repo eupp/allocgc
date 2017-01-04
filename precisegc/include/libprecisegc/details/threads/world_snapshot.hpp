@@ -145,7 +145,7 @@ public:
     {
         logging::info() << "Fixing roots...";
 
-        auto f = [&forwarding] (gc_word* root) {
+        auto f = [&forwarding] (gc_handle* root) {
             forwarding.forward(root);
         };
 

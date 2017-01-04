@@ -18,7 +18,7 @@ void forwarding::create(byte* from, byte* to)
     gc_box::set_forward_pointer(from, to);
 }
 
-void forwarding::forward(gc_word* handle) const
+void forwarding::forward(gc_handle* handle) const
 {
     using namespace allocators;
     using namespace collectors;

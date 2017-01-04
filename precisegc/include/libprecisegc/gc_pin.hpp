@@ -4,7 +4,7 @@
 #include <cstddef>
 
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/gc_word.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc {
@@ -37,11 +37,11 @@ public:
 
     friend class gc_ptr<T>;
 private:
-    gc_pin(details::gc_word::pin_guard pin)
+    gc_pin(details::gc_handle::pin_guard pin)
         : m_pin(std::move(pin))
     {}
 
-    details::gc_word::pin_guard m_pin;
+    details::gc_handle::pin_guard m_pin;
 };
 
 template <typename T>
@@ -69,11 +69,11 @@ public:
 
     friend class gc_ptr<T[]>;
 private:
-    gc_pin(details::gc_word::pin_guard pin)
+    gc_pin(details::gc_handle::pin_guard pin)
         : m_pin(std::move(pin))
     {}
 
-    details::gc_word::pin_guard m_pin;
+    details::gc_handle::pin_guard m_pin;
 };
 
 template <typename T, size_t N>
@@ -99,11 +99,11 @@ public:
 
     friend class gc_ptr<T>;
 private:
-    gc_stack_pin(details::gc_word::stack_pin_guard pin)
+    gc_stack_pin(details::gc_handle::stack_pin_guard pin)
         : m_pin(std::move(pin))
     {}
 
-    details::gc_word::stack_pin_guard m_pin;
+    details::gc_handle::stack_pin_guard m_pin;
 };
 
 }

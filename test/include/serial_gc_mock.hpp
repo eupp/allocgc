@@ -9,7 +9,7 @@ class serial_gc_mock : public precisegc::details::gc_strategy
 {
     typedef precisegc::details::byte byte;
     typedef precisegc::details::gc_cell gc_cell;
-    typedef precisegc::details::gc_word gc_word;
+    typedef precisegc::details::gc_handle gc_word;
     typedef precisegc::details::gc_type_meta gc_type_meta;
     typedef precisegc::details::allocators::gc_alloc_response gc_alloc_response;
     typedef precisegc::details::initiation_point_type initation_point_type;
@@ -23,15 +23,15 @@ public:
     MOCK_METHOD1(commit, void(gc_cell&));
     MOCK_METHOD2(commit, void(gc_cell&, const gc_type_meta*));
 
-    MOCK_METHOD1(rbarrier, byte*(const gc_word&));
-    MOCK_METHOD2(wbarrier, void(gc_word&, const gc_word&));
+    MOCK_METHOD1(rbarrier, byte*(const gc_handle&));
+    MOCK_METHOD2(wbarrier, void(gc_word&, const gc_handle&));
 
     MOCK_METHOD2(interior_wbarrier, void(gc_word& handle, ptrdiff_t offset));
 
-    MOCK_METHOD1(pin, byte*(const gc_word& handle));
+    MOCK_METHOD1(pin, byte*(const gc_handle& handle));
     MOCK_METHOD1(unpin, void(byte* ptr));
 
-    MOCK_METHOD2(compare, bool(const gc_word& a, const gc_word& b));
+    MOCK_METHOD2(compare, bool(const gc_handle& a, const gc_handle& b));
 
     MOCK_METHOD1(gc, gc_stats(const gc_options&));
 

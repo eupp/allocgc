@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/gc_word.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 
 class test_forwarding
 {
@@ -33,7 +33,7 @@ public:
         m_frwd_list.emplace_back(from, to);
     }
 
-    void forward(precisegc::details::gc_word* handle) const
+    void forward(precisegc::details::gc_handle* handle) const
     {
         using namespace precisegc::details;
 

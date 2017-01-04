@@ -34,18 +34,18 @@ void serial_gc_base::commit(gc_cell& cell, const gc_type_meta* type_meta)
     cell.commit(false, type_meta);
 }
 
-byte* serial_gc_base::rbarrier(const gc_word& handle)
+byte* serial_gc_base::rbarrier(const gc_handle& handle)
 {
     return dptr_storage::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
 }
 
-void serial_gc_base::wbarrier(gc_word& dst, const gc_word& src)
+void serial_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     byte* p = gc_handle_access::get<std::memory_order_relaxed>(src);
     gc_handle_access::set<std::memory_order_relaxed>(dst, p);
 }
 
-void serial_gc_base::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
+void serial_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
     if (dptr_storage::is_derived(ptr)) {
@@ -108,13 +108,13 @@ serial_compacting_gc::serial_compacting_gc(size_t threads_available)
     : serial_gc_base(gc_compacting::ENABLED, threads_available)
 {}
 
-void serial_compacting_gc::wbarrier(gc_word& dst, const gc_word& src)
+void serial_compacting_gc::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
     internals::serial_gc_base::wbarrier(dst, src);
 }
 
-void serial_compacting_gc::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
+void serial_compacting_gc::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     gc_unsafe_scope unsafe_scope;
     internals::serial_gc_base::interior_wbarrier(handle, offset);

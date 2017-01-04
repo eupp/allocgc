@@ -35,12 +35,12 @@ void incremental_gc_base::commit(gc_cell& cell, const gc_type_meta* type_meta)
     cell.commit(m_phase == gc_phase::MARK, type_meta);
 }
 
-byte* incremental_gc_base::rbarrier(const gc_word& handle)
+byte* incremental_gc_base::rbarrier(const gc_handle& handle)
 {
     return dptr_storage::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
 }
 
-void incremental_gc_base::wbarrier(gc_word& dst, const gc_word& src)
+void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
@@ -56,7 +56,7 @@ void incremental_gc_base::wbarrier(gc_word& dst, const gc_word& src)
     }
 }
 
-void incremental_gc_base::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
+void incremental_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
     if (dptr_storage::is_derived(ptr)) {
@@ -152,7 +152,7 @@ incremental_compacting_gc::incremental_compacting_gc(size_t threads_available)
         : incremental_gc_base(gc_compacting::ENABLED, threads_available)
 {}
 
-void incremental_compacting_gc::interior_wbarrier(gc_word& handle, ptrdiff_t offset)
+void incremental_compacting_gc::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     gc_unsafe_scope unsafe_scope;
     internals::incremental_gc_base::interior_wbarrier(handle, offset);

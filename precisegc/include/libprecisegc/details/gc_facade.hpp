@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_word.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -28,18 +28,18 @@ public:
     void commit(gc_cell& cell);
     void commit(gc_cell& cell, const gc_type_meta* type_meta);
 
-    byte* rbarrier(const gc_word& handle);
-    void  wbarrier(gc_word& dst, const gc_word& src);
+    byte* rbarrier(const gc_handle& handle);
+    void  wbarrier(gc_handle& dst, const gc_handle& src);
 
-    void interior_wbarrier(gc_word& handle, ptrdiff_t offset);
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
 
-    byte* pin(const gc_word& handle);
+    byte* pin(const gc_handle& handle);
     void  unpin(byte* ptr);
 
-    byte* push_pin(const gc_word& handle);
+    byte* push_pin(const gc_handle& handle);
     void  pop_pin(byte* ptr);
 
-    bool compare(const gc_word& a, const gc_word& b);
+    bool compare(const gc_handle& a, const gc_handle& b);
 
     void initiation_point(initiation_point_type ipt, const gc_options& opt);
 
@@ -54,8 +54,8 @@ public:
 private:
     allocators::gc_alloc_response try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
-    static bool is_interior_pointer(const gc_word& handle, byte* iptr);
-    static bool is_interior_offset(const gc_word& handle, ptrdiff_t shift);
+    static bool is_interior_pointer(const gc_handle& handle, byte* iptr);
+    static bool is_interior_offset(const gc_handle& handle, ptrdiff_t shift);
 
     std::unique_ptr<gc_strategy> m_strategy;
     gc_manager m_manager;

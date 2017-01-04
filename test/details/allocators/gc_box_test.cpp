@@ -88,7 +88,7 @@ TEST_F(gc_box_test, test_trace)
     }
 
     std::unordered_set<byte*> traced_set;
-    gc_box::trace(cell_start, gc_trace_callback{[&traced_set] (gc_word* handle) {
+    gc_box::trace(cell_start, gc_trace_callback{[&traced_set] (gc_handle* handle) {
         traced_set.insert(reinterpret_cast<byte*>(handle));
     }});
 

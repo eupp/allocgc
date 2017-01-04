@@ -4,7 +4,7 @@
 #include <cstddef>
 
 #include <libprecisegc/details/types.hpp>
-#include <libprecisegc/details/gc_word.hpp>
+#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace compacting {
@@ -17,7 +17,7 @@ public:
     forwarding(forwarding&&) = default;
 
     void create(byte* from, byte* to);
-    void forward(gc_word* handle) const;
+    void forward(gc_handle* handle) const;
 };
 
 }}}

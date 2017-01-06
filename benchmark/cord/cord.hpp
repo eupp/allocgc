@@ -85,16 +85,23 @@
 # define CORD_API extern
 #endif
 
-/* Cords have type const char *.  This is cheating quite a bit, and not */
-/* 100% portable.  But it means that nonempty character string          */
-/* constants may be used as cords directly, provided the string is      */
-/* never modified in place.  The empty cord is represented by, and      */
-/* can be written as, 0.                                                */
+#if defined(BDW_GC)
+    #include "gc.h"
 
-typedef const char * CORD;
+    typedef const char* CORD;
+    typedef const char* PCHAR;
 
-/* An empty cord is always represented as nil   */
-#define CORD_EMPTY 0
+    #define CORD_EMPTY 0
+    #define CORD_IS_EMPTY(x) (x == 0)
+#elif defined(PRECISE_GC)
+    #include "libprecisegc/libprecisegc.hpp"
+
+    typedef precisegc::gc_ptr<const char[]> CORD;
+    typedef precisegc::gc_ptr<const char[]> PCHAR;
+
+    #define CORD_EMPTY nullptr;
+    #define CORD_IS_EMPTY(x) (x == nullptr)
+#endif
 
 /* Is a nonempty cord represented as a C string? */
 #define CORD_IS_STRING(s) (*(s) != '\0')
@@ -108,7 +115,7 @@ CORD_API CORD CORD_cat(CORD x, CORD y);
 /* length is known, it can be faster.                                   */
 /* The string y is shared with the resulting CORD.  Hence it should     */
 /* not be altered by the caller.                                        */
-CORD_API CORD CORD_cat_char_star(CORD x, const char * y, size_t leny);
+CORD_API CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny);
 
 /* Compute the length of a cord */
 CORD_API size_t CORD_len(CORD x);

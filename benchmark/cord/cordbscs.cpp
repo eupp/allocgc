@@ -18,11 +18,17 @@
 # define CORD_BUILD
 #endif
 
-# include "gc.h"
-# include "cord.hpp"
-# include <stdlib.h>
-# include <stdio.h>
-# include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "cord.hpp"
+
+#include "../../common/macro.hpp"
+
+#ifdef PRECISE_GC
+    using namespace precisegc;
+#endif
 
 /* An implementation of the cord primitives.  These are the only        */
 /* Functions that understand the representation.  We perform only       */
@@ -41,8 +47,6 @@ oom_fn CORD_oom_fn = (oom_fn) 0;
 # define ABORT(msg) { fprintf(stderr, "%s\n", msg); abort(); }
 
 typedef unsigned long word;
-
-
 
 typedef union {
     struct Concatenation {
@@ -112,35 +116,40 @@ void CORD_dump_inner(CORD x, unsigned n)
 {
     size_t i;
 
-    for (i = 0; i < (size_t)n; i++) {
+    for (i = 0; i < (size_t) n; i++) {
         fputs("  ", stdout);
     }
-    if (x == 0) {
+    if (CORD_IS_EMPTY(x)) {
         fputs("NIL\n", stdout);
-    } else if (CORD_IS_STRING(x)) {
-        for (i = 0; i <= SHORT_LIMIT; i++) {
-            if (x[i] == '\0') break;
-            putchar(x[i]);
+    } else {
+        pin_array_t(const char) xpin = pin(x);
+        const char* xraw = raw_ptr(xpin);
+
+        if (CORD_IS_STRING(xraw)) {
+            for (i = 0; i <= SHORT_LIMIT; i++) {
+                if (xraw[i] == '\0') break;
+                putchar(xraw[i]);
+            }
+            if (xraw[i] != '\0') fputs("...", stdout);
+            putchar('\n');
+        } else if (IS_CONCATENATION(xraw)) {
+            struct CordRep::Concatenation* conc =
+                    & (((CordRep*) xraw)->concatenation);
+            printf("Concatenation: %p (len: %d, depth: %d)\n",
+                   (void*) xraw, (int) (conc->len), (int) (conc->depth));
+            CORD_dump_inner(conc->left, n + 1);
+            CORD_dump_inner(conc->right, n + 1);
+        } else /* function */{
+            struct CordRep::Function* func =
+                    & (((CordRep*) xraw)->function);
+            if (IS_SUBSTR(xraw)) printf("(Substring) ");
+            printf("Function: %p (len: %d): ", (void*) xraw, (int) (func->len));
+            for (i = 0; i < 20 && i < func->len; i++) {
+                putchar((* (func->fn))(i, func->client_data));
+            }
+            if (i < func->len) fputs("...", stdout);
+            putchar('\n');
         }
-        if (x[i] != '\0') fputs("...", stdout);
-        putchar('\n');
-    } else if (IS_CONCATENATION(x)) {
-        struct CordRep::Concatenation * conc =
-                                &(((CordRep *)x)->concatenation);
-        printf("Concatenation: %p (len: %d, depth: %d)\n",
-               (void *)x, (int)(conc -> len), (int)(conc -> depth));
-        CORD_dump_inner(conc -> left, n+1);
-        CORD_dump_inner(conc -> right, n+1);
-    } else /* function */{
-        struct CordRep::Function * func =
-                                &(((CordRep *)x) -> function);
-        if (IS_SUBSTR(x)) printf("(Substring) ");
-        printf("Function: %p (len: %d): ", (void *)x, (int)(func -> len));
-        for (i = 0; i < 20 && i < func -> len; i++) {
-            putchar((*(func -> fn))(i, func -> client_data));
-        }
-        if (i < func -> len) fputs("...", stdout);
-        putchar('\n');
     }
 }
 
@@ -151,86 +160,102 @@ void CORD_dump(CORD x)
     fflush(stdout);
 }
 
-size_t CORD_len(CORD x)
-{
-    if (x == 0) {
-        return(0);
-    } else {
-        return(GEN_LEN(x));
-    }
-}
-
-CORD CORD_cat_char_star(CORD x, const char * y, size_t leny)
+CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
 {
     size_t result_len;
     size_t lenx;
     int depth;
 
-    if (x == CORD_EMPTY) return(y);
+    if (CORD_IS_EMPTY(x)) return(y);
     if (leny == 0) return(x);
-    if (CORD_IS_STRING(x)) {
-        lenx = strlen(x);
-        result_len = lenx + leny;
-        if (result_len <= SHORT_LIMIT) {
-            char* result = (char*) GC_MALLOC_ATOMIC(result_len+1);
 
-            if (result == 0) OUT_OF_MEMORY;
-            memcpy(result, x, lenx);
-            memcpy(result + lenx, y, leny);
-            result[result_len] = '\0';
-            return((CORD) result);
+    pin_array_t(const char) xpin = pin(x);
+    pin_array_t(const char) ypin = pin(y);
+    const char* xraw = raw_ptr(xpin);
+    const char* yraw = raw_ptr(ypin);
+
+    if (CORD_IS_STRING(xraw)) {
+        lenx = strlen(xraw);
+        result_len = lenx + leny;
+
+        if (result_len <= SHORT_LIMIT) {
+            ptr_array_t(char) result = new_array_(char, result_len+1);
+
+            if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
+
+            pin_array_t(char) result_pin = pin(result);
+            char* result_raw = raw_ptr(result_pin);
+
+            memcpy(result_raw, xraw, lenx);
+            memcpy(result_raw + lenx, yraw, leny);
+            result_raw[result_len] = '\0';
+
+            return result;
         } else {
             depth = 1;
         }
     } else {
-        CORD right;
-        CORD left;
-        char * new_right;
-
-        lenx = LEN(x);
+        lenx = LEN(xraw);
 
         if (leny <= SHORT_LIMIT/2
-            && IS_CONCATENATION(x)
-            && CORD_IS_STRING(right = ((CordRep *)x) -> concatenation.right)) {
-            size_t right_len;
+            && IS_CONCATENATION(xraw)) {
+            CORD right = ((CordRep *)xraw) -> concatenation.right;
+            pin_array_t(const char) right_pin = pin(right);
+            const char* right_raw = raw_ptr(right_pin);
 
-            /* Merge y into right part of x. */
-            if (!CORD_IS_STRING(left = ((CordRep *)x) -> concatenation.left)) {
-                right_len = lenx - LEN(left);
-            } else if (((CordRep *)x) -> concatenation.left_len != 0) {
-                right_len = lenx - ((CordRep *)x) -> concatenation.left_len;
-            } else {
-                right_len = strlen(right);
-            }
-            result_len = right_len + leny;  /* length of new_right */
-            if (result_len <= SHORT_LIMIT) {
-                new_right = (char*) GC_MALLOC_ATOMIC(result_len + 1);
-                if (new_right == 0) OUT_OF_MEMORY;
-                memcpy(new_right, right, right_len);
-                memcpy(new_right + right_len, y, leny);
-                new_right[result_len] = '\0';
-                y = new_right;
-                leny = result_len;
-                x = left;
-                lenx -= right_len;
-                /* Now fall through to concatenate the two pieces: */
-            }
-            if (CORD_IS_STRING(x)) {
-                depth = 1;
-            } else {
-                depth = DEPTH(x) + 1;
+            if (CORD_IS_STRING(right_raw)) {
+                size_t right_len;
+
+                CORD left = ((CordRep *)xraw) -> concatenation.left;
+                pin_array_t(const char) left_pin = pin(left);
+                const char* left_raw = raw_ptr(left_pin);
+
+                /* Merge y into right part of x. */
+                if (!CORD_IS_STRING(left_raw)) {
+                    right_len = lenx - LEN(left_raw);
+                } else if (((CordRep *)xraw) -> concatenation.left_len != 0) {
+                    right_len = lenx - ((CordRep *)xraw) -> concatenation.left_len;
+                } else {
+                    right_len = strlen(right_raw);
+                }
+                result_len = right_len + leny;  /* length of new_right */
+                if (result_len <= SHORT_LIMIT) {
+                    ptr_array_t(char) new_right = new_array_(char, result_len + 1);
+
+                    if (CORD_IS_EMPTY(new_right)) OUT_OF_MEMORY;
+
+                    pin_array_t(char) new_right_pin = pin(new_right);
+                    char* new_right_raw = raw_ptr(new_right_pin);
+
+                    memcpy(new_right_raw, right_raw, right_len);
+                    memcpy(new_right_raw + right_len, yraw, leny);
+                    new_right_raw[result_len] = '\0';
+
+                    y = new_right;
+                    leny = result_len;
+                    x = left;
+                    lenx -= right_len;
+
+                    xraw = nullptr;
+                    yraw = nullptr;
+
+                    /* Now fall through to concatenate the two pieces: */
+                }
+                if (CORD_IS_STRING(xraw)) {
+                    depth = 1;
+                } else {
+                    depth = DEPTH(xraw) + 1;
+                }
             }
         } else {
-            depth = DEPTH(x) + 1;
+            depth = DEPTH(xraw) + 1;
         }
         result_len = lenx + leny;
     }
     {
       /* The general case; lenx, result_len is known: */
-        struct CordRep::Concatenation* result;
-
-        result = GC_NEW(struct CordRep::Concatenation);
-        if (result == 0) OUT_OF_MEMORY;
+        ptr_t(struct CordRep::Concatenation) result = new_(struct CordRep::Concatenation);
+        if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
         result->header = CONCAT_HDR;
         result->depth = depth;
         if (lenx <= MAX_LEFT_LEN)
@@ -239,13 +264,12 @@ CORD CORD_cat_char_star(CORD x, const char * y, size_t leny)
         result->left = x;
         result->right = y;
         if (depth >= MAX_DEPTH) {
-            return(CORD_balance((CORD)result));
+            return(CORD_balance(result));
         } else {
-            return((CORD) result);
+            return(result);
         }
     }
 }
-
 
 CORD CORD_cat(CORD x, CORD y)
 {
@@ -253,26 +277,28 @@ CORD CORD_cat(CORD x, CORD y)
     int depth;
     size_t lenx;
 
-    if (x == CORD_EMPTY) return(y);
-    if (y == CORD_EMPTY) return(x);
-    if (CORD_IS_STRING(y)) {
-        return(CORD_cat_char_star(x, y, strlen(y)));
-    } else if (CORD_IS_STRING(x)) {
-        lenx = strlen(x);
-        depth = DEPTH(y) + 1;
-    } else {
-        int depthy = DEPTH(y);
+    pin_array_t(const char) xpin = pin(x);
+    pin_array_t(const char) ypin = pin(y);
+    const char* xraw = raw_ptr(xpin);
+    const char* yraw = raw_ptr(ypin);
 
-        lenx = LEN(x);
-        depth = DEPTH(x) + 1;
+    if (CORD_IS_STRING(yraw)) {
+        return(CORD_cat_char_star(x, y, strlen(yraw)));
+    } else if (CORD_IS_STRING(xraw)) {
+        lenx = strlen(xraw);
+        depth = DEPTH(yraw) + 1;
+    } else {
+        int depthy = DEPTH(yraw);
+
+        lenx = LEN(xraw);
+        depth = DEPTH(xraw) + 1;
         if (depthy >= depth) depth = depthy + 1;
     }
-    result_len = lenx + LEN(y);
+    result_len = lenx + LEN(yraw);
     {
-        struct CordRep::Concatenation * result;
+        ptr_t(struct CordRep::Concatenation) result = new_(struct CordRep::Concatenation);
+        if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
 
-        result = GC_NEW(struct CordRep::Concatenation);
-        if (result == 0) OUT_OF_MEMORY;
         result->header = CONCAT_HDR;
         result->depth = depth;
         if (lenx <= MAX_LEFT_LEN)
@@ -281,9 +307,9 @@ CORD CORD_cat(CORD x, CORD y)
         result->left = x;
         result->right = y;
         if (depth >= MAX_DEPTH) {
-            return(CORD_balance((CORD)result));
+            return(CORD_balance(result));
         } else {
-            return((CORD) result);
+            return(result);
         }
     }
 }
@@ -680,7 +706,7 @@ void CORD_add_forest(ForestElement * forest, CORD x, size_t len)
 CORD CORD_concat_forest(ForestElement * forest, size_t expected_len)
 {
     int i = 0;
-    CORD sum = 0;
+    CORD sum = CORD_EMPTY;
     size_t sum_len = 0;
 
     while (sum_len != expected_len) {
@@ -700,13 +726,16 @@ void CORD_balance_insert(CORD x, size_t len, ForestElement * forest)
 {
     int depth;
 
-    if (CORD_IS_STRING(x)) {
+    pin_array_t(const char) xpin = pin(x);
+    const char* xraw = raw_ptr(xpin);
+
+    if (CORD_IS_STRING(xraw)) {
         CORD_add_forest(forest, x, len);
-    } else if (IS_CONCATENATION(x)
-               && ((depth = DEPTH(x)) >= MAX_DEPTH
+    } else if (IS_CONCATENATION(xraw)
+               && ((depth = DEPTH(xraw)) >= MAX_DEPTH
                    || len < min_len[depth])) {
         struct CordRep::Concatenation * conc
-                        = &(((CordRep *)x) -> concatenation);
+                        = &(((CordRep *)xraw) -> concatenation);
         size_t left_len = LEFT_LEN(conc);
 
         CORD_balance_insert(conc -> left, left_len, forest);
@@ -722,10 +751,14 @@ CORD CORD_balance(CORD x)
     Forest forest;
     size_t len;
 
-    if (x == 0) return(0);
-    if (CORD_IS_STRING(x)) return(x);
+    if (CORD_IS_EMPTY(x)) return(CORD_EMPTY);
+
+    pin_array_t(const char) xpin = pin(x);
+    const char* xraw = raw_ptr(xpin);
+
+    if (CORD_IS_STRING(xraw)) return(x);
     if (!min_len_init) CORD_init_min_len();
-    len = LEN(x);
+    len = LEN(xraw);
     CORD_init_forest(forest, len);
     CORD_balance_insert(x, len, forest);
     return(CORD_concat_forest(forest, len));

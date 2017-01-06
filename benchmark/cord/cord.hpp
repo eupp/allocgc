@@ -117,11 +117,11 @@ CORD_API size_t CORD_len(CORD x);
 typedef char (* CORD_fn)(size_t i, void * client_data);
 
 /* Turn a functional description into a cord.   */
-CORD_API CORD CORD_from_fn(CORD_fn fn, void * client_data, size_t len);
+//CORD_API CORD CORD_from_fn(CORD_fn fn, void * client_data, size_t len);
 
 /* Return the substring (subcord really) of x with length at most n,    */
 /* starting at position i.  (The initial character has position 0.)     */
-CORD_API CORD CORD_substr(CORD x, size_t i, size_t n);
+//CORD_API CORD CORD_substr(CORD x, size_t i, size_t n);
 
 /* Return the argument, but rebalanced to allow more efficient          */
 /* character retrieval, substring operations, and comparisons.          */
@@ -140,12 +140,12 @@ CORD_API CORD CORD_balance(CORD x);
 /* the functions that operate on cord positions instead.                */
 
 /* Function to iteratively apply to individual characters in cord.      */
-typedef int (* CORD_iter_fn)(char c, void * client_data);
+//typedef int (* CORD_iter_fn)(char c, void * client_data);
 
 /* Function to apply to substrings of a cord.  Each substring is a      */
 /* a C character string, not a general cord.                            */
-typedef int (* CORD_batched_iter_fn)(const char * s, void * client_data);
-#define CORD_NO_FN ((CORD_batched_iter_fn)0)
+//typedef int (* CORD_batched_iter_fn)(const char * s, void * client_data);
+//#define CORD_NO_FN ((CORD_batched_iter_fn)0)
 
 /* Apply f1 to each character in the cord, in ascending order,          */
 /* starting at position i. If                                           */
@@ -155,19 +155,19 @@ typedef int (* CORD_batched_iter_fn)(const char * s, void * client_data);
 /* end of this string is reached, or when f1 or f2 return != 0.  In the */
 /* latter case CORD_iter returns != 0.  Otherwise it returns 0.         */
 /* The specified value of i must be < CORD_len(x).                      */
-CORD_API int CORD_iter5(CORD x, size_t i, CORD_iter_fn f1,
-                        CORD_batched_iter_fn f2, void * client_data);
+//CORD_API int CORD_iter5(CORD x, size_t i, CORD_iter_fn f1,
+//                        CORD_batched_iter_fn f2, void * client_data);
 
 /* A simpler version that starts at 0, and without f2:  */
-CORD_API int CORD_iter(CORD x, CORD_iter_fn f1, void * client_data);
-#define CORD_iter(x, f1, cd) CORD_iter5(x, 0, f1, CORD_NO_FN, cd)
+//CORD_API int CORD_iter(CORD x, CORD_iter_fn f1, void * client_data);
+//#define CORD_iter(x, f1, cd) CORD_iter5(x, 0, f1, CORD_NO_FN, cd)
 
 /* Similar to CORD_iter5, but end-to-beginning. No provisions for       */
 /* CORD_batched_iter_fn.                                                */
-CORD_API int CORD_riter4(CORD x, size_t i, CORD_iter_fn f1, void * client_data);
+//CORD_API int CORD_riter4(CORD x, size_t i, CORD_iter_fn f1, void * client_data);
 
 /* A simpler version that starts at the end:    */
-CORD_API int CORD_riter(CORD x, CORD_iter_fn f1, void * client_data);
+//CORD_API int CORD_riter(CORD x, CORD_iter_fn f1, void * client_data);
 
 /* Functions that operate on cord positions.  The easy way to traverse  */
 /* cords.  A cord position is logically a pair consisting of a cord     */
@@ -228,32 +228,32 @@ CORD_API void CORD_dump(CORD x);
 /* provided in cordxtra.c for convenience.                              */
 
 /* Concatenate a character to the end of a cord.        */
-CORD_API CORD CORD_cat_char(CORD x, char c);
+//CORD_API CORD CORD_cat_char(CORD x, char c);
 
 /* Concatenate n cords. */
-CORD_API CORD CORD_catn(int n, /* CORD */ ...);
+//CORD_API CORD CORD_catn(int n, /* CORD */ ...);
 
 /* Return the character in CORD_substr(x, i, 1)         */
-CORD_API char CORD_fetch(CORD x, size_t i);
+//CORD_API char CORD_fetch(CORD x, size_t i);
 
 /* Return < 0, 0, or > 0, depending on whether x < y, x = y, x > y      */
-CORD_API int CORD_cmp(CORD x, CORD y);
+//CORD_API int CORD_cmp(CORD x, CORD y);
 
 /* A generalization that takes both starting positions for the          */
 /* comparison, and a limit on the number of characters to be compared.  */
-CORD_API int CORD_ncmp(CORD x, size_t x_start, CORD y, size_t y_start,
-                       size_t len);
+//CORD_API int CORD_ncmp(CORD x, size_t x_start, CORD y, size_t y_start,
+//                       size_t len);
 
 /* Find the first occurrence of s in x at position start or later.      */
 /* Return the position of the first character of s in x, or             */
 /* CORD_NOT_FOUND if there is none.                                     */
-CORD_API size_t CORD_str(CORD x, size_t start, CORD s);
+//CORD_API size_t CORD_str(CORD x, size_t start, CORD s);
 
 /* Return a cord consisting of i copies of (possibly NUL) c.  Dangerous */
 /* in conjunction with CORD_to_char_star.                               */
 /* The resulting representation takes constant space, independent of i. */
-CORD_API CORD CORD_chars(char c, size_t i);
-#define CORD_nul(i) CORD_chars('\0', (i))
+//CORD_API CORD CORD_chars(char c, size_t i);
+//#define CORD_nul(i) CORD_chars('\0', (i))
 
 /* Turn a cord into a C string. The result shares no structure with     */
 /* x, and is thus modifiable.                                           */
@@ -268,16 +268,16 @@ CORD_API CORD CORD_from_char_star(const char *s);
 CORD_API const char * CORD_to_const_char_star(CORD x);
 
 /* "Not found" result for the following two functions.                  */
-#define CORD_NOT_FOUND ((size_t)(-1))
+//#define CORD_NOT_FOUND ((size_t)(-1))
 
 /* A vague analog of strchr.  Returns the position (an integer, not     */
 /* a pointer) of the first occurrence of (char) c inside x at position  */
 /* i or later. The value i must be < CORD_len(x).                       */
-CORD_API size_t CORD_chr(CORD x, size_t i, int c);
+//CORD_API size_t CORD_chr(CORD x, size_t i, int c);
 
 /* A vague analog of strrchr.  Returns index of the last occurrence     */
 /* of (char) c inside x at position i or earlier. The value i           */
 /* must be < CORD_len(x).                                               */
-CORD_API size_t CORD_rchr(CORD x, size_t i, int c);
+//CORD_API size_t CORD_rchr(CORD x, size_t i, int c);
 
 #endif /* CORD_H */

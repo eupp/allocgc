@@ -30,7 +30,6 @@
 # include <stdarg.h>
 
 # include "cord.hpp"
-# include "ec.hpp"
 
 # define I_HIDE_POINTERS    /* So we get access to allocation lock. */
                 /* We use this for lazy file reading,   */
@@ -295,16 +294,6 @@ int CORD_batched_put_proc(const char * s, void * client_data)
     return(fputs(s, f) == EOF);
 }
 
-
-int CORD_put(CORD x, FILE * f)
-{
-    if (CORD_iter5(x, 0, CORD_put_proc, CORD_batched_put_proc, f)) {
-        return(EOF);
-    } else {
-        return(1);
-    }
-}
-
 typedef struct {
     size_t pos;     /* Current position in the cord */
     char target;    /* Character we're looking for  */
@@ -427,26 +416,6 @@ size_t CORD_str(CORD x, size_t start, CORD s)
     }
 }
 
-void CORD_ec_flush_buf(CORD_ec x)
-{
-    size_t len = x[0].ec_bufptr - x[0].ec_buf;
-    char * s;
-
-    if (len == 0) return;
-    s = (char*) GC_MALLOC_ATOMIC(len+1);
-    if (NULL == s) OUT_OF_MEMORY;
-    memcpy(s, x[0].ec_buf, len);
-    s[len] = '\0';
-    x[0].ec_cord = CORD_cat_char_star(x[0].ec_cord, s, len);
-    x[0].ec_bufptr = x[0].ec_buf;
-}
-
-void CORD_ec_append_cord(CORD_ec x, CORD s)
-{
-    CORD_ec_flush_buf(x);
-    x[0].ec_cord = CORD_cat(x[0].ec_cord, s);
-}
-
 char CORD_nul_func(size_t i CORD_ATTR_UNUSED, void * client_data)
 {
     return (char)(GC_word)client_data;
@@ -455,31 +424,6 @@ char CORD_nul_func(size_t i CORD_ATTR_UNUSED, void * client_data)
 CORD CORD_chars(char c, size_t i)
 {
     return CORD_from_fn(CORD_nul_func, (void *)(GC_word)(unsigned char)c, i);
-}
-
-CORD CORD_from_file_eager(FILE * f)
-{
-    CORD_ec ecord;
-
-    CORD_ec_init(ecord);
-    for(;;) {
-        int c = getc(f);
-
-        if (c == 0) {
-          /* Append the right number of NULs                            */
-          /* Note that any string of NULs is represented in 4 words,    */
-          /* independent of its length.                                 */
-            size_t count = 1;
-
-            CORD_ec_flush_buf(ecord);
-            while ((c = getc(f)) == 0) count++;
-            ecord[0].ec_cord = CORD_cat(ecord[0].ec_cord, CORD_nul(count));
-        }
-        if (c == EOF) break;
-        CORD_ec_append(ecord, c);
-    }
-    (void) fclose(f);
-    return(CORD_balance(CORD_ec_to_cord(ecord)));
 }
 
 /* The state maintained for a lazily read file consists primarily       */
@@ -604,38 +548,4 @@ CORD CORD_from_file_lazy_inner(FILE * f, size_t len)
     state -> lf_current = 0;
     GC_REGISTER_FINALIZER(state, CORD_lf_close_proc, 0, 0, 0);
     return(CORD_from_fn(CORD_lf_func, state, len));
-}
-
-CORD CORD_from_file_lazy(FILE * f)
-{
-    long len;
-
-    if (fseek(f, 0l, SEEK_END) != 0) {
-        ABORT("Bad fd argument - fseek failed");
-    }
-    if ((len = ftell(f)) < 0) {
-        ABORT("Bad fd argument - ftell failed");
-    }
-    rewind(f);
-    return(CORD_from_file_lazy_inner(f, (size_t)len));
-}
-
-# define LAZY_THRESHOLD (128*1024 + 1)
-
-CORD CORD_from_file(FILE * f)
-{
-    long len;
-
-    if (fseek(f, 0l, SEEK_END) != 0) {
-        ABORT("Bad fd argument - fseek failed");
-    }
-    if ((len = ftell(f)) < 0) {
-        ABORT("Bad fd argument - ftell failed");
-    }
-    rewind(f);
-    if (len < LAZY_THRESHOLD) {
-        return(CORD_from_file_eager(f));
-    } else {
-        return(CORD_from_file_lazy_inner(f, (size_t)len));
-    }
 }

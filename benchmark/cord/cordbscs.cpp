@@ -42,6 +42,8 @@ oom_fn CORD_oom_fn = (oom_fn) 0;
 
 typedef unsigned long word;
 
+
+
 typedef union {
     struct Concatenation {
         char null;

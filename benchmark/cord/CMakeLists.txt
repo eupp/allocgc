@@ -3,11 +3,9 @@ find_package(Threads REQUIRED)
 set(cord_SRC
         ../../common/macro.hpp
         ../../common/timer.hpp
-        ec.hpp
         cord.hpp
         cord_pos.hpp
         cordbscs.cpp
-        cordprnt.cpp
         cordxtra.cpp
         main.cpp)
 

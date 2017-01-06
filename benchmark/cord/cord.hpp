@@ -255,33 +255,6 @@ CORD_API size_t CORD_str(CORD x, size_t start, CORD s);
 CORD_API CORD CORD_chars(char c, size_t i);
 #define CORD_nul(i) CORD_chars('\0', (i))
 
-/* Turn a file into cord.  The file must be seekable.  Its contents     */
-/* must remain constant.  The file may be accessed as an immediate      */
-/* result of this call and/or as a result of subsequent accesses to     */
-/* the cord.  Short files are likely to be immediately read, but        */
-/* long files are likely to be read on demand, possibly relying on      */
-/* stdio for buffering.                                                 */
-/* We must have exclusive access to the descriptor f, i.e. we may       */
-/* read it at any time, and expect the file pointer to be               */
-/* where we left it.  Normally this should be invoked as                */
-/* CORD_from_file(fopen(...))                                           */
-/* CORD_from_file arranges to close the file descriptor when it is no   */
-/* longer needed (e.g. when the result becomes inaccessible).           */
-/* The file f must be such that ftell reflects the actual character     */
-/* position in the file, i.e. the number of characters that can be      */
-/* or were read with fread.  On UNIX systems this is always true.  On   */
-/* MS Windows systems, f must be opened in binary mode.                 */
-CORD_API CORD CORD_from_file(FILE * f);
-
-/* Equivalent to the above, except that the entire file will be read    */
-/* and the file pointer will be closed immediately.                     */
-/* The binary mode restriction from above does not apply.               */
-CORD_API CORD CORD_from_file_eager(FILE * f);
-
-/* Equivalent to the above, except that the file will be read on demand.*/
-/* The binary mode restriction applies.                                 */
-CORD_API CORD CORD_from_file_lazy(FILE * f);
-
 /* Turn a cord into a C string. The result shares no structure with     */
 /* x, and is thus modifiable.                                           */
 CORD_API char * CORD_to_char_star(CORD x);
@@ -293,11 +266,6 @@ CORD_API CORD CORD_from_char_star(const char *s);
 /* Identical to the above, but the result may share structure with      */
 /* the argument and is thus not modifiable.                             */
 CORD_API const char * CORD_to_const_char_star(CORD x);
-
-/* Write a cord to a file, starting at the current position.  No        */
-/* trailing NULs are newlines are added.                                */
-/* Returns EOF if a write error occurs, 1 otherwise.                    */
-CORD_API int CORD_put(CORD x, FILE * f);
 
 /* "Not found" result for the following two functions.                  */
 #define CORD_NOT_FOUND ((size_t)(-1))
@@ -311,44 +279,5 @@ CORD_API size_t CORD_chr(CORD x, size_t i, int c);
 /* of (char) c inside x at position i or earlier. The value i           */
 /* must be < CORD_len(x).                                               */
 CORD_API size_t CORD_rchr(CORD x, size_t i, int c);
-
-
-/* The following are also not primitive, but are implemented in         */
-/* cordprnt.c.  They provide functionality similar to the ANSI C        */
-/* functions with corresponding names, but with the following           */
-/* additions and changes:                                               */
-/* 1. A %r conversion specification specifies a CORD argument.  Field   */
-/*    width, precision, etc. have the same semantics as for %s.         */
-/*    (Note that %c, %C, and %S were already taken.)                    */
-/* 2. The format string is represented as a CORD.                       */
-/* 3. CORD_sprintf and CORD_vsprintf assign the result through the 1st  */
-/*    argument. Unlike their ANSI C versions, there is no need to guess */
-/*    the correct buffer size.                                          */
-/* 4. Most of the conversions are implement through the native          */
-/*    vsprintf.  Hence they are usually no faster, and                  */
-/*    idiosyncrasies of the native printf are preserved.  However,      */
-/*    CORD arguments to CORD_sprintf and CORD_vsprintf are NOT copied;  */
-/*    the result shares the original structure.  This may make them     */
-/*    very efficient in some unusual applications.                      */
-/*    The format string is copied.                                      */
-/* All functions return the number of characters generated or -1 on     */
-/* error.  This complies with the ANSI standard, but is inconsistent    */
-/* with some older implementations of sprintf.                          */
-
-/* The implementation of these is probably less portable than the rest  */
-/* of this package.                                                     */
-
-#ifndef CORD_NO_IO
-
-#include <stdarg.h>
-
-CORD_API int CORD_sprintf(CORD * out, CORD format, ...);
-CORD_API int CORD_vsprintf(CORD * out, CORD format, va_list args);
-CORD_API int CORD_fprintf(FILE * f, CORD format, ...);
-CORD_API int CORD_vfprintf(FILE * f, CORD format, va_list args);
-CORD_API int CORD_printf(CORD format, ...);
-CORD_API int CORD_vprintf(CORD format, va_list args);
-
-#endif /* CORD_NO_IO */
 
 #endif /* CORD_H */

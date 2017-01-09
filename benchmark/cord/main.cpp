@@ -72,7 +72,7 @@ int main (int argc, const char* argv[])
 //        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
         ops.loglevel    = gc_loglevel::SILENT;
 //            ops.print_stat  = true;
-    //        ops.threads_available = 1;
+            ops.threads_available = 1;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();

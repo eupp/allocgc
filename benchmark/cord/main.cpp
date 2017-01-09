@@ -7,6 +7,11 @@
 #include <iostream>
 #include <memory>
 
+#ifdef PRECISE_GC
+    #include "libprecisegc/libprecisegc.hpp"
+    using namespace precisegc;
+#endif
+
 #ifdef BDW_GC
     #include <gc/gc.h>
 #endif
@@ -35,7 +40,7 @@ void build_rope(size_t total_len, size_t buf_size)
         const char* buf_raw = raw_ptr(buf_pin);
         memcpy((void*) buf_raw, (void*) str.get(), buf_size + 1);
 
-        cord = CORD_cat_char_star(cord, buf_raw, buf_size);
+        cord = CORD_cat_char_star(cord, buf, buf_size);
     }
 }
 
@@ -58,7 +63,18 @@ int main (int argc, const char* argv[])
 
     init(buf_size);
 
-    #if defined(BDW_GC)
+    #if defined(PRECISE_GC)
+        gc_init_options ops;
+//        ops.heapsize    = 32 * 1024 * 1024;      // 32 Mb
+        ops.algo        = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
+        ops.initiation  = gc_initiation::SPACE_BASED;
+        ops.compacting  = gc_compacting::DISABLED;
+//        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
+        ops.loglevel    = gc_loglevel::SILENT;
+//            ops.print_stat  = true;
+    //        ops.threads_available = 1;
+        gc_init(ops);
+    #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {
             GC_enable_incremental();
@@ -71,7 +87,12 @@ int main (int argc, const char* argv[])
     build_rope(len, buf_size);
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
 
-    #if defined(BDW_GC)
+    #if defined(PRECISE_GC)
+        gc_stat stat = gc_stats();
+        std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
+        std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << std::endl;
+        std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;
+    #elif defined(BDW_GC)
         std::cout << "Completed " << GC_get_gc_no() << " collections" << std::endl;
         std::cout << "Heap size is " << GC_get_heap_size() << std::endl;
     #endif

@@ -99,7 +99,7 @@
     typedef precisegc::gc_ptr<const char[]> CORD;
     typedef precisegc::gc_ptr<const char[]> PCHAR;
 
-    #define CORD_EMPTY nullptr;
+    #define CORD_EMPTY nullptr
     #define CORD_IS_EMPTY(x) (x == nullptr)
 #endif
 

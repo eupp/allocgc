@@ -45,14 +45,13 @@
 #include "../../common/macro.hpp"
 #include "../../common/timer.hpp"
 
-#ifdef BDW_GC
-    #include <gc/gc.h>
-#endif
-
-
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.hpp"
     using namespace precisegc;
+#endif
+
+#ifdef BDW_GC
+    #include <gc/gc.h>
 #endif
 
 using namespace std;

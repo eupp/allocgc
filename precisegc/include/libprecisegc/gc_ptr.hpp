@@ -121,6 +121,15 @@ public:
     template <typename U>
     friend class gc_ptr;
 
+    template <typename U>
+    friend gc_ptr<T> static_pointer_cast(const gc_ptr<U>&);
+
+    template <typename U>
+    friend gc_ptr<T> dynamic_pointer_cast(const gc_ptr<U>&);
+
+    template <typename U>
+    friend gc_ptr<T> reinterpret_pointer_cast(const gc_ptr<U>&);
+
     friend class internals::gc_ptr_factory<T>;
     friend class internals::gc_ptr_access<T>;
 private:
@@ -128,10 +137,15 @@ private:
         : gc_untyped_ptr(reinterpret_cast<details::byte*>(ptr))
     {}
 
+    T* get() const
+    {
+        return reinterpret_cast<T*>(gc_untyped_ptr::get());
+    }
+
     template <typename D>
     void shift_to_base()
     {
-        static const ptrdiff_t offset = details::utils::base_offset<T>(reinterpret_cast<D*>(get()));
+        static const ptrdiff_t offset = details::utils::base_offset<T>(get());
         advance(offset);
     }
 };

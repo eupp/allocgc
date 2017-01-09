@@ -96,7 +96,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/pool_allocator.hpp
         include/libprecisegc/details/gc_cell.hpp
-        include/libprecisegc/details/allocators/gc_box.hpp)
+        include/libprecisegc/details/allocators/gc_box.hpp include/libprecisegc/gc_cast.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp

@@ -79,16 +79,32 @@
 
     #define raw_ptr(pin_ptr) pin_ptr
 
-    #define ptr_array_t(T) std::shared_ptr<T, std::default_delete<T[]>>
+    #define ptr_array_t(T) std::shared_ptr<T>
     #define pin_array_t(T) T*
 
     #define new_(T) std::make_shared<T>()
     #define new_args_(T, ...) std::make_shared<T>(__VA_ARGS__)
-    #define new_array_(T, size) std::shared_ptr<T>(new T[size], std::default_delete<T[]>())
+    #define new_array_(T, size) std::shared_ptr<T>(new std::remove_cv<T>::type[size], std::default_delete<T[]>())
 
     #define delete_(ptr)
     #define set_null(ptr) ptr.reset()
     #define null_ptr(T) std::shared_ptr<T>()
+
+    template <typename T, typename U>
+    std::shared_ptr<T> reinterpret_pointer_cast(const std::shared_ptr<U>& ptr)
+    {
+        typedef typename std::remove_extent<T>::type V;
+        V* casted = reinterpret_cast<V*>(ptr.get());
+        return std::shared_ptr<V>(ptr, casted);
+    }
+
+    #define static_pointer_cast_(T, ptr) std::static_pointer_cast<T>(ptr)
+    #define dynamic_pointer_cast_(T, ptr) std::dynamic_pointer_cast<T>(ptr)
+    #define const_pointer_cast_(T, ptr) std::const_pointer_cast<T>(ptr)
+    #define reinterpret_pointer_cast_(T, ptr) reinterpret_pointer_cast<T>(ptr)
+
+    #define const_array_pointer_cast_(T, ptr) std::const_pointer_cast<T>(ptr)
+    #define reinterpret_array_pointer_cast_(T, ptr) reinterpret_pointer_cast<T>(ptr)
 
 #elif defined(NO_GC)
     #define ptr_t(T) T*

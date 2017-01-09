@@ -31,8 +31,8 @@ option(PRECISE_GC OFF)
 
 #set(NO_GC ON)
 #set(BDW_GC ON)
-#set(SHARED_PTR ON)
-set(PRECISE_GC ON)
+set(SHARED_PTR ON)
+#set(PRECISE_GC ON)
 
 if(NO_GC)
     add_definitions(-DNO_GC)

@@ -93,6 +93,14 @@
 
     #define CORD_EMPTY 0
     #define CORD_IS_EMPTY(x) (x == 0)
+#elif defined(SHARED_PTR)
+    #include <memory>
+
+    typedef std::shared_ptr<const char> CORD;
+    typedef std::shared_ptr<const char> PCHAR;
+
+    #define CORD_EMPTY nullptr
+    #define CORD_IS_EMPTY(x) (x == nullptr)
 #elif defined(PRECISE_GC)
     #include "libprecisegc/libprecisegc.hpp"
 

@@ -157,8 +157,7 @@ gc_handle::pin_guard::~pin_guard()
 
 gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)
 {
-    m_ptr = other.m_ptr;
-    other.m_ptr = nullptr;
+    std::swap(m_ptr, other.m_ptr);
     return *this;
 }
 

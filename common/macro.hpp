@@ -34,6 +34,14 @@
     #define set_null(ptr) ptr.reset()
     #define null_ptr(T) precisegc::gc_ptr<T>()
 
+    #define const_pointer_cast_(T, ptr) precisegc::const_pointer_cast<T>(ptr)
+    #define static_pointer_cast_(T, ptr) precisegc::static_pointer_cast<T>(ptr)
+    #define dynamic_pointer_cast_(T, ptr) precisegc::dynamic_pointer_cast<T>(ptr)
+    #define reinterpret_pointer_cast_(T, ptr) precisegc::reinterpret_pointer_cast<T>(ptr)
+
+    #define const_array_pointer_cast_(T, ptr) precisegc::const_pointer_cast<T>(ptr)
+    #define reinterpret_array_pointer_cast_(T, ptr) precisegc::reinterpret_pointer_cast<T[]>(ptr)
+
 #elif defined(BDW_GC)
     #define ptr_t(T) T*
     #define ptr_in(T) T*
@@ -53,6 +61,14 @@
     #define delete_(ptr)
     #define set_null(ptr) ptr = nullptr
     #define null_ptr(T) nullptr
+
+    #define static_pointer_cast_(T, ptr) static_cast<T*>(ptr)
+    #define dynamic_pointer_cast_(T, ptr) dynamic_cast<T*>(ptr)
+    #define const_pointer_cast_(T, ptr) const_cast<T*>(ptr)
+    #define reinterpret_pointer_cast_(T, ptr) reinterpret_cast<T*>(ptr)
+
+    #define const_array_pointer_cast_(T, ptr) const_cast<T*>(ptr)
+    #define reinterpret_array_pointer_cast_(T, ptr) reinterpret_cast<T*>(ptr)
 
 #elif defined(SHARED_PTR)
     #define ptr_t(T) std::shared_ptr<T>

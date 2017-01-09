@@ -25,11 +25,31 @@ gc_ptr<T> dynamic_pointer_cast(const gc_ptr<U>& ptr)
 };
 
 template <typename T, typename U>
-gc_ptr<T> reinterpret_pointer_cast(const gc_ptr<U>& ptr)
+gc_ptr<T> const_pointer_cast(const gc_ptr<U>& ptr)
 {
     using namespace details;
     gc_unsafe_scope unsafe_scope;
-    T* casted = reinterpret_cast<T*>(ptr.get());
+    T* casted = const_cast<T*>(ptr.get());
+    return gc_ptr<T>(casted);
+};
+
+template <typename T, typename U>
+gc_ptr<T[]> const_pointer_cast(const gc_ptr<U[]>& ptr)
+{
+    using namespace details;
+    gc_unsafe_scope unsafe_scope;
+    T* casted = const_cast<T*>(ptr.get());
+    return gc_ptr<T[]>(casted);
+};
+
+template <typename T, typename U>
+gc_ptr<T> reinterpret_pointer_cast(const gc_ptr<U>& ptr)
+{
+    typedef typename std::remove_extent<T>::type V;
+
+    using namespace details;
+    gc_unsafe_scope unsafe_scope;
+    V* casted = reinterpret_cast<V*>(ptr.get());
     return gc_ptr<T>(casted);
 };
 

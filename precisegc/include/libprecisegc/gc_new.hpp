@@ -81,8 +81,9 @@ class gc_ptr_factory<T[]>
 {
     typedef details::byte byte;
     typedef typename std::remove_extent<T>::type U;
+    typedef typename std::remove_cv<U>::type Uu;
 public:
-    static gc_ptr<T[]> create(U* ptr)
+    static gc_ptr<T[]> create(Uu* ptr)
     {
         return gc_ptr<T[]>(ptr);
     }
@@ -102,16 +103,18 @@ auto gc_new(Args&&... args)
 
     gc_unsafe_scope unsafe_scope;
 
-    const gc_type_meta* type_meta = gc_type_meta_factory<T>::get();
-    gc_alloc_response rsp = gc_allocate(sizeof(T), 1, type_meta);
+    typedef typename std::remove_cv<T>::type Tt;
+
+    const gc_type_meta* type_meta = gc_type_meta_factory<Tt>::get();
+    gc_alloc_response rsp = gc_allocate(sizeof(Tt), 1, type_meta);
 
     if (!type_meta) {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
-        new (rsp.obj_start()) T(std::forward<Args>(args)...);
-        rsp.commit(gc_type_meta_factory<T>::create(this_managed_thread::gc_ptr_offsets()));
+        new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
+        rsp.commit(gc_type_meta_factory<Tt>::create(this_managed_thread::gc_ptr_offsets()));
     } else {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
-        new (rsp.obj_start()) T(std::forward<Args>(args)...);
+        new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
         rsp.commit();
     }
 
@@ -129,28 +132,29 @@ auto gc_new(size_t n)
     using namespace precisegc::details::allocators;
 
     typedef typename std::remove_extent<T>::type U;
+    typedef typename std::remove_cv<U>::type Uu;
 
     gc_unsafe_scope unsafe_scope;
 
-    const gc_type_meta* type_meta = gc_type_meta_factory<U>::get();
-    gc_alloc_response rsp = gc_allocate(sizeof(U), n, type_meta);
+    const gc_type_meta* type_meta = gc_type_meta_factory<Uu>::get();
+    gc_alloc_response rsp = gc_allocate(sizeof(Uu), n, type_meta);
 
     bool type_meta_requested = (type_meta == nullptr);
 
-    U* begin = reinterpret_cast<U*>(rsp.obj_start());
-    U* end = begin + n;
+    Uu* begin = reinterpret_cast<Uu*>(rsp.obj_start());
+    Uu* end = begin + n;
 
     if (!type_meta) {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
-        new (begin++) U();
-        type_meta = gc_type_meta_factory<U>::create(this_managed_thread::gc_ptr_offsets());
+        new (begin++) Uu();
+        type_meta = gc_type_meta_factory<Uu>::create(this_managed_thread::gc_ptr_offsets());
     } else {
         gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
-        new (begin++) U();
+        new (begin++) Uu();
     }
 
-    for (U* it = begin; it < end; ++it) {
-        new (it) U();
+    for (Uu* it = begin; it < end; ++it) {
+        new (it) Uu();
     }
 
     if (type_meta_requested) {
@@ -160,7 +164,7 @@ auto gc_new(size_t n)
     }
 
     return precisegc::internals::gc_ptr_factory<U[]>::create(
-            reinterpret_cast<U*>(rsp.obj_start())
+            reinterpret_cast<Uu*>(rsp.obj_start())
     );
 };
 

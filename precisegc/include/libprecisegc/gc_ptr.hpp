@@ -121,19 +121,22 @@ public:
     template <typename U>
     friend class gc_ptr;
 
-    template <typename U>
-    friend gc_ptr<T> static_pointer_cast(const gc_ptr<U>&);
+    template <typename U, typename V>
+    friend gc_ptr<U> static_pointer_cast(const gc_ptr<V>&);
 
-    template <typename U>
-    friend gc_ptr<T> dynamic_pointer_cast(const gc_ptr<U>&);
+    template <typename U, typename V>
+    friend gc_ptr<U> dynamic_pointer_cast(const gc_ptr<V>&);
 
-    template <typename U>
-    friend gc_ptr<T> reinterpret_pointer_cast(const gc_ptr<U>&);
+    template <typename U, typename V>
+    friend gc_ptr<U> const_pointer_cast(const gc_ptr<V>&);
+
+    template <typename U, typename V>
+    friend gc_ptr<U> reinterpret_pointer_cast(const gc_ptr<V>&);
 
     friend class internals::gc_ptr_factory<T>;
     friend class internals::gc_ptr_access<T>;
 private:
-    gc_ptr(T* ptr)
+    explicit gc_ptr(T* ptr)
         : gc_untyped_ptr(reinterpret_cast<details::byte*>(ptr))
     {}
 
@@ -290,12 +293,25 @@ public:
         a.swap(b);
     }
 
+    template <typename U, typename V>
+    friend gc_ptr<U[]> const_pointer_cast(const gc_ptr<V[]>&);
+
+    template <typename U, typename V>
+    friend gc_ptr<U> reinterpret_pointer_cast(const gc_ptr<V>&);
+
     friend class internals::gc_ptr_factory<T[]>;
     friend class internals::gc_ptr_access<T[]>;
 private:
-    gc_ptr(T* ptr)
-        : gc_untyped_ptr(reinterpret_cast<details::byte*>(ptr))
+    typedef typename std::remove_cv<T>::type Tt;
+
+    explicit gc_ptr(T* ptr)
+        : gc_untyped_ptr(reinterpret_cast<details::byte*>(const_cast<Tt*>(ptr)))
     {}
+
+    T* get() const
+    {
+        return reinterpret_cast<T*>(gc_untyped_ptr::get());
+    }
 };
 
 template <typename T, size_t N>

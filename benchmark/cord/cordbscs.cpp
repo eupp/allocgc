@@ -47,6 +47,15 @@ oom_fn CORD_oom_fn = (oom_fn) 0;
                           ABORT("Out of memory"); }
 # define ABORT(msg) { fprintf(stderr, "%s\n", msg); abort(); }
 
+# define CONCAT_HDR 1
+
+# define FN_HDR 4
+# define SUBSTR_HDR 6
+/* Substring nodes are a special case of function nodes.        */
+/* The client_data field is known to point to a substr_args     */
+/* structure, and the function is either CORD_apply_access_fn   */
+/* or CORD_index_access_fn.                                     */
+
 typedef unsigned long word;
 
 namespace CordRep {
@@ -60,13 +69,23 @@ struct Generic {
 };
 
 struct Concatenation {
+    #define MAX_LEFT_LEN 255
+
+    Concatenation(char depth_, size_t left_len_, word len_, CORD_IN left_, CORD_IN right_)
+        : null(0)
+        , header(CONCAT_HDR)
+        , left_len(left_len_ <= MAX_LEFT_LEN ? left_len_ : 0)
+        , len(len_)
+        , left(left_)
+        , right(right_)
+    {}
+
     char null;
     char header;
     char depth;     /* concatenation nesting depth. */
     unsigned char left_len;
     /* Length of left child if it is sufficiently   */
     /* short; 0 otherwise.                          */
-#           define MAX_LEFT_LEN 255
     word len;
     CORD left;      /* length(left) > 0     */
     CORD right;     /* length(right) > 0    */
@@ -89,15 +108,6 @@ union Union {
 };
 
 }
-
-# define CONCAT_HDR 1
-
-# define FN_HDR 4
-# define SUBSTR_HDR 6
-        /* Substring nodes are a special case of function nodes.        */
-        /* The client_data field is known to point to a substr_args     */
-        /* structure, and the function is either CORD_apply_access_fn   */
-        /* or CORD_index_access_fn.                                     */
 
 /* The following may be applied only to function and concatenation nodes: */
 #define IS_CONCATENATION(s)  (((CordRep::Generic*)s)->header == CONCAT_HDR)
@@ -253,8 +263,10 @@ CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
                     x = left;
                     lenx -= right_len;
 
-                    xraw = nullptr;
-                    yraw = nullptr;
+                    xpin = pin(x);
+                    ypin = pin(y);
+                    xraw = raw_ptr(xpin);
+                    yraw = raw_ptr(ypin);
 
                     /* Now fall through to concatenate the two pieces: */
                 }
@@ -271,15 +283,9 @@ CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
     }
     {
       /* The general case; lenx, result_len is known: */
-        ptr_t(CordRep::Concatenation) result = new_(CordRep::Concatenation);
+        ptr_t(CordRep::Concatenation) result = new_args_(CordRep::Concatenation, depth, lenx, result_len, x, y);
         if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
-        result->header = CONCAT_HDR;
-        result->depth = depth;
-        if (lenx <= MAX_LEFT_LEN)
-            result->left_len = (unsigned char)lenx;
-        result->len = result_len;
-        result->left = x;
-        result->right = y;
+
         if (depth >= MAX_DEPTH) {
             return(CORD_balance(reinterpret_array_pointer_cast_(const char, result)));
         } else {
@@ -288,7 +294,7 @@ CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
     }
 }
 
-CORD CORD_cat(CORD x, CORD y)
+CORD CORD_cat(CORD_IN x, CORD_IN y)
 {
     size_t result_len;
     int depth;
@@ -316,16 +322,9 @@ CORD CORD_cat(CORD x, CORD y)
     }
     result_len = lenx + LEN(yraw);
     {
-        ptr_t(CordRep::Concatenation) result = new_(CordRep::Concatenation);
+        ptr_t(CordRep::Concatenation) result = new_args_(CordRep::Concatenation, depth, lenx, result_len, x, y);
         if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
 
-        result->header = CONCAT_HDR;
-        result->depth = depth;
-        if (lenx <= MAX_LEFT_LEN)
-            result->left_len = (unsigned char)lenx;
-        result->len = result_len;
-        result->left = x;
-        result->right = y;
         if (depth >= MAX_DEPTH) {
             return(CORD_balance(reinterpret_array_pointer_cast_(const char, result)));
         } else {
@@ -687,7 +686,7 @@ void CORD_init_forest(ForestElement * forest, size_t max_len)
 /* Also works if x is a balanced tree of concatenations; however        */
 /* in this case an extra concatenation node may be inserted above x;    */
 /* This node should not be counted in the statement of the invariants.  */
-void CORD_add_forest(ForestElement * forest, CORD x, size_t len)
+void CORD_add_forest(ForestElement * forest, CORD_IN x, size_t len)
 {
     int i = 0;
     CORD sum = CORD_EMPTY;
@@ -742,7 +741,7 @@ CORD CORD_concat_forest(ForestElement * forest, size_t expected_len)
 /* Insert the frontier of x into forest.  Balanced subtrees are */
 /* treated as leaves.  This potentially adds one to the depth   */
 /* of the final tree.                                           */
-void CORD_balance_insert(CORD x, size_t len, ForestElement * forest)
+void CORD_balance_insert(CORD_IN x, size_t len, ForestElement * forest)
 {
     int depth;
 
@@ -765,7 +764,7 @@ void CORD_balance_insert(CORD x, size_t len, ForestElement * forest)
 }
 
 
-CORD CORD_balance(CORD x)
+CORD CORD_balance(CORD_IN x)
 {
     Forest forest;
     size_t len;

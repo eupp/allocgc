@@ -89,7 +89,10 @@
     #include "gc.h"
 
     typedef const char* CORD;
+    typedef const char* CORD_IN;
+
     typedef const char* PCHAR;
+    typedef const char* PCHAR_IN;
 
     #define CORD_EMPTY 0
     #define CORD_IS_EMPTY(x) (x == 0)
@@ -97,7 +100,10 @@
     #include <memory>
 
     typedef std::shared_ptr<const char> CORD;
+    typedef const std::shared_ptr<const char[]>& CORD_IN;
+
     typedef std::shared_ptr<const char> PCHAR;
+    typedef const std::shared_ptr<const char>& PCHAR_IN;
 
     #define CORD_EMPTY nullptr
     #define CORD_IS_EMPTY(x) (x == nullptr)
@@ -105,7 +111,10 @@
     #include "libprecisegc/libprecisegc.hpp"
 
     typedef precisegc::gc_ptr<const char[]> CORD;
+    typedef const precisegc::gc_ptr<const char[]>& CORD_IN;
+
     typedef precisegc::gc_ptr<const char[]> PCHAR;
+    typedef const precisegc::gc_ptr<const char[]>& PCHAR_IN;
 
     #define CORD_EMPTY nullptr
     #define CORD_IS_EMPTY(x) (x == nullptr)
@@ -116,7 +125,7 @@
 
 /* Concatenate two cords.  If the arguments are C strings, they may     */
 /* not be subsequently altered.                                         */
-CORD_API CORD CORD_cat(CORD x, CORD y);
+CORD_API CORD CORD_cat(CORD_IN x, CORD_IN y);
 
 /* Concatenate a cord and a C string with known length.  Except for the */
 /* empty string case, this is a special case of CORD_cat.  Since the    */
@@ -146,7 +155,7 @@ typedef char (* CORD_fn)(size_t i, void * client_data);
 /* or the embedded functional descriptions take longer to evaluate.     */
 /* May reallocate significant parts of the cord.  The argument is not   */
 /* modified; only the result is balanced.                               */
-CORD_API CORD CORD_balance(CORD x);
+CORD_API CORD CORD_balance(CORD_IN x);
 
 /* The following traverse a cord by applying a function to each         */
 /* character.  This is occasionally appropriate, especially where       */

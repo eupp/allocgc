@@ -11,8 +11,8 @@ const double gc_core_allocator::MARK_THRESHOLD       = 0.6;
 const double gc_core_allocator::COLLECT_THRESHOLD    = 1.0;
 
 size_t gc_core_allocator::heap_limit = 0;
-size_t gc_core_allocator::heap_size = 0;
 size_t gc_core_allocator::heap_maxlimit = 0;
+std::atomic<size_t> gc_core_allocator::heap_size{0};
 
 gc_core_allocator::mutex_t gc_core_allocator::mutex{};
 gc_core_allocator::freelist_alloc_t gc_core_allocator::freelist{};
@@ -23,11 +23,11 @@ byte* gc_core_allocator::allocate(size_t size)
     assert(size != 0);
     size_t aligned_size = sys_allocator::align_size(size);
 
-    std::lock_guard<mutex_t> lock(mutex);
-
     if (!check_heap_size(aligned_size)) {
         return nullptr;
     }
+
+    std::lock_guard<mutex_t> lock(mutex);
 
     byte* page = nullptr;
     if (aligned_size <= MAX_BUCKETIZE_SIZE) {

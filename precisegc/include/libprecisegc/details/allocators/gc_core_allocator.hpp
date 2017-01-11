@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cassert>
+#include <atomic>
 #include <mutex>
 
 #include <boost/range/iterator_range.hpp>
@@ -72,9 +73,9 @@ private:
     static freelist_alloc_t freelist;
     static mutex_t mutex;
 
-    static size_t heap_size;
     static size_t heap_limit;
     static size_t heap_maxlimit;
+    static std::atomic<size_t> heap_size;
 };
 
 }}}

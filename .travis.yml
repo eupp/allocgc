@@ -1,0 +1,14 @@
+language: cpp
+
+compiler:
+  - gcc
+
+install:
+  sudo apt-get install libboost-dev
+
+before_script:
+  cmake CMakeLists.txt
+
+script:
+  - $CXX --version
+  - make libprecisegc

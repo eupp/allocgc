@@ -8,6 +8,7 @@
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/threads/gc_new_stack.hpp>
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 
 #include "serial_gc_mock.hpp"
@@ -95,23 +96,31 @@ namespace {
 struct test_type
 {
     gc_untyped_ptr p;
+
+
 };
+
+const gc_type_meta* test_type_meta = gc_type_meta_factory<test_type>::create();
 }
 
 TEST(gc_untyped_ptr_test, test_is_root_1)
 {
+    using namespace allocators;
+
     gc_untyped_ptr ptr1;
     EXPECT_TRUE(ptr1.is_root());
 
-    std::aligned_storage<sizeof(test_type)> storage;
-    test_type* obj = reinterpret_cast<test_type*>(&storage);
-    gc_new_stack::stack_entry stack_entry(reinterpret_cast<byte*>(&storage), sizeof(test_type), false);
+    gc_alloc_response rsp = gc_allocate(sizeof(test_type), 1, test_type_meta);
+    test_type* obj = reinterpret_cast<test_type*>(rsp.obj_start());
     new (obj) test_type();
+    rsp.commit();
     EXPECT_FALSE(obj->p.is_root());
 }
 
 TEST(gc_untyped_ptr_test, test_is_root_2)
 {
+    using namespace allocators;
+
     size_t val;
     byte* ptr = (byte*) &val;
 
@@ -119,10 +128,10 @@ TEST(gc_untyped_ptr_test, test_is_root_2)
     gc_untyped_ptr ptr2;
 
 
-    std::aligned_storage<sizeof(test_type)> storage;
-    test_type* obj = reinterpret_cast<test_type*>(&storage);
-    gc_new_stack::stack_entry stack_entry(reinterpret_cast<byte*>(&storage), sizeof(test_type), false);
+    gc_alloc_response rsp = gc_allocate(sizeof(test_type), 1, test_type_meta);
+    test_type* obj = reinterpret_cast<test_type*>(rsp.obj_start());
     new (obj) test_type();
+    rsp.commit();
 
     ptr2 = ptr1;
     EXPECT_TRUE(ptr2.is_root());

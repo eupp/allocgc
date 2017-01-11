@@ -25,9 +25,11 @@ TEST(pin_set_test, test_remove)
 {
     pin_set rs;
 
-    byte* p1;
-    byte* p2;
-    byte* p3;
+    byte a, b, c;
+
+    byte* p1 = &a;
+    byte* p2 = &b;
+    byte* p3 = &c;
 
     rs.insert(p1);
     rs.insert(p2);

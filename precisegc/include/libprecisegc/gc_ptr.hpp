@@ -148,7 +148,7 @@ private:
     template <typename D>
     void shift_to_base()
     {
-        static const ptrdiff_t offset = details::utils::base_offset<T>(get());
+        static const ptrdiff_t offset = details::utils::base_offset<T>(reinterpret_cast<D*>(gc_untyped_ptr::get()));
         advance(offset);
     }
 };

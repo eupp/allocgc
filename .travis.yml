@@ -35,6 +35,8 @@ before_script:
 script:
   - $CXX --version
   - make libprecisegc
+  - make precisegc_test
+  - ./precisegc_test
 
 notifications:
   email: false

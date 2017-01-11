@@ -114,7 +114,7 @@ TEST(gc_untyped_ptr_test, test_is_root_1)
     test_type* obj = reinterpret_cast<test_type*>(rsp.obj_start());
     new (obj) test_type();
     rsp.commit();
-    EXPECT_FALSE(obj->p.is_root());
+    EXPECT_FALSE(!obj->p.is_root());
 }
 
 TEST(gc_untyped_ptr_test, test_is_root_2)

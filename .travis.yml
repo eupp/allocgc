@@ -6,13 +6,14 @@ compiler:
 addons:
   apt:
     sources:
+      - boost-latest
       - ubuntu-toolchain-r-test
       - george-edison55-precise-backports
     packages:
       - cmake
       - cmake-data
       - g++-4.9
-    env: COMPILER=g++-4.9
+      - libboost1.55-all-dev
 
 before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
@@ -26,3 +27,6 @@ before_script:
 script:
   - $CXX --version
   - make libprecisegc
+
+notifications:
+  email: false

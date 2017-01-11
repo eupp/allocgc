@@ -14,7 +14,7 @@ addons:
     env: COMPILER=g++-4.9
 
 before_install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="g++-4.9"; fi
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
 
 install:
   - sudo apt-get install libboost-dev

@@ -1,4 +1,3 @@
-### Status
 [![Build Status](https://travis-ci.org/eucpp/allocgc.svg?branch=master)](https://travis-ci.org/eucpp/allocgc)
 
 ## Precise GC for C++

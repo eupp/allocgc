@@ -31,7 +31,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef allocators::gc_lo_allocator mlo_alloc_t;
     typedef compacting::forwarding forwarding;
 public:
-    gc_heap(gc_compacting compacting);
+    gc_heap();
 
     allocators::gc_alloc_response allocate(const allocators::gc_alloc_request& rqst);
 
@@ -43,9 +43,8 @@ private:
     mso_alloc_t& get_tlab();
 
     mlo_alloc_t m_loa;
-    tlab_map_t m_tlab_map;
-    std::mutex m_tlab_map_mutex;
-    gc_compacting m_compacting;
+    tlab_map_t  m_tlab_map;
+    std::mutex  m_tlab_map_mutex;
 };
 
 }}

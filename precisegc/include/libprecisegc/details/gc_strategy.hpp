@@ -21,6 +21,8 @@ public:
     virtual void commit(gc_cell& cell) = 0;
     virtual void commit(gc_cell& cell, const gc_type_meta* type_meta) = 0;
 
+    virtual byte* init_ptr(byte* ptr, bool root_flag) = 0;
+
     virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;
 

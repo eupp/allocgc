@@ -1,8 +1,8 @@
 #include <libprecisegc/details/gc_factory.hpp>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/collectors/serial_gc.hpp>
-#include <libprecisegc/details/collectors/incremental_gc.hpp>
+#include <libprecisegc/details/collectors/gc_serial.hpp>
+#include <libprecisegc/details/collectors/gc_incremental.hpp>
 
 namespace precisegc { namespace details {
 
@@ -12,15 +12,15 @@ std::unique_ptr<gc_strategy> gc_factory::create_gc(const gc_init_options& option
 {
     if (options.algo == gc_algo::SERIAL) {
         if (options.compacting == gc_compacting::DISABLED) {
-            return utils::make_unique<serial_gc>(options.threads_available);
+            return utils::make_unique<gc_serial>(options.threads_available);
         } else if (options.compacting == gc_compacting::ENABLED) {
-            return utils::make_unique<serial_compacting_gc>(options.threads_available);
+            return utils::make_unique<gc_serial>(options.threads_available);
         }
     } else if (options.algo == gc_algo::INCREMENTAL) {
         if (options.compacting == gc_compacting::DISABLED) {
-            return utils::make_unique<incremental_gc>(options.threads_available);
+            return utils::make_unique<gc_incremental>(options.threads_available);
         } else if (options.compacting == gc_compacting::ENABLED) {
-            return utils::make_unique<incremental_compacting_gc>(options.threads_available);
+            return utils::make_unique<gc_incremental>(options.threads_available);
         }
     }
 }

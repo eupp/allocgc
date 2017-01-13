@@ -14,8 +14,7 @@
 
 namespace precisegc { namespace details {
 
-gc_heap::gc_heap(gc_compacting compacting)
-    : m_compacting(compacting)
+gc_heap::gc_heap()
 {}
 
 allocators::gc_alloc_response gc_heap::allocate(const allocators::gc_alloc_request& rqst)

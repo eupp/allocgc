@@ -11,8 +11,8 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/collectors/remset.hpp>
 #include <libprecisegc/details/gc_cell.hpp>
+#include <libprecisegc/details/collectors/gc_tagging.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
-#include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
@@ -51,7 +51,7 @@ public:
         auto output_packet = m_packet_manager->pop_output_packet();
         tracer.trace([this, &output_packet] (gc_handle* root) {
             byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
-            byte* obj_start = dptr_storage::get_origin(ptr);
+            byte* obj_start = gc_tagging::get_obj_start(ptr);
             if (obj_start) {
                 gc_cell cell = memory_index::index_object(obj_start);
                 cell.set_mark(true);
@@ -86,13 +86,13 @@ public:
         m_remset->flush_buffers();
         auto output_packet = m_packet_manager->pop_output_packet();
         for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
-            byte* obj_start = dptr_storage::get_origin(*it);
+            byte* obj_start = gc_tagging::get_obj_start(*it);
             if (obj_start) {
                 gc_cell cell = memory_index::index_object(obj_start);
                 cell.set_mark(true);
                 push_root_to_packet(cell, output_packet);
 
-                logging::debug() << "remset ptr: " << (void*) dptr_storage::get(*it);
+                logging::debug() << "remset ptr: " << (void*) gc_tagging::get(*it);
             }
         }
         m_remset->clear();
@@ -206,7 +206,7 @@ private:
     void trace(gc_handle* handle, packet_manager::mark_packet_handle& output_packet)
     {
         byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
-        byte* obj_start = dptr_storage::get_origin(ptr);
+        byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
             gc_cell cell = memory_index::index_object(obj_start);
             if (!cell.get_mark()) {

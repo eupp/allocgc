@@ -11,7 +11,7 @@
 //#include <libprecisegc/details/utils/scoped_thread.hpp>
 //#include <libprecisegc/details/utils/scope_guard.hpp>
 //#include <libprecisegc/details/threads/managed_thread.hpp>
-//#include <libprecisegc/details/collectors/serial_gc.hpp>
+//#include <libprecisegc/details/collectors/gc_serial.hpp>
 //#include <libprecisegc/details/collectors/incremental_gc.hpp>
 //#include <libprecisegc/gc_ptr.hpp>
 //#include <libprecisegc/gc_new.hpp>
@@ -218,12 +218,12 @@
 //struct serial_gc_test : public gc_test
 //{
 //    serial_gc_test()
-//        : gc_test(utils::make_unique<collectors::serial_gc>(utils::make_unique<collectors::empty_policy>()))
+//        : gc_test(utils::make_unique<collectors::gc_serial>(utils::make_unique<collectors::empty_policy>()))
 //    {
-//        gc_facade = static_cast<collectors::serial_gc*>(gc_get_strategy());
+//        gc_facade = static_cast<collectors::gc_serial*>(gc_get_strategy());
 //    }
 //
-//    collectors::serial_gc* gc_facade;
+//    collectors::gc_serial* gc_facade;
 //};
 //
 //struct incremental_gc_test : public gc_test

@@ -47,10 +47,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/utils/make_reverse_iterator.hpp
         include/libprecisegc/details/allocators/allocator_tag.hpp
         include/libprecisegc/details/utils/bitset.hpp
-        include/libprecisegc/details/collectors/serial_gc.hpp
+        include/libprecisegc/details/collectors/gc_serial.hpp
         include/libprecisegc/details/threads/world_snapshot.hpp
         include/libprecisegc/details/utils/make_unique.hpp
-        include/libprecisegc/details/collectors/incremental_gc.hpp
+        include/libprecisegc/details/collectors/gc_incremental.hpp
         include/libprecisegc/details/gc_clock.hpp
         include/libprecisegc/details/gc_interface.hpp
         include/libprecisegc/details/allocators/default_allocator.hpp
@@ -96,7 +96,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/pool_allocator.hpp
         include/libprecisegc/details/gc_cell.hpp
-        include/libprecisegc/details/allocators/gc_box.hpp include/libprecisegc/gc_cast.hpp)
+        include/libprecisegc/details/allocators/gc_box.hpp include/libprecisegc/gc_cast.hpp include/libprecisegc/details/collectors/gc_tagging.hpp include/libprecisegc/details/collectors/dptr_descriptor.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
@@ -111,8 +111,8 @@ set(precisegc_LIB_SRCS
         src/details/threads/posix_stw_manager.cpp
         src/details/threads/thread_manager.cpp
         src/details/gc_facade.cpp
-        src/details/serial_gc.cpp
-        src/details/collectors/incremental_gc.cpp
+        src/details/gc_serial.cpp
+        src/details/collectors/gc_incremental.cpp
         src/details/allocators/freelist_pool_chunk.cpp
         src/details/gc_hooks.cpp
         src/details/gc_factory.cpp

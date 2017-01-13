@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include <libprecisegc/details/collectors/dptr_storage.hpp>
+#include <libprecisegc/details/collectors/gc_tagging.hpp>
 #include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -24,21 +24,28 @@ void forwarding::forward(gc_handle* handle) const
     using namespace collectors;
 
     byte* from = gc_handle_access::get<std::memory_order_relaxed>(*handle);
-    byte* from_orig = dptr_storage::get_origin(from);
+    byte* from_obj_start = gc_tagging::get_obj_start(from);
 
-    if (!from_orig || !gc_box::is_forwarded(from_orig)) {
+    if (!from_obj_start || !gc_box::is_forwarded(from_obj_start)) {
         return;
     }
 
-    byte* to = gc_box::forward_pointer(from_orig);
+    byte* to_obj_start = gc_box::forward_pointer(from_obj_start);
+    byte* to = to_obj_start;
 
-    if (dptr_storage::is_derived(from)) {
-        dptr_storage::forward_derived_ptr(from, to);
+    if (gc_tagging::is_derived(from)) {
+        dptr_descriptor* dscr = gc_tagging::get_dptr_descriptor(from);
+
+        from = dscr->m_derived;
+        to  += dscr->m_derived - dscr->m_origin;
+
+        dscr->m_origin  = to_obj_start;
+        dscr->m_derived = to;
     } else {
-        logging::debug() << "fix ptr: from " << (void*) from << " to " << (void*) to;
-
-        gc_handle_access::set<std::memory_order_relaxed>(*handle, to);
+        gc_handle_access::set<std::memory_order_relaxed>(*handle, to_obj_start);
     }
+
+    logging::debug() << "fix ptr: from " << (void*) from << " to " << (void*) to;
 }
 
 }}}

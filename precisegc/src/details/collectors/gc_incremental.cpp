@@ -1,4 +1,4 @@
-#include <libprecisegc/details/collectors/incremental_gc.hpp>
+#include <libprecisegc/details/collectors/gc_incremental.hpp>
 
 #include <cassert>
 
@@ -8,45 +8,49 @@
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/collectors/gc_tagging.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
-namespace internals {
-
-incremental_gc_base::incremental_gc_base(gc_compacting compacting, size_t threads_available)
-    : m_heap(compacting)
-    , m_marker(&m_packet_manager, &m_remset)
+gc_incremental::gc_incremental(size_t threads_available)
+    : m_marker(&m_packet_manager, &m_remset)
     , m_phase(gc_phase::IDLE)
     , m_threads_available(threads_available)
 {}
 
-allocators::gc_alloc_response incremental_gc_base::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+allocators::gc_alloc_response gc_incremental::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
 {
     return m_heap.allocate(allocators::gc_alloc_request(obj_size, obj_cnt, tmeta));
 }
 
-void incremental_gc_base::commit(gc_cell& cell)
+void gc_incremental::commit(gc_cell& cell)
 {
     cell.commit(m_phase == gc_phase::MARK);
 }
 
-void incremental_gc_base::commit(gc_cell& cell, const gc_type_meta* type_meta)
+void gc_incremental::commit(gc_cell& cell, const gc_type_meta* type_meta)
 {
     cell.commit(m_phase == gc_phase::MARK, type_meta);
 }
 
-byte* incremental_gc_base::rbarrier(const gc_handle& handle)
+byte* gc_incremental::init_ptr(byte* ptr, bool root_flag)
 {
-    return dptr_storage::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
+    return gc_tagging::set_root_bit(ptr, root_flag);
 }
 
-void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
+byte* gc_incremental::rbarrier(const gc_handle& handle)
+{
+    return gc_tagging::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
+}
+
+void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
-    gc_handle_access::set<std::memory_order_release>(dst, ptr);
+    byte* ptr = gc_tagging::clear_root_bit(gc_handle_access::get<std::memory_order_relaxed>(src));
+    bool root_bit = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(dst));
+    gc_handle_access::set<std::memory_order_release>(dst, gc_tagging::set_root_bit(ptr, root_bit));
     if (m_phase == gc_phase::MARK) {
-        byte* obj_start = dptr_storage::get_origin(ptr);
+        byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
             gc_cell cell = memory_index::index_object(obj_start);
             if (!cell.get_mark()) {
@@ -56,18 +60,20 @@ void incremental_gc_base::wbarrier(gc_handle& dst, const gc_handle& src)
     }
 }
 
-void incremental_gc_base::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+void gc_incremental::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
+    gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
-    if (dptr_storage::is_derived(ptr)) {
-        dptr_storage::reset_derived_ptr(ptr, offset);
+    if (gc_tagging::is_derived(ptr)) {
+        gc_tagging::reset_derived_ptr(ptr, offset);
     } else {
-        byte* derived = m_dptr_storage.make_derived(ptr, offset);
-        gc_handle_access::set<std::memory_order_relaxed>(handle, derived);
+        dptr_descriptor* descr = m_dptr_storage.make_derived(ptr, offset);
+        byte* dptr = gc_tagging::make_derived_ptr(descr, gc_tagging::is_root(ptr));
+        gc_handle_access::set<std::memory_order_relaxed>(handle, dptr);
     }
 }
 
-gc_run_stats incremental_gc_base::gc(const gc_options& options)
+gc_run_stats gc_incremental::gc(const gc_options& options)
 {
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking();
@@ -79,7 +85,7 @@ gc_run_stats incremental_gc_base::gc(const gc_options& options)
     return gc_run_stats();
 }
 
-gc_run_stats incremental_gc_base::start_marking()
+gc_run_stats gc_incremental::start_marking()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
@@ -95,7 +101,7 @@ gc_run_stats incremental_gc_base::start_marking()
     return stats;
 }
 
-gc_run_stats incremental_gc_base::sweep()
+gc_run_stats gc_incremental::sweep()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
@@ -131,34 +137,7 @@ gc_run_stats incremental_gc_base::sweep()
     return stats;
 }
 
-}
-
-incremental_gc::incremental_gc(size_t threads_available)
-    : incremental_gc_base(gc_compacting::DISABLED, threads_available)
-{}
-
-gc_info incremental_gc::info() const
-{
-    static gc_info inf = {
-            .incremental_flag                = true,
-            .support_concurrent_marking      = true,
-            .support_concurrent_collecting   = false
-    };
-
-    return inf;
-}
-
-incremental_compacting_gc::incremental_compacting_gc(size_t threads_available)
-        : incremental_gc_base(gc_compacting::ENABLED, threads_available)
-{}
-
-void incremental_compacting_gc::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
-{
-    gc_unsafe_scope unsafe_scope;
-    internals::incremental_gc_base::interior_wbarrier(handle, offset);
-}
-
-gc_info incremental_compacting_gc::info() const
+gc_info gc_incremental::info() const
 {
     static gc_info inf = {
             .incremental_flag                = true,

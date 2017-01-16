@@ -351,6 +351,8 @@ PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 
 if __name__ == '__main__':
 
+    print(sys.version)
+
     opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "run-cmake"])
     cli_options = []
     for opt, arg in opts:

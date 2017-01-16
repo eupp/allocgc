@@ -45,6 +45,7 @@ def stat_max(arr, default=float('NaN'), ndigits=None):
 
 
 def call_with_cwd(args, cwd):
+    logging.info("Call: " + " ".join(args) + "; cwd=%s" % cwd)
     proc = subprocess.Popen(args, cwd=cwd)
     proc.wait()
     assert proc.returncode == 0
@@ -67,6 +68,7 @@ class Build:
         self._prj_dir = prj_dir
         self._runnable = runnable
         self._tmpdir = tempfile.TemporaryDirectory()
+        self._build_dir = self._tmpdir.name
 
     def __enter__(self):
         self._tmpdir.__enter__()
@@ -79,7 +81,7 @@ class Build:
         return self._name
 
     def build_dir(self):
-        return self._tmpdir.name
+        return self._build_dir
 
     def project_dir(self):
         return self._prj_dir
@@ -98,7 +100,7 @@ class CMakeBuild(Build):
             cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", self._prj_dir] + self._parse_cmake_options(cmake_ops)
             call_with_cwd(cmake_cmd, self.build_dir())
         else:
-            self._build_dir = "../"
+            self._build_dir = "./"
         make_cmd = ["make", target]
         call_with_cwd(make_cmd, self.build_dir())
 
@@ -352,6 +354,7 @@ PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 if __name__ == '__main__':
 
     print(sys.version)
+    print(os.getcwd())
 
     opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "run-cmake"])
     cli_options = []

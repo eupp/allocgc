@@ -98,7 +98,7 @@ class CMakeBuild(Build):
             cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", self._prj_dir] + self._parse_cmake_options(cmake_ops)
             call_with_cwd(cmake_cmd, self.build_dir())
         else:
-            self._build_dir = "."
+            self._build_dir = "../"
         make_cmd = ["make", target]
         call_with_cwd(make_cmd, self.build_dir())
 

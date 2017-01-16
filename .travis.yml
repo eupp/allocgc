@@ -14,10 +14,11 @@ addons:
       - cmake-data
       - g++-4.9
       - libboost1.55-all-dev
-      - python3.4
 
 before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - sudo apt-get update -qq
+  - sudo apt-get install python3.4
 
 install:
   - sudo apt-get install libgc-dev
@@ -35,10 +36,10 @@ before_script:
 
 script:
   - $CXX --version
+  - python3.4 tools/test_runner.py --cfg=tools/testcfg.json
   - make libprecisegc
   - make precisegc_test
   - ./test/precisegc_test
-  - python3 tools/test_runner.py --cfg=tools/testcfg.json
 
 notifications:
   email: false

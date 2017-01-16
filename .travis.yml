@@ -37,10 +37,10 @@ before_script:
 
 script:
   - $CXX --version
-  - python tools/test_runner.py --cfg=tools/testcfg.json
   - make libprecisegc
   - make precisegc_test
   - ./test/precisegc_test
+  - python3 tools/test_runner.py --cfg=tools/testcfg.json
 
 notifications:
   email: false

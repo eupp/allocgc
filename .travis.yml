@@ -3,9 +3,6 @@ language: cpp
 compiler:
   - gcc
 
-python:
-  - "3.4"
-
 addons:
   apt:
     sources:
@@ -20,7 +17,9 @@ addons:
 
 before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
-  - apt-cache search python
+  - sudo add-apt-repository ppa:fkrull/deadsnakes
+  - sudo apt-get update
+  - sudo apt-get install python3.4
   #- sudo apt-get update -qq
   #- sudo apt-get install python3.4
 
@@ -40,7 +39,7 @@ before_script:
 
 script:
   - $CXX --version
-  - python3 tools/test_runner.py --cfg=tools/testcfg.json
+  - python3.4 tools/test_runner.py --cfg=tools/testcfg.json
   - make libprecisegc
   - make precisegc_test
   - ./test/precisegc_test

@@ -15,6 +15,11 @@ void gc_initialize(std::unique_ptr<gc_strategy> strategy)
     gc_instance.init(std::move(strategy));
 }
 
+byte* gc_init_ptr(byte* ptr, bool root_flag)
+{
+    return gc_instance.init_ptr(ptr, root_flag);
+}
+
 void gc_register_root(gc_handle* root)
 {
     using namespace threads;
@@ -35,12 +40,9 @@ void gc_deregister_root(gc_handle* root)
     }
 }
 
-bool gc_is_root(const gc_handle* ptr)
+bool gc_is_root(const gc_handle& handle)
 {
-    using namespace threads;
-    return this_managed_thread::is_stack_ptr(ptr)
-                ? this_managed_thread::is_root(ptr)
-                : static_root_set::is_root(ptr);
+    return gc_instance.is_root(handle);
 }
 
 bool gc_is_heap_ptr(const gc_handle* ptr)

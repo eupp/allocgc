@@ -65,6 +65,18 @@ void gc_facade::commit(gc_cell& cell, const gc_type_meta* meta)
     m_strategy->commit(cell, meta);
 }
 
+byte* gc_facade::init_ptr(byte* ptr, bool root_flag)
+{
+    assert(m_strategy);
+    return m_strategy->init_ptr(ptr, root_flag);
+}
+
+bool gc_facade::is_root(const gc_handle& handle) const
+{
+    assert(m_strategy);
+    return m_strategy->is_root(handle);
+}
+
 byte* gc_facade::rbarrier(const gc_handle& handle)
 {
     assert(m_strategy);

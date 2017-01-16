@@ -38,6 +38,11 @@ byte* gc_incremental::init_ptr(byte* ptr, bool root_flag)
     return gc_tagging::set_root_bit(ptr, root_flag);
 }
 
+bool gc_incremental::is_root(const gc_handle& handle) const
+{
+    return gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(handle));
+}
+
 byte* gc_incremental::rbarrier(const gc_handle& handle)
 {
     return gc_tagging::get(gc_handle_access::get<std::memory_order_relaxed>(handle));

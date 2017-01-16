@@ -23,6 +23,8 @@ public:
 
     virtual byte* init_ptr(byte* ptr, bool root_flag) = 0;
 
+    virtual bool is_root(const gc_handle&) const = 0;
+
     virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;
 

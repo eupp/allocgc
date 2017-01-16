@@ -28,6 +28,9 @@ public:
     void commit(gc_cell& cell);
     void commit(gc_cell& cell, const gc_type_meta* type_meta);
 
+    byte* init_ptr(byte* ptr, bool root_flag);
+    bool is_root(const gc_handle& handle) const;
+
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 

@@ -37,6 +37,11 @@ byte* gc_serial::init_ptr(byte* ptr, bool root_flag)
     return gc_tagging::set_root_bit(ptr, root_flag);
 }
 
+bool gc_serial::is_root(const gc_handle& handle) const
+{
+    return gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(handle));
+}
+
 byte* gc_serial::rbarrier(const gc_handle& handle)
 {
     return gc_tagging::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
@@ -57,7 +62,7 @@ void gc_serial::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
     if (gc_tagging::is_derived(ptr)) {
         gc_tagging::reset_derived_ptr(ptr, offset);
     } else {
-        dptr_descriptor* descr = m_dptr_storage.make_derived(ptr, offset);
+        dptr_descriptor* descr = m_dptr_storage.make_derived(gc_tagging::clear_root_bit(ptr), offset);
         byte* dptr = gc_tagging::make_derived_ptr(descr, gc_tagging::is_root(ptr));
         gc_handle_access::set<std::memory_order_relaxed>(handle, dptr);
     }

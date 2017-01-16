@@ -26,6 +26,8 @@ public:
 
     byte* init_ptr(byte* ptr, bool root_flag) override;
 
+    bool is_root(const gc_handle&) const override;
+
     byte* rbarrier(const gc_handle& handle) override;
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 

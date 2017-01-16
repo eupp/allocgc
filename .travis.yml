@@ -3,6 +3,9 @@ language: cpp
 compiler:
   - gcc
 
+python:
+  - "3.4"
+
 addons:
   apt:
     sources:
@@ -30,13 +33,14 @@ install:
   - cd "${TRAVIS_BUILD_DIR}"
 
 before_script:
-  cmake CMakeLists.txt
+  cmake CMakeLists.txt -DPRECISE_GC=ON
 
 script:
   - $CXX --version
   - make libprecisegc
   - make precisegc_test
   - ./test/precisegc_test
+  - python tools/test_runner.py --cfg=tools/testcfg.json
 
 notifications:
   email: false

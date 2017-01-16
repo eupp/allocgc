@@ -1,20 +1,14 @@
 {
-  "targets":
-  [
-    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-
-    {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
+  "targets": [
+    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"}
   ],
   "builds":
   [
-    {"name": "gc_ptr", "compile_options": "PRECISE_GC", "runtime_options":
-    [
+    {"name": "gc_ptr", "compile_options": "PRECISE_GC", "runtime_options": [
       {"suffix": "Serial", "args": ""},
-      {"suffix": "Serial Compacting", "args": "--compacting"},
-      {"suffix": "Incremental", "args": "--incremental"},
-      {"suffix": "Incremental Compacting", "args": "--incremental --compacting"}
-    ]
-    }
+      {"suffix": "Incremental", "args": "--incremental"}
+    ]}
   ],
-  "nruns" : 5
+  "nruns" : 1,
+  "failquick" : true
 }

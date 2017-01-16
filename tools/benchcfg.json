@@ -15,8 +15,7 @@
     ]
     }
   ],
-  "reporters":
-  [
+  "reporters": [
     {"name": "tex_table", "output": "_new.tex"}
   ],
   "nruns" : 20

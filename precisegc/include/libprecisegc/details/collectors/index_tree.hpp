@@ -77,7 +77,9 @@ public:
     typedef T entry_type;
 
     index_tree()
-    {}
+    {
+        init();
+    }
 
     ~index_tree()
     {
@@ -104,7 +106,7 @@ public:
         }
     }
 
-    T* index(const byte* mem)
+    T* index(const byte* mem) const
     {
         return index_page(mem);
     }
@@ -122,21 +124,28 @@ private:
         public:
             void operator()(Level* level) const
             {
-                destroy(level);
+                instance().destroy(level);
             }
         };
     public:
-        static std::unique_ptr<Level, level_deleter> create()
+        static level_factory& instance()
         {
-            return std::unique_ptr<Level, level_deleter>(level_pool.create());
+            static level_factory factory;
+            return factory;
         }
 
-        static void destroy(Level* level)
+        template <typename... Args>
+        std::unique_ptr<Level, level_deleter> create(Args&&... args)
         {
-            level_pool.destroy(level);
+            return std::unique_ptr<Level, level_deleter>(m_pool.create(std::forward<Args>(args)...));
+        }
+
+        void destroy(Level* level)
+        {
+            m_pool.destroy(level);
         }
     private:
-        static allocators::pool<Level, std::mutex> level_pool;
+        allocators::pool<Level, std::mutex> m_pool;
     };
 
     template <typename Level>
@@ -144,12 +153,11 @@ private:
     {
     public:
         internal_level()
-        {
-            for (auto& hdl: m_data) {
-                hdl.m_ptr.store(&null, std::memory_order_release);
-                hdl.m_cnt.store(0, std::memory_order_release);
-            }
-        }
+        {}
+
+        internal_level(const internal_level& other)
+            : m_data(other.m_data)
+        {}
 
         void index(idxs_t::iterator idx, T* entry)
         {
@@ -158,8 +166,8 @@ private:
             m_data[*idx].m_cnt.fetch_add(1, std::memory_order_acq_rel);
 
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
-            if (next_level == &null) {
-                auto new_level = level_factory<Level>::create();
+            if (next_level == null()) {
+                auto new_level = level_factory<Level>::instance().create(*null());
                 new_level->index(next_idx, entry);
                 if (m_data[*idx].m_ptr.compare_exchange_strong(next_level, new_level.get(), std::memory_order_acq_rel)) {
                     new_level.release();
@@ -178,8 +186,8 @@ private:
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             next_level->remove_index(next_idx);
             if (m_data[*idx].m_cnt.fetch_sub(1, std::memory_order_acq_rel) == 1) {
-                m_data[*idx].m_ptr.store(&null, std::memory_order_release);
-                level_factory<Level>::destroy(next_level);
+                m_data[*idx].m_ptr.store(null(), std::memory_order_release);
+                level_factory<Level>::instance().destroy(next_level);
             }
         }
 
@@ -189,25 +197,44 @@ private:
             return next_level->get(++idx);
         }
 
+        void init()
+        {
+            for (auto& hdl: m_data) {
+                hdl.m_ptr.store(null(), std::memory_order_release);
+                hdl.m_cnt.store(0, std::memory_order_release);
+            }
+        }
+
         void clear()
         {
             for (auto& hdl: m_data) {
                 Level* level = hdl.m_ptr.load(std::memory_order_acquire);
-                if (level != &null) {
+                if (level != null()) {
                     level->clear();
-                    level_factory<Level>::destroy(level);
+                    level_factory<Level>::instance().destroy(level);
                 }
             }
+        }
+
+        static Level* null()
+        {
+            static Level null;
+            return &null;
         }
 
         static const size_t LEVEL_SIZE = internals::splitter::LEVEL_SIZE;
 
         friend struct internals::index_tree_access;
     private:
-        static Level null;
-
         struct handle
         {
+            handle() = default;
+
+            handle(const handle& other)
+                : m_ptr(other.m_ptr.load(std::memory_order_relaxed))
+                , m_cnt(other.m_cnt.load(std::memory_order_relaxed))
+            {}
+
             std::atomic<Level*> m_ptr;
             std::atomic<size_t> m_cnt;
         };
@@ -234,26 +261,30 @@ private:
     public:
         last_level()
         {
-            for (auto& ptr: m_data) {
-                ptr.store(nullptr, std::memory_order_release);
+            for (auto& hdl: m_data) {
+                hdl.m_ptr.store(nullptr, std::memory_order_release);
             }
         }
 
+        last_level(const last_level& other)
+            : m_data(other.m_data)
+        {}
+
         void index(idxs_t::iterator idx, T* entry)
         {
-            assert(!m_data[*idx].load(std::memory_order_acquire));
-            m_data[*idx].store(entry, std::memory_order_release);
+            assert(!m_data[*idx].m_ptr.load(std::memory_order_acquire));
+            m_data[*idx].m_ptr.store(entry, std::memory_order_release);
         }
 
         void remove_index(idxs_t::iterator idx)
         {
-            assert(m_data[*idx].load(std::memory_order_acquire));
-            m_data[*idx].store(nullptr, std::memory_order_release);
+            assert(m_data[*idx].m_ptr.load(std::memory_order_acquire));
+            m_data[*idx].m_ptr.store(nullptr, std::memory_order_release);
         }
 
         T* get(idxs_t::iterator idx) const
         {
-            return m_data[*idx].load(std::memory_order_acquire);
+            return m_data[*idx].m_ptr.load(std::memory_order_acquire);
         }
 
         void clear()
@@ -263,10 +294,35 @@ private:
 
         static const size_t LEVEL_SIZE = internals::splitter::LAST_LEVEL_SIZE;
     private:
-        typedef std::array<std::atomic<T*>, LEVEL_SIZE> array_t;
+        struct handle
+        {
+            handle() = default;
+
+            handle(const handle& other)
+                : m_ptr(other.m_ptr.load(std::memory_order_relaxed))
+            {}
+
+            std::atomic<T*> m_ptr;
+        };
+
+        typedef std::array<handle, LEVEL_SIZE> array_t;
 
         array_t m_data;
     };
+
+    typedef internal_level<internal_level<last_level>> first_level_t;
+    typedef internal_level<last_level> second_level_t;
+    typedef last_level third_level_t;
+
+    void init()
+    {
+        m_first_level.init();
+        first_level_t::null()->init();
+        second_level_t::null();
+
+        level_factory<second_level_t>::instance();
+        level_factory<third_level_t>::instance();
+    }
 
     void add_page_to_index(const byte* page, T* entry)
     {
@@ -280,7 +336,7 @@ private:
         m_first_level.remove_index(idxs.begin());
     }
 
-    T* index_page(const byte* page)
+    T* index_page(const byte* page) const
     {
         idxs_t idxs = internals::splitter::split(page);
         return m_first_level.get(idxs.begin());
@@ -290,8 +346,6 @@ private:
     {
         m_first_level.clear();
     }
-
-    typedef internal_level<internal_level<last_level>> first_level_t;
 
     first_level_t m_first_level;
 };
@@ -321,14 +375,6 @@ struct index_tree_access
     };
 };
 }
-
-template<typename T>
-template<typename Level>
-Level index_tree<T>::internal_level<Level>::null{};
-
-template <typename T>
-template <typename Level>
-allocators::pool<Level, std::mutex> index_tree<T>::level_factory<Level>::level_pool{};
 
 }}}
 

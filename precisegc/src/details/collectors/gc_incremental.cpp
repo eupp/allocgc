@@ -57,7 +57,7 @@ void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
     if (m_phase == gc_phase::MARK) {
         byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
-            gc_cell cell = memory_index::index_object(obj_start);
+            gc_cell cell = gc_index_object(obj_start);
             if (!cell.get_mark()) {
                 m_remset.add(obj_start);
             }

@@ -53,7 +53,7 @@ public:
             byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
             byte* obj_start = gc_tagging::get_obj_start(ptr);
             if (obj_start) {
-                gc_cell cell = memory_index::index_object(obj_start);
+                gc_cell cell = gc_index_object(obj_start);
                 cell.set_mark(true);
                 push_root_to_packet(cell, output_packet);
 
@@ -69,7 +69,7 @@ public:
         auto output_packet = m_packet_manager->pop_output_packet();
         tracer.trace([this, &output_packet] (byte* ptr) {
             if (ptr) {
-                gc_cell cell = memory_index::index_object(ptr);
+                gc_cell cell = gc_index_object(ptr);
                 cell.set_mark(true);
                 cell.set_pin(true);
                 push_root_to_packet(cell, output_packet);
@@ -88,7 +88,7 @@ public:
         for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
             byte* obj_start = gc_tagging::get_obj_start(*it);
             if (obj_start) {
-                gc_cell cell = memory_index::index_object(obj_start);
+                gc_cell cell = gc_index_object(obj_start);
                 cell.set_mark(true);
                 push_root_to_packet(cell, output_packet);
 
@@ -135,7 +135,7 @@ private:
                     for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
                         byte* ptr = m_remset->get();
                         if (ptr) {
-                            push_to_packet(memory_index::index_object(ptr), output_packet);
+                            push_to_packet(gc_index_object(ptr), output_packet);
                         } else {
                             break;
                         }
@@ -208,7 +208,7 @@ private:
         byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
         byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
-            gc_cell cell = memory_index::index_object(obj_start);
+            gc_cell cell = gc_index_object(obj_start);
             if (!cell.get_mark()) {
                 cell.set_mark(true);
                 push_to_packet(cell, output_packet);

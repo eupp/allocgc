@@ -2,8 +2,8 @@
 #define DIPLOMA_MEMORY_INDEX_HPP
 
 #include <libprecisegc/details/collectors/index_tree.hpp>
-#include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/gc_memory_descriptor.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

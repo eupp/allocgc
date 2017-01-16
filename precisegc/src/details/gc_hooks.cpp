@@ -49,7 +49,7 @@ bool gc_is_heap_ptr(const gc_handle* ptr)
 {
     using namespace threads;
     using namespace collectors;
-    return memory_index::index_memory(reinterpret_cast<const byte*>(ptr)) != nullptr;
+    return gc_index_memory(reinterpret_cast<const byte*>(ptr)) != nullptr;
 }
 
 allocators::gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
@@ -70,6 +70,26 @@ void gc_commit(gc_cell& cell, const gc_type_meta* type_meta)
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt)
 {
     gc_instance.initiation_point(ipoint, opt);
+}
+
+void gc_add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry)
+{
+    gc_instance.add_to_index(mem, size, entry);
+}
+
+void gc_remove_from_index(const byte* mem, size_t size)
+{
+    gc_instance.remove_from_index(mem, size);
+}
+
+gc_memory_descriptor* gc_index_memory(const byte* mem)
+{
+    return gc_instance.index_memory(mem);
+}
+
+gc_cell gc_index_object(byte* obj_start)
+{
+    return gc_instance.index_object(obj_start);
 }
 
 gc_info gc_get_info()

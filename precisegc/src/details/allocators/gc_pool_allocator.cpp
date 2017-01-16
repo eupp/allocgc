@@ -80,7 +80,7 @@ gc_alloc_response gc_pool_allocator::freelist_allocation(size_t size, const gc_a
     assert(contains(ptr));
 
     memset(ptr, 0, size);
-    descriptor_t* descr = static_cast<descriptor_t*>(collectors::memory_index::index_memory(ptr));
+    descriptor_t* descr = static_cast<descriptor_t*>(gc_index_memory(ptr));
     return init_cell(ptr, rqst, descr);
 }
 
@@ -96,14 +96,14 @@ gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, si
 {
     m_descrs.emplace_back(blk, blk_size, cell_size);
     auto last = std::prev(m_descrs.end());
-    collectors::memory_index::add_to_index(blk, blk_size, &(*last));
+    gc_add_to_index(blk, blk_size, &(*last));
     return last;
 }
 
 gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it)
 {
     sweep(*it, false);
-    collectors::memory_index::remove_from_index(it->memory(), it->size());
+    gc_remove_from_index(it->memory(), it->size());
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
 }

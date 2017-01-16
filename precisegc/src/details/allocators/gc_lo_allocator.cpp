@@ -1,6 +1,5 @@
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 
-#include <libprecisegc/details/collectors/memory_index.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -47,7 +46,7 @@ gc_alloc_response gc_lo_allocator::allocate(const gc_alloc_request& rqst)
     new (descr) descriptor_t(rqst.alloc_size());
     byte* cell_start = get_memblk(blk.get());
     byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
-    collectors::memory_index::add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
+    gc_add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
     blk.release();
 
@@ -97,7 +96,7 @@ void gc_lo_allocator::destroy(const descriptor_iterator& it)
     if (it->get_lifetime_tag(memblk) == gc_lifetime_tag::GARBAGE) {
         it->finalize(memblk);
     }
-    collectors::memory_index::remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
+    gc_remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
     deallocate_blk(blk, blk_size);
 }

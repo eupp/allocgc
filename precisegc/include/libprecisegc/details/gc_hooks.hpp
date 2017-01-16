@@ -26,6 +26,12 @@ void gc_commit(gc_cell& cell, const gc_type_meta* type_meta);
 
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt);
 
+void gc_add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry);
+void gc_remove_from_index(const byte* mem, size_t size);
+
+gc_memory_descriptor* gc_index_memory(const byte* mem);
+gc_cell gc_index_object(byte* obj_start);
+
 gc_info  gc_get_info();
 gc_stat  gc_get_stats();
 

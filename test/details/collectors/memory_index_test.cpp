@@ -19,12 +19,12 @@ TEST(memory_index_test, test_index)
     std::unique_ptr<byte, decltype(deleter)> memory(gc_core_allocator::allocate(PAGE_SIZE), deleter);
 
     memory_descriptor_mock mock;
-    memory_index::add_to_index(memory.get(), PAGE_SIZE, &mock);
+    gc_add_to_index(memory.get(), PAGE_SIZE, &mock);
     auto guard = utils::make_scope_guard([&memory] () {
-        memory_index::remove_from_index(memory.get(), PAGE_SIZE);
+        gc_remove_from_index(memory.get(), PAGE_SIZE);
     });
 
-    gc_memory_descriptor* descr = memory_index::index_memory(memory.get());
+    gc_memory_descriptor* descr = gc_index_memory(memory.get());
 
     ASSERT_EQ(&mock, descr);
 }

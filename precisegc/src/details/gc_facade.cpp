@@ -17,7 +17,7 @@ gc_facade::gc_facade()
 {
     logging::touch();
     // same hack as with logger
-    collectors::memory_index::add_to_index(nullptr, 0, nullptr);
+//    collectors::memory_index::add_to_index(nullptr, 0, nullptr);
 }
 
 void gc_facade::init(std::unique_ptr<gc_strategy> strategy)
@@ -191,7 +191,7 @@ gc_stat gc_facade::stats() const
 bool gc_facade::is_interior_pointer(const gc_handle& handle, byte* iptr)
 {
     byte* ptr = handle.rbarrier();
-    gc_memory_descriptor* descr = collectors::memory_index::index_memory(ptr);
+    gc_memory_descriptor* descr = index_memory(ptr);
     byte* cell_begin = descr->cell_start(ptr);
     byte* cell_end   = cell_begin + descr->cell_size(ptr);
     return (cell_begin <= iptr) && (iptr < cell_end);

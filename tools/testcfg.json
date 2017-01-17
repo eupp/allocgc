@@ -1,16 +1,29 @@
 {
   "targets": [
-    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-    {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"},
-    {"name": "cord", "alias": "cord_build", "builder": "cmake", "runnable": "benchmark/cord/cord", "runtime_options": [
-      "--build", "--len", "6"
-    ]}
+    {
+      "name": "boehm",
+      "runnable": "benchmark/boehm/boehm",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"]
+    },
+    {
+      "name": "parallel-merge-sort",
+      "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"]
+    },
+    {
+      "name": "cord",
+      "alias": "cord-build",
+      "runnable": "benchmark/cord/cord",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "params": ["build", {"len": ["6"]}]
+    }
   ],
-  "builds": [
-    {"name": "gc_ptr", "compile_options": "PRECISE_GC", "runtime_options": [
-      {"suffix": "Serial", "args": ""},
-      {"suffix": "Incremental", "args": "--incremental"}
-    ]}
+  "suites": [
+    {"name": "gc_ptr serial", "builder": "gc_ptr"},
+    {"name": "gc_ptr incremental", "builder": "gc_ptr", "args": ["--incremental"]}
+  ],
+  "builders": [
+    {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
   ],
   "nruns" : 1,
   "failquick" : true

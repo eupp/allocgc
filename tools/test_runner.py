@@ -3,13 +3,12 @@ import re
 import sys
 import json
 import math
-import shutil
 import getopt
 import logging
 import tempfile
+import itertools
 import subprocess
 import collections
-
 
 STATS_FULL_TIME_MEAN    = "full time mean"
 STATS_FULL_TIME_STD     = "full time std"
@@ -61,53 +60,20 @@ def call_output(args, cwd=None, timeout=None):
     return proc.returncode, out.decode("utf-8")
 
 
-class Build:
+class CMakeBuilder:
 
-    def __init__(self, name, prj_dir, runnable):
-        self._name = name
-        self._prj_dir = prj_dir
-        self._runnable = runnable
+    def __init__(self, src_dir, *args):
         self._tmpdir = tempfile.TemporaryDirectory()
-        self._build_dir = self._tmpdir.name
+        build_cmd  = ["cmake", "-DCMAKE_BUILD_TYPE=Release", src_dir]
+        build_cmd += self._parse_cmake_options(args)
+        call_with_cwd(build_cmd, self._tmpdir.name)
+        self._make_builder = MakeBuilder(self._tmpdir.name)
 
-    def __enter__(self):
-        self._tmpdir.__enter__()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._tmpdir.__exit__(exc_type, exc_val, exc_tb)
-
-    def name(self):
-        return self._name
+    def build(self, target):
+        return self._make_builder.build(target)
 
     def build_dir(self):
-        return self._build_dir
-
-    def project_dir(self):
-        return self._prj_dir
-
-    def runnable(self):
-        return self._runnable
-
-
-class CMakeBuild(Build):
-
-    _tmpdir = None
-
-    def __init__(self, prj_dir, target, runnable, cmake_ops, *args):
-        super(CMakeBuild, self).__init__("cmake", prj_dir, runnable)
-        if "run_cmake" in args:
-            cmake_cmd = ["cmake", "-DCMAKE_BUILD_TYPE=Release", self._prj_dir] + self._parse_cmake_options(cmake_ops)
-            call_with_cwd(cmake_cmd, self.build_dir())
-        else:
-            self._build_dir = "./"
-        make_cmd = ["make", target]
-        call_with_cwd(make_cmd, self.build_dir())
-
-    def run(self, args):
-        runnable = os.path.join(self.build_dir(), self.runnable())
-        call_args = [runnable] + args
-        return call_output(call_args, cwd=self.build_dir(), timeout=30)
+        return self._tmpdir.name
 
     @staticmethod
     def _parse_cmake_options(flags):
@@ -123,43 +89,30 @@ class CMakeBuild(Build):
         return res
 
 
-class MonoBuild(Build):
+class MakeBuilder:
 
-    def __init__(self, prj_dir, target, runnable, options):
-        super(MonoBuild, self).__init__("mono", prj_dir, runnable)
-        compile_cmd = ["dmcs", os.path.join(self._prj_dir, runnable + ".cs")]
-        call_with_cwd(compile_cmd, self.build_dir())
-        dst = os.path.join(self.build_dir(), os.path.dirname(runnable))
-        os.makedirs(dst)
-        shutil.copy(os.path.join(prj_dir, runnable + ".exe"), dst)
+    def __init__(self, build_dir):
+        self._build_dir = build_dir
 
-    def run(self, args):
-        runnable = os.path.join(self.build_dir(), self.runnable())
-        call_args = ["mono", runnable + ".exe"] + args
-        return call_output(call_args, cwd=self.build_dir(), timeout=30)
+    def build(self, target):
+        call_with_cwd(["make", target], self._build_dir)
+        return MakeBuilder.Build(self._build_dir)
 
+    def build_dir(self):
+        return self._build_dir
 
-class PythonBuild(Build):
+    class Build:
 
-    def __init__(self, prj_dir, target, runnable, options):
-        super(PythonBuild, self).__init__("python", prj_dir, runnable)
-        dst = os.path.join(self.build_dir(), os.path.dirname(runnable))
-        os.makedirs(dst)
-        shutil.copy(os.path.join(prj_dir, runnable + ".py"), dst)
+        def __init__(self, dirname):
+            self._dirname = dirname
 
-    def run(self, args):
-        runnable = os.path.join(self.build_dir(), self.runnable())
-        call_args = ["python3", runnable + ".py"] + args
-        return call_output(call_args, cwd=self.build_dir(), timeout=30)
+        def run(self, runnable, *args):
+            runnable = os.path.join(self.dirname(), runnable)
+            call_args = [runnable] + args
+            return call_output(call_args, cwd=self.dirname(), timeout=30)
 
-
-def build(builder, *args):
-    if builder == "cmake":
-        return CMakeBuild(*args)
-    elif builder == "mono":
-        return MonoBuild(*args)
-    elif builder == "python":
-        return PythonBuild(*args)
+        def dirname(self):
+            return self._dirname
 
 
 class Scanner:
@@ -294,6 +247,50 @@ class RunChecker:
     def _full_name(target, run_name):
         return target + " " + run_name
 
+
+class Suite:
+
+    def __init__(self, name, builder, args):
+        self._name = name
+        self._builder = builder
+        self._args = args
+
+    def name(self):
+        return self._name
+
+    def builder(self):
+        return self._builder
+
+    def args(self):
+        return self._args
+
+class Target:
+
+    def __init__(self, name, runnable, suites, reporters):
+        self._name = name
+        self._runnable = runnable
+        self._suites = suites
+        self._reporters = reporters
+
+
+    def run(self, params, nruns, failquick):
+        checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
+        # for suite in self._suites:
+
+    # @staticmethod
+    # def parse_params(params):
+
+    class Param:
+
+        def __init__(self, param):
+            pass
+
+        def to_program_arg(self):
+            pass
+
+
+
+
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 
 if __name__ == '__main__':
@@ -301,13 +298,14 @@ if __name__ == '__main__':
     print(sys.version)
     print(os.getcwd())
 
-    opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "run-cmake"])
+    opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "cmake-dir="])
+    cmake_dir = None
     cli_options = []
     for opt, arg in opts:
         if opt == "--cfg":
             config = arg
-        elif opt == "--run-cmake":
-            cli_options.append("run_cmake")
+        elif opt == "--cmake-dir":
+            cmake_dir = arg
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -315,11 +313,39 @@ if __name__ == '__main__':
     with open(config) as fd:
         cfg = json.load(fd)
 
-    nruns = cfg["nruns"]
-    failquick = cfg.get("failquick", False)
-    global_options = cfg.get("options", [])
+    nruns       = cfg.get("nruns")
+    failquick   = cfg.get("failquick", False)
 
-    run_checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
+    builders = {}
+    for builder in cfg["builds"]:
+        name = builder["name"]
+        type = builder["type"]
+
+        if type == "cmake":
+            if cmake_dir is not None:
+                builders[name] = MakeBuilder(cmake_dir)
+            else:
+                builders[name] = CMakeBuilder(PROJECT_DIR, *builder["options"])
+
+    suites = {}
+    for suite in cfg["suites"]:
+        name = suite["name"]
+
+        suites[name] = {
+            "builder": builders[suite["builder"]],
+            "args": suite.get("args", [])
+        }
+
+    for target in cfg["targets"]:
+        trgt_name       = target["name"]
+        trgt_suites     = map(lambda name: suites[name], target["suites"])
+        trgt_reporters  = map(lambda reporter: create_reporter(reporter["name"], trgt_name + reporter["output"]),
+                              target["reporters"])
+        # trgt_args   =
+
+        trgt = Target(trgt_name, target["runnable"], trgt_suites, trgt_reporters)
+
+        trgt.run(nruns=nruns, failquick=failquick)
 
     for target_cfg in cfg["targets"]:
         target       = target_cfg["name"]
@@ -332,8 +358,8 @@ if __name__ == '__main__':
         for reporter_ops in cfg.get("reporters", []):
             reporters.append(create_reporter(reporter_ops["name"], target + reporter_ops["output"]))
 
-        builds = target_cfg.get("builds", cfg["builds"])
-        for build_cfg in builds:
+        builders = target_cfg.get("builds", cfg["builds"])
+        for build_cfg in builders:
             build_name = build_cfg.get("name")
             cppflags   = build_cfg.get("compile_options")
             options    = build_cfg.get("options", [])
@@ -342,7 +368,7 @@ if __name__ == '__main__':
 
             logging.info("Build {} with cppflags: {}".format(target, cppflags))
 
-            with build(builder, PROJECT_DIR, target, runnable, cppflags, *options) as bld:
+            with builder(builder, PROJECT_DIR, target, runnable, cppflags, *options) as builder:
                 run_ops = build_cfg.get("runtime_options", [{}])
                 for run_op in run_ops:
                     run_name = build_name + " " + run_op.get("suffix", "")
@@ -355,7 +381,7 @@ if __name__ == '__main__':
                     while n < nruns:
                         logging.info("Run {} with args: {}".format(runnable, args))
                         try:
-                            rc, output = bld.run(args)
+                            rc, output = builder.run(args)
                         except subprocess.TimeoutExpired:
                             logging.info("Interrupted (timeout expired)!")
                             run_checker.interrupted_run(alias, run_name)

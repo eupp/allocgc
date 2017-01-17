@@ -1,11 +1,14 @@
 #include "../../common/macro.hpp"
 #include "../../common/timer.hpp"
 
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <cassert>
 #include <iostream>
 #include <memory>
+
+#include <sys/resource.h>
 
 #ifdef PRECISE_GC
     #include "libprecisegc/libprecisegc.hpp"
@@ -20,6 +23,27 @@
 
 std::unique_ptr<char[]> str;
 
+void set_stack_size()
+{
+    const rlim_t kStackSize = 256 * 1024 * 1024;   // min stack size = 16 MB
+    struct rlimit rl;
+    int result;
+
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if (result == 0)
+    {
+        if (rl.rlim_cur < kStackSize)
+        {
+            rl.rlim_cur = kStackSize;
+            result = setrlimit(RLIMIT_STACK, &rl);
+            if (result != 0)
+            {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
+        }
+    }
+}
+
 void init(size_t buf_size)
 {
     srand(time(nullptr));
@@ -29,26 +53,40 @@ void init(size_t buf_size)
         str[i] = (rand() % mod) + 'a';
     }
     str[buf_size] = '\0';
+
+//    set_stack_size();
 }
 
-void build_rope(size_t total_len, size_t buf_size)
+void build_rope(size_t total_len_log, size_t buf_size)
 {
-    CORD cord = CORD_EMPTY;
-    for (size_t len = 0; len < total_len; len += buf_size) {
-        ptr_array_t(const char) buf = new_array_(const char, buf_size + 1);
-        pin_array_t(const char) buf_pin = pin(buf);
-        const char* buf_raw = raw_ptr(buf_pin);
-        memcpy((void*) buf_raw, (void*) str.get(), buf_size + 1);
+    const size_t REPEAT_CNT = 100;
+    size_t total_len = std::pow(10, total_len_log);
 
-        cord = CORD_cat_char_star(cord, buf, buf_size);
+    std::cout << "Building " << REPEAT_CNT << " ropes with length = 10^" << total_len_log << std::endl;
+
+    for (size_t i = 0; i < REPEAT_CNT; ++i) {
+        CORD cord = CORD_EMPTY;
+        for (size_t len = 0; len < total_len; len += buf_size) {
+            ptr_array_t(const char) buf = new_array_(const char, buf_size + 1);
+            pin_array_t(const char) buf_pin = pin(buf);
+            const char* buf_raw = raw_ptr(buf_pin);
+            memcpy((void*) buf_raw, (void*) str.get(), buf_size + 1);
+
+            cord = CORD_cat_char_star(cord, buf, buf_size);
+        }
     }
 }
 
-int main (int argc, const char* argv[])
+enum class test_type {
+    BUILD_ROPE
+};
+
+int main(int argc, const char* argv[])
 {
     size_t len = 0;
     size_t buf_size = 127;
     bool incremental_flag = false;
+    test_type ttype;
     for (int i = 1; i < argc; ++i) {
         auto arg = std::string(argv[i]);
         if (arg == "--incremental") {
@@ -58,6 +96,8 @@ int main (int argc, const char* argv[])
             ++i;
             std::string len_str = std::string(argv[i]);
             len = std::stoi(len_str);
+        } else if (arg == "--build") {
+            ttype = test_type::BUILD_ROPE;
         }
     }
 
@@ -81,10 +121,14 @@ int main (int argc, const char* argv[])
         }
     #endif
 
-    std::cout << "Building a rope with total length = " << len << std::endl;
 
     timer tm;
-    build_rope(len, buf_size);
+
+    if (ttype == test_type::BUILD_ROPE) {
+        build_rope(len, buf_size);
+    }
+
+
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
 
     #if defined(PRECISE_GC)

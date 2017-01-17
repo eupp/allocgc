@@ -1,9 +1,12 @@
 {
   "targets": [
-    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"}
+    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
+    {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"},
+    {"name": "cord", "alias": "cord_build", "builder": "cmake", "runnable": "benchmark/cord/cord", "runtime_options": [
+      "--build", "--len", "6"
+    ]}
   ],
-  "builds":
-  [
+  "builds": [
     {"name": "gc_ptr", "compile_options": "PRECISE_GC", "runtime_options": [
       {"suffix": "Serial", "args": ""},
       {"suffix": "Incremental", "args": "--incremental"}

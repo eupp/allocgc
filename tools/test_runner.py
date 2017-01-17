@@ -221,7 +221,7 @@ class Parser:
 
 
 def create_parser(target):
-    if target in ("boehm", "multisize_boehm", "parallel_merge_sort", "pyboehm", "csboehm"):
+    if target in ("boehm", "multisize_boehm", "parallel_merge_sort", "pyboehm", "csboehm", "cord"):
         return Parser()
 
 
@@ -294,61 +294,6 @@ class RunChecker:
     def _full_name(target, run_name):
         return target + " " + run_name
 
-
-class TestRunner:
-
-    def __init__(self, prj_dir, target, builder, runnable, builds):
-        self._prj_dir = prj_dir
-        self._target = target
-        self._builder = builder
-        self._runnable = runnable
-        self._builds = builds
-
-    def run(self, nruns, run_checker, reporters=[]):
-
-        for build_cfg in self._builds:
-            build_name = build_cfg.get("name")
-            cppflags   = build_cfg.get("compile_options")
-            options    = build_cfg.get("options", [])
-
-            logging.info("Build {} with cppflags: {}".format(self._target, cppflags))
-
-            with build(self._builder, self._prj_dir, self._target, self._runnable, cppflags, *options) as bld:
-                run_ops = build_cfg.get("runtime_options", [{}])
-                for run_op in run_ops:
-                    run_name = build_name + " " + run_op.get("suffix", "")
-                    args = run_op.get("args", "").split()
-
-                    parser = create_parser(self._target)
-
-                    n = 0
-                    while n < nruns:
-                        logging.info("Run {} with args: {}".format(self._runnable, args))
-                        try:
-                            rc, output = bld.run(args)
-                        except subprocess.TimeoutExpired:
-                            logging.info("Interrupted (timeout expired)!")
-                            run_checker.interrupted_run(self._target, run_name)
-                            continue
-                        logging.info("Return code: {}".format(rc))
-                        logging.debug("Output: \n {}".format(output))
-                        if run_checker.check_run(self._target, run_name, rc):
-                            logging.info("Parse output")
-                            parser.parse(output)
-                            n += 1
-
-                    parsed = parser.result()
-                    logging.debug("Parsed: \n {}".format(json.dumps(parsed)))
-
-                    logging.info("Add parsed output to reporter")
-                    parsed["name"] = run_name
-                    for reporter in reporters:
-                        reporter.add_stats(parsed)
-
-        logging.info("Produce reports")
-        for reporter in reporters:
-            reporter.create_report()
-
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 
 if __name__ == '__main__':
@@ -377,9 +322,11 @@ if __name__ == '__main__':
     run_checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
 
     for target_cfg in cfg["targets"]:
-        target      = target_cfg["name"]
-        builder     = target_cfg["builder"]
-        runnable    = target_cfg["runnable"]
+        target       = target_cfg["name"]
+        builder      = target_cfg["builder"]
+        runnable     = target_cfg["runnable"]
+        alias        = target_cfg.get("alias", target)
+        trgt_options = target_cfg.get("runtime_options", [])
 
         reporters = []
         for reporter_ops in cfg.get("reporters", []):
@@ -399,7 +346,8 @@ if __name__ == '__main__':
                 run_ops = build_cfg.get("runtime_options", [{}])
                 for run_op in run_ops:
                     run_name = build_name + " " + run_op.get("suffix", "")
-                    args = run_op.get("args", "").split()
+                    args  = run_op.get("args", "").split()
+                    args += trgt_options
 
                     parser = create_parser(target)
 
@@ -410,11 +358,11 @@ if __name__ == '__main__':
                             rc, output = bld.run(args)
                         except subprocess.TimeoutExpired:
                             logging.info("Interrupted (timeout expired)!")
-                            run_checker.interrupted_run(target, run_name)
+                            run_checker.interrupted_run(alias, run_name)
                             continue
                         logging.info("Return code: {}".format(rc))
                         logging.debug("Output: \n {}".format(output))
-                        if run_checker.check_run(target, run_name, rc):
+                        if run_checker.check_run(alias, run_name, rc):
                             logging.info("Parse output")
                             parser.parse(output)
                             n += 1

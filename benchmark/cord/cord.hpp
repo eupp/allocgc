@@ -100,7 +100,7 @@
     #include <memory>
 
     typedef std::shared_ptr<const char> CORD;
-    typedef const std::shared_ptr<const char[]>& CORD_IN;
+    typedef const std::shared_ptr<const char>& CORD_IN;
 
     typedef std::shared_ptr<const char> PCHAR;
     typedef const std::shared_ptr<const char>& PCHAR_IN;

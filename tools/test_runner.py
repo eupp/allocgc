@@ -44,13 +44,14 @@ def stat_max(arr, default=float('NaN'), ndigits=None):
 
 
 def call_with_cwd(args, cwd):
-    logging.info("Call: " + " ".join(args) + "; cwd=%s" % cwd)
+    logging.info("{}: {}".format(cwd, " ".join(args)))
     proc = subprocess.Popen(args, cwd=cwd)
     proc.wait()
     assert proc.returncode == 0
 
 
 def call_output(args, cwd=None, timeout=None):
+    logging.info("{}: {}".format(cwd, " ".join(args)))
     proc = subprocess.Popen(args, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     try:
         out, err = proc.communicate(timeout=timeout)
@@ -78,14 +79,15 @@ class CMakeBuilder:
     @staticmethod
     def _parse_cmake_options(flags):
         res = []
-        if isinstance(flags, str):
-            res.append("-D{}=ON".format(flags))
-        elif isinstance(flags, dict):
-            for k, v in flags.items():
-                if v is None:
-                    res.append("-D{}=ON".format(k))
-                else:
-                    res.append("-D{}={}".format(k, v))
+        for flag in flags:
+            if isinstance(flag, str):
+                res.append("-D{}=ON".format(flag))
+            elif isinstance(flag, dict):
+                for k, v in flag.items():
+                    if v is None:
+                        res.append("-D{}=ON".format(k))
+                    else:
+                        res.append("-D{}={}".format(k, v))
         return res
 
 
@@ -106,7 +108,7 @@ class MakeBuilder:
         def __init__(self, dirname):
             self._dirname = dirname
 
-        def run(self, runnable, *args):
+        def run(self, runnable, args):
             runnable = os.path.join(self.dirname(), runnable)
             call_args = [runnable] + args
             return call_output(call_args, cwd=self.dirname(), timeout=30)
@@ -233,9 +235,11 @@ class RunChecker:
     def interrupted_run(self, target, run_name):
         name = self._full_name(target, run_name)
         self._runs[name]["run count"] += 1
+        if self._maxn is not None and self._runs[name]["run count"] > self._maxn:
+            assert False, "Too many runs"
         self._runs[name]["interrupted count"] += 1
 
-    def get_results(self):
+    def results(self):
         str = ""
         for k, v in self._runs.items():
             str += k + ":\n"
@@ -248,48 +252,83 @@ class RunChecker:
         return target + " " + run_name
 
 
-class Suite:
-
-    def __init__(self, name, builder, args):
-        self._name = name
-        self._builder = builder
-        self._args = args
-
-    def name(self):
-        return self._name
-
-    def builder(self):
-        return self._builder
-
-    def args(self):
-        return self._args
-
 class Target:
 
-    def __init__(self, name, runnable, suites, reporters):
-        self._name = name
-        self._runnable = runnable
-        self._suites = suites
+    def __init__(self, name, alias, runnable, suites, reporters):
+        self._name      = name
+        self._alias     = alias
+        self._suites    = suites
+        self._runnable  = runnable
         self._reporters = reporters
 
+    def run(self, params_space, reporters, checker):
+        for suite in self._suites:
+            build = suite["builder"].build(self._name)
+            reporters = [create_reporter(rep["name"], self._name + rep["output"]) for rep in reporters]
+            for params in params_space:
+                args = Target.Param.to_program_args(params)
+                run_name = " ".join([suite["name"]] + args)
+                args += suite["args"]
+                parser = create_parser(self._name)
+                n = 0
+                while n < nruns:
+                    try:
+                        rc, output = build.run(self._runnable, args)
+                    except subprocess.TimeoutExpired:
+                        logging.info("Interrupted (timeout expired)!")
+                        checker.interrupted_run(self._alias, run_name)
+                        continue
+                    logging.info("Return code: {}".format(rc))
+                    logging.debug("Output: \n {}".format(output))
+                    if checker.check_run(self._alias, run_name, rc):
+                        logging.info("Parse output")
+                        parser.parse(output)
+                        n += 1
 
-    def run(self, params, nruns, failquick):
-        checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
-        # for suite in self._suites:
+                parsed = parser.result()
+                logging.debug("Parsed: \n {}".format(json.dumps(parsed)))
 
-    # @staticmethod
-    # def parse_params(params):
+                logging.info("Add parser output to reporter")
+                parsed["name"] = run_name
+                for reporter in reporters:
+                    reporter.add_stats(parsed)
+
+            logging.info("Produce reports")
+            for reporter in reporters:
+                reporter.create_report()
+
+    @staticmethod
+    def parse_params(params):
+        params_space = []
+        for param in params:
+            space = []
+            if isinstance(param, str):
+                space.append(Target.Param(param))
+            elif isinstance(param, dict):
+                assert len(param) == 1
+                for k, v in param.items():
+                    if isinstance(v, list):
+                        for arg in v:
+                            space.append(Target.Param(k, arg))
+                    else:
+                        space.append(Target.Param(k, v))
+            params_space.append(space)
+        return itertools.product(*params_space)
 
     class Param:
 
-        def __init__(self, param):
-            pass
+        def __init__(self, name, arg = None):
+            self._name = name
+            self._arg  = arg
 
-        def to_program_arg(self):
-            pass
-
-
-
+        @staticmethod
+        def to_program_args(params):
+            res = []
+            for param in params:
+                res.append("--{}".format(param._name))
+                if param._arg is not None:
+                    res.append(" {}".format(str(param._arg)))
+            return res
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 
@@ -317,7 +356,7 @@ if __name__ == '__main__':
     failquick   = cfg.get("failquick", False)
 
     builders = {}
-    for builder in cfg["builds"]:
+    for builder in cfg["builders"]:
         name = builder["name"]
         type = builder["type"]
 
@@ -332,77 +371,21 @@ if __name__ == '__main__':
         name = suite["name"]
 
         suites[name] = {
+            "name": name,
             "builder": builders[suite["builder"]],
             "args": suite.get("args", [])
         }
 
+    checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
     for target in cfg["targets"]:
         trgt_name       = target["name"]
-        trgt_suites     = map(lambda name: suites[name], target["suites"])
-        trgt_reporters  = map(lambda reporter: create_reporter(reporter["name"], trgt_name + reporter["output"]),
-                              target["reporters"])
-        # trgt_args   =
+        trgt_alias      = target.get("alias", trgt_name)
+        trgt_suites     = [suites[name] for name in target["suites"]]
+        trgt_reporters  = target.get("reporters", [])
+        trgt_params     = Target.parse_params(target.get("params", []))
 
-        trgt = Target(trgt_name, target["runnable"], trgt_suites, trgt_reporters)
+        trgt = Target(trgt_name, trgt_alias, target["runnable"], trgt_suites, trgt_reporters)
 
-        trgt.run(nruns=nruns, failquick=failquick)
+        trgt.run(trgt_params, trgt_reporters, checker)
 
-    for target_cfg in cfg["targets"]:
-        target       = target_cfg["name"]
-        builder      = target_cfg["builder"]
-        runnable     = target_cfg["runnable"]
-        alias        = target_cfg.get("alias", target)
-        trgt_options = target_cfg.get("runtime_options", [])
-
-        reporters = []
-        for reporter_ops in cfg.get("reporters", []):
-            reporters.append(create_reporter(reporter_ops["name"], target + reporter_ops["output"]))
-
-        builders = target_cfg.get("builds", cfg["builds"])
-        for build_cfg in builders:
-            build_name = build_cfg.get("name")
-            cppflags   = build_cfg.get("compile_options")
-            options    = build_cfg.get("options", [])
-            options   += global_options
-            options   += cli_options
-
-            logging.info("Build {} with cppflags: {}".format(target, cppflags))
-
-            with builder(builder, PROJECT_DIR, target, runnable, cppflags, *options) as builder:
-                run_ops = build_cfg.get("runtime_options", [{}])
-                for run_op in run_ops:
-                    run_name = build_name + " " + run_op.get("suffix", "")
-                    args  = run_op.get("args", "").split()
-                    args += trgt_options
-
-                    parser = create_parser(target)
-
-                    n = 0
-                    while n < nruns:
-                        logging.info("Run {} with args: {}".format(runnable, args))
-                        try:
-                            rc, output = builder.run(args)
-                        except subprocess.TimeoutExpired:
-                            logging.info("Interrupted (timeout expired)!")
-                            run_checker.interrupted_run(alias, run_name)
-                            continue
-                        logging.info("Return code: {}".format(rc))
-                        logging.debug("Output: \n {}".format(output))
-                        if run_checker.check_run(alias, run_name, rc):
-                            logging.info("Parse output")
-                            parser.parse(output)
-                            n += 1
-
-                    parsed = parser.result()
-                    logging.debug("Parsed: \n {}".format(json.dumps(parsed)))
-
-                    logging.info("Add parsed output to reporter")
-                    parsed["name"] = run_name
-                    for reporter in reporters:
-                        reporter.add_stats(parsed)
-
-        logging.info("Produce reports")
-        for reporter in reporters:
-            reporter.create_report()
-
-    print(run_checker.get_results())
+    print(checker.results())

@@ -6,7 +6,8 @@
       "suites": ["gc_ptr serial", "gc_ptr incremental"]
     },
     {
-      "name": "parallel-merge-sort",
+      "name": "parallel_merge_sort",
+      "alias": "parallel-merge-sort",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
       "suites": ["gc_ptr serial", "gc_ptr incremental"]
     },
@@ -15,7 +16,7 @@
       "alias": "cord-build",
       "runnable": "benchmark/cord/cord",
       "suites": ["gc_ptr serial", "gc_ptr incremental"],
-      "params": ["build", {"len": ["6"]}]
+      "params": ["build", {"len": [6]}]
     }
   ],
   "suites": [

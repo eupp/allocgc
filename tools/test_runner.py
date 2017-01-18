@@ -10,6 +10,9 @@ import itertools
 import subprocess
 import collections
 
+if "--plots" in sys.argv:
+    import matplotlib.pyplot as plt
+
 STATS_FULL_TIME_MEAN    = "full time mean"
 STATS_FULL_TIME_STD     = "full time std"
 STATS_GC_TIME_MEAN      = "gc time mean"
@@ -18,7 +21,6 @@ STATS_STW_TIME_MEAN     = "stw time mean"
 STATS_STW_TIME_STD      = "stw time std"
 STATS_STW_TIME_MAX      = "stw time max"
 STATS_GC_COUNT          = "gc count"
-
 
 def mean(xs):
     s = 0.0
@@ -164,14 +166,14 @@ class Parser:
 
     def result(self):
         return {
-            "STATS_FULL_TIME_MEAN"  : stat_mean(self._context["full_time"], ndigits=0),
-            "STATS_FULL_TIME_STD"   : stat_std(self._context["full_time"], ndigits=3),
-            "STATS_GC_TIME_MEAN"    : stat_mean(self._context["gc_time"], ndigits=0),
-            "STATS_GC_TIME_STD"     : stat_std(self._context["gc_time"], ndigits=3),
-            "STATS_STW_TIME_MEAN"   : stat_mean(self._context["stw_time"], ndigits=0),
-            "STATS_STW_TIME_STD"    : stat_std(self._context["stw_time"], ndigits=3),
-            "STATS_STW_TIME_MAX"    : stat_max(self._context["stw_time"], ndigits=0),
-            "STATS_GC_COUNT"        : stat_mean(self._context["gc_count"], default=0, ndigits=0)
+            STATS_FULL_TIME_MEAN  : stat_mean(self._context["full_time"], ndigits=0),
+            STATS_FULL_TIME_STD   : stat_std(self._context["full_time"], ndigits=3),
+            STATS_GC_TIME_MEAN    : stat_mean(self._context["gc_time"], ndigits=0),
+            STATS_GC_TIME_STD     : stat_std(self._context["gc_time"], ndigits=3),
+            STATS_STW_TIME_MEAN   : stat_mean(self._context["stw_time"], ndigits=0),
+            STATS_STW_TIME_STD    : stat_std(self._context["stw_time"], ndigits=3),
+            STATS_STW_TIME_MAX    : stat_max(self._context["stw_time"], ndigits=0),
+            STATS_GC_COUNT        : stat_mean(self._context["gc_count"], default=0, ndigits=0)
         }
 
 
@@ -180,26 +182,20 @@ def create_parser(target):
         return Parser()
 
 
-class TexTableReporter:
+class Reporter:
 
-    def __init__(self, outfn):
-        self._cols = [
-            "name",
-            STATS_GC_COUNT,
-            STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
-            STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
-            STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MAX,
-        ]
+    def __init__(self, cols):
+        self._cols = cols
         self._rows = []
-        self._outfn = outfn
 
     def add_stats(self, row):
         self._rows.append(self._match_columns(row, self._cols))
 
-    def create_report(self):
-        import tabulate
-        with open(self._outfn, "w") as outfile:
-            outfile.write(tabulate.tabulate(self._rows, self._cols, tablefmt="latex"))
+    def cols(self):
+        return self._cols
+
+    def rows(self):
+        return self._rows
 
     @staticmethod
     def _match_columns(row, cols):
@@ -209,9 +205,60 @@ class TexTableReporter:
         return res
 
 
-def create_reporter(reporter_name, outfn):
-    if reporter_name == "tex_table":
-        return TexTableReporter(outfn)
+class TexTableReporter(Reporter):
+
+    def __init__(self, name):
+        super().__init__([
+            "name",
+            STATS_GC_COUNT,
+            STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
+            STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
+            STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MAX,
+        ])
+        self._outfn = name + ".tex"
+
+    def create_report(self):
+        import tabulate
+        with open(self._outfn, "w") as outfile:
+            outfile.write(tabulate.tabulate(self.rows(), self.cols(), tablefmt="latex"))
+
+
+class TimeBarPlotReporter(Reporter):
+
+    def __init__(self, name):
+        super().__init__([
+            "name", STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD
+        ])
+        self._name  = name
+        self._outfn = name + ".eps"
+
+    def create_report(self):
+        fig, ax = plt.subplots()
+
+        ind   = range(0, len(self.rows()))
+        width = 0.5
+        names  = [row[0] for row in self.rows()]
+        means  = [row[1] for row in self.rows()]
+        stds   = [row[2] for row in self.rows()]
+
+        rects = ax.bar(ind, means, width, yerr=stds, color='r')
+
+        # add some text for labels, title and axes ticks
+        ax.set_ylabel("Time (ms)")
+        ax.set_title(self._name)
+        ax.set_xticks([x + width for x in ind])
+        ax.set_xticklabels(names)
+        # ax.set_yticks(range(0, 5500, 500))
+        # ax.set_ylim([0, 5500])
+
+        fig.savefig(self._outfn)
+
+
+def create_reporter(reporter_name, *args):
+    if reporter_name == "tex-table":
+        return TexTableReporter(*args)
+    elif reporter_name == "time-bar-plot":
+        return TimeBarPlotReporter(*args)
 
 
 class RunChecker:
@@ -254,21 +301,21 @@ class RunChecker:
 
 class Target:
 
-    def __init__(self, name, alias, runnable, suites, reporters):
+    def __init__(self, name, alias, runnable, suites):
         self._name      = name
         self._alias     = alias
         self._suites    = suites
         self._runnable  = runnable
-        self._reporters = reporters
 
     def run(self, params_space, reporters, checker):
+        reporters = [create_reporter(rep, self._alias) for rep in reporters]
+
         for suite in self._suites:
             build = suite["builder"].build(self._name)
-            reporters = [create_reporter(rep["name"], self._name + rep["output"]) for rep in reporters]
             for params in params_space:
-                args = Target.Param.to_program_args(params)
-                run_name = " ".join([suite["name"]] + args)
-                args += suite["args"]
+                params = Target.Param.to_program_args(params)
+                run_name = " ".join([suite["name"]] + params)
+                args = params + suite["args"]
                 parser = create_parser(self._name)
                 n = 0
                 while n < nruns:
@@ -289,13 +336,14 @@ class Target:
                 logging.debug("Parsed: \n {}".format(json.dumps(parsed)))
 
                 logging.info("Add parser output to reporter")
-                parsed["name"] = run_name
+                parsed["name"]   = suite["name"]
+                parsed["params"] = params
                 for reporter in reporters:
                     reporter.add_stats(parsed)
 
-            logging.info("Produce reports")
-            for reporter in reporters:
-                reporter.create_report()
+        logging.info("Produce reports")
+        for reporter in reporters:
+            reporter.create_report()
 
     @staticmethod
     def parse_params(params):
@@ -313,7 +361,7 @@ class Target:
                     else:
                         space.append(Target.Param(k, v))
             params_space.append(space)
-        return itertools.product(*params_space)
+        return list(itertools.product(*params_space))
 
     class Param:
 
@@ -337,7 +385,7 @@ if __name__ == '__main__':
     print(sys.version)
     print(os.getcwd())
 
-    opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "cmake-dir="])
+    opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "cmake-dir=", "plots"])
     cmake_dir = None
     cli_options = []
     for opt, arg in opts:
@@ -381,10 +429,10 @@ if __name__ == '__main__':
         trgt_name       = target["name"]
         trgt_alias      = target.get("alias", trgt_name)
         trgt_suites     = [suites[name] for name in target["suites"]]
-        trgt_reporters  = target.get("reporters", [])
+        trgt_reporters  = target.get("reports", [])
         trgt_params     = Target.parse_params(target.get("params", []))
 
-        trgt = Target(trgt_name, trgt_alias, target["runnable"], trgt_suites, trgt_reporters)
+        trgt = Target(trgt_name, trgt_alias, target["runnable"], trgt_suites)
 
         trgt.run(trgt_params, trgt_reporters, checker)
 

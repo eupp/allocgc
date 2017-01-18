@@ -1,31 +1,41 @@
 {
-  "targets":
-    [
-      {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-      {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
-    ],
-  "builds":
-    [
-      {"name": "new/delete", "compile_options": "NO_GC"},
-      {"name": "shared_ptr", "compile_options": "SHARED_PTR"},
-      {"name": "BoehmGC", "compile_options": "BDW_GC", "runtime_options":
-        [
-          {"args": ""},
-          {"suffix": "Incremental", "args": "--incremental"}
-        ]
-      },
-      {"name": "gc_ptr", "compile_options": "PRECISE_GC", "runtime_options":
-        [
-          {"suffix": "Serial", "args": ""},
-          {"suffix": "Serial Compacting", "args": "--compacting"},
-          {"suffix": "Incremental", "args": "--incremental"},
-          {"suffix": "Incremental Compacting", "args": "--incremental --compacting"}
-        ]
-      }
-    ],
-  "reporters":
-    [
-      {"name": "tex_table", "output": "_all.tex"}
-    ],
+  "targets": [
+    {
+      "name": "boehm",
+      "alias": "boehm-all",
+      "runnable": "benchmark/boehm/boehm",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "reports": ["tex-table", "time-bar-plot"]
+    },
+    {
+      "name": "parallel_merge_sort",
+      "alias": "parallel-merge-sort-all",
+      "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "reports": ["tex-table", "time-bar-plot"]
+    },
+    {
+      "name": "cord",
+      "alias": "cord-build-all",
+      "runnable": "benchmark/cord/cord",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "params": ["build", {"len": [6]}],
+      "reports": ["tex-table", "time-bar-plot"]
+    }
+  ],
+  "suites": [
+    {"name": "new/delete", "builder": "new/delete"},
+    {"name": "shared_ptr", "builder": "shared_ptr"},
+    {"name": "BoehmGC", "builder": "BoehmGC"},
+    {"name": "BoehmGC incremental", "builder": "BoehmGC", "args": ["--incremental"]},
+    {"name": "gc_ptr serial", "builder": "gc_ptr"},
+    {"name": "gc_ptr incremental", "builder": "gc_ptr", "args": ["--incremental"]}
+  ],
+  "builders": [
+    {"name": "new/delete", "type": "cmake", "options": ["NO_GC"]},
+    {"name": "shared_ptr", "type": "cmake", "options": ["SHARED_PTR"]},
+    {"name": "BoehmGC", "type": "cmake", "options": ["BDW_GC"]},
+    {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
+  ],
   "nruns" : 20
 }

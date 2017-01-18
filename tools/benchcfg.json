@@ -1,22 +1,33 @@
 {
-  "targets":
-  [
-    {"name": "boehm", "builder": "cmake", "runnable": "benchmark/boehm/boehm"},
-    {"name": "parallel_merge_sort", "builder": "cmake", "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort"}
-  ],
-  "builds":
-  [
-    {"name": "gc_ptr", "compile_options": "PRECISE_GC", "runtime_options":
-    [
-      {"suffix": "Serial", "args": ""},
-      {"suffix": "Serial Compacting", "args": "--compacting"},
-      {"suffix": "Incremental", "args": "--incremental"},
-      {"suffix": "Incremental Compacting", "args": "--incremental --compacting"}
-    ]
+  "targets": [
+    {
+      "name": "boehm",
+      "runnable": "benchmark/boehm/boehm",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "reports": ["tex-table", "time-bar-plot"]
+    },
+    {
+      "name": "parallel_merge_sort",
+      "alias": "parallel-merge-sort",
+      "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "reports": ["tex-table", "time-bar-plot"]
+    },
+    {
+      "name": "cord",
+      "alias": "cord-build",
+      "runnable": "benchmark/cord/cord",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "params": ["build", {"len": [6]}],
+      "reports": ["tex-table", "time-bar-plot"]
     }
   ],
-  "reporters": [
-    {"name": "tex_table", "output": "_new.tex"}
+  "suites": [
+    {"name": "gc_ptr serial", "builder": "gc_ptr"},
+    {"name": "gc_ptr incremental", "builder": "gc_ptr", "args": ["--incremental"]}
+  ],
+  "builders": [
+    {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
   ],
   "nruns" : 20
 }

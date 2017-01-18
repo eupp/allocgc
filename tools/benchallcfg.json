@@ -4,21 +4,21 @@
       "name": "boehm",
       "alias": "boehm-all",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "suites": ["new/delete", "shared_ptr", "BoehmGC", "BoehmGC incremental", "gc_ptr serial", "gc_ptr incremental"],
       "reports": ["tex-table", "time-bar-plot"]
     },
     {
       "name": "parallel_merge_sort",
       "alias": "parallel-merge-sort-all",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "suites": ["new/delete", "shared_ptr", "BoehmGC", "BoehmGC incremental", "gc_ptr serial", "gc_ptr incremental"],
       "reports": ["tex-table", "time-bar-plot"]
     },
     {
       "name": "cord",
       "alias": "cord-build-all",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "suites": ["shared_ptr", "BoehmGC", "BoehmGC incremental", "gc_ptr serial", "gc_ptr incremental"],
       "params": ["build", {"len": [6]}],
       "reports": ["tex-table", "time-bar-plot"]
     }

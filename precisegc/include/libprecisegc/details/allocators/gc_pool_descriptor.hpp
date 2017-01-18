@@ -153,7 +153,7 @@ private:
 
     byte*         m_memory;
     size_t        m_size;
-    size_t        m_cell_size;
+    size_t        m_cell_size_log2;
     bitset_t      m_pin_bits;
     bitset_t      m_init_bits;
     sync_bitset_t m_mark_bits;

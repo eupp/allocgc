@@ -164,11 +164,12 @@ private:
             if (!output_packet) {
                 output_packet = m_packet_manager->pop_output_packet();
             }
+            auto trace_cb = [this, &output_packet] (gc_handle* handle) {
+                trace(handle, output_packet);
+            };
             while (!input_packet->is_empty()) {
                 gc_cell cell = input_packet->pop();
-                cell.trace(gc_trace_callback{[this, &output_packet] (gc_handle* handle) {
-                    trace(handle, output_packet);
-                }});
+                cell.trace(gc_trace_callback{std::ref(trace_cb)});
             }
 
             auto empty_packet = std::move(input_packet);

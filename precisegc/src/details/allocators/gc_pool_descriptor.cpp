@@ -7,7 +7,7 @@ namespace precisegc { namespace details { namespace allocators {
 gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size)
     : m_memory(chunk)
     , m_size(size)
-    , m_cell_size(cell_size)
+    , m_cell_size_log2(log2(cell_size))
 {}
 
 gc_pool_descriptor::~gc_pool_descriptor()
@@ -75,12 +75,12 @@ gc_pool_descriptor::memory_range_type gc_pool_descriptor::memory_range()
 
 gc_pool_descriptor::iterator gc_pool_descriptor::begin()
 {
-    return iterator(memory(), this, m_cell_size);
+    return iterator(memory(), this, cell_size());
 }
 
 gc_pool_descriptor::iterator gc_pool_descriptor::end()
 {
-    return iterator(memory() + size(), this, m_cell_size);
+    return iterator(memory() + size(), this, cell_size());
 }
 
 bool gc_pool_descriptor::is_init(size_t idx) const
@@ -174,13 +174,13 @@ gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(byte* ptr) const
 
 size_t gc_pool_descriptor::cell_size() const
 {
-    return m_cell_size;
+    return 1ull << m_cell_size_log2;
 }
 
 size_t gc_pool_descriptor::cell_size(byte* ptr) const
 {
     assert(contains(ptr));
-    return m_cell_size;
+    return cell_size();
 }
 
 byte* gc_pool_descriptor::cell_start(byte* ptr) const
@@ -269,7 +269,7 @@ size_t gc_pool_descriptor::calc_cell_ind(byte* ptr) const
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
-    return (ptr - memory()) / m_cell_size;
+    return (ptr - memory()) >> m_cell_size_log2;
 }
 
 }}}

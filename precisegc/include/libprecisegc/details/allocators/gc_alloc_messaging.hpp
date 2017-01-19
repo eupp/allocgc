@@ -17,13 +17,25 @@ public:
     gc_alloc_request(const gc_alloc_request&) noexcept = default;
     gc_alloc_request& operator=(const gc_alloc_request&) noexcept = default;
 
-    size_t alloc_size() const noexcept;
+    inline size_t alloc_size() const noexcept
+    {
+        return m_alloc_size;
+    }
 
-    size_t obj_size() const noexcept;
+    inline size_t obj_count() const noexcept
+    {
+        return m_obj_cnt;
+    }
 
-    size_t obj_count() const noexcept;
+    inline size_t obj_size() const noexcept
+    {
+        return m_obj_size;
+    }
 
-    const gc_type_meta* type_meta() const noexcept;
+    inline const gc_type_meta* type_meta() const noexcept
+    {
+        return m_type_meta;
+    }
 private:
     size_t m_obj_size;
     size_t m_obj_cnt;

@@ -109,9 +109,9 @@ TYPED_TEST(compactor_test, test_compact_1)
     ASSERT_TRUE(rsps[3].get_mark());
     ASSERT_TRUE(rsps[3].get_pin());
 
-    ASSERT_EQ(gc_lifetime_tag::INITIALIZED, rsps[0].get_lifetime_tag());
-    ASSERT_EQ(gc_lifetime_tag::INITIALIZED, rsps[1].get_lifetime_tag());
-    ASSERT_EQ(gc_lifetime_tag::INITIALIZED, rsps[3].get_lifetime_tag());
+    ASSERT_EQ(gc_lifetime_tag::LIVE, rsps[0].get_lifetime_tag());
+    ASSERT_EQ(gc_lifetime_tag::LIVE, rsps[1].get_lifetime_tag());
+    ASSERT_EQ(gc_lifetime_tag::LIVE, rsps[3].get_lifetime_tag());
 
     ASSERT_FALSE(rsps[2].get_mark());
     ASSERT_FALSE(rsps[4].get_mark());
@@ -156,7 +156,7 @@ TYPED_TEST(compactor_test, test_compact_2)
     size_t dead_cnt = std::distance(dead_begin, dead_end);
     for (auto it = live_begin; it != live_end; ++it) {
         ASSERT_TRUE(it->get_mark());
-        ASSERT_TRUE(it->get_lifetime_tag() == gc_lifetime_tag::INITIALIZED);
+        ASSERT_TRUE(it->get_lifetime_tag() == gc_lifetime_tag::LIVE);
     }
     for (auto it = dead_begin; it != dead_end; ++it) {
         ASSERT_FALSE(it->get_mark());

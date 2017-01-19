@@ -42,8 +42,8 @@ struct two_finger_compactor
             auto rev_from = std::find_if(reverse_iterator(from),
                                          reverse_iterator(to),
                                          [] (value_t cell) {
-                                             return  cell.get_lifetime_tag() == gc_lifetime_tag::INITIALIZED &&
-                                                    !cell.get_pin();
+                                             return  cell.get_lifetime_tag() == gc_lifetime_tag::LIVE &&
+                                                     !cell.get_pin();
                                          });
 
             from = rev_from.base();

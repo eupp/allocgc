@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_GC_INTERFACE_HPP
 #define DIPLOMA_GC_INTERFACE_HPP
 
+#include <cassert>
 #include <string>
 #include <functional>
 
@@ -42,14 +43,14 @@ enum class gc_kind {
 
 enum class gc_lifetime_tag {
       FREE = 0
-    , ALLOCATED = 1
-    , GARBAGE = 2
-    , INITIALIZED = 3
+    , GARBAGE = 1
+    , LIVE = 3
 };
 
 inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
 {
-    return static_cast<gc_lifetime_tag>(((int) init_bit << 1) + (int) mark_bit);
+    assert(!mark_bit || init_bit);
+    return static_cast<gc_lifetime_tag>(((int) mark_bit << 1) + (int) init_bit);
 }
 
 typedef int     gc_gen;

@@ -90,9 +90,6 @@ public:
     gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size);
     ~gc_pool_descriptor();
 
-    byte*  memory() const;
-    size_t size() const;
-
     gc_memory_descriptor* descriptor();
 
     byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
@@ -112,12 +109,6 @@ public:
     iterator begin();
     iterator end();
 
-    bool get_mark(size_t idx) const;
-    bool get_pin(size_t idx) const;
-
-    void set_mark(size_t idx, bool mark);
-    void set_pin(size_t idx, bool pin);
-
     bool get_mark(byte* ptr) const override;
     bool get_pin(byte* ptr) const override;
 
@@ -134,20 +125,59 @@ public:
     size_t object_count(byte* ptr) const override;
     const gc_type_meta* get_type_meta(byte* ptr) const override;
 
-    void commit(byte* ptr, bool mark) override;
-    void commit(byte* ptr, bool mark, const gc_type_meta* type_meta) override;
+    void commit(byte* ptr) override;
+    void commit(byte* ptr, const gc_type_meta* type_meta) override;
 
     void trace(byte* ptr, const gc_trace_callback& cb) const override;
     void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
 
     void finalize(size_t i);
     void finalize(byte* ptr) override;
+
+
+    inline bool get_mark(size_t idx) const
+    {
+        return m_mark_bits.get(idx);
+    }
+
+    inline bool get_pin(size_t idx) const
+    {
+        return m_pin_bits.get(idx);
+    }
+
+    inline void set_mark(size_t idx, bool mark)
+    {
+        m_mark_bits.set(idx, mark);
+        m_init_bits.set(idx, mark);
+    }
+
+    void set_pin(size_t idx, bool pin)
+    {
+        m_pin_bits.set(idx, pin);
+    }
+
+    inline byte* memory() const
+    {
+        return m_memory;
+    }
+
+    inline size_t size() const
+    {
+        return m_size;
+    }
 private:
     bool is_init(byte* ptr) const;
     void set_init(byte* ptr, bool init);
 
-    bool is_init(size_t idx) const;
-    void set_init(size_t idx, bool init);
+    inline bool is_init(size_t idx) const
+    {
+        return m_init_bits.get(idx);
+    }
+
+    inline void set_init(size_t idx, bool init)
+    {
+        m_init_bits.set(idx, init);
+    }
 
     size_t calc_cell_ind(byte* ptr) const;
 

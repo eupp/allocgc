@@ -21,26 +21,6 @@ gc_alloc_request::gc_alloc_request(size_t obj_size, size_t obj_cnt, const gc_typ
     , m_type_meta(tmeta)
 {}
 
-size_t gc_alloc_request::alloc_size() const noexcept
-{
-    return m_alloc_size;
-}
-
-size_t gc_alloc_request::obj_count() const noexcept
-{
-    return m_obj_cnt;
-}
-
-size_t gc_alloc_request::obj_size() const noexcept
-{
-    return m_obj_size;
-}
-
-const gc_type_meta* gc_alloc_request::type_meta() const noexcept
-{
-    return m_type_meta;
-}
-
 gc_alloc_response::gc_alloc_response()
     : m_obj_start(nullptr)
     , m_size(0)

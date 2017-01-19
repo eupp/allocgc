@@ -25,12 +25,18 @@ allocators::gc_alloc_response gc_incremental::allocate(size_t obj_size, size_t o
 
 void gc_incremental::commit(gc_cell& cell)
 {
-    cell.commit(m_phase == gc_phase::MARK);
+    cell.commit();
+    if (m_phase == gc_phase::MARK) {
+        cell.set_mark(true);
+    }
 }
 
 void gc_incremental::commit(gc_cell& cell, const gc_type_meta* type_meta)
 {
-    cell.commit(m_phase == gc_phase::MARK, type_meta);
+    cell.commit(type_meta);
+    if (m_phase == gc_phase::MARK) {
+        cell.set_mark(true);
+    }
 }
 
 byte* gc_incremental::init_ptr(byte* ptr, bool root_flag)

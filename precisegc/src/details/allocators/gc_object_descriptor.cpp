@@ -10,7 +10,6 @@ gc_object_descriptor::gc_object_descriptor(size_t size)
     : m_size(size)
     , m_mark_bit(false)
     , m_pin_bit(false)
-    , m_init_bit(false)
 { }
 
 gc_object_descriptor::~gc_object_descriptor()
@@ -62,7 +61,7 @@ void gc_object_descriptor::set_pin(byte* ptr, bool pin)
 
 gc_lifetime_tag gc_object_descriptor::get_lifetime_tag(byte* ptr) const
 {
-    return get_lifetime_tag_by_bits(m_mark_bit, m_init_bit);
+    return m_mark_bit ? gc_lifetime_tag::LIVE : gc_lifetime_tag::FREE;
 }
 
 size_t gc_object_descriptor::cell_size() const
@@ -100,28 +99,23 @@ byte* gc_object_descriptor::init_cell(byte* ptr, size_t obj_count, const gc_type
     return gc_box::create(ptr, obj_count, type_meta);
 }
 
-void gc_object_descriptor::commit(byte* ptr, bool mark)
+void gc_object_descriptor::commit(byte* ptr)
 {
     assert(check_ptr(ptr));
     assert(gc_box::get_type_meta(ptr));
-    m_mark_bit = mark;
-    m_init_bit = true;
 }
 
-void gc_object_descriptor::commit(byte* ptr, bool mark, const gc_type_meta* type_meta)
+void gc_object_descriptor::commit(byte* ptr, const gc_type_meta* type_meta)
 {
     assert(type_meta);
     assert(check_ptr(ptr));
     gc_box::set_type_meta(ptr, type_meta);
-    m_mark_bit = mark;
-    m_init_bit = true;
 }
 
 void gc_object_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
 {
     assert(check_ptr(ptr));
-    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::INITIALIZED ||
-           get_lifetime_tag(ptr) == gc_lifetime_tag::ALLOCATED);
+    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::LIVE);
     gc_box::trace(ptr, cb);
 }
 
@@ -129,10 +123,9 @@ void gc_object_descriptor::move(byte* to, byte* from, gc_memory_descriptor* from
 {
     assert(check_ptr(to));
     assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
-    assert(get_lifetime_tag(from) == gc_lifetime_tag::INITIALIZED);
+    assert(from_descr->get_lifetime_tag(from) == gc_lifetime_tag::LIVE);
     gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
     from_descr->set_mark(from, false);
-    m_init_bit = true;
     m_mark_bit = true;
 }
 
@@ -141,7 +134,7 @@ void gc_object_descriptor::finalize(byte* ptr)
     assert(check_ptr(ptr));
     assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
     gc_box::destroy(ptr);
-    m_init_bit = false;
+    m_mark_bit = false;
 }
 
 gc_memory_descriptor* gc_object_descriptor::descriptor()

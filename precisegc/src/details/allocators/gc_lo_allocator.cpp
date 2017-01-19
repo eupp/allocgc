@@ -93,9 +93,7 @@ void gc_lo_allocator::destroy(const descriptor_iterator& it)
     size_t blk_size = get_blk_size(it->cell_size());
 
     byte* memblk = get_memblk(blk);
-    if (it->get_lifetime_tag(memblk) == gc_lifetime_tag::GARBAGE) {
-        it->finalize(memblk);
-    }
+    it->finalize(memblk);
     gc_remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
     deallocate_blk(blk, blk_size);

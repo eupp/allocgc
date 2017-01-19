@@ -24,12 +24,12 @@ allocators::gc_alloc_response gc_serial::allocate(size_t obj_size, size_t obj_cn
 
 void gc_serial::commit(gc_cell& cell)
 {
-    cell.commit(false);
+    cell.commit();
 }
 
 void gc_serial::commit(gc_cell& cell, const gc_type_meta* type_meta)
 {
-    cell.commit(false, type_meta);
+    cell.commit(type_meta);
 }
 
 byte* gc_serial::init_ptr(byte* ptr, bool root_flag)

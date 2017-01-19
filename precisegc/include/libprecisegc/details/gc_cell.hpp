@@ -95,16 +95,16 @@ public:
         return m_descr->get_type_meta(m_cell);
     }
 
-    void commit(bool mark) const
+    void commit() const
     {
         assert(is_initialized());
-        m_descr->commit(m_cell, mark);
+        m_descr->commit(m_cell);
     }
 
-    void commit(bool mark, const gc_type_meta* type_meta) const
+    void commit(const gc_type_meta* type_meta) const
     {
         assert(is_initialized());
-        m_descr->commit(m_cell, mark, type_meta);
+        m_descr->commit(m_cell, type_meta);
     }
 
     void trace(const gc_trace_callback& cb) const

@@ -24,18 +24,19 @@
 # define CORD_BUILD
 #endif
 
-# include <stdio.h>
-# include <string.h>
-# include <stdlib.h>
-# include <stdarg.h>
+# include <cstdio>
+# include <cstring>
+# include <cstdlib>
+# include <cstdarg>
 
 # include "cord.hpp"
+
+#include "../../common/macro.hpp"
 
 # define I_HIDE_POINTERS    /* So we get access to allocation lock. */
                 /* We use this for lazy file reading,   */
                 /* so that we remain independent        */
                 /* of the threads primitives.           */
-# include "gc.h"
 
 /* For now we assume that pointer reads and writes are atomic,  */
 /* i.e. another thread always sees the state before or after    */
@@ -95,58 +96,58 @@ typedef void (* oom_fn)(void);
 //    return(result);
 //}
 
-//typedef struct {
-//    size_t len;
-//    size_t count;
-//    char * buf;
-//} CORD_fill_data;
-//
-//int CORD_fill_proc(char c, void * client_data)
-//{
-//    CORD_fill_data * d = (CORD_fill_data *)client_data;
-//    size_t count = d -> count;
-//
-//    (d -> buf)[count] = c;
-//    d -> count = ++count;
-//    if (count >= d -> len) {
-//        return(1);
-//    } else {
-//        return(0);
-//    }
-//}
-//
-//int CORD_batched_fill_proc(const char * s, void * client_data)
-//{
-//    CORD_fill_data * d = (CORD_fill_data *)client_data;
-//    size_t count = d -> count;
-//    size_t max = d -> len;
-//    char * buf = d -> buf;
-//    const char * t = s;
-//
-//    while((buf[count] = *t++) != '\0') {
-//        count++;
-//        if (count >= max) {
-//            d -> count = count;
-//            return(1);
-//        }
-//    }
-//    d -> count = count;
-//    return(0);
-//}
+struct CORD_fill_data {
+    size_t len;
+    size_t count;
+    char* buf;
+};
+
+int CORD_fill_proc(char c, void* client_data)
+{
+    CORD_fill_data* d = (CORD_fill_data*) client_data;
+    size_t count = d->count;
+
+    (d->buf)[count] = c;
+    d->count = ++count;
+    if (count >= d->len) {
+        return(1);
+    } else {
+        return(0);
+    }
+}
+
+int CORD_batched_fill_proc(const char* s, void * client_data)
+{
+    CORD_fill_data* d = (CORD_fill_data*) client_data;
+    size_t count = d->count;
+    size_t max = d->len;
+    char * buf = d->buf;
+    const char * t = s;
+
+    while((buf[count] = *t++) != '\0') {
+        count++;
+        if (count >= max) {
+            d->count = count;
+            return(1);
+        }
+    }
+    d->count = count;
+    return(0);
+}
 
 /* Fill buf with len characters starting at i.  */
 /* Assumes len characters are available in buf. */
 /* Return 1 if buf is filled fully (and len is  */
 /* non-zero), 0 otherwise.                      */
-//int CORD_fill_buf(CORD x, size_t i, size_t len, char * buf)
-//{
-//    CORD_fill_data fd;
-//
-//    fd.len = len;
-//    fd.buf = buf;
-//    fd.count = 0;
-//    return CORD_iter5(x, i, CORD_fill_proc, CORD_batched_fill_proc, &fd);
-//}
+int CORD_fill_buf(CORD_IN x, size_t i, size_t len, char* buf)
+{
+    CORD_fill_data fd;
+
+    fd.len = len;
+    fd.buf = buf;
+    fd.count = 0;
+    return CORD_iter5(x, i, CORD_fill_proc, CORD_batched_fill_proc, &fd);
+}
 //
 //int CORD_cmp(CORD x, CORD y)
 //{
@@ -239,17 +240,21 @@ typedef void (* oom_fn)(void);
 //    return(0);
 //}
 
-//char * CORD_to_char_star(CORD x)
-//{
-//    size_t len = CORD_len(x);
-//    char * result = (char*) GC_MALLOC_ATOMIC(len + 1);
-//
-//    if (result == 0) OUT_OF_MEMORY;
-//    if (len > 0 && CORD_fill_buf(x, 0, len, result) != 1)
-//      ABORT("CORD_fill_buf malfunction");
-//    result[len] = '\0';
-//    return(result);
-//}
+PCHAR CORD_to_char_star(CORD_IN x)
+{
+    size_t len = CORD_len(x);
+
+    ptr_array_t(char) result = new_array_(char, len+1);
+    if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
+
+    pin_array_t(char) result_pin = pin(result);
+    char* result_raw = raw_ptr(result_pin);
+
+    if (len > 0 && CORD_fill_buf(x, 0, len, result_raw) != 1)
+      ABORT("CORD_fill_buf malfunction");
+    result_raw[len] = '\0';
+    return (const_array_pointer_cast_(const char, result));
+}
 //
 //CORD CORD_from_char_star(const char *s)
 //{

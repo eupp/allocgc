@@ -135,7 +135,7 @@ CORD_API CORD CORD_cat(CORD_IN x, CORD_IN y);
 CORD_API CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny);
 
 /* Compute the length of a cord */
-CORD_API size_t CORD_len(CORD x);
+CORD_API size_t CORD_len(CORD_IN x);
 
 /* Cords may be represented by functions defining the ith character */
 typedef char (* CORD_fn)(size_t i, void * client_data);
@@ -145,7 +145,7 @@ typedef char (* CORD_fn)(size_t i, void * client_data);
 
 /* Return the substring (subcord really) of x with length at most n,    */
 /* starting at position i.  (The initial character has position 0.)     */
-//CORD_API CORD CORD_substr(CORD x, size_t i, size_t n);
+CORD_API CORD CORD_substr(CORD_IN x, size_t i, size_t n);
 
 /* Return the argument, but rebalanced to allow more efficient          */
 /* character retrieval, substring operations, and comparisons.          */
@@ -164,12 +164,13 @@ CORD_API CORD CORD_balance(CORD_IN x);
 /* the functions that operate on cord positions instead.                */
 
 /* Function to iteratively apply to individual characters in cord.      */
-//typedef int (* CORD_iter_fn)(char c, void * client_data);
+typedef int (* CORD_iter_fn)(char c, void * client_data);
 
 /* Function to apply to substrings of a cord.  Each substring is a      */
 /* a C character string, not a general cord.                            */
-//typedef int (* CORD_batched_iter_fn)(const char * s, void * client_data);
-//#define CORD_NO_FN ((CORD_batched_iter_fn)0)
+typedef int (* CORD_batched_iter_fn)(const char * s, void * client_data);
+
+#define CORD_NO_FN ((CORD_batched_iter_fn)0)
 
 /* Apply f1 to each character in the cord, in ascending order,          */
 /* starting at position i. If                                           */
@@ -179,12 +180,11 @@ CORD_API CORD CORD_balance(CORD_IN x);
 /* end of this string is reached, or when f1 or f2 return != 0.  In the */
 /* latter case CORD_iter returns != 0.  Otherwise it returns 0.         */
 /* The specified value of i must be < CORD_len(x).                      */
-//CORD_API int CORD_iter5(CORD x, size_t i, CORD_iter_fn f1,
-//                        CORD_batched_iter_fn f2, void * client_data);
+CORD_API int CORD_iter5(CORD_IN x, size_t i, CORD_iter_fn f1,
+                        CORD_batched_iter_fn f2, void * client_data);
 
 /* A simpler version that starts at 0, and without f2:  */
-//CORD_API int CORD_iter(CORD x, CORD_iter_fn f1, void * client_data);
-//#define CORD_iter(x, f1, cd) CORD_iter5(x, 0, f1, CORD_NO_FN, cd)
+CORD_API int CORD_iter(CORD x, CORD_iter_fn f1, void * client_data);
 
 /* Similar to CORD_iter5, but end-to-beginning. No provisions for       */
 /* CORD_batched_iter_fn.                                                */
@@ -281,7 +281,7 @@ CORD_API void CORD_dump(CORD x);
 
 /* Turn a cord into a C string. The result shares no structure with     */
 /* x, and is thus modifiable.                                           */
-CORD_API char * CORD_to_char_star(CORD x);
+CORD_API PCHAR CORD_to_char_star(CORD_IN x);
 
 /* Turn a C string into a CORD.  The C string is copied, and so may     */
 /* subsequently be modified.                                            */

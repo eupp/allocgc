@@ -74,6 +74,7 @@ struct Concatenation {
     Concatenation(char depth_, size_t left_len_, word len_, CORD_IN left_, CORD_IN right_)
         : null(0)
         , header(CONCAT_HDR)
+        , depth(depth_)
         , left_len(left_len_ <= MAX_LEFT_LEN ? left_len_ : 0)
         , len(len_)
         , left(left_)
@@ -92,6 +93,17 @@ struct Concatenation {
 };
 
 struct Function {
+
+    Function(char header_, word len_, CORD_fn fn_, void* client_data_)
+        : null(0)
+        , header(header_)
+        , depth(0)
+        , left_len(0)
+        , len(len_)
+        , fn(fn_)
+        , client_data(client_data_)
+    {}
+
     char null;
     char header;
     char depth;     /* always 0     */
@@ -185,6 +197,17 @@ void CORD_dump(CORD x)
 {
     CORD_dump_inner(x, 0);
     fflush(stdout);
+}
+
+size_t CORD_len(CORD_IN x)
+{
+    if (CORD_IS_EMPTY(x)) {
+        return(0);
+    } else {
+        pin_array_t(const char) xpin = pin(x);
+        const char* xraw = raw_ptr(xpin);
+        return(GEN_LEN(xraw));
+    }
 }
 
 CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
@@ -376,7 +399,7 @@ CORD CORD_cat(CORD_IN x, CORD_IN y)
 //}
 
 //struct substr_args {
-//    CordRep * sa_cord;
+//    CordRep* sa_cord;
 //    size_t sa_index;
 //};
 //
@@ -401,6 +424,7 @@ CORD CORD_cat(CORD_IN x, CORD_IN y)
 /* Assumes i >= 0 and i + n < length(x).                                */
 //CORD CORD_substr_closure(CORD x, size_t i, size_t n, CORD_fn f)
 //{
+//
 //    struct substr_args * sa = GC_NEW(struct substr_args);
 //    CordRep * result;
 //
@@ -413,59 +437,58 @@ CORD CORD_cat(CORD_IN x, CORD_IN y)
 //    return (CORD)result;
 //}
 
-//# define SUBSTR_LIMIT (10 * SHORT_LIMIT)
-//        /* Substrings of function nodes and flat strings shorter than   */
-//        /* this are flat strings.  Othewise we use a functional         */
-//        /* representation, which is significantly slower to access.     */
-//
-///* A version of CORD_substr that assumes i >= 0, n > 0, and i + n < length(x).*/
-//CORD CORD_substr_checked(CORD x, size_t i, size_t n)
-//{
-//    if (CORD_IS_STRING(x)) {
-//        if (n > SUBSTR_LIMIT) {
-//            return(CORD_substr_closure(x, i, n, CORD_index_access_fn));
-//        } else {
-//            char* result = (char*) GC_MALLOC_ATOMIC(n+1);
-//
-//            if (result == 0) OUT_OF_MEMORY;
-//            strncpy(result, x+i, n);
-//            result[n] = '\0';
-//            return(result);
-//        }
-//    } else if (IS_CONCATENATION(x)) {
-//        struct CordRep::Concatenation* conc
-//                        = &(((CordRep *)x) -> concatenation);
-//        size_t left_len;
-//        size_t right_len;
-//
-//        left_len = LEFT_LEN(conc);
-//        right_len = conc -> len - left_len;
-//        if (i >= left_len) {
-//            if (n == right_len) return(conc -> right);
-//            return(CORD_substr_checked(conc -> right, i - left_len, n));
-//        } else if (i+n <= left_len) {
-//            if (n == left_len) return(conc -> left);
-//            return(CORD_substr_checked(conc -> left, i, n));
-//        } else {
-//            /* Need at least one character from each side. */
-//            CORD left_part;
-//            CORD right_part;
-//            size_t left_part_len = left_len - i;
-//
-//            if (i == 0) {
-//                left_part = conc -> left;
-//            } else {
-//                left_part = CORD_substr_checked(conc -> left, i, left_part_len);
-//            }
-//            if (i + n == right_len + left_len) {
-//                 right_part = conc -> right;
-//            } else {
-//                 right_part = CORD_substr_checked(conc -> right, 0,
-//                                                  n - left_part_len);
-//            }
-//            return(CORD_cat(left_part, right_part));
-//        }
-//    } else /* function */ {
+# define SUBSTR_LIMIT (10 * SHORT_LIMIT)
+        /* Substrings of function nodes and flat strings shorter than   */
+        /* this are flat strings.  Othewise we use a functional         */
+        /* representation, which is significantly slower to access.     */
+
+/* A version of CORD_substr that assumes i >= 0, n > 0, and i + n < length(x).*/
+CORD CORD_substr_checked(CORD_IN x, size_t i, size_t n)
+{
+    pin_array_t(const char) xpin = pin(x);
+    const char* xraw = raw_ptr(xpin);
+
+    if (CORD_IS_STRING(xraw)) {
+        ptr_array_t(char) result = new_array_(char, n+1);
+        if (CORD_IS_EMPTY(result)) OUT_OF_MEMORY;
+
+        pin_array_t(char) result_pin = pin(result);
+        char* result_raw = raw_ptr(result_pin);
+
+        strncpy(result_raw, xraw+i, n);
+        result_raw[n] = '\0';
+
+        return const_array_pointer_cast_(const char, result);
+
+    } else if (IS_CONCATENATION(xraw)) {
+        CordRep::Concatenation* conc = ((CordRep::Concatenation*) xraw);
+        size_t left_len;
+        size_t right_len;
+
+        left_len = LEFT_LEN(conc);
+        right_len = conc -> len - left_len;
+        if (i >= left_len) {
+            if (n == right_len) return(conc->right);
+            return(CORD_substr_checked(conc->right, i - left_len, n));
+        } else if (i+n <= left_len) {
+            if (n == left_len) return(conc->left);
+            return(CORD_substr_checked(conc->left, i, n));
+        } else {
+            /* Need at least one character from each side. */
+            size_t left_part_len = left_len - i;
+
+            CORD left_part = i == 0
+                            ? left_part = conc -> left
+                            : CORD_substr_checked(conc -> left, i, left_part_len);
+
+            CORD right_part = i + n == right_len + left_len
+                            ? conc -> right
+                            : CORD_substr_checked(conc -> right, 0, n - left_part_len);
+
+            return(CORD_cat(left_part, right_part));
+        }
+    }
+//    else /* function */ {
 //        if (n > SUBSTR_LIMIT) {
 //            if (IS_SUBSTR(x)) {
 //                /* Avoid nesting substring nodes.       */
@@ -502,53 +525,54 @@ CORD CORD_cat(CORD_IN x, CORD_IN y)
 //            return(result);
 //        }
 //    }
-//}
+}
 
-//CORD CORD_substr(CORD x, size_t i, size_t n)
-//{
-//    size_t len = CORD_len(x);
-//
-//    if (i >= len || n == 0) return(0);
-//    if (i + n > len) n = len - i;
-//    return(CORD_substr_checked(x, i, n));
-//}
-//
+CORD CORD_substr(CORD_IN x, size_t i, size_t n)
+{
+    size_t len = CORD_len(x);
+
+    if (i >= len || n == 0) return(0);
+    if (i + n > len) n = len - i;
+    return(CORD_substr_checked(x, i, n));
+}
+
 ///* See cord.h for definition.  We assume i is in range. */
-//int CORD_iter5(CORD x, size_t i, CORD_iter_fn f1,
-//                         CORD_batched_iter_fn f2, void * client_data)
-//{
-//    if (x == 0) return(0);
-//    if (CORD_IS_STRING(x)) {
-//        const char *p = x+i;
-//
-//        if (*p == '\0') ABORT("2nd arg to CORD_iter5 too big");
-//        if (f2 != CORD_NO_FN) {
-//            return((*f2)(p, client_data));
-//        } else {
-//            while (*p) {
-//                if ((*f1)(*p, client_data)) return(1);
-//                p++;
-//            }
-//            return(0);
-//        }
-//    } else if (IS_CONCATENATION(x)) {
-//        struct CordRep::Concatenation * conc
-//                        = &(((CordRep *)x) -> concatenation);
-//
-//
-//        if (i > 0) {
-//            size_t left_len = LEFT_LEN(conc);
-//
-//            if (i >= left_len) {
-//                return(CORD_iter5(conc -> right, i - left_len, f1, f2,
-//                                  client_data));
-//            }
-//        }
-//        if (CORD_iter5(conc -> left, i, f1, f2, client_data)) {
-//            return(1);
-//        }
-//        return(CORD_iter5(conc -> right, 0, f1, f2, client_data));
-//    } else /* function */ {
+int CORD_iter5(CORD_IN x, size_t i, CORD_iter_fn f1, CORD_batched_iter_fn f2, void * client_data)
+{
+    if (CORD_IS_EMPTY(x)) return(0);
+
+    pin_array_t(const char) xpin = pin(x);
+    const char* xraw = raw_ptr(xpin);
+
+    if (CORD_IS_STRING(xraw)) {
+        const char* p = xraw + i;
+
+        if (*p == '\0') ABORT("2nd arg to CORD_iter5 too big");
+        if (f2 != CORD_NO_FN) {
+            return((*f2)(p, client_data));
+        } else {
+            while (*p) {
+                if ((*f1)(*p, client_data)) return(1);
+                p++;
+            }
+            return(0);
+        }
+    } else if (IS_CONCATENATION(xraw)) {
+        CordRep::Concatenation* conc = ((CordRep::Concatenation*) xraw);
+
+        if (i > 0) {
+            size_t left_len = LEFT_LEN(conc);
+
+            if (i >= left_len) {
+                return(CORD_iter5(conc->right, i - left_len, f1, f2, client_data));
+            }
+        }
+        if (CORD_iter5(conc->left, i, f1, f2, client_data)) {
+            return(1);
+        }
+        return(CORD_iter5(conc->right, 0, f1, f2, client_data));
+    }
+//    else /* function */ {
 //        struct CordRep::Function * f = &(((CordRep *)x) -> function);
 //        size_t j;
 //        size_t lim = f -> len;
@@ -560,13 +584,11 @@ CORD CORD_cat(CORD_IN x, CORD_IN y)
 //        }
 //        return(0);
 //    }
-//}
-//
-//#undef CORD_iter
-//int CORD_iter(CORD x, CORD_iter_fn f1, void * client_data)
-//{
-//    return(CORD_iter5(x, 0, f1, CORD_NO_FN, client_data));
-//}
+}
+int CORD_iter(CORD x, CORD_iter_fn f1, void * client_data)
+{
+    return(CORD_iter5(x, 0, f1, CORD_NO_FN, client_data));
+}
 //
 //int CORD_riter4(CORD x, size_t i, CORD_iter_fn f1, void * client_data)
 //{

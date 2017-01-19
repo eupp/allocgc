@@ -132,7 +132,7 @@ void gc_object_descriptor::move(byte* to, byte* from, gc_memory_descriptor* from
 void gc_object_descriptor::finalize(byte* ptr)
 {
     assert(check_ptr(ptr));
-    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
+//    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
     gc_box::destroy(ptr);
     m_mark_bit = false;
 }

@@ -22,6 +22,7 @@ byte * gc_pool_descriptor::init_cell(byte* ptr, size_t obj_count, const gc_type_
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
+    set_init(ptr, true);
     return gc_box::create(ptr, obj_count, type_meta);
 }
 
@@ -123,7 +124,9 @@ void gc_pool_descriptor::set_pin(byte* ptr, bool pin)
 
 gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(size_t idx) const
 {
-    return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
+    return get_mark(idx)
+           ? gc_lifetime_tag::LIVE
+           : (is_init(idx) ? gc_lifetime_tag::GARBAGE : gc_lifetime_tag::FREE);
 }
 
 gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(byte* ptr) const
@@ -171,6 +174,7 @@ void gc_pool_descriptor::commit(byte* ptr)
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     assert(gc_box::get_type_meta(ptr));
+//    set_init(ptr, true);
 }
 
 void gc_pool_descriptor::commit(byte* ptr, const gc_type_meta* type_meta)
@@ -179,6 +183,7 @@ void gc_pool_descriptor::commit(byte* ptr, const gc_type_meta* type_meta)
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
     gc_box::set_type_meta(ptr, type_meta);
+//    set_init(ptr, true);
 }
 
 void gc_pool_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
@@ -212,6 +217,7 @@ void gc_pool_descriptor::finalize(byte* ptr)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
+    gc_lifetime_tag tag = get_lifetime_tag(ptr);
     assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
     gc_box::destroy(ptr);
     set_init(ptr, false);

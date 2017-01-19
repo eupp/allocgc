@@ -4,14 +4,14 @@
       "name": "boehm",
       "runnable": "benchmark/boehm/boehm",
       "suites": ["gc_ptr serial", "gc_ptr incremental"],
-      "reports": ["tex-table", "time-bar-plot"]
+      "reports": ["tex-table"]
     },
     {
       "name": "parallel_merge_sort",
       "alias": "parallel-merge-sort",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
       "suites": ["gc_ptr serial", "gc_ptr incremental"],
-      "reports": ["tex-table", "time-bar-plot"]
+      "reports": ["tex-table"]
     },
     {
       "name": "cord",
@@ -19,7 +19,7 @@
       "runnable": "benchmark/cord/cord",
       "suites": ["gc_ptr serial", "gc_ptr incremental"],
       "params": ["build", {"len": [6]}],
-      "reports": ["tex-table", "time-bar-plot"]
+      "reports": ["tex-table"]
     }
   ],
   "suites": [

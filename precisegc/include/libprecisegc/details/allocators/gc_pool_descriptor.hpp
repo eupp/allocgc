@@ -148,7 +148,6 @@ public:
     inline void set_mark(size_t idx, bool mark)
     {
         m_mark_bits.set(idx, mark);
-        m_init_bits.set(idx, mark);
     }
 
     void set_pin(size_t idx, bool pin)

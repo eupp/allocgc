@@ -18,9 +18,9 @@ struct test_type
 const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create();
 }
 
-struct mpool_allocator_test : public ::testing::Test
+struct gc_pool_allocator_test : public ::testing::Test
 {
-    mpool_allocator_test()
+    gc_pool_allocator_test()
         : rqst(OBJ_SIZE, 1, type_meta)
     {}
 
@@ -28,26 +28,29 @@ struct mpool_allocator_test : public ::testing::Test
     gc_alloc_request rqst;
 };
 
-TEST_F(mpool_allocator_test, test_allocate_1)
+TEST_F(gc_pool_allocator_test, test_allocate_1)
 {
     gc_alloc_response rsp = alloc.allocate(rqst, ALLOC_SIZE);
+    rsp.commit(type_meta);
 
     ASSERT_NE(nullptr, rsp.obj_start());
     ASSERT_LE(OBJ_SIZE, rsp.size());
     ASSERT_NE(nullptr, rsp.descriptor());
 }
 
-TEST_F(mpool_allocator_test, test_allocate_2)
+TEST_F(gc_pool_allocator_test, test_allocate_2)
 {
     gc_alloc_response rsp1 = alloc.allocate(rqst, ALLOC_SIZE);
     gc_alloc_response rsp2 = alloc.allocate(rqst, ALLOC_SIZE);
+    rsp1.commit(type_meta);
+    rsp2.commit(type_meta);
 
     ASSERT_NE(nullptr, rsp1.obj_start());
     ASSERT_NE(nullptr, rsp2.obj_start());
     ASSERT_NE(rsp1.obj_start(), rsp2.obj_start());
 }
 
-TEST_F(mpool_allocator_test, test_collect)
+TEST_F(gc_pool_allocator_test, test_collect)
 {
     gc_alloc_response rsps[3];
     for (auto& rsp: rsps) {

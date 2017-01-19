@@ -50,7 +50,7 @@ set(precisegc_TESTS
         include/test_forwarding.hpp
         details/compacting/fix_ptrs_test.cpp
         details/allocators/gc_lo_allocator_test.cpp
-        details/allocators/mpool_allocator_test.cpp
+        details/allocators/gc_pool_allocator_test.cpp
         details/allocators/gc_box_test.cpp
         details/collectors/memory_index_test.cpp)
 

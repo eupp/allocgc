@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
+#include <libprecisegc/details/gc_type_meta_factory.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;
@@ -8,6 +9,11 @@ using namespace precisegc::details::allocators;
 
 namespace {
 static const size_t OBJ_SIZE = 64;
+
+struct test_type
+{ };
+
+const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create();
 }
 
 struct gc_lo_allocator_test : public ::testing::Test
@@ -23,6 +29,7 @@ struct gc_lo_allocator_test : public ::testing::Test
 TEST_F(gc_lo_allocator_test, test_allocate_1)
 {
     gc_alloc_response rsp = alloc.allocate(rqst);
+    rsp.commit(type_meta);
 
     ASSERT_NE(nullptr, rsp.obj_start());
     ASSERT_LE(OBJ_SIZE, rsp.size());
@@ -33,6 +40,8 @@ TEST_F(gc_lo_allocator_test, test_allocate_2)
 {
     gc_alloc_response rsp1 = alloc.allocate(rqst);
     gc_alloc_response rsp2 = alloc.allocate(rqst);
+    rsp1.commit(type_meta);
+    rsp2.commit(type_meta);
 
     ASSERT_NE(nullptr, rsp1.obj_start());
     ASSERT_NE(nullptr, rsp2.obj_start());
@@ -44,6 +53,7 @@ TEST_F(gc_lo_allocator_test, test_collect)
     gc_alloc_response rsps[3];
     for (auto& rsp: rsps) {
         rsp = alloc.allocate(rqst);
+        rsp.commit(type_meta);
     }
 
     rsps[0].set_mark(true);

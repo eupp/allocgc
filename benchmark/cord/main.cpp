@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cassert>
 #include <iostream>
+#include <random>
 #include <memory>
 
 #include <sys/resource.h>
@@ -21,7 +22,7 @@
 
 #include "cord.hpp"
 
-std::unique_ptr<char[]> str;
+std::unique_ptr<char[]> buf_content;
 
 void set_stack_size()
 {
@@ -47,38 +48,91 @@ void set_stack_size()
 void init(size_t buf_size)
 {
     srand(time(nullptr));
-    str.reset(new char[buf_size + 1]);
+    buf_content.reset(new char[buf_size + 1]);
     int mod = 'z' - 'a';
     for (size_t i = 0; i < buf_size; ++i) {
-        str[i] = (rand() % mod) + 'a';
+        buf_content[i] = (rand() % mod) + 'a';
     }
-    str[buf_size] = '\0';
+    buf_content[buf_size] = '\0';
 
 //    set_stack_size();
 }
 
-void build_rope(size_t total_len_log, size_t buf_size)
+std::unique_ptr<char[]> build_str(size_t len)
 {
-    const size_t REPEAT_CNT = 100;
-    size_t total_len = std::pow(10, total_len_log);
-
-    std::cout << "Building " << REPEAT_CNT << " ropes with length = 10^" << total_len_log << std::endl;
-
-    for (size_t i = 0; i < REPEAT_CNT; ++i) {
-        CORD cord = CORD_EMPTY;
-        for (size_t len = 0; len < total_len; len += buf_size) {
-            ptr_array_t(const char) buf = new_array_(const char, buf_size + 1);
-            pin_array_t(const char) buf_pin = pin(buf);
-            const char* buf_raw = raw_ptr(buf_pin);
-            memcpy((void*) buf_raw, (void*) str.get(), buf_size + 1);
-
-            cord = CORD_cat_char_star(cord, buf, buf_size);
-        }
+    std::unique_ptr<char[]> str(new char[len+1]);
+    char* it = str.get();
+    size_t buf_size = strlen(buf_content.get());
+    for (size_t i = 0; i < len; i += buf_size, it += buf_size) {
+        memcpy((void*) it, (void*) buf_content.get(), buf_size);
     }
+    str[len] = '\0';
+    return str;
+}
+
+bool check_rope(CORD_IN cord)
+{
+    size_t len = CORD_len(cord);
+    std::unique_ptr<char[]> str = build_str(len);
+    PCHAR cord_str = CORD_to_char_star(cord);
+    pin_array_t(const char) cord_str_pin = pin(cord_str);
+    const char* cord_str_raw = raw_ptr(cord_str_pin);
+    return memcmp(cord_str_raw, str.get(), len) == 0;
+}
+
+bool check_substr(CORD_IN cord, CORD_IN cord_substr, size_t substr_pos, size_t substr_len)
+{
+    size_t len = CORD_len(cord);
+    std::unique_ptr<char[]> str = build_str(len);
+    PCHAR substr_str = CORD_to_char_star(cord_substr);
+    pin_array_t(const char) substr_str_pin = pin(substr_str);
+    const char* substr_str_raw = raw_ptr(substr_str_pin);
+
+//    static int cnt = 0;
+//    std::string dbg = std::string(str.get()).substr(substr_pos, substr_len);
+//    printf("%d raw:  %s\n", cnt, dbg.c_str());
+//    printf("%d cord: %s\n", cnt, substr_str_raw);
+//    ++cnt;
+
+    return memcmp(substr_str_raw, str.get() + substr_pos, substr_len) == 0;
+}
+
+CORD build_rope(size_t total_len)
+{
+    CORD cord = CORD_EMPTY;
+    size_t buf_size = strlen(buf_content.get());
+    for (size_t len = 0; len < total_len; len += buf_size) {
+        ptr_array_t(const char) buf = new_array_(const char, buf_size + 1);
+        pin_array_t(const char) buf_pin = pin(buf);
+        const char* buf_raw = raw_ptr(buf_pin);
+        memcpy((void*) buf_raw, (void*) buf_content.get(), buf_size + 1);
+        cord = CORD_cat_char_star(cord, buf, buf_size);
+    }
+    assert(check_rope(cord));
+    return cord;
+}
+
+CORD substr(CORD_IN cord, size_t total_len)
+{
+    size_t substr_len_mean = 0.001 * total_len;
+    size_t substr_len_var  = substr_len_mean / 4;
+
+    static std::default_random_engine gen;
+    static std::uniform_int_distribution<size_t> dist_pos;
+    static std::normal_distribution<double> dist_len(substr_len_mean, substr_len_var);
+
+    size_t substr_len = dist_len(gen);
+    size_t substr_pos = dist_pos(gen, std::uniform_int_distribution<size_t>::param_type(0, total_len - substr_len));
+
+    CORD substr = CORD_substr(cord, substr_pos, substr_len);
+    assert(check_substr(cord, substr, substr_pos, substr_len));
+
+    return substr;
 }
 
 enum class test_type {
-    BUILD_ROPE
+      BUILD_ROPE
+    , SUBSTR
 };
 
 int main(int argc, const char* argv[])
@@ -98,6 +152,8 @@ int main(int argc, const char* argv[])
             len = std::stoi(len_str);
         } else if (arg == "--build") {
             ttype = test_type::BUILD_ROPE;
+        } else if (arg == "--substr") {
+            ttype = test_type::SUBSTR;
         }
     }
 
@@ -110,9 +166,9 @@ int main(int argc, const char* argv[])
         ops.initiation  = gc_initiation::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
 //        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-        ops.loglevel    = gc_loglevel::SILENT;
+//        ops.loglevel    = gc_loglevel::DEBUG;
 //            ops.print_stat  = true;
-            ops.threads_available = 1;
+//            ops.threads_available = 1;
         gc_init(ops);
     #elif defined(BDW_GC)
         GC_INIT();
@@ -124,10 +180,27 @@ int main(int argc, const char* argv[])
 
     timer tm;
 
+    size_t total_len = std::pow(10, len);
     if (ttype == test_type::BUILD_ROPE) {
-        build_rope(len, buf_size);
-    }
+        const size_t REPEAT_CNT = 100;
 
+        std::cout << "Building " << REPEAT_CNT << " ropes with length = 10^" << len << std::endl;
+
+        tm.reset();
+        for (size_t i = 0; i < REPEAT_CNT; ++i) {
+            build_rope(total_len);
+        }
+    } else if (ttype == test_type::SUBSTR) {
+        const size_t REPEAT_CNT = 100000;
+
+        std::cout << "Requesting " << REPEAT_CNT << " substrings from rope with length = 10^" << len << std::endl;
+
+        CORD cord = build_rope(total_len);
+        tm.reset();
+        for (size_t i = 0; i < REPEAT_CNT; ++i) {
+            substr(cord, total_len);
+        }
+    }
 
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
 

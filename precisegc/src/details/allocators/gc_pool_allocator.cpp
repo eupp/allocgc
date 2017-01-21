@@ -141,7 +141,7 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
     } else {
         sweep(stat);
     }
-    m_prev_residency = stat.residency();
+//    m_prev_residency = stat.residency();
     return stat;
 }
 

@@ -478,7 +478,7 @@ CORD CORD_substr_checked(CORD_IN x, size_t i, size_t n)
             size_t left_part_len = left_len - i;
 
             CORD left_part = i == 0
-                            ? left_part = conc -> left
+                            ? conc -> left
                             : CORD_substr_checked(conc -> left, i, left_part_len);
 
             CORD right_part = i + n == right_len + left_len

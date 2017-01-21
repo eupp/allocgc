@@ -298,6 +298,8 @@ CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
                 } else {
                     depth = DEPTH(xraw) + 1;
                 }
+            } else {
+                depth = DEPTH(xraw) + 1;
             }
         } else {
             depth = DEPTH(xraw) + 1;

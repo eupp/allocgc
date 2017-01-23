@@ -97,6 +97,17 @@ bool check_substr(CORD_IN cord, CORD_IN cord_substr, size_t substr_pos, size_t s
     return memcmp(substr_str_raw, str.get() + substr_pos, substr_len) == 0;
 }
 
+bool check_flattening(PCHAR_IN flat_str)
+{
+    pin_array_t(const char) flat_str_pin = pin(flat_str);
+    const char* flat_str_raw = raw_ptr(flat_str_pin);
+
+    size_t len = strlen(flat_str_raw);
+    std::unique_ptr<char[]> str = build_str(len);
+
+    return memcmp(flat_str_raw, str.get(), len) == 0;
+}
+
 CORD build_rope(size_t total_len)
 {
     CORD cord = CORD_EMPTY;
@@ -130,9 +141,17 @@ CORD substr(CORD_IN cord, size_t total_len)
     return substr;
 }
 
+PCHAR flatten(CORD_IN cord)
+{
+    PCHAR flat_str = CORD_to_char_star(cord);
+    assert(check_flattening(flat_str));
+    return flat_str;
+}
+
 enum class test_type {
       BUILD_ROPE
     , SUBSTR
+    , FLATTENING
 };
 
 int main(int argc, const char* argv[])
@@ -154,6 +173,8 @@ int main(int argc, const char* argv[])
             ttype = test_type::BUILD_ROPE;
         } else if (arg == "--substr") {
             ttype = test_type::SUBSTR;
+        } else if (arg == "--flatten") {
+            ttype = test_type::FLATTENING;
         }
     }
 
@@ -166,8 +187,8 @@ int main(int argc, const char* argv[])
         ops.initiation  = gc_initiation::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
 //        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-//        ops.loglevel    = gc_loglevel::DEBUG;
-//            ops.print_stat  = true;
+        ops.loglevel    = gc_loglevel::DEBUG;
+            ops.print_stat  = true;
 //            ops.threads_available = 1;
         gc_init(ops);
     #elif defined(BDW_GC)
@@ -199,6 +220,16 @@ int main(int argc, const char* argv[])
         tm.reset();
         for (size_t i = 0; i < REPEAT_CNT; ++i) {
             substr(cord, total_len);
+        }
+    } else if (ttype == test_type::FLATTENING) {
+        const size_t REPEAT_CNT = 10000;
+
+        std::cout << "Flattening " << REPEAT_CNT << " ropes with length = 10^" << len << std::endl;
+
+        CORD cord = build_rope(total_len);
+        tm.reset();
+        for (size_t i = 0; i < REPEAT_CNT; ++i) {
+            flatten(cord);
         }
     }
 

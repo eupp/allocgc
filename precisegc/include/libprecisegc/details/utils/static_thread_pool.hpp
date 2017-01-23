@@ -23,6 +23,7 @@ public:
         : m_threads(n)
         , m_done(false)
         , m_tasks_cnt(0)
+        , m_threads_exit_cnt(0)
         , m_complete_tasks_cnt(0)
         , m_tasks_ready(false)
     {
@@ -67,9 +68,13 @@ public:
 private:
     void stop_workers()
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-        m_done = true;
-        m_tasks_ready_cond.notify_all();
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_done = true;
+            m_tasks_ready_cond.notify_all();
+        }
+        std::unique_lock<std::mutex> lock_thrd_exit(m_threads_exit_mutex);
+        m_threads_exit_cond.wait(lock_thrd_exit, [this] { return m_threads_exit_cnt == m_threads.size(); });
     }
 
     void thread_routine(size_t thread_num)
@@ -78,6 +83,9 @@ private:
             std::unique_lock<std::mutex> lock(m_mutex);
             m_tasks_ready_cond.wait(lock, [this] { return (m_tasks_ready && !m_tasks.empty()) || m_done; });
             if (m_done) {
+                std::lock_guard<std::mutex> lock(m_threads_exit_mutex);
+                ++m_threads_exit_cnt;
+                m_threads_exit_cond.notify_one();
                 return;
             }
 
@@ -102,9 +110,12 @@ private:
     std::vector<std::function<void()>> m_tasks;
     size_t m_tasks_cnt;
     size_t m_complete_tasks_cnt;
+    size_t m_threads_exit_cnt;
     std::mutex m_mutex;
+    std::mutex m_threads_exit_mutex;
     std::condition_variable m_tasks_ready_cond;
     std::condition_variable m_tasks_complete_cond;
+    std::condition_variable m_threads_exit_cond;
     bool m_tasks_ready;
     bool m_done;
 };

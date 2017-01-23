@@ -131,7 +131,7 @@ private:
         while (true) {
             while (!input_packet) {
 
-                if (m_remset) {
+                if (m_remset && output_packet) {
                     for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
                         byte* ptr = m_remset->get();
                         if (ptr) {

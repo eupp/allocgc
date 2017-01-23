@@ -132,7 +132,15 @@ CORD substr(CORD_IN cord, size_t total_len)
     static std::uniform_int_distribution<size_t> dist_pos;
     static std::normal_distribution<double> dist_len(substr_len_mean, substr_len_var);
 
-    size_t substr_len = dist_len(gen);
+    double min = dist_len.min();
+    double max = dist_len.max();
+
+    double substr_len_d = dist_len(gen);
+    while ((substr_len_d < 0) || (substr_len_d > 10 * substr_len_mean)) {
+        substr_len_d = dist_len(gen);
+    }
+
+    size_t substr_len = substr_len_d;
     size_t substr_pos = dist_pos(gen, std::uniform_int_distribution<size_t>::param_type(0, total_len - substr_len));
 
     CORD substr = CORD_substr(cord, substr_pos, substr_len);

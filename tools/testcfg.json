@@ -17,6 +17,20 @@
       "runnable": "benchmark/cord/cord",
       "suites": ["gc_ptr serial", "gc_ptr incremental"],
       "params": ["build", {"len": [6]}]
+    },
+    {
+      "name": "cord",
+      "alias": "cord-substr",
+      "runnable": "benchmark/cord/cord",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "params": ["substr", {"len": [6]}]
+    },
+    {
+      "name": "cord",
+      "alias": "cord-flatten",
+      "runnable": "benchmark/cord/cord",
+      "suites": ["gc_ptr serial", "gc_ptr incremental"],
+      "params": ["flatten", {"len": [5]}]
     }
   ],
   "suites": [

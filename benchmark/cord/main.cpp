@@ -196,7 +196,7 @@ int main(int argc, const char* argv[])
         ops.compacting  = gc_compacting::DISABLED;
 //        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
 //        ops.loglevel    = gc_loglevel::DEBUG;
-//            ops.print_stat  = true;
+//        ops.print_stat  = true;
 //            ops.threads_available = 1;
         gc_init(ops);
     #elif defined(BDW_GC)
@@ -220,13 +220,14 @@ int main(int argc, const char* argv[])
             build_rope(total_len);
         }
     } else if (ttype == test_type::SUBSTR) {
-        const size_t REPEAT_CNT = 100000;
+        const size_t REPEAT_CNT = 10000;
 
         std::cout << "Requesting " << REPEAT_CNT << " substrings from rope with length = 10^" << len << std::endl;
 
         CORD cord = build_rope(total_len);
         tm.reset();
         for (size_t i = 0; i < REPEAT_CNT; ++i) {
+//            std::cout << i << std::endl;
             substr(cord, total_len);
         }
     } else if (ttype == test_type::FLATTENING) {

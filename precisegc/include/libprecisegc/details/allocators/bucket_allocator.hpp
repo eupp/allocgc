@@ -29,6 +29,7 @@ public:
     {
         size_t ind = BucketPolicy::bucket(size);
         size_t aligned_size = BucketPolicy::bucket_size(ind);
+        assert(ind < BucketPolicy::BUCKET_COUNT);
         return m_buckets[ind].allocate(aligned_size);
     }
 
@@ -36,11 +37,13 @@ public:
     {
         size_t ind = BucketPolicy::bucket(size);
         size_t aligned_size = BucketPolicy::bucket_size(ind);
+        assert(ind < BucketPolicy::BUCKET_COUNT);
         m_buckets[ind].deallocate(ptr, aligned_size);
     }
 
     void deallocate(pointer_type ptr, size_t bucket_ind, size_t bucket_size)
     {
+        assert(bucket_ind < BucketPolicy::BUCKET_COUNT);
         m_buckets[bucket_ind].deallocate(ptr, bucket_size);
     }
 

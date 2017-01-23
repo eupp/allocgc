@@ -9,7 +9,7 @@ namespace precisegc { namespace details { namespace allocators {
 gc_so_allocator::gc_so_allocator()
 {
     for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-        size_t sz_cls = 1ull << (i + MIN_CELL_SIZE_BITS_CNT);
+        size_t sz_cls = 1ull << (i + MIN_CELL_SIZE_LOG2);
         m_buckets[i].first = sz_cls;
     }
 }

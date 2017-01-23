@@ -29,7 +29,7 @@ struct splitter
 {
     static const size_t LEVEL_CNT               = 3;
 
-    static const size_t USED_BITS_CNT           = POINTER_BITS_USED - PAGE_BITS_CNT;
+    static const size_t USED_BITS_CNT           = POINTER_BITS_USED - PAGE_SIZE_LOG2;
     static const size_t LEVEL_BITS_CNT          = USED_BITS_CNT / LEVEL_CNT;
     static const size_t LAST_LEVEL_BITS_CNT     = USED_BITS_CNT - (LEVEL_CNT - 1) * LEVEL_BITS_CNT;
 

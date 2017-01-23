@@ -101,12 +101,12 @@ bool gc_core_allocator::check_heap_size(size_t alloc_size)
 
 size_t gc_core_allocator::page_bucket_policy::bucket(size_t size)
 {
-    return (size >> PAGE_BITS_CNT) - 1;
+    return (size >> PAGE_SIZE_LOG2) - 1;
 }
 
 size_t gc_core_allocator::page_bucket_policy::bucket_size(size_t i)
 {
-    return (i + 1) << PAGE_BITS_CNT;
+    return (i + 1) << PAGE_SIZE_LOG2;
 }
 
 }}}

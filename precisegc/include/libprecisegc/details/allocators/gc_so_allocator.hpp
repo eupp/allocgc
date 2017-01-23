@@ -36,7 +36,7 @@ public:
 private:
     // we have buckets for each 2^k size
     // i.g. [32, 64, 128, 256, ...]
-    static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_BITS_CNT - MIN_CELL_SIZE_BITS_CNT + 1;
+    static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_LOG2 - MIN_CELL_SIZE_LOG2 + 1;
 
     typedef std::pair<size_t, gc_pool_allocator> bucket_t;
 

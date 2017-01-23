@@ -9,6 +9,7 @@
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
+#include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

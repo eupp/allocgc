@@ -125,7 +125,7 @@ private:
 
     static constexpr byte* align_by_page(byte* ptr)
     {
-        return reinterpret_cast<byte*>(reinterpret_cast<std::uintptr_t>(ptr) & ((~0ull) << PAGE_BITS_CNT));
+        return reinterpret_cast<byte*>(reinterpret_cast<std::uintptr_t>(ptr) & ((~0ull) << PAGE_SIZE_LOG2));
     }
 
     static constexpr descriptor_t* get_descr(byte* blk)

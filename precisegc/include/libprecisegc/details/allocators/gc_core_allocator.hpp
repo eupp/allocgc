@@ -22,10 +22,12 @@ namespace precisegc { namespace details { namespace allocators {
 
 class gc_core_allocator
 {
+    static const size_t MAX_BUCKETIZE_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
+
     class page_bucket_policy
     {
     public:
-        static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_BITS_CNT - MIN_CELL_SIZE_BITS_CNT  + 1;
+        static const size_t BUCKET_COUNT = MAX_BUCKETIZE_SIZE / LARGE_CELL_SIZE;
 
         static size_t bucket(size_t size);
         static size_t bucket_size(size_t i);
@@ -58,8 +60,6 @@ private:
     typedef bucket_allocator<fixsize_page_alloc_t, page_bucket_policy> bucket_alloc_t;
 
     typedef std::mutex mutex_t;
-
-    static const size_t MAX_BUCKETIZE_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
 
     static const size_t HEAP_START_LIMIT;
 

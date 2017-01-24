@@ -33,6 +33,11 @@ bool gc_pool_descriptor::contains(byte* ptr) const
     return (mem_begin <= ptr) && (ptr < mem_end);
 }
 
+bool gc_pool_descriptor::full() const
+{
+    return m_mark_bits.all();
+}
+
 bool gc_pool_descriptor::unused() const
 {
     return m_mark_bits.none();

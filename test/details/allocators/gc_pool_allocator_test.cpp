@@ -63,7 +63,7 @@ TEST_F(gc_pool_allocator_test, test_collect)
     rsps[2].set_mark(true);
 
     compacting::forwarding frwd;
-    gc_heap_stat stat = alloc.collect(frwd);
+    gc_heap_stat stat = alloc.collect(frwd, nullptr);
 
     ASSERT_EQ(CHUNK_SIZE, stat.mem_before_gc);
     ASSERT_GE(CHUNK_SIZE, stat.mem_all);

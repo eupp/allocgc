@@ -33,7 +33,7 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
 
     gc_heap_stat stat;
     for (auto& kv: m_tlab_map) {
-        stat += kv.second.collect(frwd, thread_pool);
+        stat += kv.second.collect(frwd, nullptr, thread_pool);
     }
     stat += m_loa.collect(frwd);
 

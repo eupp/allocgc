@@ -96,6 +96,7 @@ public:
 
     bool contains(byte* ptr) const;
 
+    bool full() const;
     bool unused() const;
     void unmark();
 

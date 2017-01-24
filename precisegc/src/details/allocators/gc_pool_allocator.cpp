@@ -43,8 +43,8 @@ gc_alloc_response gc_pool_allocator::try_expand_and_allocate(size_t size,
         m_top = blk;
         m_end = blk + blk_size;
         return stack_allocation(size, rqst);
-    } else if (m_freelist) {
-        return freelist_allocation(size, rqst);
+//    } else if (m_freelist) {
+//        return freelist_allocation(size, rqst);
     } else {
         if (attempt_num == 0) {
             gc_options opt;
@@ -129,41 +129,78 @@ bool gc_pool_allocator::contains(byte* ptr) const
     return false;
 }
 
-gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
+gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd, gc_pool_allocator* old_gen_alloc)
 {
     if (m_descrs.begin() == m_descrs.end()) {
         return gc_heap_stat();
     }
 
     gc_heap_stat stat;
-    shrink(stat);
+    shrink(stat, old_gen_alloc);
     gc_decrease_heap_size(stat.mem_freed);
 
     m_top = nullptr;
     m_end = m_top;
-    m_freelist = nullptr;
+//    m_freelist = nullptr;
 
     if (is_compaction_required(stat)) {
         compact(frwd, stat);
-    } else {
-        sweep(stat);
+        promote(stat, old_gen_alloc);
     }
+//    else {
+//        sweep(stat);
+//    }
     return stat;
 }
 
-void gc_pool_allocator::shrink(gc_heap_stat& stat)
+void gc_pool_allocator::shrink(gc_heap_stat& stat, gc_pool_allocator* old_gen_alloc)
 {
+    descriptor_list_t promoted;
     for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
         stat.mem_before_gc += it->size();
+        stat.pinned_cnt += it->count_pinned();
         if (it->unused()) {
             stat.mem_freed += it->size();
             it = destroy_descriptor(it);
         } else {
             stat.mem_all    += it->size();
             stat.mem_live   += it->cell_size() * it->count_lived();
-            stat.pinned_cnt += it->count_pinned();
-            ++it;
+
+            if (old_gen_alloc && it->full()) {
+                iterator_t next = std::next(it);
+                promoted.splice(promoted.end(), m_descrs, it);
+                it = next;
+            } else {
+                ++it;
+            }
         }
+    }
+    if (old_gen_alloc) {
+        std::lock_guard<std::mutex> lock(old_gen_alloc->m_mutex);
+        old_gen_alloc->m_descrs.splice(old_gen_alloc->m_descrs.end(), promoted);
+    }
+}
+
+void gc_pool_allocator::promote(gc_heap_stat& stat, gc_pool_allocator* old_gen_alloc)
+{
+    descriptor_list_t promoted;
+    for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
+        if (it->unused()) {
+            stat.mem_freed += it->size();
+            it = destroy_descriptor(it);
+        } else {
+            if (old_gen_alloc) {
+                iterator_t next = std::next(it);
+                promoted.splice(promoted.end(), m_descrs, it);
+                it = next;
+            } else {
+                ++it;
+            }
+        }
+    }
+    if (old_gen_alloc) {
+        std::lock_guard<std::mutex> lock(old_gen_alloc->m_mutex);
+        old_gen_alloc->m_descrs.splice(old_gen_alloc->m_descrs.end(), promoted);
     }
 }
 
@@ -185,12 +222,13 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
         if (descr.get_lifetime_tag(i) == gc_lifetime_tag::GARBAGE) {
             descr.finalize(i);
             freed += size;
-            if (add_to_freelist) {
-                insert_into_freelist(it);
-            }
-        } else if (descr.get_lifetime_tag(i) == gc_lifetime_tag::FREE && add_to_freelist) {
-            insert_into_freelist(it);
+//            if (add_to_freelist) {
+//                insert_into_freelist(it);
+//            }
         }
+//        else if (descr.get_lifetime_tag(i) == gc_lifetime_tag::FREE && add_to_freelist) {
+//            insert_into_freelist(it);
+//        }
     }
     return freed;
 }

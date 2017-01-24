@@ -44,7 +44,7 @@ public:
 
     gc_alloc_response allocate(const gc_alloc_request& rqst, size_t aligned_size);
 
-    gc_heap_stat collect(compacting::forwarding& frwd);
+    gc_heap_stat collect(compacting::forwarding& frwd, gc_pool_allocator* old_gen_alloc);
     void fix(const compacting::forwarding& frwd);
     void finalize();
 
@@ -72,9 +72,10 @@ private:
     bool is_compaction_required(const gc_heap_stat& stat) const;
 
     // remove unused chunks and calculate some statistic
-    void shrink(gc_heap_stat& stat);
+    void shrink(gc_heap_stat& stat, gc_pool_allocator* old_gen_alloc);
     void sweep(gc_heap_stat& stat);
     void compact(compacting::forwarding& frwd, gc_heap_stat& stat);
+    void promote(gc_heap_stat& stat, gc_pool_allocator* old_gen_alloc);
 
     size_t sweep(descriptor_t& descr, bool add_to_freelist);
 
@@ -84,7 +85,8 @@ private:
     byte** m_freelist;
     byte*  m_top;
     byte*  m_end;
-    double m_prev_residency;
+    std::mutex m_mutex;
+//    double m_prev_residency;
 };
 
 }}}

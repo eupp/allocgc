@@ -127,6 +127,13 @@ void gc_pool_descriptor::set_pin(byte* ptr, bool pin)
     set_pin(idx, pin);
 }
 
+gc_gen gc_pool_descriptor::get_gen(byte* ptr) const
+{
+    assert(contains(ptr));
+    assert(ptr == cell_start(ptr));
+    return m_gen;
+}
+
 gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(size_t idx) const
 {
     return get_mark(idx)

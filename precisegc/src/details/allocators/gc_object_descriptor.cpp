@@ -59,6 +59,12 @@ void gc_object_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bit = pin;
 }
 
+gc_gen gc_object_descriptor::get_gen(byte* ptr) const
+{
+    assert(check_ptr(ptr));
+    return GC_OLD_GEN;
+}
+
 gc_lifetime_tag gc_object_descriptor::get_lifetime_tag(byte* ptr) const
 {
     return m_mark_bit ? gc_lifetime_tag::LIVE : gc_lifetime_tag::FREE;

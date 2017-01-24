@@ -97,6 +97,7 @@ gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, si
     m_descrs.emplace_back(blk, blk_size, cell_size);
     auto last = std::prev(m_descrs.end());
     gc_add_to_index(blk, blk_size, &(*last));
+    last->set_gen(GC_YOUNG_GEN);
     return last;
 }
 
@@ -168,6 +169,7 @@ void gc_pool_allocator::shrink(gc_heap_stat& stat, gc_pool_allocator* old_gen_al
 
             if (old_gen_alloc && it->full()) {
                 iterator_t next = std::next(it);
+                it->set_gen(GC_OLD_GEN);
                 promoted.splice(promoted.end(), m_descrs, it);
                 it = next;
             } else {
@@ -191,6 +193,7 @@ void gc_pool_allocator::promote(gc_heap_stat& stat, gc_pool_allocator* old_gen_a
         } else {
             if (old_gen_alloc) {
                 iterator_t next = std::next(it);
+                it->set_gen(GC_OLD_GEN);
                 promoted.splice(promoted.end(), m_descrs, it);
                 it = next;
             } else {

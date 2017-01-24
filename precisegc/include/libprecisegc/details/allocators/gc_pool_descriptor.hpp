@@ -116,6 +116,8 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    gc_gen get_gen(byte* ptr) const override;
+
     gc_lifetime_tag get_lifetime_tag(size_t idx) const;
     gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
 
@@ -156,6 +158,11 @@ public:
         m_pin_bits.set(idx, pin);
     }
 
+    void set_gen(gc_gen gen)
+    {
+        m_gen = gen;
+    }
+
     inline byte* memory() const
     {
         return m_memory;
@@ -187,6 +194,7 @@ private:
     bitset_t      m_pin_bits;
     bitset_t      m_init_bits;
     sync_bitset_t m_mark_bits;
+    gc_gen        m_gen;
 };
 
 }}}

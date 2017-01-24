@@ -72,6 +72,26 @@ void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt)
     gc_instance.initiation_point(ipoint, opt);
 }
 
+bool gc_increase_heap_size(size_t alloc_size)
+{
+    return gc_instance.increment_heap_size(alloc_size);
+}
+
+void gc_decrease_heap_size(size_t size)
+{
+    gc_instance.decrement_heap_size(size);
+}
+
+void gc_set_heap_limit(size_t size)
+{
+    gc_instance.set_heap_limit(size);
+}
+
+void gc_expand_heap()
+{
+    gc_instance.expand_heap();
+}
+
 void gc_add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry)
 {
     gc_instance.add_to_index(mem, size, entry);

@@ -18,7 +18,7 @@ int gc_init(const gc_init_options& options)
         logging::init(std::clog, options.loglevel);
         threads::thread_manager::instance().register_main_thread(threads::frame_address());
 
-        allocators::gc_core_allocator::set_heap_limit(options.heapsize);
+        gc_set_heap_limit(options.heapsize);
 
         auto strategy = gc_factory::create_gc(options);
         gc_initialize(std::move(strategy));

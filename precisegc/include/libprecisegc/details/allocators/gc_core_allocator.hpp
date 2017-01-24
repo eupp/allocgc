@@ -61,21 +61,9 @@ private:
 
     typedef std::mutex mutex_t;
 
-    static const size_t HEAP_START_LIMIT;
-
-    static const double INCREASE_FACTOR;
-    static const double MARK_THRESHOLD;
-    static const double COLLECT_THRESHOLD;
-
-    static bool check_heap_size(size_t alloc_size);
-
     static bucket_alloc_t bucket_alloc;
     static freelist_alloc_t freelist;
     static mutex_t mutex;
-
-    static size_t heap_limit;
-    static size_t heap_maxlimit;
-    static std::atomic<size_t> heap_size;
 };
 
 }}}

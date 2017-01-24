@@ -52,7 +52,7 @@ gc_alloc_response gc_pool_allocator::try_expand_and_allocate(size_t size,
             opt.gen  = 0;
             gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
         } else if (attempt_num == 1) {
-            gc_core_allocator::expand_heap();
+            gc_expand_heap();
         } else {
             throw gc_bad_alloc();
         }
@@ -131,14 +131,18 @@ bool gc_pool_allocator::contains(byte* ptr) const
 
 gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 {
-    gc_heap_stat stat;
     if (m_descrs.begin() == m_descrs.end()) {
-        return stat;
+        return gc_heap_stat();
     }
+
+    gc_heap_stat stat;
     shrink(stat);
+    gc_decrease_heap_size(stat.mem_freed);
+
     m_top = nullptr;
     m_end = m_top;
     m_freelist = nullptr;
+
     if (is_compaction_required(stat)) {
         compact(frwd, stat);
     } else {

@@ -26,40 +26,49 @@ allocators::gc_alloc_response gc_heap::allocate(const allocators::gc_alloc_reque
     }
 }
 
-gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t threads_available)
+gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, gc_gen gen, size_t threads_available)
 {
     forwarding frwd;
     utils::static_thread_pool thread_pool(threads_available);
 
     gc_heap_stat stat;
-    for (auto& kv: m_tlab_map) {
-        stat += kv.second.collect(frwd, nullptr, thread_pool);
+    if (gen == GC_OLD_GEN) {
+        stat += m_old_soa.collect(frwd, nullptr, thread_pool);
+        stat += m_loa.collect(frwd);
     }
-    stat += m_loa.collect(frwd);
+    for (auto& kv: m_tlab_map) {
+        stat += kv.second.collect(frwd, &m_old_soa, thread_pool);
+    }
 
     if (stat.mem_copied > 0) {
-        for (auto& kv: m_tlab_map) {
-            kv.second.fix(frwd, thread_pool);
+//        for (auto& kv: m_tlab_map) {
+//            kv.second.fix(frwd, thread_pool);
+//        }
+        m_old_soa.fix(frwd, thread_pool);
+        if (gen == GC_OLD_GEN) {
+            m_loa.fix(frwd);
         }
-        m_loa.fix(frwd);
         snapshot.fix_roots(frwd);
     }
 
-    for (auto& kv: m_tlab_map) {
-        kv.second.finalize();
+//    for (auto& kv: m_tlab_map) {
+//        kv.second.finalize();
+//    }
+    m_old_soa.finalize();
+    if (gen == GC_OLD_GEN) {
+        m_loa.finalize();
     }
-    m_loa.finalize();
 
     return stat;
 }
 
 allocators::gc_alloc_response gc_heap::allocate_on_tlab(const allocators::gc_alloc_request& rqst)
 {
-    static thread_local mso_alloc_t& tlab = get_tlab();
+    static thread_local so_alloc_t& tlab = get_tlab();
     return tlab.allocate(rqst);
 }
 
-gc_heap::mso_alloc_t& gc_heap::get_tlab()
+gc_heap::so_alloc_t& gc_heap::get_tlab()
 {
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
     return m_tlab_map[std::this_thread::get_id()];

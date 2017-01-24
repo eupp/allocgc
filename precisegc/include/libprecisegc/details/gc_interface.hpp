@@ -53,7 +53,10 @@ inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
     return static_cast<gc_lifetime_tag>(((int) mark_bit << 1) + (int) init_bit);
 }
 
-typedef int     gc_gen;
+typedef size_t gc_gen;
+
+static const gc_gen GC_OLD_GEN      = 0;
+static const gc_gen GC_YOUNG_GEN    = 1;
 
 typedef std::function<void(gc_handle*)> gc_trace_callback;
 

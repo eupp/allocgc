@@ -27,24 +27,25 @@ namespace precisegc { namespace details {
 
 class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
-    typedef allocators::gc_so_allocator mso_alloc_t;
-    typedef allocators::gc_lo_allocator mlo_alloc_t;
+    typedef allocators::gc_so_allocator so_alloc_t;
+    typedef allocators::gc_lo_allocator lo_alloc_t;
     typedef compacting::forwarding forwarding;
 public:
     gc_heap();
 
     allocators::gc_alloc_response allocate(const allocators::gc_alloc_request& rqst);
 
-    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
+    gc_heap_stat collect(const threads::world_snapshot& snapshot, gc_gen gen, size_t threads_available);
 private:
-    typedef std::unordered_map<std::thread::id, mso_alloc_t> tlab_map_t;
+    typedef std::unordered_map<std::thread::id, so_alloc_t> tlab_map_t;
 
     allocators::gc_alloc_response allocate_on_tlab(const allocators::gc_alloc_request& rqst);
-    mso_alloc_t& get_tlab();
+    so_alloc_t& get_tlab();
 
-    mlo_alloc_t m_loa;
-    tlab_map_t  m_tlab_map;
-    std::mutex  m_tlab_map_mutex;
+    lo_alloc_t m_loa;
+    so_alloc_t m_old_soa;
+    tlab_map_t m_tlab_map;
+    std::mutex m_tlab_map_mutex;
 };
 
 }}

@@ -139,7 +139,7 @@ gc_run_stats gc_incremental::sweep()
 
     gc_run_stats stats;
 
-    stats.heap_stat           = m_heap.collect(snapshot, m_threads_available);
+    stats.heap_stat           = m_heap.collect(snapshot, <#initializer#>, m_threads_available);
     stats.pause_stat.type     = type;
     stats.pause_stat.duration = snapshot.time_since_stop_the_world();
 

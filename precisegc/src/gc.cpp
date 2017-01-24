@@ -19,7 +19,7 @@ int gc_init(const gc_init_options& options)
         logging::init(std::clog, options.loglevel);
 //        threads::gc_thread_manager::instance().register_main_thread(threads::frame_address());
 
-        allocators::gc_core_allocator::set_heap_limit(options.heapsize);
+        gc_set_heap_limit(options.heapsize);
 
         thread_descriptor main_thrd_descr;
         main_thrd_descr.id = std::this_thread::get_id();

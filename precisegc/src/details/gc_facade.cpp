@@ -11,6 +11,12 @@
 
 namespace precisegc { namespace details {
 
+const size_t gc_facade::HEAP_START_LIMIT = 2 * 1024 * 1024;
+
+const double gc_facade::INCREASE_FACTOR      = 2.0;
+const double gc_facade::MARK_THRESHOLD       = 0.6;
+const double gc_facade::COLLECT_THRESHOLD    = 1.0;
+
 gc_facade::gc_facade()
     : m_manager(nullptr)
 {
@@ -137,6 +143,46 @@ void gc_facade::deregister_thread(std::thread::id id)
 {
     assert(m_strategy);
     m_strategy->deregister_thread(id);
+}
+
+bool gc_facade::increment_heap_size(size_t alloc_size)
+{
+    std::unique_lock<std::mutex> lock(m_heap_mutex);
+    size_t size = m_heap_size + alloc_size;
+    if (size > COLLECT_THRESHOLD * m_heap_limit) {
+        return false;
+    }
+    else if (size > MARK_THRESHOLD * m_heap_limit) {
+        gc_options opt;
+        opt.kind = gc_kind::CONCURRENT_MARK;
+        opt.gen  = 0;
+
+        lock.unlock();
+        initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
+        lock.lock();
+    }
+    m_heap_size += alloc_size;
+    return true;
+}
+
+void gc_facade::decrement_heap_size(size_t size)
+{
+    std::lock_guard<std::mutex> lock(m_heap_mutex);
+    m_heap_size -= size;
+}
+
+void gc_facade::set_heap_limit(size_t size)
+{
+    std::lock_guard<std::mutex> lock(m_heap_mutex);
+    m_heap_limit = (size == std::numeric_limits<size_t>::max()) ? HEAP_START_LIMIT : size;
+    m_heap_maxlimit = size;
+}
+
+void gc_facade::expand_heap()
+{
+    std::lock_guard<std::mutex> lock(m_heap_mutex);
+    size_t increased_size = INCREASE_FACTOR * m_heap_limit;
+    m_heap_limit = std::min(increased_size, m_heap_maxlimit);
 }
 
 void gc_facade::initiation_point(initiation_point_type ipt, const gc_options& opt)

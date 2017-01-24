@@ -35,7 +35,7 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
 
         blk.reset(allocate_blk(blk_size));
         if (!blk) {
-            gc_core_allocator::expand_heap();
+            gc_expand_heap();
             blk.reset(allocate_blk(blk_size));
             if (!blk) {
                 throw gc_bad_alloc();
@@ -78,6 +78,7 @@ gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
         }
         it = next;
     }
+    gc_decrease_heap_size(stat.mem_freed);
     return stat;
 }
 

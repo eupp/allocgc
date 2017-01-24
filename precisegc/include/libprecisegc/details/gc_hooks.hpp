@@ -31,6 +31,11 @@ void gc_deregister_thread(std::thread::id id);
 
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt);
 
+bool gc_increase_heap_size(size_t alloc_size);
+void gc_decrease_heap_size(size_t size);
+void gc_set_heap_limit(size_t size);
+void gc_expand_heap();
+
 void gc_add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry);
 void gc_remove_from_index(const byte* mem, size_t size);
 

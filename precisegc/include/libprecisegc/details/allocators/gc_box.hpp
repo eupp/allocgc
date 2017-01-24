@@ -192,7 +192,7 @@ public:
         box_meta* meta = get_box_meta(cell_start);
         meta->set_forwarded();
         byte** forward_ptr_addr = get_forward_pointer_address(cell_start);
-        *forward_ptr_addr = forward_pointer;
+        *forward_ptr_addr = get_obj_start(forward_pointer);
     }
 };
 

@@ -132,6 +132,9 @@ bool gc_pool_allocator::contains(byte* ptr) const
 gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 {
     gc_heap_stat stat;
+    if (m_descrs.begin() == m_descrs.end()) {
+        return stat;
+    }
     shrink(stat);
     m_top = nullptr;
     m_end = m_top;
@@ -141,7 +144,6 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
     } else {
         sweep(stat);
     }
-//    m_prev_residency = stat.residency();
     return stat;
 }
 
@@ -225,10 +227,10 @@ bool gc_pool_allocator::empty() const
 
 bool gc_pool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
-    return false;
-    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
-           || (stat.residency() < RESIDENCY_NON_COMPACTING_THRESHOLD
-               && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
+    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD;
+//    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
+//           || (stat.residency() < RESIDENCY_NON_COMPACTING_THRESHOLD
+//               && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
 }
 
 gc_pool_allocator::memory_range_type gc_pool_allocator::memory_range()

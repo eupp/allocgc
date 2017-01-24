@@ -40,6 +40,6 @@
   "builders": [
     {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
   ],
-  "nruns" : 1,
-  "failquick" : true
+  "nruns" : 5,
+  "failquick" : false
 }

@@ -195,7 +195,7 @@ int main(int argc, const char* argv[])
         ops.initiation  = gc_initiation::SPACE_BASED;
         ops.compacting  = gc_compacting::DISABLED;
 //        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-//        ops.loglevel    = gc_loglevel::DEBUG;
+//        ops.loglevel    = gc_loglevel::INFO;
 //        ops.print_stat  = true;
 //            ops.threads_available = 1;
         gc_init(ops);

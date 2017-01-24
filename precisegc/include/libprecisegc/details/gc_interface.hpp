@@ -97,7 +97,7 @@ struct gc_heap_stat
 
     double residency() const
     {
-        return mem_live / mem_all;
+        return mem_live / (double) mem_all;
     }
 
     size_t mem_before_gc = 0;

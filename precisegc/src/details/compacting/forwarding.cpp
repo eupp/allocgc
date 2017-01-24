@@ -24,13 +24,17 @@ void forwarding::forward(gc_handle* handle) const
     using namespace collectors;
 
     byte* from = gc_handle_access::get<std::memory_order_relaxed>(*handle);
-    byte* from_obj_start = gc_tagging::get_obj_start(from);
-
-    if (!from_obj_start || !gc_box::is_forwarded(from_obj_start)) {
+    byte* from_obj_start  = gc_tagging::get_obj_start(from);
+    if (!from_obj_start) {
         return;
     }
 
-    byte* to_obj_start = gc_box::forward_pointer(from_obj_start);
+    byte* from_cell_start = gc_box::get_cell_start(from_obj_start);
+    if (!gc_box::is_forwarded(from_cell_start)) {
+        return;
+    }
+
+    byte* to_obj_start = gc_box::forward_pointer(from_cell_start);
     byte* to = to_obj_start;
 
     if (gc_tagging::is_derived(from)) {

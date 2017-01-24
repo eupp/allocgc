@@ -13,7 +13,7 @@
 namespace precisegc { namespace details { namespace collectors {
 
 gc_serial::gc_serial(size_t threads_available)
-    : m_marker(&m_packet_manager, nullptr)
+    : m_marker(&m_packet_manager, &m_remset)
     , m_threads_available(threads_available)
 {}
 
@@ -52,7 +52,30 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_tagging::clear_root_bit(gc_handle_access::get<std::memory_order_relaxed>(src));
     bool root_bit = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(dst));
-    gc_handle_access::set<std::memory_order_relaxed>(dst, gc_tagging::set_root_bit(ptr, root_bit));
+    gc_handle_access::set<std::memory_order_relaxed>(
+            dst,
+            gc_tagging::set_root_bit(ptr, root_bit)
+    );
+
+    byte* obj_start = gc_tagging::get_obj_start(ptr);
+    if (!obj_start) {
+        return;
+    }
+
+    gc_cell cell = gc_index_object(obj_start);
+
+    byte* self_ptr = reinterpret_cast<byte*>(&dst);
+    gc_memory_descriptor* descr = gc_index_memory(self_ptr);
+    if (!descr) {
+        return;
+    }
+
+    byte* self_cell_start = descr->cell_start(self_ptr);
+    byte* self_obj_start = allocators::gc_box::get_obj_start(self_cell_start);
+
+    if (cell.get_gen() != descr->get_gen(self_cell_start)) {
+        m_remset.add(self_obj_start);
+    }
 }
 
 void gc_serial::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
@@ -86,6 +109,7 @@ gc_run_stats gc_serial::sweep(const gc_options& options)
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_marker.trace_pins(snapshot.get_pin_tracer());
+    m_marker.trace_remset();
     m_marker.concurrent_mark(m_threads_available - 1);
     m_marker.mark();
     m_dptr_storage.destroy_unmarked();
@@ -111,4 +135,3 @@ gc_info gc_serial::info() const
 }
 
 }}}
-

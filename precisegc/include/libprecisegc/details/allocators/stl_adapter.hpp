@@ -13,7 +13,7 @@
 namespace precisegc { namespace details { namespace allocators {
 
 template<typename T, typename Alloc>
-class stl_adapter : private Alloc
+class stl_adapter
 {
     static_assert(std::is_same<typename Alloc::pointer_type, byte*>::value,
                   "stl_adapter should be used with raw memory allocator");
@@ -22,6 +22,8 @@ class stl_adapter : private Alloc
 
     template <typename U, typename OtherAlloc>
     friend class stl_adapter;
+
+    static Alloc alloc;
 public:
     typedef T value_type;
     typedef value_type& reference;
@@ -33,10 +35,13 @@ public:
     typedef typename std::pointer_traits<pointer>::difference_type difference_type;
     typedef typename std::make_unsigned<difference_type>::type size_type;
 
-    // stateful allocators should be propagated
-    typedef typename std::is_same<alloc_tag, stateful_alloc_tag>::type propagate_on_container_copy_assignment;
-    typedef typename std::is_same<alloc_tag, stateful_alloc_tag>::type propagate_on_container_move_assignment;
-    typedef typename std::is_same<alloc_tag, stateful_alloc_tag>::type propagate_on_container_swap;
+//    typedef typename std::is_same<alloc_tag, stateful_alloc_tag>::type propagate_on_container_copy_assignment;
+//    typedef typename std::is_same<alloc_tag, stateful_alloc_tag>::type propagate_on_container_move_assignment;
+//    typedef typename std::is_same<alloc_tag, stateful_alloc_tag>::type propagate_on_container_swap;
+
+    typedef typename std::false_type propagate_on_container_copy_assignment;
+    typedef typename std::false_type propagate_on_container_move_assignment;
+    typedef typename std::false_type propagate_on_container_swap;
 
     template <typename U>
     struct rebind { typedef stl_adapter<U, Alloc> other; };
@@ -47,12 +52,10 @@ public:
 
     template <typename U>
     stl_adapter(const stl_adapter<U, Alloc>& other)
-        : Alloc(other)
     {}
 
     template <typename U>
     stl_adapter(stl_adapter<U, Alloc>&& other)
-        : Alloc(std::move(other))
     {}
 
     stl_adapter& operator=(const stl_adapter&) = default;
@@ -60,12 +63,12 @@ public:
 
     T* allocate(size_t n)
     {
-        return reinterpret_cast<T*>(Alloc::allocate(n * sizeof(T)));
+        return reinterpret_cast<T*>(alloc.allocate(n * sizeof(T)));
     }
 
     void deallocate(T* ptr, size_t n)
     {
-        Alloc::deallocate(reinterpret_cast<byte*>(ptr), n * sizeof(T));
+        alloc.deallocate(reinterpret_cast<byte*>(ptr), n * sizeof(T));
     }
 
     static size_t max_size()
@@ -84,7 +87,20 @@ public:
     {
         p->~U();
     };
+
+    friend bool operator==(const stl_adapter& a, const stl_adapter& b)
+    {
+        return true;
+    }
+
+    friend bool operator!=(const stl_adapter& a, const stl_adapter& b)
+    {
+        return !(a == b);
+    }
 };
+
+template <typename T, typename Alloc>
+Alloc stl_adapter<T, Alloc>::alloc{};
 
 }}}
 

@@ -31,7 +31,7 @@ gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, gc_so_alloca
         if (m_buckets[i].second.empty()) {
             continue;
         }
-        tasks.emplace_back([this, i, &frwd, &part_stats] {
+        tasks.emplace_back([this, i, &frwd, &part_stats, &old_gen_alloc] {
             if (old_gen_alloc) {
                 part_stats[i] = m_buckets[i].second.collect(frwd, &old_gen_alloc->m_buckets[i].second);
             } else {

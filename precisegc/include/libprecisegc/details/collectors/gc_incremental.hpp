@@ -38,7 +38,7 @@ public:
     gc_info info() const override;
 private:
     gc_run_stats start_marking();
-    gc_run_stats sweep();
+    gc_run_stats sweep(const gc_options& options);
 
     gc_heap m_heap;
     dptr_storage m_dptr_storage;

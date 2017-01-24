@@ -191,6 +191,8 @@ void gc_facade::initiation_point(initiation_point_type ipt, const gc_options& op
     } else if (ipt == initiation_point_type::HEAP_LIMIT_EXCEEDED) {
 //        logging::info() << "Heap limit exceeded - thread initiates gc";
         m_manager.gc(opt);
+    } else if (ipt == initiation_point_type::TLAB_LIMIT_EXCEEDED) {
+        m_manager.gc(opt);
     } else if (ipt == initiation_point_type::CONCURRENT_MARKING_FINISHED) {
         logging::info() << "Concurrent marking finished - Thread initiates gc";
         m_manager.gc(opt);

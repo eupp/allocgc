@@ -90,6 +90,7 @@ public:
             if (obj_start) {
                 gc_cell cell = gc_index_object(obj_start);
                 cell.set_mark(true);
+                cell.set_pin(true);
                 push_root_to_packet(cell, output_packet);
 
                 logging::debug() << "remset ptr: " << (void*) gc_tagging::get(*it);

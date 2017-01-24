@@ -40,6 +40,7 @@ private:
     gc_heap m_heap;
     dptr_storage m_dptr_storage;
     packet_manager m_packet_manager;
+    remset m_remset;
     marker m_marker;
     size_t m_threads_available;
 };

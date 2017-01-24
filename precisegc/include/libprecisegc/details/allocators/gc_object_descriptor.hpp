@@ -26,8 +26,9 @@ public:
     bool get_mark(byte* ptr) const override;
     bool get_pin(byte* ptr) const override;
 
-    bool set_mark(bool mark) noexcept;
-    bool set_pin(bool pin) noexcept;
+    void set_mark(bool mark) noexcept;
+
+    void set_pin(bool pin) noexcept;
 
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;

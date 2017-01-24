@@ -89,7 +89,7 @@ gc_run_stats gc_incremental::gc(const gc_options& options)
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking();
     } else if (options.kind == gc_kind::COLLECT) {
-        gc_run_stats stats = sweep();
+        gc_run_stats stats = sweep(options);
         allocators::gc_core_allocator::shrink();
         return stats;
     }
@@ -112,7 +112,7 @@ gc_run_stats gc_incremental::start_marking()
     return stats;
 }
 
-gc_run_stats gc_incremental::sweep()
+gc_run_stats gc_incremental::sweep(const gc_options& options)
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
@@ -139,7 +139,7 @@ gc_run_stats gc_incremental::sweep()
 
     gc_run_stats stats;
 
-    stats.heap_stat           = m_heap.collect(snapshot, <#initializer#>, m_threads_available);
+    stats.heap_stat           = m_heap.collect(snapshot, options.gen, m_threads_available);
     stats.pause_stat.type     = type;
     stats.pause_stat.duration = snapshot.time_since_stop_the_world();
 

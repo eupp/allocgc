@@ -25,12 +25,12 @@ bool gc_object_descriptor::get_pin() const noexcept
     return m_pin_bit;
 }
 
-bool gc_object_descriptor::set_mark(bool mark) noexcept
+void gc_object_descriptor::set_mark(bool mark) noexcept
 {
     m_mark_bit = mark;
 }
 
-bool gc_object_descriptor::set_pin(bool pin) noexcept
+void gc_object_descriptor::set_pin(bool pin) noexcept
 {
     m_pin_bit = pin;
 }
@@ -83,8 +83,9 @@ size_t gc_object_descriptor::cell_size(byte* ptr) const
 
 byte* gc_object_descriptor::cell_start(byte* ptr) const
 {
-    assert(check_ptr(ptr));
-    return ptr;
+//    assert(check_ptr(ptr));
+    ptrdiff_t offset = ptr - const_cast<byte*>(reinterpret_cast<const byte*>(this));
+    return ptr - offset + sizeof(gc_object_descriptor);
 }
 
 size_t gc_object_descriptor::object_count(byte* ptr) const

@@ -14,6 +14,8 @@
 
 namespace precisegc { namespace details {
 
+const size_t gc_heap::TLAB_SIZE = 1 * 1024 * 1024;
+
 gc_heap::gc_heap()
 {}
 
@@ -65,7 +67,7 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, gc_gen ge
 
 allocators::gc_alloc_response gc_heap::allocate_on_tlab(const allocators::gc_alloc_request& rqst)
 {
-    static thread_local tlab_t& tlab = get_tlab();
+    static thread_local gc_heap::tlab_t& tlab = get_tlab();
     tlab.size += rqst.alloc_size();
     if (tlab.size > TLAB_SIZE) {
         gc_options options;
@@ -76,7 +78,7 @@ allocators::gc_alloc_response gc_heap::allocate_on_tlab(const allocators::gc_all
     return tlab.alloc.allocate(rqst);
 }
 
-tlab_t& gc_heap::get_tlab()
+gc_heap::tlab_t& gc_heap::get_tlab()
 {
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
     tlab_t& tlab = m_tlab_map[std::this_thread::get_id()];

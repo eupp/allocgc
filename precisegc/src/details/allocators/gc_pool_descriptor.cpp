@@ -162,8 +162,8 @@ byte* gc_pool_descriptor::cell_start(byte* ptr) const
 {
     assert(contains(ptr));
     std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
-    uintptr -= uintptr % cell_size(ptr);
-    assert(uintptr % cell_size(ptr) == 0);
+    uintptr &= static_cast<std::uintptr_t>(-1) << m_cell_size_log2;
+    assert(uintptr % cell_size() == 0);
     return reinterpret_cast<byte*>(uintptr);
 }
 

@@ -66,6 +66,12 @@ public:
         m_descr->set_pin(m_cell, pin);
     }
 
+    gc_gen get_gen() const
+    {
+        assert(is_initialized());
+        return m_descr->get_gen(m_cell);
+    }
+
     gc_lifetime_tag get_lifetime_tag() const
     {
         assert(is_initialized());

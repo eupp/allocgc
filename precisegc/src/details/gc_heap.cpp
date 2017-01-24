@@ -37,7 +37,8 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, gc_gen ge
         stat += m_loa.collect(frwd);
     }
     for (auto& kv: m_tlab_map) {
-        stat += kv.second.collect(frwd, &m_old_soa, thread_pool);
+        stat += kv.second.alloc.collect(frwd, &m_old_soa, thread_pool);
+        kv.second.size = 0;
     }
 
     if (stat.mem_copied > 0) {
@@ -64,14 +65,23 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, gc_gen ge
 
 allocators::gc_alloc_response gc_heap::allocate_on_tlab(const allocators::gc_alloc_request& rqst)
 {
-    static thread_local so_alloc_t& tlab = get_tlab();
-    return tlab.allocate(rqst);
+    static thread_local tlab_t& tlab = get_tlab();
+    tlab.size += rqst.alloc_size();
+    if (tlab.size > TLAB_SIZE) {
+        gc_options options;
+        options.kind = gc_kind::COLLECT;
+        options.gen = GC_YOUNG_GEN;
+        gc_initiation_point(initiation_point_type::TLAB_LIMIT_EXCEEDED, options);
+    }
+    return tlab.alloc.allocate(rqst);
 }
 
-gc_heap::so_alloc_t& gc_heap::get_tlab()
+tlab_t& gc_heap::get_tlab()
 {
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
-    return m_tlab_map[std::this_thread::get_id()];
+    tlab_t& tlab = m_tlab_map[std::this_thread::get_id()];
+    tlab.size = 0;
+    return tlab;
 }
 
 }}

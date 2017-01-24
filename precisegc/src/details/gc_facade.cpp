@@ -147,8 +147,7 @@ bool gc_facade::increment_heap_size(size_t alloc_size)
     size_t size = m_heap_size + alloc_size;
     if (size > COLLECT_THRESHOLD * m_heap_limit) {
         return false;
-    }
-    else if (size > MARK_THRESHOLD * m_heap_limit) {
+    } else if (size > MARK_THRESHOLD * m_heap_limit) {
         gc_options opt;
         opt.kind = gc_kind::CONCURRENT_MARK;
         opt.gen  = 0;

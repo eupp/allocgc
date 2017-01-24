@@ -1,6 +1,7 @@
 #ifndef DIPLOMA_GARBAGE_COLLECTOR_HPP
 #define DIPLOMA_GARBAGE_COLLECTOR_HPP
 
+#include <unordered_map>
 #include <memory>
 #include <mutex>
 

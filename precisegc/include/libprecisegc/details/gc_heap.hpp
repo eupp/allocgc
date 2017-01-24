@@ -37,10 +37,18 @@ public:
 
     gc_heap_stat collect(const threads::world_snapshot& snapshot, gc_gen gen, size_t threads_available);
 private:
-    typedef std::unordered_map<std::thread::id, so_alloc_t> tlab_map_t;
+    struct tlab_t
+    {
+        size_t size;
+        so_alloc_t alloc;
+    };
+
+    typedef std::unordered_map<std::thread::id, tlab_t> tlab_map_t;
 
     allocators::gc_alloc_response allocate_on_tlab(const allocators::gc_alloc_request& rqst);
-    so_alloc_t& get_tlab();
+    tlab_t& get_tlab();
+
+    static const size_t TLAB_SIZE;
 
     lo_alloc_t m_loa;
     so_alloc_t m_old_soa;

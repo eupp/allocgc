@@ -104,6 +104,7 @@ void gc_manager::print_gc_run_stats(const gc_run_stats& stats)
     static std::string text =
             "****************************************************************************\n"
             "   GC SUMMARY                                                               \n"
+            "gen:        xxxx yy                                                         \n"
             "pause type: xxxx yy                                                         \n"
             "pause time: xxxx yy                                                         \n"
             "heap size:  xxxx yy                                                         \n"
@@ -113,15 +114,18 @@ void gc_manager::print_gc_run_stats(const gc_run_stats& stats)
 
     static const std::string placeholder = "xxxx yy";
 
-    static const size_t pause_type_pos = text.find(placeholder, 0);
+    static const size_t gen_pos        = text.find(placeholder, 0);
+    static const size_t pause_type_pos = text.find(placeholder, gen_pos + placeholder.size());
     static const size_t pause_time_pos = text.find(placeholder, pause_type_pos + placeholder.size());
     static const size_t heap_size_pos  = text.find(placeholder, pause_time_pos + placeholder.size());
     static const size_t swept_pos      = text.find(placeholder, heap_size_pos + placeholder.size());
     static const size_t copied_pos     = text.find(placeholder, swept_pos + placeholder.size());
 
+    std::string gc_gen_str = stats.gen == GC_YOUNG_GEN ? "young" : "old";
     std::string gc_type_str = gc_pause_type_to_str(stats.pause_stat.type);
     gc_type_str.resize(20, ' ');
 
+    text.replace(gen_pos, gc_gen_str.size(), gc_gen_str);
     text.replace(pause_type_pos, gc_type_str.size(), gc_type_str);
     text.replace(pause_time_pos, placeholder.size(), duration_to_str(stats.pause_stat.duration, 4));
     text.replace(heap_size_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_before_gc, 4));

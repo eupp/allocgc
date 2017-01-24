@@ -74,12 +74,12 @@ gc_run_stats gc_serial::gc(const gc_options& options)
         return gc_run_stats();
     }
 
-    gc_run_stats stats = sweep();
+    gc_run_stats stats = sweep(options);
     allocators::gc_core_allocator::shrink();
     return stats;
 }
 
-gc_run_stats gc_serial::sweep()
+gc_run_stats gc_serial::sweep(const gc_options& options)
 {
     using namespace threads;
 
@@ -91,7 +91,8 @@ gc_run_stats gc_serial::sweep()
     m_dptr_storage.destroy_unmarked();
 
     gc_run_stats stats;
-    stats.heap_stat = m_heap.collect(snapshot, <#initializer#>, m_threads_available);
+    stats.gen = options.gen;
+    stats.heap_stat = m_heap.collect(snapshot, options.gen, m_threads_available);
 
     stats.pause_stat.type       = gc_pause_type::MARK_COLLECT;
     stats.pause_stat.duration   = snapshot.time_since_stop_the_world();

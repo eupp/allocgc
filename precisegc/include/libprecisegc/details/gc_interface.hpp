@@ -14,6 +14,7 @@ namespace precisegc { namespace details {
 enum class initiation_point_type {
       USER_REQUEST
     , HEAP_LIMIT_EXCEEDED
+    , TLAB_LIMIT_EXCEEDED
     , CONCURRENT_MARKING_FINISHED
     // for debugging
     , START_MARKING
@@ -118,6 +119,7 @@ inline gc_heap_stat operator+(const gc_heap_stat& a, const gc_heap_stat& b)
 
 struct gc_run_stats
 {
+    gc_gen          gen;
     gc_heap_stat    heap_stat;
     gc_pause_stat   pause_stat;
 };

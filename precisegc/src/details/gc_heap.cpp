@@ -14,7 +14,7 @@
 
 namespace precisegc { namespace details {
 
-const size_t gc_heap::TLAB_SIZE = 2 * 1024 * 1024;
+const size_t gc_heap::TLAB_SIZE = 4 * 1024 * 1024;
 
 gc_heap::gc_heap()
 {}

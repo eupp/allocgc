@@ -57,12 +57,12 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
             gc_tagging::set_root_bit(ptr, root_bit)
     );
 
-    byte* obj_start = gc_tagging::get_obj_start(ptr);
-    if (!obj_start) {
-        return;
-    }
-
-    gc_cell cell = gc_index_object(obj_start);
+//    byte* obj_start = gc_tagging::get_obj_start(ptr);
+//    if (!obj_start) {
+//        return;
+//    }
+//
+//    gc_cell cell = gc_index_object(obj_start);
 
     byte* self_ptr = reinterpret_cast<byte*>(&dst);
     gc_memory_descriptor* descr = gc_index_memory(self_ptr);
@@ -73,9 +73,13 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
     byte* self_cell_start = descr->cell_start(self_ptr);
     byte* self_obj_start = allocators::gc_box::get_obj_start(self_cell_start);
 
-    if (cell.get_gen() != descr->get_gen(self_cell_start)) {
+    if (descr->get_gen(self_cell_start) == GC_OLD_GEN) {
         m_remset.add(self_obj_start);
     }
+
+//    if (cell.get_gen() != descr->get_gen(self_cell_start)) {
+//        m_remset.add(self_obj_start);
+//    }
 }
 
 void gc_serial::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
@@ -110,8 +114,8 @@ gc_run_stats gc_serial::sweep(const gc_options& options)
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_marker.trace_pins(snapshot.get_pin_tracer());
     m_marker.trace_remset();
-    m_marker.concurrent_mark(m_threads_available - 1);
-    m_marker.mark();
+    m_marker.concurrent_mark(options.gen, m_threads_available - 1);
+    m_marker.mark(options.gen);
     m_dptr_storage.destroy_unmarked();
 
     gc_run_stats stats;

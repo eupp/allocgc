@@ -104,7 +104,7 @@ gc_run_stats gc_incremental::start_marking()
     world_snapshot snapshot = thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_phase = gc_phase::MARK;
-    m_marker.concurrent_mark(std::max((size_t) 1, m_threads_available - 1));
+    m_marker.concurrent_mark(GC_OLD_GEN, std::max((size_t) 1, m_threads_available - 1));
 
     gc_run_stats stats;
     stats.pause_stat.type     = gc_pause_type::TRACE_ROOTS;
@@ -125,13 +125,13 @@ gc_run_stats gc_incremental::sweep(const gc_options& options)
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_marker.trace_remset();
         m_phase = gc_phase::MARK;
-        m_marker.concurrent_mark(m_threads_available - 1);
-        m_marker.mark();
+        m_marker.concurrent_mark(GC_OLD_GEN, m_threads_available - 1);
+        m_marker.mark(GC_OLD_GEN);
     } else if (m_phase == gc_phase::MARK) {
         type = gc_pause_type::COLLECT;
         m_marker.trace_pins(snapshot.get_pin_tracer());
         m_marker.trace_remset();
-        m_marker.mark();
+        m_marker.mark(GC_OLD_GEN);
     }
     m_phase = gc_phase::COLLECT;
 

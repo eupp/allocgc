@@ -97,11 +97,11 @@ public:
         m_packet_manager->push_packet(std::move(output_packet));
     }
 
-    void mark()
+    void mark(gc_gen gen)
     {
         m_concurrent_flag = false;
         ++m_running_threads_cnt;
-        worker_routine();
+        worker_routine(gen);
         for (auto& worker: m_workers) {
             if (worker.get_id() != std::this_thread::get_id()) {
                 worker.join();
@@ -109,20 +109,20 @@ public:
         }
     }
 
-    void concurrent_mark(size_t threads_num)
+    void concurrent_mark(gc_gen gen, size_t threads_num)
     {
         m_concurrent_flag = true;
         m_running_threads_cnt = threads_num;
         m_workers.resize(threads_num);
         for (auto& worker: m_workers) {
-            worker = std::thread(&marker::worker_routine, this);
+            worker = std::thread(&marker::worker_routine, this, gen);
         }
     }
 private:
     static const size_t POP_REMSET_COUNT = 16;
     static const size_t POP_OUTPUT_ATTEMPTS = 2;
 
-    void worker_routine()
+    void worker_routine(gc_gen gen)
     {
         auto input_packet = m_packet_manager->pop_input_packet();
         packet_manager::mark_packet_handle output_packet = nullptr;
@@ -162,8 +162,8 @@ private:
             if (!output_packet) {
                 output_packet = m_packet_manager->pop_output_packet();
             }
-            auto trace_cb = [this, &output_packet] (gc_handle* handle) {
-                trace(handle, output_packet);
+            auto trace_cb = [this, &output_packet, gen] (gc_handle* handle) {
+                trace(handle, gen, output_packet);
             };
             while (!input_packet->is_empty()) {
                 gc_cell cell = input_packet->pop();
@@ -202,14 +202,14 @@ private:
         output_packet->push(cell);
     }
 
-    void trace(gc_handle* handle, packet_manager::mark_packet_handle& output_packet)
+    void trace(gc_handle* handle, gc_gen gen, packet_manager::mark_packet_handle& output_packet)
     {
         byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
         byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
 //            logging::debug() << "trace object at address: " << (void*) obj_start;
             gc_cell cell = gc_index_object(obj_start);
-            if (!cell.get_mark()) {
+            if (!cell.get_mark() && cell.get_gen() <= gen) {
                 cell.set_mark(true);
                 push_to_packet(cell, output_packet);
             }

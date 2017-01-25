@@ -144,10 +144,10 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd, gc_pool_al
     m_end = m_top;
 //    m_freelist = nullptr;
 
-    if (is_compaction_required(stat)) {
+    if (!old_gen_alloc && is_compaction_required(stat)) {
         compact(frwd, stat);
     }
-    promote(stat, old_gen_alloc);
+//    promote(stat, old_gen_alloc);
 //    else {
 //        sweep(stat);
 //    }

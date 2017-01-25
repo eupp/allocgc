@@ -174,7 +174,7 @@ TEST_F(marker_test, test_unmarked)
     print_tree(root);
 
     marker.trace_roots(root_set);
-    marker.mark();
+    marker.mark(0);
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
     print_tree(root);
@@ -201,7 +201,7 @@ TEST_F(marker_test, test_roots)
     print_tree(root);
 
     marker.trace_roots(root_set);
-    marker.mark();
+    marker.mark(0);
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
     print_tree(root);
@@ -227,7 +227,7 @@ TEST_F(marker_test, test_pins)
 
     pin_set.pins.push_back((byte*) precisegc::internals::gc_ptr_access<node>::get(root));
     marker.trace_pins(pin_set);
-    marker.mark();
+    marker.mark(0);
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
     print_tree(root);

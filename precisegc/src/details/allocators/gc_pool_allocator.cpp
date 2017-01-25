@@ -46,12 +46,12 @@ gc_alloc_response gc_pool_allocator::try_expand_and_allocate(size_t size,
 //    } else if (m_freelist) {
 //        return freelist_allocation(size, rqst);
     } else {
-        if (attempt_num == 0) {
+        if (attempt_num <= 0) {
             gc_options opt;
             opt.kind = gc_kind::COLLECT;
-            opt.gen  = 0;
+            opt.gen  = GC_OLD_GEN;
             gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
-        } else if (attempt_num == 1) {
+        } else if (attempt_num == 2) {
             gc_expand_heap();
         } else {
             throw gc_bad_alloc();
@@ -146,8 +146,8 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd, gc_pool_al
 
     if (is_compaction_required(stat)) {
         compact(frwd, stat);
-        promote(stat, old_gen_alloc);
     }
+    promote(stat, old_gen_alloc);
 //    else {
 //        sweep(stat);
 //    }

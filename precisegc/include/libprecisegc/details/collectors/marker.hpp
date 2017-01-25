@@ -56,9 +56,8 @@ public:
                 gc_cell cell = gc_index_object(obj_start);
                 cell.set_mark(true);
                 push_root_to_packet(cell, output_packet);
-
-                logging::debug() << "root: " << (void*) root;
             }
+            logging::debug() << "root: " << (void*) root;
         });
         m_packet_manager->push_packet(std::move(output_packet));
     }
@@ -73,9 +72,8 @@ public:
                 cell.set_mark(true);
                 cell.set_pin(true);
                 push_root_to_packet(cell, output_packet);
-
-                logging::debug() << "pin: " << (void*) ptr;
             }
+            logging::debug() << "pin: " << (void*) ptr;
         });
         m_packet_manager->push_packet(std::move(output_packet));
     }
@@ -92,9 +90,8 @@ public:
                 cell.set_mark(true);
                 cell.set_pin(true);
                 push_root_to_packet(cell, output_packet);
-
-                logging::debug() << "remset ptr: " << (void*) gc_tagging::get(*it);
             }
+            logging::debug() << "remset ptr: " << (void*) gc_tagging::get(*it);
         }
         m_remset->clear();
         m_packet_manager->push_packet(std::move(output_packet));
@@ -210,6 +207,7 @@ private:
         byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
         byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
+//            logging::debug() << "trace object at address: " << (void*) obj_start;
             gc_cell cell = gc_index_object(obj_start);
             if (!cell.get_mark()) {
                 cell.set_mark(true);

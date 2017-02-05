@@ -10,7 +10,7 @@ const char* logging::prefix_ = "precisegc-";
 
 void logging::init(std::ostream& stream, gc_loglevel lv)
 {
-    get_logger() = boost::in_place(stream, lv);
+    get_logger().reset(new logger(stream, lv));
 }
 
 logging::log_line logging::debug()
@@ -38,9 +38,9 @@ void logging::touch()
     get_logger();
 }
 
-boost::optional<logging::logger>& logging::get_logger()
+std::unique_ptr<logging::logger>& logging::get_logger()
 {
-    static boost::optional<logging::logger> lg;
+    static std::unique_ptr<logging::logger> lg;
     return lg;
 }
 

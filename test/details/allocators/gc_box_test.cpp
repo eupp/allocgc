@@ -128,5 +128,5 @@ TEST_F(gc_box_test, test_forward)
     gc_box::set_forward_pointer(cell_start, forward_pointer);
 
     ASSERT_TRUE(gc_box::is_forwarded(cell_start));
-    ASSERT_EQ(forward_pointer, gc_box::forward_pointer(cell_start));
+    ASSERT_EQ(gc_box::get_obj_start(forward_pointer), gc_box::forward_pointer(cell_start));
 }

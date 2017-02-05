@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_GC_TYPE_META_HPP
 #define DIPLOMA_GC_TYPE_META_HPP
 
+#include <vector>
+
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/utils/dynarray.hpp>

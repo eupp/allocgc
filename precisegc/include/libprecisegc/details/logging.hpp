@@ -5,8 +5,6 @@
 #include <memory>
 #include <mutex>
 
-#include <boost/optional.hpp>
-
 #include <libprecisegc/gc_init_options.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
@@ -44,8 +42,8 @@ private:
         friend class log_line;
     private:
         std::ostream m_stream;
-        mutex_t m_mutex;
         gc_loglevel m_loglevel;
+        mutex_t m_mutex;
     };
 
     class log_line: private utils::noncopyable
@@ -70,7 +68,7 @@ private:
         std::unique_lock<mutex_t> m_lock;
     };
 
-    static boost::optional<logger>& get_logger();
+    static std::unique_ptr<logger>& get_logger();
     static log_line log(gc_loglevel lv);
 
     static const char* prefix_;

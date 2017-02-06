@@ -163,7 +163,7 @@ bool gc_handle::is_null() const
 }
 
 gc_handle::pin_guard::pin_guard(const gc_handle& handle)
-    : m_ptr(gc_instance.pin(handle))
+    : m_ptr(gc_instance.register_pin(handle))
 {}
 
 gc_handle::pin_guard::pin_guard(pin_guard&& other)
@@ -174,7 +174,7 @@ gc_handle::pin_guard::pin_guard(pin_guard&& other)
 
 gc_handle::pin_guard::~pin_guard()
 {
-    gc_instance.unpin(m_ptr);
+    gc_instance.deregister_pin(m_ptr);
 }
 
 gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)

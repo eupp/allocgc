@@ -19,21 +19,23 @@ gc_untyped_ptr::gc_untyped_ptr()
 //{}
 
 gc_untyped_ptr::gc_untyped_ptr(byte* ptr)
-    : gc_untyped_ptr(ptr, !gc_is_heap_ptr(&m_handle))
-{}
-
-gc_untyped_ptr::gc_untyped_ptr(byte* ptr, bool is_root)
-    : m_handle(gc_init_ptr(ptr, is_root))
+//    : gc_untyped_ptr(ptr, !gc_is_heap_ptr(&m_handle))
 {
-    using namespace threads;
-    if (is_root) {
-        register_root();
-    } else {
-        if (this_managed_thread::is_type_meta_requested()) {
-            this_managed_thread::register_managed_object_child(&m_handle);
-        }
-    }
+    gc_register_handle(m_handle, ptr);
 }
+
+//gc_untyped_ptr::gc_untyped_ptr(byte* ptr, bool is_root)
+//    : m_handle(gc_init_ptr(ptr, is_root))
+//{
+//    using namespace threads;
+//    if (is_root) {
+//        register_root();
+//    } else {
+//        if (this_managed_thread::is_type_meta_requested()) {
+//            this_managed_thread::register_managed_object_child(&m_handle);
+//        }
+//    }
+//}
 
 gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other)
     : gc_untyped_ptr()
@@ -43,9 +45,10 @@ gc_untyped_ptr::gc_untyped_ptr(const gc_untyped_ptr& other)
 
 gc_untyped_ptr::~gc_untyped_ptr()
 {
-    if (gc_is_root(m_handle)) {
-        delete_root();
-    }
+//    if (gc_is_root(m_handle)) {
+//        delete_root();
+//    }
+    gc_deregister_handle(m_handle);
 }
 
 gc_untyped_ptr& gc_untyped_ptr::operator=(std::nullptr_t t)

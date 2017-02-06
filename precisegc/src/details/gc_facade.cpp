@@ -97,7 +97,7 @@ void gc_facade::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
     m_strategy->interior_wbarrier(handle, offset);
 }
 
-byte* gc_facade::pin(const gc_handle& handle)
+byte* gc_facade::register_pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = handle.rbarrier();
@@ -107,7 +107,7 @@ byte* gc_facade::pin(const gc_handle& handle)
     return ptr;
 }
 
-void gc_facade::unpin(byte* ptr)
+void gc_facade::deregister_pin(byte* ptr)
 {
     if (ptr) {
         threads::this_managed_thread::unpin(ptr);

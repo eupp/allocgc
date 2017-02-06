@@ -21,9 +21,14 @@ public:
     virtual void commit(gc_cell& cell) = 0;
     virtual void commit(gc_cell& cell, const gc_type_meta* type_meta) = 0;
 
-    virtual byte* init_ptr(byte* ptr, bool root_flag) = 0;
+    virtual void register_handle(gc_handle& handle, byte* ptr) = 0;
+    virtual void deregister_handle(gc_handle& handle) = 0;
 
-    virtual bool is_root(const gc_handle&) const = 0;
+    virtual void register_pin(const gc_handle& handle) = 0;
+    virtual void deregister_pin(byte* pin) = 0;
+
+    virtual void push_pin(const gc_handle& handle) = 0;
+    virtual void pop_pin(byte* pin) = 0;
 
     virtual byte* rbarrier(const gc_handle& handle) = 0;
     virtual void  wbarrier(gc_handle& dst, const gc_handle& src) = 0;

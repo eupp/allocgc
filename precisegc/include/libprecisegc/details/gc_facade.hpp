@@ -29,16 +29,18 @@ public:
     void commit(gc_cell& cell);
     void commit(gc_cell& cell, const gc_type_meta* type_meta);
 
-    byte* init_ptr(byte* ptr, bool root_flag);
-    bool is_root(const gc_handle& handle) const;
+//    byte* init_ptr(byte* ptr, bool root_flag);
+
+    void register_handle(gc_handle& handle, byte* ptr);
+    void deregister_handle(gc_handle& handle);
+
+    byte* register_pin(const gc_handle& handle);
+    void  deregister_pin(byte* ptr);
 
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 
     void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
-
-    byte* pin(const gc_handle& handle);
-    void  unpin(byte* ptr);
 
     byte* push_pin(const gc_handle& handle);
     void  pop_pin(byte* ptr);

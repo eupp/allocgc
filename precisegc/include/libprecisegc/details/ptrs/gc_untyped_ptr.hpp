@@ -15,7 +15,7 @@ class gc_untyped_ptr
 public:
     gc_untyped_ptr();
     gc_untyped_ptr(byte* ptr);
-    gc_untyped_ptr(byte* ptr, bool is_root);
+//    gc_untyped_ptr(byte* ptr, bool is_root);
     gc_untyped_ptr(const gc_untyped_ptr& other);
     ~gc_untyped_ptr();
 

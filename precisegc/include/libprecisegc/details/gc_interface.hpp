@@ -56,6 +56,7 @@ inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
 typedef int     gc_gen;
 
 typedef std::function<void(gc_handle*)> gc_trace_callback;
+typedef std::function<void(byte*)> gc_trace_pin_callback;
 
 struct gc_info
 {

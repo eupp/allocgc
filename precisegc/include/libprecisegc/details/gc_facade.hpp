@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 
+#include <libprecisegc/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/collectors/index_tree.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
@@ -29,23 +30,27 @@ public:
     void commit(gc_cell& cell);
     void commit(gc_cell& cell, const gc_type_meta* type_meta);
 
-//    byte* init_ptr(byte* ptr, bool root_flag);
-
     void register_handle(gc_handle& handle, byte* ptr);
     void deregister_handle(gc_handle& handle);
 
     byte* register_pin(const gc_handle& handle);
     void  deregister_pin(byte* ptr);
 
+    byte* push_pin(const gc_handle& handle);
+    void  pop_pin(byte* ptr);
+
     byte* rbarrier(const gc_handle& handle);
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 
     void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
 
-    byte* push_pin(const gc_handle& handle);
-    void  pop_pin(byte* ptr);
-
     bool compare(const gc_handle& a, const gc_handle& b);
+
+    void register_stack_entry(gc_new_stack_entry* stack_entry);
+    void deregister_stack_entry(gc_new_stack_entry* stack_entry);
+
+    void register_thread(std::thread::id id, byte* stack_start_addr);
+    void deregister_thread(std::thread::id id);
 
     void initiation_point(initiation_point_type ipt, const gc_options& opt);
 

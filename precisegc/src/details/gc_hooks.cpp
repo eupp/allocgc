@@ -1,7 +1,7 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 
-#include <libprecisegc/details/threads/static_root_set.hpp>
+#include <libprecisegc/details/collectors/static_root_set.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/gc_facade.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
@@ -65,6 +65,26 @@ void gc_commit(gc_cell& cell)
 void gc_commit(gc_cell& cell, const gc_type_meta* type_meta)
 {
     gc_instance.commit(cell, type_meta);
+}
+
+void gc_register_handle(gc_handle& handle, byte* ptr)
+{
+    gc_instance.register_handle(handle, ptr);
+}
+
+void gc_deregister_handle(gc_handle& handle)
+{
+    gc_instance.deregister_handle(handle);
+}
+
+void gc_register_thread(std::thread::id id, byte* stack_start_addr)
+{
+    gc_instance.register_thread(id, stack_start_addr);
+}
+
+void gc_deregister_thread(std::thread::id id)
+{
+    gc_instance.deregister_thread(id);
 }
 
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt)

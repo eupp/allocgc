@@ -2,7 +2,7 @@
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 #include <libprecisegc/details/gc_factory.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -16,7 +16,7 @@ int gc_init(const gc_init_options& options)
     static bool init_flag = false;
     if (!init_flag) {
         logging::init(std::clog, options.loglevel);
-        threads::thread_manager::instance().register_main_thread(threads::frame_address());
+        threads::gc_thread_manager::instance().register_main_thread(threads::frame_address());
 
         allocators::gc_core_allocator::set_heap_limit(options.heapsize);
 

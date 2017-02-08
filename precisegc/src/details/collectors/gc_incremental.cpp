@@ -4,7 +4,7 @@
 
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
@@ -101,7 +101,7 @@ gc_run_stats gc_incremental::start_marking()
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
 
-    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    world_snapshot snapshot = gc_thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_phase = gc_phase::MARK;
     m_marker.concurrent_mark(std::max((size_t) 1, m_threads_available - 1));
@@ -118,7 +118,7 @@ gc_run_stats gc_incremental::sweep()
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
     gc_pause_type type;
-    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    world_snapshot snapshot = gc_thread_manager::instance().stop_the_world();
     if (m_phase == gc_phase::IDLE) {
         type = gc_pause_type::MARK_COLLECT;
         m_marker.trace_roots(snapshot.get_root_tracer());

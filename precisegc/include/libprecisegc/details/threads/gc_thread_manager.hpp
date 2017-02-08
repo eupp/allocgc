@@ -4,24 +4,24 @@
 #include <map>
 #include <mutex>
 #include <thread>
+#include <memory>
 
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/adaptor/map.hpp>
 
+#include <libprecisegc/details/threads/gc_thread_descriptor.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
-#include <libprecisegc/details/gc_exception.hpp>
 #include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
-class managed_thread;
 class threads_snapshot;
 class world_snapshot;
 
-class thread_manager : private utils::noncopyable, private utils::nonmovable
+class gc_thread_manager : private utils::noncopyable, private utils::nonmovable
 {
-    typedef std::map<std::thread::id, managed_thread*> map_type;
+    typedef std::map<std::thread::id, std::unique_ptr<gc_thread_descriptor>> map_type;
     typedef std::mutex lock_type;
 public:
     typedef utils::locked_range<
@@ -30,21 +30,18 @@ public:
             >
             , lock_type> threads_range_type;
 
-    static thread_manager& instance();
+    gc_thread_manager() = default;
 
-    ~thread_manager();
+    ~gc_thread_manager();
 
-    void register_main_thread(byte* stack_start_addr);
-    void register_thread(managed_thread* thread_ptr);
-    void deregister_thread(managed_thread* thread_ptr);
+    void register_thread(std::thread::id id, std::unique_ptr<gc_thread_descriptor> descr);
+    void deregister_thread(std::thread::id id);
 
-    managed_thread* lookup_thread(std::thread::id thread_id) const;
+    gc_thread_descriptor* lookup_thread(std::thread::id thread_id) const;
 
     threads_range_type threads_snapshot() const;
     world_snapshot stop_the_world() const;
 private:
-    thread_manager() = default;
-
     map_type m_threads;
     mutable lock_type m_lock;
 };

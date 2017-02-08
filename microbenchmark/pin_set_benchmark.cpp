@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <libprecisegc/details/threads/pin_set.hpp>
+#include <libprecisegc/details/collectors/pin_set.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 
 #include "deoptimize.hpp"

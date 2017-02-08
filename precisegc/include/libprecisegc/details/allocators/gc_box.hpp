@@ -1,6 +1,8 @@
 #ifndef DIPLOMA_GC_BOX_HPP
 #define DIPLOMA_GC_BOX_HPP
 
+#include <cassert>
+
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>

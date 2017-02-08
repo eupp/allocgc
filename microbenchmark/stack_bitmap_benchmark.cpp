@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <libprecisegc/details/threads/stack_bitmap.hpp>
+#include <libprecisegc/details/collectors/stack_bitmap.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 
 #include "deoptimize.hpp"

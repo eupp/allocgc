@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/pin_set.hpp>
+#include <libprecisegc/details/collectors/pin_set.hpp>
 
 using namespace precisegc::details;
 using namespace precisegc::details::ptrs;

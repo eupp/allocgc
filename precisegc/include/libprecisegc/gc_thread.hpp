@@ -20,7 +20,6 @@ public:
         );
         return std::thread(&start_routine<functor_type>, std::move(pf));
     };
-
 private:
     template <typename Functor>
     static void start_routine(std::unique_ptr<Functor> bf)

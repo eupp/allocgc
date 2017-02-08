@@ -13,7 +13,7 @@
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/types.hpp>
 
-namespace precisegc { namespace details { namespace threads {
+namespace precisegc { namespace details { namespace collectors {
 
 class pin_set : private utils::noncopyable, private utils::nonmovable
 {
@@ -38,10 +38,9 @@ public:
         return std::find(begin(), end(), elem) != end();
     }
 
-    template <typename Functor>
-    void trace(Functor&& f) const
+    void trace(const gc_trace_pin_callback& cb) const
     {
-        std::for_each(begin(), end(), std::forward<Functor>(f));
+        std::for_each(begin(), end(), cb);
     }
 
     size_t count() const

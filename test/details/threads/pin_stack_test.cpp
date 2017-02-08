@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/pin_stack.hpp>
+#include <libprecisegc/details/collectors/pin_stack.hpp>
 
 #include <set>
 

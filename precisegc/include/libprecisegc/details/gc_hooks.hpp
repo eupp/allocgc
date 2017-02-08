@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include <libprecisegc/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/gc_stat.hpp>
@@ -26,6 +27,9 @@ void gc_commit(gc_cell& cell, const gc_type_meta* type_meta);
 
 void gc_register_handle(gc_handle& handle, byte* ptr);
 void gc_deregister_handle(gc_handle& handle);
+
+void gc_register_stack_entry(gc_new_stack_entry* stack_entry);
+void gc_deregister_stack_entry(gc_new_stack_entry* stack_entry);
 
 void gc_register_thread(std::thread::id id, byte* stack_start_addr);
 void gc_deregister_thread(std::thread::id id);

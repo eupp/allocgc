@@ -6,7 +6,7 @@
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/collectors/gc_tagging.hpp>
-#include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 
@@ -83,7 +83,7 @@ gc_run_stats gc_serial::sweep()
 {
     using namespace threads;
 
-    world_snapshot snapshot = thread_manager::instance().stop_the_world();
+    world_snapshot snapshot = gc_thread_manager::instance().stop_the_world();
     m_marker.trace_roots(snapshot.get_root_tracer());
     m_marker.trace_pins(snapshot.get_pin_tracer());
     m_marker.concurrent_mark(m_threads_available - 1);

@@ -5,7 +5,7 @@
 #include <memory>
 
 #include <libprecisegc/libprecisegc.hpp>
-#include <libprecisegc/details/threads/gc_new_stack.hpp>
+#include <libprecisegc/gc_new_stack_entry.hpp>
 
 #include "deoptimize.hpp"
 
@@ -75,7 +75,7 @@ NONIUS_BENCHMARK("pointers.shared_ptr.ctor", [](nonius::chronometer meter)
 NONIUS_BENCHMARK("pointers.gc_ptr.ctor", [](nonius::chronometer meter)
 {
     nonius::storage_for<gc_ptr<obj_type>> storage;
-    details::threads::gc_new_stack::stack_entry stack_entry(
+    details::threads::gc_new_stack_entry::stack_entry stack_entry(
             reinterpret_cast<details::byte*>(&storage),
             sizeof(nonius::storage_for<gc_ptr<obj_type>>),
             false

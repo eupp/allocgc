@@ -65,16 +65,40 @@ void gc_facade::commit(gc_cell& cell, const gc_type_meta* meta)
     m_strategy->commit(cell, meta);
 }
 
-byte* gc_facade::init_ptr(byte* ptr, bool root_flag)
+void gc_facade::register_handle(gc_handle& handle, byte* ptr)
 {
     assert(m_strategy);
-    return m_strategy->init_ptr(ptr, root_flag);
+    m_strategy->register_handle(handle, ptr);
 }
 
-bool gc_facade::is_root(const gc_handle& handle) const
+void gc_facade::deregister_handle(gc_handle& handle)
 {
     assert(m_strategy);
-    return m_strategy->is_root(handle);
+    m_strategy->deregister_handle(handle);
+}
+
+byte* gc_facade::register_pin(const gc_handle& handle)
+{
+    assert(m_strategy);
+    return m_strategy->register_pin(handle);
+}
+
+void gc_facade::deregister_pin(byte* ptr)
+{
+    assert(m_strategy);
+    m_strategy->deregister_pin(ptr);
+}
+
+byte* gc_facade::push_pin(const gc_handle& handle)
+{
+    assert(m_strategy);
+    return m_strategy->push_pin(handle);
+}
+
+void gc_facade::pop_pin(byte* ptr)
+{
+    assert(m_strategy);
+    m_strategy->pop_pin(ptr);
 }
 
 byte* gc_facade::rbarrier(const gc_handle& handle)
@@ -92,47 +116,37 @@ void gc_facade::wbarrier(gc_handle& dst, const gc_handle& src)
 void gc_facade::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
     assert(m_strategy);
-    // this assertion doesn't work properly in current version
-//    assert(is_interior_offset(handle, offset));
     m_strategy->interior_wbarrier(handle, offset);
-}
-
-byte* gc_facade::register_pin(const gc_handle& handle)
-{
-    gc_unsafe_scope unsafe_scope;
-    byte* ptr = handle.rbarrier();
-    if (ptr) {
-        threads::this_managed_thread::pin(ptr);
-    }
-    return ptr;
-}
-
-void gc_facade::deregister_pin(byte* ptr)
-{
-    if (ptr) {
-        threads::this_managed_thread::unpin(ptr);
-    }
-}
-
-byte* gc_facade::push_pin(const gc_handle& handle)
-{
-    gc_unsafe_scope unsafe_scope;
-    byte* ptr = handle.rbarrier();
-    threads::this_managed_thread::push_pin(ptr);
-    return ptr;
-}
-
-void gc_facade::pop_pin(byte* ptr)
-{
-    if (ptr) {
-        threads::this_managed_thread::pop_pin(ptr);
-    }
 }
 
 bool gc_facade::compare(const gc_handle& a, const gc_handle& b)
 {
     gc_unsafe_scope unsafe_scope;
     return a.rbarrier() == b.rbarrier();
+}
+
+void gc_facade::register_stack_entry(gc_new_stack_entry* stack_entry)
+{
+    assert(m_strategy);
+    m_strategy->register_stack_entry(stack_entry);
+}
+
+void gc_facade::deregister_stack_entry(gc_new_stack_entry* stack_entry)
+{
+    assert(m_strategy);
+    m_strategy->deregister_stack_entry(stack_entry);
+}
+
+void gc_facade::register_thread(std::thread::id id, byte* stack_start_addr)
+{
+    assert(m_strategy);
+    m_strategy->register_thread(id, stack_start_addr);
+}
+
+void gc_facade::deregister_thread(std::thread::id id)
+{
+    assert(m_strategy);
+    m_strategy->deregister_thread(id);
 }
 
 void gc_facade::initiation_point(initiation_point_type ipt, const gc_options& opt)

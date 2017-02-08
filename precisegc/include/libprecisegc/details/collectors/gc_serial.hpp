@@ -38,7 +38,6 @@ private:
     gc_run_stats sweep();
 
     gc_heap m_heap;
-    dptr_storage m_dptr_storage;
     packet_manager m_packet_manager;
     marker m_marker;
     size_t m_threads_available;

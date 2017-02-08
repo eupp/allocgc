@@ -14,7 +14,7 @@
 #include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/threads/gc_new_stack.hpp>
+#include <libprecisegc/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 
@@ -109,11 +109,11 @@ auto gc_new(Args&&... args)
     gc_alloc_response rsp = gc_allocate(sizeof(Tt), 1, type_meta);
 
     if (!type_meta) {
-        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
+        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
         rsp.commit(gc_type_meta_factory<Tt>::create(this_managed_thread::gc_ptr_offsets()));
     } else {
-        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
+        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
         rsp.commit();
     }
@@ -145,11 +145,11 @@ auto gc_new(size_t n)
     Uu* end = begin + n;
 
     if (!type_meta) {
-        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
+        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (begin++) Uu();
         type_meta = gc_type_meta_factory<Uu>::create(this_managed_thread::gc_ptr_offsets());
     } else {
-        gc_new_stack::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
+        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (begin++) Uu();
     }
 

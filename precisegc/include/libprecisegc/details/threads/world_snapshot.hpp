@@ -5,12 +5,9 @@
 #include <utility>
 #include <algorithm>
 
-#include <libprecisegc/details/threads/managed_thread.hpp>
-#include <libprecisegc/details/threads/managed_thread_accessor.hpp>
-#include <libprecisegc/details/threads/this_managed_thread.hpp>
-#include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
-#include <libprecisegc/details/threads/static_root_set.hpp>
+#include <libprecisegc/details/collectors/static_root_set.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -64,7 +61,7 @@ public:
         const world_snapshot& m_snapshot;
     };
 
-    world_snapshot(thread_manager::threads_range_type threads)
+    world_snapshot(gc_thread_manager::threads_range_type threads)
         : m_threads(std::move(threads))
     {
         static stw_manager& stwm = stw_manager::instance();
@@ -117,16 +114,13 @@ public:
         return pin_tracer(*this);
     }
 
-    template <typename Functor>
-    void trace_roots(Functor&& f) const
+    void trace_roots(const gc_trace_callback& cb) const
     {
         logging::info() << "Static roots count = " << static_root_set::count();
         static_root_set::trace(std::forward<Functor>(f));
 
-        for (auto thread: m_threads) {
-            logging::info() << "Thread " << thread->get_id()
-                            << " roots count = " << managed_thread_accessor::roots_count(thread);
-            managed_thread_accessor::trace_roots(thread, std::forward<Functor>(f));
+        for (auto& thread: m_threads) {
+            thread->trace_roots(cb);
         }
     }
 
@@ -181,7 +175,7 @@ public:
         return gc_clock::now() - m_time_point;
     }
 private:
-    thread_manager::threads_range_type m_threads;
+    gc_thread_manager::threads_range_type m_threads;
     gc_clock::time_point m_time_point;
 };
 

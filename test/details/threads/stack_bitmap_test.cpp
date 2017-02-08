@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/stack_bitmap.hpp>
+#include <libprecisegc/details/collectors/stack_bitmap.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 
 #include <set>

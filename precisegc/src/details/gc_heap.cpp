@@ -6,7 +6,7 @@
 
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
-#include <libprecisegc/details/threads/thread_manager.hpp>
+#include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/static_thread_pool.hpp>
 #include <libprecisegc/details/utils/math.hpp>

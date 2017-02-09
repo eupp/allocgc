@@ -4,7 +4,7 @@
 
 namespace precisegc {
 
-gc_new_stack_entry::gc_new_stack_entry(details::byte* ptr, size_t size, bool meta_requested)
+gc_new_stack_entry::gc_new_stack_entry(byte* ptr, size_t size, bool meta_requested)
     : m_ptr(ptr)
     , m_size(size)
     , m_meta_requested(meta_requested)
@@ -17,7 +17,7 @@ gc_new_stack_entry::~gc_new_stack_entry()
     details::gc_deregister_stack_entry(this);
 }
 
-details::byte* gc_new_stack_entry::get_ptr() const
+byte* gc_new_stack_entry::get_ptr() const
 {
     return m_ptr;
 }
@@ -40,6 +40,11 @@ void gc_new_stack_entry::register_offset(size_t offset)
 bool gc_new_stack_entry::is_meta_requested() const
 {
     return m_meta_requested;
+}
+
+gc_new_stack_entry::offsets_range gc_new_stack_entry::offsets() const
+{
+    return boost::make_iterator_range(m_offsets.begin(), m_offsets.end());
 }
 
 }

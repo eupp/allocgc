@@ -3,7 +3,7 @@
 
 #include <sys/resource.h>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

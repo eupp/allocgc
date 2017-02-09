@@ -10,6 +10,8 @@
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 
 using namespace std;
+
+using namespace precisegc;
 using namespace precisegc::details;
 
 namespace {

@@ -6,6 +6,7 @@
 
 #include "test_forwarding.hpp"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 using namespace precisegc::details::compacting;

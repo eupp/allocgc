@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_GC_ALLOC_DESCRIPTOR_HPP
 #define DIPLOMA_GC_ALLOC_DESCRIPTOR_HPP
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/gc_type_meta.hpp>
 

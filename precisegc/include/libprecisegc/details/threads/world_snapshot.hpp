@@ -7,7 +7,6 @@
 
 #include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/stw_manager.hpp>
-#include <libprecisegc/details/collectors/static_root_set.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -25,42 +24,6 @@ public:
         {}
     };
 
-    class root_tracer
-    {
-    public:
-        template <typename Functor>
-        void trace(Functor&& f) const
-        {
-            m_snapshot.trace_roots(std::forward<Functor>(f));
-        }
-
-        friend class world_snapshot;
-    private:
-        root_tracer(const world_snapshot& snapshot)
-            : m_snapshot(snapshot)
-        {}
-
-        const world_snapshot& m_snapshot;
-    };
-
-    class pin_tracer
-    {
-    public:
-        template <typename Functor>
-        void trace(Functor&& f) const
-        {
-            m_snapshot.trace_pins(std::forward<Functor>(f));
-        }
-
-        friend class world_snapshot;
-    private:
-        pin_tracer(const world_snapshot& snapshot)
-            : m_snapshot(snapshot)
-        {}
-
-        const world_snapshot& m_snapshot;
-    };
-
     world_snapshot(gc_thread_manager::threads_range_type threads)
         : m_threads(std::move(threads))
     {
@@ -72,7 +35,7 @@ public:
             throw stop_the_world_disabled();
         }
 
-        for (auto thread: m_threads) {
+        for (auto& thread: m_threads) {
             if (thread->get_id() != std::this_thread::get_id()) {
                 stwm.suspend_thread(thread->native_handle());
             }
@@ -94,7 +57,7 @@ public:
 
         logging::info() << "Thread is requesting start-the-world";
 
-        for (auto thread: m_threads) {
+        for (auto& thread: m_threads) {
             if (thread->get_id() != std::this_thread::get_id()) {
                 stwm.resume_thread(thread->native_handle());
             }
@@ -104,65 +67,27 @@ public:
         logging::info() << "World started";
     }
 
-    root_tracer get_root_tracer() const
-    {
-        return root_tracer(*this);
-    }
-
-    pin_tracer get_pin_tracer() const
-    {
-        return pin_tracer(*this);
-    }
-
     void trace_roots(const gc_trace_callback& cb) const
     {
-        logging::info() << "Static roots count = " << static_root_set::count();
-        static_root_set::trace(std::forward<Functor>(f));
-
         for (auto& thread: m_threads) {
             thread->trace_roots(cb);
         }
     }
 
-    template <typename Functor>
-    void trace_pins(Functor&& f) const
+    void trace_pins(const gc_trace_pin_callback& cb) const
     {
-        for (auto thread: m_threads) {
-            logging::info() << "Thread " << thread->get_id()
-                             << " pins count = " << managed_thread_accessor::pins_count(thread);
-            managed_thread_accessor::trace_pins(thread, std::forward<Functor>(f));
+        for (auto& thread: m_threads) {
+            thread->trace_pins(cb);
         }
     }
 
-    template <typename Forwarding>
-    void fix_roots(const Forwarding& forwarding) const
+    gc_thread_descriptor* lookup_thread(std::thread::id thread_id) const
     {
-        logging::info() << "Fixing roots...";
-
-        auto f = [&forwarding] (gc_handle* root) {
-            forwarding.forward(root);
-        };
-
-        static_root_set::trace(f);
-        for (auto thread: m_threads) {
-            managed_thread_accessor::trace_roots(thread, f);
-        }
-    }
-
-    template <typename Functor>
-    void apply_to_threads(Functor&& f) const
-    {
-        for (auto thread: m_threads) {
-            f(thread);
-        }
-    }
-
-    managed_thread* lookup_thread(std::thread::id thread_id) const
-    {
-        auto it = std::find_if(m_threads.begin(), m_threads.end(), [thread_id] (managed_thread* thread) {
+        auto it = std::find_if(m_threads.begin(), m_threads.end(),
+                               [thread_id] (const std::unique_ptr<gc_thread_descriptor>& thread) {
             return thread->get_id() == thread_id;
         });
-        return it != m_threads.end() ? *it : nullptr;
+        return it != m_threads.end() ? it->get() : nullptr;
     }
 
     gc_clock::time_point time_point() const

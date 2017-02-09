@@ -3,12 +3,13 @@
 #include <memory>
 #include <algorithm>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
 #include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
 
 #include <boost/integer/static_min_max.hpp>
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 

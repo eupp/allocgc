@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include <libprecisegc/gc_stat.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/utils/utility.hpp>

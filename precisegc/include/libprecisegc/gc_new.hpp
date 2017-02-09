@@ -14,9 +14,8 @@
 #include <libprecisegc/details/gc_type_meta.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/gc_new_stack_entry.hpp>
-#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
+#include <libprecisegc/gc_new_stack_entry.hpp>
 
 namespace precisegc {
 
@@ -56,7 +55,6 @@ namespace internals {
 template <typename T>
 class gc_ptr_factory
 {
-    typedef details::byte byte;
 public:
     template <typename... Args>
     class instance
@@ -79,7 +77,6 @@ private:
 template <typename T>
 class gc_ptr_factory<T[]>
 {
-    typedef details::byte byte;
     typedef typename std::remove_extent<T>::type U;
     typedef typename std::remove_cv<U>::type Uu;
 public:
@@ -109,11 +106,11 @@ auto gc_new(Args&&... args)
     gc_alloc_response rsp = gc_allocate(sizeof(Tt), 1, type_meta);
 
     if (!type_meta) {
-        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
+        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
-        rsp.commit(gc_type_meta_factory<Tt>::create(this_managed_thread::gc_ptr_offsets()));
+        rsp.commit(gc_type_meta_factory<Tt>::create(stack_entry.offsets()));
     } else {
-        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
+        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
         rsp.commit();
     }
@@ -145,11 +142,11 @@ auto gc_new(size_t n)
     Uu* end = begin + n;
 
     if (!type_meta) {
-        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
+        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (begin++) Uu();
-        type_meta = gc_type_meta_factory<Uu>::create(this_managed_thread::gc_ptr_offsets());
+        type_meta = gc_type_meta_factory<Uu>::create(stack_entry.offsets());
     } else {
-        gc_new_stack_entry::stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
+        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (begin++) Uu();
     }
 

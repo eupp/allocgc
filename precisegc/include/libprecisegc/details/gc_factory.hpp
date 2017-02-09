@@ -11,7 +11,8 @@ namespace precisegc { namespace details {
 class gc_factory
 {
 public:
-    static std::unique_ptr<gc_strategy> create_gc(const gc_init_options& options);
+    static std::unique_ptr<gc_strategy> create_gc(const gc_init_options& options,
+                                                     const thread_descriptor& main_thrd_descr);
 };
 
 }}

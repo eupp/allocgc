@@ -1,7 +1,7 @@
 #ifndef DIPLOMA_DPTR_DESCRIPTOR_HPP
 #define DIPLOMA_DPTR_DESCRIPTOR_HPP
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

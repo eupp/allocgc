@@ -7,11 +7,12 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
+#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -43,7 +44,7 @@ public:
         std::for_each(begin(), end(), cb);
     }
 
-    size_t count() const
+    size_t size() const
     {
         return std::distance(begin(), end());
     }

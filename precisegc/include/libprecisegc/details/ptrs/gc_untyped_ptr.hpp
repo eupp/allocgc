@@ -6,7 +6,7 @@
 #include <atomic>
 
 #include <libprecisegc/details/gc_handle.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {
 
@@ -37,9 +37,6 @@ public:
     void swap(gc_untyped_ptr& other);
     friend void swap(gc_untyped_ptr& a, gc_untyped_ptr& b);
 private:
-    void register_root();
-    void delete_root();
-
     gc_handle m_handle;
 };
 

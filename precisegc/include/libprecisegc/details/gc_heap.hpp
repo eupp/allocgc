@@ -35,7 +35,8 @@ public:
 
     allocators::gc_alloc_response allocate(const allocators::gc_alloc_request& rqst);
 
-    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
+    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available,
+                             collectors::static_root_set* static_roots);
 private:
     typedef std::unordered_map<std::thread::id, mso_alloc_t> tlab_map_t;
 

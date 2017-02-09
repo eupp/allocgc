@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/collectors/dptr_descriptor.hpp>
 
 namespace precisegc { namespace details { namespace collectors {

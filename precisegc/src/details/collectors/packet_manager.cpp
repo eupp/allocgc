@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 

@@ -5,11 +5,11 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 class test_chunk
 {
-    typedef precisegc::details::byte byte;
+    typedef precisegc::byte byte;
 public:
     typedef byte* pointer_type;
 

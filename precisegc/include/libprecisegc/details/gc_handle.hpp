@@ -4,8 +4,8 @@
 #include <cstddef>
 #include <type_traits>
 
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/types.hpp>
 
 namespace precisegc { namespace details {
 

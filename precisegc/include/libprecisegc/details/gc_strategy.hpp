@@ -3,6 +3,7 @@
 
 #include <chrono>
 
+#include <libprecisegc/gc_new_stack_entry.hpp>
 #include <libprecisegc/gc_init_options.hpp>
 #include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
@@ -38,7 +39,7 @@ public:
     virtual void register_stack_entry(gc_new_stack_entry* stack_entry) = 0;
     virtual void deregister_stack_entry(gc_new_stack_entry* stack_entry) = 0;
 
-    virtual void register_thread(std::thread::id id, byte* stack_start_addr) = 0;
+    virtual void register_thread(const thread_descriptor& descr) = 0;
     virtual void deregister_thread(std::thread::id id) = 0;
 
     virtual gc_run_stats gc(const gc_options&) = 0;

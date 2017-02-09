@@ -7,7 +7,6 @@
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/threads/gc_thread_manager.hpp>
-#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/static_thread_pool.hpp>
 #include <libprecisegc/details/utils/math.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -26,7 +25,8 @@ allocators::gc_alloc_response gc_heap::allocate(const allocators::gc_alloc_reque
     }
 }
 
-gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t threads_available)
+gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t threads_available,
+                              collectors::static_root_set* static_roots)
 {
     forwarding frwd;
     utils::static_thread_pool thread_pool(threads_available);
@@ -42,7 +42,13 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
             kv.second.fix(frwd, thread_pool);
         }
         m_loa.fix(frwd);
-        snapshot.fix_roots(frwd);
+
+        auto fix_roots_cb = [&frwd] (gc_handle* root) {
+            frwd.forward(root);
+        };
+
+        static_roots->trace(fix_roots_cb);
+        snapshot.trace_roots(fix_roots_cb);
     }
 
     for (auto& kv: m_tlab_map) {

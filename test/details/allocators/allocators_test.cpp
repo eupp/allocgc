@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
 #include <libprecisegc/details/allocators/default_allocator.hpp>
@@ -10,6 +10,7 @@
 
 #include "test_chunk.h"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 

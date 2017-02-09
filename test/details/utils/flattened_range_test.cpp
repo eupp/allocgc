@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/flatten_range.hpp>
 
 #include <memory>
@@ -11,6 +11,7 @@
 
 #include "rand_util.h"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::utils;
 

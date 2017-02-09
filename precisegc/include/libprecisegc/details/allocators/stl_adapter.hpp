@@ -7,7 +7,7 @@
 #include <utility>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

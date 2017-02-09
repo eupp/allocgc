@@ -6,13 +6,13 @@
 #include <vector>
 #include <algorithm>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 
 class test_forwarding
 {
 public:
-    typedef precisegc::details::byte byte;
+    typedef precisegc::byte byte;
 
     struct entry
     {

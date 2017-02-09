@@ -8,7 +8,7 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 

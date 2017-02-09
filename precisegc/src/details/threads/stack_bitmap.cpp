@@ -9,7 +9,7 @@ namespace precisegc { namespace details { namespace collectors {
 
 stack_bitmap::stack_bitmap(byte* stack_start_addr)
     : m_stack_start(stack_start_addr)
-    , m_stack_end(stack_start_addr + STACK_DIRECTION * stack_maxsize())
+    , m_stack_end(stack_start_addr + STACK_DIRECTION * threads::stack_maxsize())
 {
     logging::info() << "stack start addr=" << (void*) m_stack_start
                     << "; stack end addr=" << (void*) m_stack_end;

@@ -2,9 +2,9 @@
 
 #include <libprecisegc/details/collectors/pin_set.hpp>
 
+using namespace precisegc;
 using namespace precisegc::details;
-using namespace precisegc::details::ptrs;
-using namespace precisegc::details::threads;
+using namespace precisegc::details::collectors;
 
 TEST(pin_set_test, test_insert)
 {

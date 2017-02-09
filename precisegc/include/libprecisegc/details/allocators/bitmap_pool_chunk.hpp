@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>

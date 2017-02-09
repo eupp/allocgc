@@ -2,9 +2,8 @@
 #include <libprecisegc/details/gc_handle.hpp>
 
 #include <libprecisegc/details/collectors/static_root_set.hpp>
-#include <libprecisegc/details/threads/this_managed_thread.hpp>
-#include <libprecisegc/details/gc_facade.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/gc_facade.hpp>
 
 namespace precisegc { namespace details {
 
@@ -13,36 +12,6 @@ static gc_facade gc_instance{};
 void gc_initialize(std::unique_ptr<gc_strategy> strategy)
 {
     gc_instance.init(std::move(strategy));
-}
-
-byte* gc_init_ptr(byte* ptr, bool root_flag)
-{
-    return gc_instance.init_ptr(ptr, root_flag);
-}
-
-void gc_register_root(gc_handle* root)
-{
-    using namespace threads;
-    if (this_managed_thread::is_stack_ptr(root)) {
-        this_managed_thread::register_root(root);
-    } else {
-        static_root_set::register_root(root);
-    }
-}
-
-void gc_deregister_root(gc_handle* root)
-{
-    using namespace threads;
-    if (this_managed_thread::is_stack_ptr(root)) {
-        this_managed_thread::deregister_root(root);
-    } else {
-        static_root_set::deregister_root(root);
-    }
-}
-
-bool gc_is_root(const gc_handle& handle)
-{
-    return gc_instance.is_root(handle);
 }
 
 bool gc_is_heap_ptr(const gc_handle* ptr)
@@ -77,9 +46,19 @@ void gc_deregister_handle(gc_handle& handle)
     gc_instance.deregister_handle(handle);
 }
 
-void gc_register_thread(std::thread::id id, byte* stack_start_addr)
+void gc_register_stack_entry(gc_new_stack_entry* stack_entry)
 {
-    gc_instance.register_thread(id, stack_start_addr);
+    gc_instance.register_stack_entry(stack_entry);
+}
+
+void gc_deregister_stack_entry(gc_new_stack_entry* stack_entry)
+{
+    gc_instance.deregister_stack_entry(stack_entry);
+}
+
+void gc_register_thread(const thread_descriptor& descr)
+{
+    gc_instance.register_thread(descr);
 }
 
 void gc_deregister_thread(std::thread::id id)
@@ -110,11 +89,6 @@ gc_memory_descriptor* gc_index_memory(const byte* mem)
 gc_cell gc_index_object(byte* obj_start)
 {
     return gc_instance.index_object(obj_start);
-}
-
-gc_info gc_get_info()
-{
-    return gc_instance.info();
 }
 
 gc_stat gc_get_stats()

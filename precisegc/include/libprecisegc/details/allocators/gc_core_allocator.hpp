@@ -15,8 +15,8 @@
 #include <libprecisegc/details/allocators/freelist_allocator.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/constants.hpp>
-#include <libprecisegc/details/types.hpp>
 #include <libprecisegc/details/logging.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 

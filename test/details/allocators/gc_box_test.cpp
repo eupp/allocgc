@@ -5,6 +5,7 @@
 #include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 

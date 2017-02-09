@@ -8,10 +8,11 @@
 #include <libprecisegc/details/allocators/bucket_allocator.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 #include "test_chunk.h"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 

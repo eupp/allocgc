@@ -12,16 +12,6 @@ gc_thread_manager::~gc_thread_manager()
     m_threads.clear();
 }
 
-void gc_thread_manager::register_main_thread(byte* stack_start_addr)
-{
-    managed_thread::init_main_thread(stack_start_addr);
-    managed_thread& main_thread = managed_thread::main_thread();
-    managed_thread_accessor::set_this_managed_thread_pointer(&main_thread);
-    std::lock_guard<lock_type> lock(m_lock);
-    logging::info() << "Register main thread";
-    m_threads[main_thread.get_id()] = &main_thread;
-}
-
 void gc_thread_manager::register_thread(std::thread::id id, std::unique_ptr<gc_thread_descriptor> descr)
 {
     std::lock_guard<lock_type> lock(m_lock);

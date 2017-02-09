@@ -8,6 +8,7 @@
 
 using namespace precisegc::details;
 using namespace precisegc::details::threads;
+using namespace precisegc::details::collectors;
 
 void test_register_root_1_helper(stack_bitmap& stack_map)
 {
@@ -17,7 +18,7 @@ void test_register_root_1_helper(stack_bitmap& stack_map)
     stack_map.register_root(&h1);
     stack_map.register_root(&h2);
 
-    ASSERT_EQ(2, stack_map.count());
+    ASSERT_EQ(2, stack_map.size());
     ASSERT_TRUE(stack_map.contains(&h1));
     ASSERT_TRUE(stack_map.contains(&h2));
 }
@@ -37,7 +38,7 @@ void test_register_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc_h
 
     stack_map.register_root(&h3);
 
-    ASSERT_EQ(3, stack_map.count());
+    ASSERT_EQ(3, stack_map.size());
     ASSERT_TRUE(stack_map.contains(ph1));
     ASSERT_TRUE(stack_map.contains(ph2));
     ASSERT_TRUE(stack_map.contains(&h3));
@@ -69,7 +70,7 @@ void test_register_root_3_helper(stack_bitmap& stack_map)
         stack_map.register_root(&handles[i]);
     }
 
-    EXPECT_EQ(SIZE, stack_map.count());
+    EXPECT_EQ(SIZE, stack_map.size());
     for (size_t i = 0; i < SIZE; ++i) {
         ASSERT_TRUE(stack_map.contains(&handles[i]));
     }
@@ -90,12 +91,12 @@ void test_deregister_root_1_helper(stack_bitmap& stack_map)
     stack_map.register_root(&h2);
 
     stack_map.deregister_root(&h2);
-    ASSERT_EQ(1, stack_map.count());
+    ASSERT_EQ(1, stack_map.size());
     ASSERT_TRUE(stack_map.contains(&h1));
     ASSERT_FALSE(stack_map.contains(&h2));
 
     stack_map.deregister_root(&h1);
-    ASSERT_EQ(0, stack_map.count());
+    ASSERT_EQ(0, stack_map.size());
     ASSERT_FALSE(stack_map.contains(&h1));
     ASSERT_FALSE(stack_map.contains(&h2));
 }
@@ -115,7 +116,7 @@ void test_deregister_root_2_helper_2(stack_bitmap& stack_map, gc_handle* ph1, gc
     stack_map.deregister_root(ph2);
     stack_map.deregister_root(ph1);
 
-    ASSERT_EQ(1, stack_map.count());
+    ASSERT_EQ(1, stack_map.size());
     ASSERT_FALSE(stack_map.contains(ph1));
     ASSERT_FALSE(stack_map.contains(ph2));
     ASSERT_TRUE(stack_map.contains(&h3));
@@ -151,7 +152,7 @@ void test_deregister_root_3_helper(stack_bitmap& stack_map)
         stack_map.deregister_root(&handles[i]);
     }
 
-    EXPECT_EQ(0, stack_map.count());
+    EXPECT_EQ(0, stack_map.size());
     for (size_t i = 0; i < SIZE; ++i) {
         ASSERT_FALSE(stack_map.contains(&handles[i]));
     }

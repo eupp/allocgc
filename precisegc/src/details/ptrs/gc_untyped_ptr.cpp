@@ -4,7 +4,6 @@
 #include <cassert>
 #include <utility>
 
-#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -80,7 +79,8 @@ bool gc_untyped_ptr::is_null() const
 
 bool gc_untyped_ptr::is_root() const
 {
-    return gc_is_root(m_handle);
+//    return gc_is_root(m_handle);
+    return false;
 }
 
 bool gc_untyped_ptr::equal(const gc_untyped_ptr& other) const
@@ -110,16 +110,6 @@ void gc_untyped_ptr::swap(gc_untyped_ptr& other)
 void swap(gc_untyped_ptr& a, gc_untyped_ptr& b)
 {
     a.swap(b);
-}
-
-void gc_untyped_ptr::register_root()
-{
-    gc_register_root(&m_handle);
-}
-
-void gc_untyped_ptr::delete_root()
-{
-    gc_deregister_root(&m_handle);
 }
 
 }}}

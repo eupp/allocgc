@@ -49,7 +49,7 @@ public:
     void register_stack_entry(gc_new_stack_entry* stack_entry);
     void deregister_stack_entry(gc_new_stack_entry* stack_entry);
 
-    void register_thread(std::thread::id id, byte* stack_start_addr);
+    void register_thread(const thread_descriptor& descr);
     void deregister_thread(std::thread::id id);
 
     void initiation_point(initiation_point_type ipt, const gc_options& opt);
@@ -80,8 +80,7 @@ public:
     void register_page(const byte* page, size_t size);
     void deregister_page(const byte* page, size_t size);
 
-    gc_info  info() const;
-    gc_stat  stats() const;
+    gc_stat stats() const;
 private:
     typedef collectors::index_tree<gc_memory_descriptor> index_tree_t;
 

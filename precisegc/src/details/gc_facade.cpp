@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <libprecisegc/details/collectors/memory_index.hpp>
-#include <libprecisegc/details/threads/this_managed_thread.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -137,10 +136,10 @@ void gc_facade::deregister_stack_entry(gc_new_stack_entry* stack_entry)
     m_strategy->deregister_stack_entry(stack_entry);
 }
 
-void gc_facade::register_thread(std::thread::id id, byte* stack_start_addr)
+void gc_facade::register_thread(const thread_descriptor& descr)
 {
     assert(m_strategy);
-    m_strategy->register_thread(id, stack_start_addr);
+    m_strategy->register_thread(descr);
 }
 
 void gc_facade::deregister_thread(std::thread::id id)
@@ -188,12 +187,6 @@ void gc_facade::register_page(const byte* page, size_t size)
 void gc_facade::deregister_page(const byte* page, size_t size)
 {
     m_manager.deregister_page(page, size);
-}
-
-gc_info gc_facade::info() const
-{
-    assert(m_strategy);
-    return m_strategy->info();
 }
 
 gc_stat gc_facade::stats() const

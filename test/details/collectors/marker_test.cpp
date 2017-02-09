@@ -23,11 +23,10 @@ struct node
 
 struct test_root_set
 {
-    template <typename Functor>
-    void trace(Functor&& f)
+    void operator()(const gc_trace_callback& cb)
     {
-        for (auto root: roots) {
-            f(root);
+        for (auto& root: roots) {
+            cb(root);
         }
     }
 
@@ -36,11 +35,10 @@ struct test_root_set
 
 struct test_pin_set
 {
-    template <typename Functor>
-    void trace(Functor&& f)
+    void operator()(const gc_trace_pin_callback& cb)
     {
-        for (auto root: pins) {
-            f(root);
+        for (auto& pin: pins) {
+            cb(pin);
         }
     }
 
@@ -173,7 +171,7 @@ TEST_F(marker_test, test_unmarked)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    marker.trace_roots(root_set);
+    marker.trace_roots(root_set, nullptr, 0);
     marker.mark();
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
@@ -200,7 +198,7 @@ TEST_F(marker_test, test_roots)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    marker.trace_roots(root_set);
+    marker.trace_roots(root_set, nullptr, 0);
     marker.mark();
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
@@ -226,7 +224,7 @@ TEST_F(marker_test, test_pins)
     print_tree(root);
 
     pin_set.pins.push_back((byte*) precisegc::internals::gc_ptr_access<node>::get(root));
-    marker.trace_pins(pin_set);
+    marker.trace_pins(pin_set, 0);
     marker.mark();
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;

@@ -5,7 +5,8 @@
 #include <atomic>
 #include <array>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
@@ -46,14 +47,14 @@ public:
         std::for_each(begin(), end(), cb);
     }
 
-    size_t count() const
+    size_t size() const
     {
         return m_size.load(std::memory_order_relaxed);
     }
 
     bool is_full() const
     {
-        return count() == STACK_CAPACITY;
+        return size() == STACK_CAPACITY;
     }
 private:
     static const size_t STACK_CAPACITY = 64;

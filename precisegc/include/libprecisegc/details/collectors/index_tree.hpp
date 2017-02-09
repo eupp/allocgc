@@ -15,7 +15,7 @@
 
 #include <boost/integer/static_min_max.hpp>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>

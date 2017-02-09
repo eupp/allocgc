@@ -6,11 +6,12 @@
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/gc_type_meta_factory.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 #include "rand_util.h"
 #include "test_forwarding.hpp"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 using namespace precisegc::details::compacting;

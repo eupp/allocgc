@@ -12,7 +12,7 @@
 #include <libprecisegc/details/threads/gc_thread_descriptor.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/locked_range.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

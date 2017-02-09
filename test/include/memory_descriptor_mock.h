@@ -7,7 +7,7 @@
 
 class memory_descriptor_mock : public precisegc::details::gc_memory_descriptor
 {
-    typedef precisegc::details::byte byte;
+    typedef precisegc::byte byte;
     typedef precisegc::details::gc_type_meta gc_type_meta;
     typedef precisegc::details::gc_lifetime_tag gc_lifetime_tag;
     typedef precisegc::details::gc_trace_callback gc_trace_callback;

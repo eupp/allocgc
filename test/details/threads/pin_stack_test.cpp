@@ -4,8 +4,9 @@
 
 #include <set>
 
+using namespace precisegc;
 using namespace precisegc::details;
-using namespace precisegc::details::threads;
+using namespace precisegc::details::collectors;
 
 TEST(pin_stack_test, test_push)
 {
@@ -14,7 +15,7 @@ TEST(pin_stack_test, test_push)
     ps.push_pin(ptr);
 
     ASSERT_TRUE(ps.contains(ptr));
-    ASSERT_EQ(1, ps.count());
+    ASSERT_EQ(1, ps.size());
 }
 
 TEST(pin_stack_test, test_pop)
@@ -25,7 +26,7 @@ TEST(pin_stack_test, test_pop)
     ps.pop_pin();
 
     ASSERT_FALSE(ps.contains(ptr));
-    ASSERT_EQ(0, ps.count());
+    ASSERT_EQ(0, ps.size());
 }
 
 TEST(pin_stack_test, test_trace)

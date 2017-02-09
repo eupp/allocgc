@@ -11,6 +11,7 @@
 
 #include "rand_util.h"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
 using namespace precisegc::details::collectors;

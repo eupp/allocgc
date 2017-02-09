@@ -12,12 +12,6 @@ namespace precisegc { namespace details {
 
 void gc_initialize(std::unique_ptr<gc_strategy> strategy);
 
-//byte* gc_init_ptr(byte* ptr, bool root_flag);
-
-void gc_register_root(gc_handle* root);
-void gc_deregister_root(gc_handle* root);
-
-bool gc_is_root(const gc_handle& ptr);
 bool gc_is_heap_ptr(const gc_handle* ptr);
 
 allocators::gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
@@ -31,7 +25,7 @@ void gc_deregister_handle(gc_handle& handle);
 void gc_register_stack_entry(gc_new_stack_entry* stack_entry);
 void gc_deregister_stack_entry(gc_new_stack_entry* stack_entry);
 
-void gc_register_thread(std::thread::id id, byte* stack_start_addr);
+void gc_register_thread(const thread_descriptor& descr);
 void gc_deregister_thread(std::thread::id id);
 
 void gc_initiation_point(initiation_point_type ipoint, const gc_options& opt);
@@ -42,7 +36,6 @@ void gc_remove_from_index(const byte* mem, size_t size);
 gc_memory_descriptor* gc_index_memory(const byte* mem);
 gc_cell gc_index_object(byte* obj_start);
 
-gc_info  gc_get_info();
 gc_stat  gc_get_stats();
 
 void gc_enable_print_stats();

@@ -7,7 +7,7 @@
 
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/types.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc {
@@ -19,10 +19,10 @@ public:
     typedef offsets_storage_t::const_iterator offsets_iterator;
     typedef boost::iterator_range<offsets_iterator> offsets_range;
 
-    gc_new_stack_entry(details::byte* ptr, size_t size, bool meta_requested);
+    gc_new_stack_entry(byte* ptr, size_t size, bool meta_requested);
     ~gc_new_stack_entry();
 
-    details::byte* get_ptr() const;
+    byte* get_ptr() const;
 
     gc_new_stack_entry* get_prev() const;
     void set_prev(gc_new_stack_entry* prev);
@@ -30,8 +30,10 @@ public:
     void register_offset(size_t offset);
 
     bool is_meta_requested() const;
+
+    offsets_range offsets() const;
 private:
-    details::byte*  m_ptr;
+    byte*  m_ptr;
     size_t m_size;
     offsets_storage_t m_offsets;
     gc_new_stack_entry* m_prev;

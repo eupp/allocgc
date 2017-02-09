@@ -10,6 +10,7 @@
 
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
 #include <libprecisegc/details/utils/base_offset.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/gc_pin.hpp>
 #include <libprecisegc/gc_ref.hpp>
 
@@ -137,7 +138,7 @@ public:
     friend class internals::gc_ptr_access<T>;
 private:
     explicit gc_ptr(T* ptr)
-        : gc_untyped_ptr(reinterpret_cast<details::byte*>(ptr))
+        : gc_untyped_ptr(reinterpret_cast<byte*>(ptr))
     {}
 
     T* get() const
@@ -305,7 +306,7 @@ private:
     typedef typename std::remove_cv<T>::type Tt;
 
     explicit gc_ptr(T* ptr)
-        : gc_untyped_ptr(reinterpret_cast<details::byte*>(const_cast<Tt*>(ptr)))
+        : gc_untyped_ptr(reinterpret_cast<byte*>(const_cast<Tt*>(ptr)))
     {}
 
     T* get() const

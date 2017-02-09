@@ -30,12 +30,21 @@ public:
 
     virtual void trace_roots(const gc_trace_callback& cb) const = 0;
     virtual void trace_pins(const gc_trace_pin_callback& cb) const = 0;
+
+    virtual std::thread::id get_id() const = 0;
+    virtual std::thread::native_handle_type native_handle() const = 0;
 };
 
 template <typename StackRootSet, typename PinSet, typename PinStack, typename InitStack>
 class gc_thread_descriptor_impl : public gc_thread_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
+    gc_thread_descriptor_impl(const thread_descriptor& descr)
+        : m_stack_roots(descr.stack_start_addr)
+        , m_id(descr.id)
+        , m_native_handle(descr.native_handle)
+    {}
+
     void register_stack_entry(gc_new_stack_entry* stack_entry) override
     {
         m_init_stack.register_stack_entry(stack_entry);
@@ -69,9 +78,9 @@ public:
 
     void deregister_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) override
     {
-        if (is_root) {
+//        if (is_root) {
             deregister_root(handle, static_roots);
-        }
+//        }
     }
 
     void deregister_root(gc_handle* root, collectors::static_root_set* static_roots)
@@ -126,12 +135,23 @@ public:
         m_pin_stack.trace(cb);
         m_init_stack.trace(cb);
     }
+
+    std::thread::id get_id() const override
+    {
+        return m_id;
+    }
+
+    std::thread::native_handle_type native_handle() const override
+    {
+        return m_native_handle;
+    }
 private:
     StackRootSet m_stack_roots;
     PinSet m_pin_set;
     PinStack m_pin_stack;
     InitStack m_init_stack;
     std::thread::id m_id;
+    std::thread::native_handle_type m_native_handle;
 };
 
 }}}

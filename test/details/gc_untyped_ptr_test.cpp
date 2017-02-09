@@ -13,9 +13,9 @@
 
 #include "serial_gc_mock.hpp"
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::ptrs;
-using namespace precisegc::details::threads;
 
 using ::testing::_;
 using ::testing::Exactly;

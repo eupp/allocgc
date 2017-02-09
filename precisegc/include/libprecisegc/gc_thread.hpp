@@ -4,6 +4,7 @@
 #include <thread>
 
 #include <libprecisegc/details/gc_hooks.hpp>
+#include <libprecisegc/details/threads/posix_thread.hpp>
 #include <libprecisegc/details/threads/return_address.hpp>
 
 namespace precisegc {
@@ -27,7 +28,12 @@ private:
         using namespace details;
         using namespace details::threads;
 
-        gc_register_thread(std::this_thread::get_id(), frame_address());
+        thread_descriptor thrd_descr;
+        thrd_descr.id = std::this_thread::get_id();
+        thrd_descr.native_handle = this_thread_native_handle();
+        thrd_descr.stack_start_addr = frame_address();
+
+        gc_register_thread(thrd_descr);
         (*bf)();
         gc_deregister_thread(std::this_thread::get_id());
     }

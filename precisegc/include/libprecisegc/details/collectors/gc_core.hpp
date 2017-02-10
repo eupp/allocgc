@@ -65,6 +65,7 @@ private:
     static_root_set m_static_roots;
     dptr_storage m_dptr_storage;
     gc_heap m_heap;
+    bool m_collect_flag;
 };
 
 }}}

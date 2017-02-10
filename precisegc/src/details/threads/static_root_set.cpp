@@ -32,6 +32,7 @@ size_t static_root_set::size() const
 
 void static_root_set::trace(const gc_trace_callback& cb) const
 {
+    std::lock_guard<mutex_t> lock_guard(m_lock);
     std::for_each(m_set.begin(), m_set.end(), cb);
 }
 

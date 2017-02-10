@@ -6,6 +6,7 @@ thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
 
 gc_core::gc_core(const thread_descriptor& main_thrd_descr)
 {
+    m_collect_flag = false;
     register_thread(main_thrd_descr);
 }
 
@@ -36,13 +37,15 @@ void gc_core::register_handle(gc_handle& handle, byte* ptr)
 {
     bool is_root = !gc_is_heap_ptr(&handle);
     gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, is_root));
-    this_thread->register_handle(&handle, &m_static_roots, is_root);
+    if (!m_collect_flag) {
+        this_thread->register_handle(&handle, &m_static_roots, is_root);
+    }
 }
 
 void gc_core::deregister_handle(gc_handle& handle)
 {
     bool is_root = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(handle));
-    if (is_root) {
+    if (!m_collect_flag) {
         this_thread->deregister_handle(&handle, &m_static_roots, is_root);
     }
 }
@@ -130,7 +133,9 @@ threads::world_snapshot gc_core::stop_the_world()
 
 gc_heap_stat gc_core::collect(const threads::world_snapshot& snapshot, size_t threads_available)
 {
-    return m_heap.collect(snapshot, threads_available, nullptr);
+    m_collect_flag = true;
+    auto guard = utils::make_scope_guard([this] { m_collect_flag = false; });
+    return m_heap.collect(snapshot, threads_available, &m_static_roots);
 }
 
 }}}

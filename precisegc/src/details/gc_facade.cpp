@@ -37,31 +37,22 @@ std::unique_ptr<gc_strategy> gc_facade::set_strategy(std::unique_ptr<gc_strategy
     return std::move(strategy);
 }
 
-allocators::gc_alloc_response gc_facade::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
-{
-    try {
-        return try_allocate(obj_size, obj_cnt, tmeta);
-    } catch (gc_bad_alloc& ) {
-        return try_allocate(obj_size, obj_cnt, tmeta);
-    }
-}
-
-allocators::gc_alloc_response gc_facade::try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+gc_alloc::response gc_facade::allocate(const gc_alloc::request& rqst)
 {
     assert(m_strategy);
-    return m_strategy->allocate(obj_size, obj_cnt, tmeta);
+    return m_strategy->allocate(rqst);
 }
 
-void gc_facade::commit(gc_cell& cell)
+void gc_facade::commit(const gc_alloc::response& rsp)
 {
     assert(m_strategy);
-    m_strategy->commit(cell);
+    m_strategy->commit(rsp);
 }
 
-void gc_facade::commit(gc_cell& cell, const gc_type_meta* meta)
+void gc_facade::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
 {
     assert(m_strategy);
-    m_strategy->commit(cell, meta);
+    m_strategy->commit(rsp, type_meta);
 }
 
 void gc_facade::register_handle(gc_handle& handle, byte* ptr)
@@ -122,18 +113,6 @@ bool gc_facade::compare(const gc_handle& a, const gc_handle& b)
 {
     gc_unsafe_scope unsafe_scope;
     return a.rbarrier() == b.rbarrier();
-}
-
-void gc_facade::register_stack_entry(gc_new_stack_entry* stack_entry)
-{
-    assert(m_strategy);
-    m_strategy->register_stack_entry(stack_entry);
-}
-
-void gc_facade::deregister_stack_entry(gc_new_stack_entry* stack_entry)
-{
-    assert(m_strategy);
-    m_strategy->deregister_stack_entry(stack_entry);
 }
 
 void gc_facade::register_thread(const thread_descriptor& descr)

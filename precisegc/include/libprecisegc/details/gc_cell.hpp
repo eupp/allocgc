@@ -137,7 +137,7 @@ private:
         return m_cell && m_descr;
     }
 
-    byte*              m_cell;
+    byte*                 m_cell;
     gc_memory_descriptor* m_descr;
 };
 

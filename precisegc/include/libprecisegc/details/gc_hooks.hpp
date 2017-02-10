@@ -3,7 +3,8 @@
 
 #include <memory>
 
-#include <libprecisegc/gc_new_stack_entry.hpp>
+#include <libprecisegc/gc_alloc.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/gc_stat.hpp>
@@ -14,16 +15,14 @@ void gc_initialize(std::unique_ptr<gc_strategy> strategy);
 
 bool gc_is_heap_ptr(const gc_handle* ptr);
 
-allocators::gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
+gc_alloc::response gc_allocate(const gc_alloc::request& rqst);
 
-void gc_commit(gc_cell& cell);
-void gc_commit(gc_cell& cell, const gc_type_meta* type_meta);
+void gc_abort(const gc_alloc::response& rsp);
+void gc_commit(const gc_alloc::response& rsp);
+void gc_commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
 
 void gc_register_handle(gc_handle& handle, byte* ptr);
 void gc_deregister_handle(gc_handle& handle);
-
-void gc_register_stack_entry(gc_new_stack_entry* stack_entry);
-void gc_deregister_stack_entry(gc_new_stack_entry* stack_entry);
 
 void gc_register_thread(const thread_descriptor& descr);
 void gc_deregister_thread(std::thread::id id);

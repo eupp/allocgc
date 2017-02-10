@@ -6,13 +6,13 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_init_options.hpp
         include/libprecisegc/libprecisegc.hpp
 
-        include/libprecisegc/details/gc_type_meta.hpp
+        include/libprecisegc/gc_type_meta.hpp
         include/libprecisegc/details/gc_heap.hpp
         include/libprecisegc/details/constants.hpp
         include/libprecisegc/details/utils/math.hpp
         include/libprecisegc/details/utils/barrier.hpp
         include/libprecisegc/details/utils/utility.hpp
-        include/libprecisegc/gc_new_stack_entry.hpp
+        include/libprecisegc/details/collectors/gc_new_stack_entry.hpp
         include/libprecisegc/details/gc_unsafe_scope.hpp
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
@@ -30,7 +30,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/threads/posix_signal.hpp
         include/libprecisegc/details/collectors/pin_set.hpp
         include/libprecisegc/details/threads/ass_sync.hpp
-        include/libprecisegc/details/gc_exception.hpp
+        include/libprecisegc/gc_exception.hpp
         include/libprecisegc/details/threads/gc_thread_manager.hpp
         include/libprecisegc/details/threads/stw_manager.hpp
         include/libprecisegc/details/utils/scoped_thread.hpp
@@ -85,10 +85,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/dptr_storage.hpp
         include/libprecisegc/details/collectors/memory_index.hpp
         include/libprecisegc/details/allocators/gc_so_allocator.hpp
-        include/libprecisegc/details/gc_type_meta_factory.hpp
+        include/libprecisegc/gc_type_meta_factory.hpp
         include/libprecisegc/details/allocators/gc_lo_allocator.hpp
         include/libprecisegc/details/allocators/gc_pool_allocator.hpp
-        include/libprecisegc/details/allocators/gc_alloc_messaging.hpp
+        include/libprecisegc/gc_alloc.hpp
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/pool_allocator.hpp
         include/libprecisegc/details/gc_cell.hpp
@@ -124,7 +124,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/gc_so_allocator.cpp
         src/details/allocators/gc_pool_allocator.cpp
         src/details/allocators/gc_lo_allocator.cpp
-        src/details/allocators/gc_alloc_messaging.cpp src/details/collectors/gc_core.cpp src/gc_new_stack_entry.cpp src/details/collectors/marker.cpp)
+        src/details/collectors/gc_core.cpp)
 
 
 find_package(Threads REQUIRED)

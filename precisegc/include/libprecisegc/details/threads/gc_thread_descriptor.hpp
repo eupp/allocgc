@@ -4,7 +4,7 @@
 #include <thread>
 #include <cassert>
 
-#include <libprecisegc/gc_new_stack_entry.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -17,8 +17,8 @@ class gc_thread_descriptor
 public:
     virtual ~gc_thread_descriptor() {}
 
-    virtual void register_stack_entry(gc_new_stack_entry* stack_entry) = 0;
-    virtual void deregister_stack_entry(gc_new_stack_entry* stack_entry) = 0;
+    virtual void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) = 0;
+    virtual void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry) = 0;
 
     virtual void register_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) = 0;
     virtual void deregister_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) = 0;
@@ -45,12 +45,12 @@ public:
         , m_native_handle(descr.native_handle)
     {}
 
-    void register_stack_entry(gc_new_stack_entry* stack_entry) override
+    void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
     {
         m_init_stack.register_stack_entry(stack_entry);
     }
 
-    void deregister_stack_entry(gc_new_stack_entry* stack_entry) override
+    void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
     {
         m_init_stack.deregister_stack_entry(stack_entry);
     }

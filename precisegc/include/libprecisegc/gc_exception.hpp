@@ -4,7 +4,7 @@
 #include <exception>
 #include <string>
 
-namespace precisegc { namespace details {
+namespace precisegc {
 
 class gc_exception : public std::exception
 {
@@ -33,6 +33,6 @@ public:
     {}
 };
 
-}}
+}
 
 #endif //DIPLOMA_GC_EXCEPTION_HPP

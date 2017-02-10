@@ -22,13 +22,12 @@ namespace precisegc { namespace details { namespace allocators {
 class gc_so_allocator : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
     typedef utils::static_thread_pool thread_pool_t;
 
     gc_so_allocator();
 
-    gc_alloc_response allocate(const gc_alloc_request& rqst);
+    gc_alloc::response allocate(const gc_alloc::request& rqst);
 
     gc_heap_stat collect(compacting::forwarding& frwd, thread_pool_t& thread_pool);
     void fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool);

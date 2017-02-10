@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
-#include <libprecisegc/details/gc_type_meta_factory.hpp>
+#include <libprecisegc/gc_type_meta_factory.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;

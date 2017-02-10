@@ -6,6 +6,7 @@
 #include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -23,7 +24,7 @@ gc_pool_allocator::~gc_pool_allocator()
     }
 }
 
-gc_alloc_response gc_pool_allocator::allocate(const gc_alloc_request& rqst, size_t aligned_size)
+gc_alloc::response gc_pool_allocator::allocate(const gc_alloc::request& rqst, size_t aligned_size)
 {
     if (m_top == m_end) {
         return try_expand_and_allocate(aligned_size, rqst, 0);
@@ -31,8 +32,8 @@ gc_alloc_response gc_pool_allocator::allocate(const gc_alloc_request& rqst, size
     return stack_allocation(aligned_size, rqst);
 }
 
-gc_alloc_response gc_pool_allocator::try_expand_and_allocate(size_t size,
-                                                           const gc_alloc_request& rqst,
+gc_alloc::response gc_pool_allocator::try_expand_and_allocate(size_t size,
+                                                           const gc_alloc::request& rqst,
                                                            size_t attempt_num)
 {
     byte*  blk;
@@ -60,7 +61,7 @@ gc_alloc_response gc_pool_allocator::try_expand_and_allocate(size_t size,
     }
 }
 
-gc_alloc_response gc_pool_allocator::stack_allocation(size_t size, const gc_alloc_request& rqst)
+gc_alloc::response gc_pool_allocator::stack_allocation(size_t size, const gc_alloc::request& rqst)
 {
     assert(m_top <= m_end - size);
 
@@ -70,7 +71,7 @@ gc_alloc_response gc_pool_allocator::stack_allocation(size_t size, const gc_allo
     return init_cell(ptr, rqst, descr);
 }
 
-gc_alloc_response gc_pool_allocator::freelist_allocation(size_t size, const gc_alloc_request& rqst)
+gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_alloc::request& rqst)
 {
     assert(m_freelist);
 
@@ -84,12 +85,16 @@ gc_alloc_response gc_pool_allocator::freelist_allocation(size_t size, const gc_a
     return init_cell(ptr, rqst, descr);
 }
 
-gc_alloc_response gc_pool_allocator::init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr)
+gc_alloc::response gc_pool_allocator::init_cell(byte* cell_start, const gc_alloc::request& rqst, descriptor_t* descr)
 {
     assert(descr);
     assert(cell_start);
+
+    collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
+    stack_entry->descriptor = descr;
+
     byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
-    return gc_alloc_response(obj_start, rqst.alloc_size(), gc_cell::from_cell_start(cell_start, descr));
+    return gc_alloc::response(obj_start, cell_start, descr->cell_size(), rqst.buffer());
 }
 
 gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)

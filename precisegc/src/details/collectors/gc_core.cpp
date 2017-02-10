@@ -1,5 +1,7 @@
 #include <libprecisegc/details/collectors/gc_core.hpp>
 
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
+
 namespace precisegc { namespace details { namespace collectors {
 
 thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
@@ -10,9 +12,41 @@ gc_core::gc_core(const thread_descriptor& main_thrd_descr)
     register_thread(main_thrd_descr);
 }
 
-allocators::gc_alloc_response gc_core::allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+gc_alloc::response gc_core::allocate(const gc_alloc::request& rqst)
 {
-    return m_heap.allocate(allocators::gc_alloc_request(obj_size, obj_cnt, tmeta));
+    gc_alloc::response rsp = m_heap.allocate(rqst);
+
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
+    stack_entry->obj_start = rsp.obj_start();
+    stack_entry->meta_requested = rqst.type_meta() == nullptr;
+
+    this_thread->register_stack_entry(stack_entry);
+}
+
+void gc_core::abort(const gc_alloc::response& rsp)
+{
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+    this_thread->deregister_stack_entry(stack_entry);
+}
+
+void gc_core::commit(const gc_alloc::response& rsp)
+{
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+
+    this_thread->deregister_stack_entry(stack_entry);
+
+    assert(stack_entry->descriptor);
+    stack_entry->descriptor->commit(rsp.cell_start());
+}
+
+void gc_core::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
+{
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+
+    this_thread->deregister_stack_entry(stack_entry);
+
+    assert(stack_entry->descriptor);
+    stack_entry->descriptor->commit(rsp.cell_start(), type_meta);
 }
 
 byte* gc_core::rbarrier(const gc_handle& handle)
@@ -82,16 +116,6 @@ void gc_core::pop_pin(byte* pin)
     if (pin) {
         this_thread->pop_pin(pin);
     }
-}
-
-void gc_core::register_stack_entry(gc_new_stack_entry* stack_entry)
-{
-    this_thread->register_stack_entry(stack_entry);
-}
-
-void gc_core::deregister_stack_entry(gc_new_stack_entry* stack_entry)
-{
-    this_thread->deregister_stack_entry(stack_entry);
 }
 
 void gc_core::register_thread(const thread_descriptor& descr)

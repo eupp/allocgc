@@ -13,7 +13,7 @@
 #include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
+#include <gc_alloc.hpp>
 #include <libprecisegc/details/gc_memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 

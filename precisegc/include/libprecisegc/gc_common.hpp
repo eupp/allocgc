@@ -16,6 +16,19 @@ struct thread_descriptor
     byte* stack_start_addr;
 };
 
+struct gc_buf
+{
+private:
+    static const size_t SIZE = 8 * sizeof(size_t);
+public:
+    static constexpr size_t size()
+    {
+        return SIZE;
+    }
+
+    std::aligned_storage<SIZE> data;
+};
+
 }
 
 #endif //DIPLOMA_GC_COMMON_HPP

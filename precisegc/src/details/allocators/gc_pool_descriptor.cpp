@@ -18,7 +18,7 @@ gc_memory_descriptor* gc_pool_descriptor::descriptor()
     return this;
 }
 
-byte * gc_pool_descriptor::init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
+byte* gc_pool_descriptor::init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));

@@ -14,7 +14,7 @@ gc_so_allocator::gc_so_allocator()
     }
 }
 
-gc_alloc_response gc_so_allocator::allocate(const gc_alloc_request& rqst)
+gc_alloc::response gc_so_allocator::allocate(const gc_alloc::request& rqst)
 {
     size_t size = gc_box::box_size(rqst.alloc_size());
     assert(size <= LARGE_CELL_SIZE);

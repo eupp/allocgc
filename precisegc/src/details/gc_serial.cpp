@@ -13,16 +13,6 @@ gc_serial::gc_serial(size_t threads_available, const thread_descriptor& main_thr
     , m_threads_available(threads_available)
 {}
 
-void gc_serial::commit(gc_cell& cell)
-{
-    cell.commit();
-}
-
-void gc_serial::commit(gc_cell& cell, const gc_type_meta* type_meta)
-{
-    cell.commit(type_meta);
-}
-
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;

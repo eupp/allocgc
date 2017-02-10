@@ -17,7 +17,7 @@
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
-#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
+#include <gc_alloc.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -36,13 +36,12 @@ class gc_pool_allocator : private utils::noncopyable, private utils::nonmovable
     typedef typename descriptor_list_t::iterator iterator_t;
 public:
     typedef utils::flattened_range<iterator_t> memory_range_type;
-    typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
     gc_pool_allocator();
     ~gc_pool_allocator();
 
-    gc_alloc_response allocate(const gc_alloc_request& rqst, size_t aligned_size);
+    gc_alloc::response allocate(const gc_alloc::request& rqst, size_t aligned_size);
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
@@ -56,10 +55,10 @@ private:
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
     static constexpr double RESIDENCY_EPS = 0.1;
 
-    gc_alloc_response try_expand_and_allocate(size_t size, const gc_alloc_request& rqst, size_t attempt_num);
-    gc_alloc_response stack_allocation(size_t size, const gc_alloc_request& rqst);
-    gc_alloc_response freelist_allocation(size_t size, const gc_alloc_request& rqst);
-    gc_alloc_response init_cell(byte* cell_start, const gc_alloc_request& rqst, descriptor_t* descr);
+    gc_alloc::response try_expand_and_allocate(size_t size, const gc_alloc::request& rqst, size_t attempt_num);
+    gc_alloc::response stack_allocation(size_t size, const gc_alloc::request& rqst);
+    gc_alloc::response freelist_allocation(size_t size, const gc_alloc::request& rqst);
+    gc_alloc::response init_cell(byte* cell_start, const gc_alloc::request& rqst, descriptor_t* descr);
 
     gc_pool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
     iterator_t destroy_descriptor(iterator_t it);

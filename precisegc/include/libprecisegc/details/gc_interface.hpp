@@ -5,7 +5,7 @@
 #include <string>
 #include <functional>
 
-#include <libprecisegc/details/gc_exception.hpp>
+#include <libprecisegc/gc_exception.hpp>
 #include <libprecisegc/details/gc_clock.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 

@@ -5,22 +5,22 @@
 
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/gc_alloc.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/gc_cell.hpp>
+
 #include <libprecisegc/details/allocators/gc_box.hpp>
 #include <libprecisegc/details/allocators/allocator_tag.hpp>
 #include <libprecisegc/details/allocators/sys_allocator.hpp>
 #include <libprecisegc/details/allocators/list_allocator.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/gc_object_descriptor.hpp>
-#include <libprecisegc/details/gc_cell.hpp>
 
 #include <libprecisegc/details/utils/locked_range.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
-
-#include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -101,13 +101,12 @@ class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
 
     typedef boost::iterator_range<memory_iterator> memory_range_type;
 public:
-    typedef gc_alloc_response pointer_type;
     typedef stateful_alloc_tag alloc_tag;
 
     gc_lo_allocator();
     ~gc_lo_allocator();
 
-    gc_alloc_response allocate(const gc_alloc_request& rqst);
+    gc_alloc::response allocate(const gc_alloc::request& rqst);
 
     gc_heap_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
@@ -116,6 +115,11 @@ private:
     static constexpr size_t get_blk_size(size_t alloc_size)
     {
         return align_size(sizeof(descriptor_t) + gc_box::box_size(alloc_size));
+    }
+
+    static constexpr size_t get_cell_size(size_t alloc_size)
+    {
+        return align_size(sizeof(descriptor_t) + gc_box::box_size(alloc_size)) - sizeof(descriptor_t);
     }
 
     static constexpr size_t align_size(size_t size)

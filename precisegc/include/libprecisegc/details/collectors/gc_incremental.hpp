@@ -17,8 +17,8 @@ class gc_incremental : public gc_core, private utils::noncopyable, private utils
 public:
     gc_incremental(size_t threads_available, const thread_descriptor& main_thrd_descr);
 
-    void commit(gc_cell& cell) override;
-    void commit(gc_cell& cell, const gc_type_meta* type_meta) override;
+    void commit(const gc_alloc::response& rsp) override;
+    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta) override;
 
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 

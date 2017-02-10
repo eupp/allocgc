@@ -3,19 +3,18 @@
 
 #include <cstdio>
 #include <cassert>
-#include <vector>
 #include <type_traits>
 #include <utility>
-#include <pthread.h>
 
 #include <libprecisegc/gc_ptr.hpp>
+#include <libprecisegc/gc_alloc.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
+#include <libprecisegc/gc_type_meta_factory.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/gc_type_meta.hpp>
-#include <libprecisegc/details/gc_type_meta_factory.hpp>
-#include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/utils/scope_guard.hpp>
-#include <libprecisegc/gc_new_stack_entry.hpp>
 
 namespace precisegc {
 
@@ -37,6 +36,37 @@ template<typename T, size_t N>
 struct gc_new_if<T[N]>
 {
     typedef void known_bound;
+};
+
+class commiter : private details::utils::noncopyable, private details::utils::nonmovable
+{
+public:
+    commiter(const gc_alloc::response* rsp)
+        : m_rsp(rsp)
+        , m_commited(false)
+    {}
+
+    ~commiter()
+    {
+        if (!m_commited) {
+            details::gc_abort(*m_rsp);
+        }
+    }
+
+    void commit()
+    {
+        m_commited = true;
+        details::gc_commit(*m_rsp);
+    }
+
+    void commit(const gc_type_meta* tmeta)
+    {
+        m_commited = true;
+        details::gc_commit(*m_rsp, tmeta);
+    }
+private:
+    const gc_alloc::response* m_rsp;
+    bool m_commited;
 };
 
 }
@@ -95,24 +125,23 @@ auto gc_new(Args&&... args)
     -> typename internals::gc_new_if<T>::single_object
 {
     using namespace precisegc::details;
-    using namespace precisegc::details::threads;
-    using namespace precisegc::details::allocators;
 
     gc_unsafe_scope unsafe_scope;
 
     typedef typename std::remove_cv<T>::type Tt;
 
     const gc_type_meta* type_meta = gc_type_meta_factory<Tt>::get();
-    gc_alloc_response rsp = gc_allocate(sizeof(Tt), 1, type_meta);
+
+    gc_buf buffer;
+    gc_alloc::response rsp = gc_allocate(gc_alloc::request(sizeof(Tt), 1, type_meta, &buffer));
+    internals::commiter commiter(&rsp);
 
     if (!type_meta) {
-        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
-        rsp.commit(gc_type_meta_factory<Tt>::create(stack_entry.offsets()));
+        commiter.commit(gc_type_meta_factory<Tt>::create(stack_entry.offsets()));
     } else {
-        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
-        rsp.commit();
+        commiter.commit();
     }
 
     return precisegc::internals::gc_ptr_factory<T>::template instance<Args...>::create(
@@ -134,7 +163,10 @@ auto gc_new(size_t n)
     gc_unsafe_scope unsafe_scope;
 
     const gc_type_meta* type_meta = gc_type_meta_factory<Uu>::get();
-    gc_alloc_response rsp = gc_allocate(sizeof(Uu), n, type_meta);
+
+    gc_buf buffer;
+    gc_alloc::response rsp = gc_allocate(gc_alloc::request(sizeof(Uu), n, type_meta, &buffer));
+    internals::commiter commiter(&rsp);
 
     bool type_meta_requested = (type_meta == nullptr);
 
@@ -142,11 +174,9 @@ auto gc_new(size_t n)
     Uu* end = begin + n;
 
     if (!type_meta) {
-        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), true);
         new (begin++) Uu();
         type_meta = gc_type_meta_factory<Uu>::create(stack_entry.offsets());
     } else {
-        gc_new_stack_entry stack_entry(rsp.obj_start(), rsp.size(), false);
         new (begin++) Uu();
     }
 
@@ -155,9 +185,9 @@ auto gc_new(size_t n)
     }
 
     if (type_meta_requested) {
-        rsp.commit(type_meta);
+        commiter.commit(type_meta);
     } else {
-        rsp.commit();
+        commiter.commit();
     }
 
     return precisegc::internals::gc_ptr_factory<U[]>::create(

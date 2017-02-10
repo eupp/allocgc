@@ -1,8 +1,6 @@
 #ifndef DIPLOMA_GC_CORE_HPP
 #define DIPLOMA_GC_CORE_HPP
 
-#include <libprecisegc/gc_new_stack_entry.hpp>
-
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_heap.hpp>
@@ -21,7 +19,6 @@
 
 #include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/gc_thread_descriptor.hpp>
-#include <libprecisegc/details/threads/gc_thread_descriptor.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -30,7 +27,11 @@ class gc_core : public gc_strategy, private utils::noncopyable, private utils::n
 public:
     gc_core(const thread_descriptor& main_thrd_descr);
 
-    allocators::gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta) override;
+    gc_alloc::response allocate(const gc_alloc::request& rqst) override;
+
+    void abort(const gc_alloc::response& rsp) override;
+    void commit(const gc_alloc::response& rsp) override;
+    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta) override;
 
     byte* rbarrier(const gc_handle& handle) override;
 
@@ -44,9 +45,6 @@ public:
 
     byte* push_pin(const gc_handle& handle) override;
     void  pop_pin(byte* pin) override;
-
-    void register_stack_entry(gc_new_stack_entry* stack_entry) override;
-    void deregister_stack_entry(gc_new_stack_entry* stack_entry) override;
 
     void register_thread(const thread_descriptor& descr) override;
     void deregister_thread(std::thread::id id) override;

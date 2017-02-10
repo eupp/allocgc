@@ -18,19 +18,21 @@ gc_incremental::gc_incremental(size_t threads_available, const thread_descriptor
     , m_threads_available(threads_available)
 {}
 
-void gc_incremental::commit(gc_cell& cell)
+void gc_incremental::commit(const gc_alloc::response& rsp)
 {
-    cell.commit();
+    gc_core::commit(rsp);
     if (m_phase == gc_phase::MARK) {
-        cell.set_mark(true);
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+        stack_entry->descriptor->set_mark(rsp.cell_start(), true);
     }
 }
 
-void gc_incremental::commit(gc_cell& cell, const gc_type_meta* type_meta)
+void gc_incremental::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
 {
-    cell.commit(type_meta);
+    gc_core::commit(rsp, type_meta);
     if (m_phase == gc_phase::MARK) {
-        cell.set_mark(true);
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+        stack_entry->descriptor->set_mark(rsp.cell_start(), true);
     }
 }
 

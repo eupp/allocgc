@@ -1,5 +1,6 @@
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -16,7 +17,7 @@ gc_lo_allocator::~gc_lo_allocator()
     }
 }
 
-gc_alloc_response gc_lo_allocator::allocate(const gc_alloc_request& rqst)
+gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
 {
     size_t blk_size = get_blk_size(rqst.alloc_size());
 
@@ -44,13 +45,19 @@ gc_alloc_response gc_lo_allocator::allocate(const gc_alloc_request& rqst)
 
     descriptor_t* descr = get_descr(blk.get());
     new (descr) descriptor_t(rqst.alloc_size());
-    byte* cell_start = get_memblk(blk.get());
-    byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
+
+    byte*  cell_start = get_memblk(blk.get());
+    size_t cell_size  = get_cell_size(rqst.alloc_size());
+    byte*  obj_start  = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
+
     gc_add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
+
+    collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
+    stack_entry->descriptor = descr;
 
     blk.release();
 
-    return gc_alloc_response(obj_start, rqst.alloc_size(), gc_cell::from_cell_start(cell_start, descr));
+    return gc_alloc::response(obj_start, cell_start, cell_size, rqst.buffer());
 }
 
 gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)

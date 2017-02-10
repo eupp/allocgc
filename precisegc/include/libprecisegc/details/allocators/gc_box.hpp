@@ -5,7 +5,7 @@
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/gc_type_meta.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 #include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

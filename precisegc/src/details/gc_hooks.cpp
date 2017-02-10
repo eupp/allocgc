@@ -21,19 +21,24 @@ bool gc_is_heap_ptr(const gc_handle* ptr)
     return gc_index_memory(reinterpret_cast<const byte*>(ptr)) != nullptr;
 }
 
-allocators::gc_alloc_response gc_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta)
+gc_alloc::response gc_allocate(const gc_alloc::request& rqst)
 {
-    return gc_instance.allocate(obj_size, obj_cnt, tmeta);
+    return gc_instance.allocate(rqst);
 }
 
-void gc_commit(gc_cell& cell)
+void gc_abort(const gc_alloc::response& rsp)
 {
-    gc_instance.commit(cell);
+    gc_instance.abort(rsp);
 }
 
-void gc_commit(gc_cell& cell, const gc_type_meta* type_meta)
+void gc_commit(const gc_alloc::response& rsp)
 {
-    gc_instance.commit(cell, type_meta);
+    gc_instance.commit(rsp);
+}
+
+void gc_commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
+{
+    gc_instance.commit(rsp, type_meta);
 }
 
 void gc_register_handle(gc_handle& handle, byte* ptr)
@@ -44,16 +49,6 @@ void gc_register_handle(gc_handle& handle, byte* ptr)
 void gc_deregister_handle(gc_handle& handle)
 {
     gc_instance.deregister_handle(handle);
-}
-
-void gc_register_stack_entry(gc_new_stack_entry* stack_entry)
-{
-    gc_instance.register_stack_entry(stack_entry);
-}
-
-void gc_deregister_stack_entry(gc_new_stack_entry* stack_entry)
-{
-    gc_instance.deregister_stack_entry(stack_entry);
 }
 
 void gc_register_thread(const thread_descriptor& descr)

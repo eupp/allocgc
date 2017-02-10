@@ -1,4 +1,4 @@
-#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
+#include <gc_alloc.hpp>
 
 #include <libprecisegc/details/gc_hooks.hpp>
 

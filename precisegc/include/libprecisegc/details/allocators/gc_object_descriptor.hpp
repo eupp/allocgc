@@ -3,7 +3,7 @@
 
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_memory_descriptor.hpp>
-#include <libprecisegc/details/allocators/gc_alloc_messaging.hpp>
+#include <gc_alloc.hpp>
 #include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -11,8 +11,6 @@ namespace precisegc { namespace details { namespace allocators {
 class gc_object_descriptor : public gc_memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef gc_alloc_response pointer_type;
-
     gc_object_descriptor(size_t size);
     ~gc_object_descriptor();
 

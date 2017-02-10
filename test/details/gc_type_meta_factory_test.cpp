@@ -4,8 +4,8 @@
 #include <vector>
 #include <algorithm>
 
-#include <libprecisegc/details/gc_type_meta.hpp>
-#include <libprecisegc/details/gc_type_meta_factory.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
+#include <libprecisegc/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/utils/barrier.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 

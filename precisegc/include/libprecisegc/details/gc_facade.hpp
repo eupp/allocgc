@@ -4,7 +4,6 @@
 #include <memory>
 #include <mutex>
 
-#include <libprecisegc/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/collectors/index_tree.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
@@ -25,10 +24,11 @@ public:
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    allocators::gc_alloc_response allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
+    gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    void commit(gc_cell& cell);
-    void commit(gc_cell& cell, const gc_type_meta* type_meta);
+    void abort(const gc_alloc::response& rsp);
+    void commit(const gc_alloc::response& rsp);
+    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
 
     void register_handle(gc_handle& handle, byte* ptr);
     void deregister_handle(gc_handle& handle);
@@ -45,9 +45,6 @@ public:
     void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
 
     bool compare(const gc_handle& a, const gc_handle& b);
-
-    void register_stack_entry(gc_new_stack_entry* stack_entry);
-    void deregister_stack_entry(gc_new_stack_entry* stack_entry);
 
     void register_thread(const thread_descriptor& descr);
     void deregister_thread(std::thread::id id);
@@ -83,8 +80,6 @@ public:
     gc_stat stats() const;
 private:
     typedef collectors::index_tree<gc_memory_descriptor> index_tree_t;
-
-    allocators::gc_alloc_response try_allocate(size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta);
 
     bool is_interior_pointer(const gc_handle& handle, byte* iptr);
     bool is_interior_offset(const gc_handle& handle, ptrdiff_t shift);

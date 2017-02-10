@@ -16,7 +16,7 @@ namespace precisegc { namespace details {
 gc_heap::gc_heap()
 {}
 
-allocators::gc_alloc_response gc_heap::allocate(const allocators::gc_alloc_request& rqst)
+gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
 {
     if (rqst.alloc_size() <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(rqst);
@@ -59,7 +59,7 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
     return stat;
 }
 
-allocators::gc_alloc_response gc_heap::allocate_on_tlab(const allocators::gc_alloc_request& rqst)
+gc_alloc::response gc_heap::allocate_on_tlab(const gc_alloc::request& rqst)
 {
     static thread_local mso_alloc_t& tlab = get_tlab();
     return tlab.allocate(rqst);

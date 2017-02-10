@@ -7,9 +7,9 @@
 
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_type_meta.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc {
 
 template <typename T>
 class gc_type_meta_factory;
@@ -55,7 +55,7 @@ private:
 }
 
 template <typename T>
-class gc_type_meta_factory : private utils::nonconstructible
+class gc_type_meta_factory : private details::utils::nonconstructible
 {
 public:
     static const gc_type_meta* get()
@@ -65,7 +65,7 @@ public:
 
     static const gc_type_meta* create()
     {
-        utils::dynarray<size_t> empty;
+        details::utils::dynarray<size_t> empty;
         return create(empty.begin(), empty.end());
     }
 
@@ -99,6 +99,6 @@ private:
 template <typename T>
 std::atomic<const gc_type_meta*> gc_type_meta_factory<T>::meta{nullptr};
 
-}}
+}
 
 #endif //DIPLOMA_GC_TYPE_META_FACTORY_HPP

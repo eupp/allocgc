@@ -2,7 +2,7 @@
 #define DIPLOMA_CELL_DESCRIPTOR_H
 
 #include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/gc_type_meta.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/gc_common.hpp>
 

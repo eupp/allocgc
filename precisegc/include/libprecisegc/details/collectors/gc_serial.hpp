@@ -17,9 +17,6 @@ class gc_serial : public gc_core, private utils::noncopyable, private utils::non
 public:
     gc_serial(size_t threads_available, const thread_descriptor& main_thrd_descr);
 
-    void commit(gc_cell& cell) override;
-    void commit(gc_cell& cell, const gc_type_meta* type_meta) override;
-
     void  wbarrier(gc_handle& dst, const gc_handle& src) override;
 
     gc_run_stats gc(const gc_options& options) override;

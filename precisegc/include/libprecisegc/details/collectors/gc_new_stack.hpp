@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include <libprecisegc/gc_new_stack_entry.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
@@ -20,7 +20,8 @@ public:
 
     void register_stack_entry(gc_new_stack_entry* stack_entry)
     {
-        stack_entry->set_prev(m_stack_top);
+        new (&stack_entry->offsets) gc_new_stack_entry::offsets_storage_t();
+        stack_entry->prev = m_stack_top;
         m_stack_top = stack_entry;
         ++m_depth;
     }
@@ -28,17 +29,18 @@ public:
     void deregister_stack_entry(gc_new_stack_entry* stack_entry)
     {
         assert(m_stack_top == stack_entry);
-        m_stack_top = m_stack_top->get_prev();
+        stack_entry->offsets.~vector();
+        m_stack_top = m_stack_top->prev;
         --m_depth;
     }
 
     void register_child(gc_handle* child)
     {
         assert(m_stack_top);
-        if (m_stack_top->is_meta_requested()) {
-            std::uintptr_t top  = reinterpret_cast<std::uintptr_t>(m_stack_top->get_ptr());
+        if (m_stack_top->meta_requested) {
+            std::uintptr_t top  = reinterpret_cast<std::uintptr_t>(m_stack_top->obj_start);
             std::uintptr_t curr = reinterpret_cast<std::uintptr_t>(child);
-            m_stack_top->register_offset(curr - top);
+            m_stack_top->offsets.push_back(curr - top);
         }
     }
 
@@ -51,8 +53,8 @@ public:
     {
         gc_new_stack_entry* curr = m_stack_top;
         while (curr) {
-            cb(curr->get_ptr());
-            curr = curr->get_prev();
+            cb(curr->obj_start);
+            curr = curr->prev;
         }
     }
 private:

@@ -19,8 +19,9 @@
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
+#include <libprecisegc/details/allocators/memory_descriptor.hpp>
 
-namespace precisegc { namespace details { namespace collectors {
+namespace precisegc { namespace details { namespace allocators {
 
 namespace internals {
 struct index_tree_access;
@@ -70,33 +71,38 @@ struct splitter
 };
 }
 
-template <typename T>
 class index_tree : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    typedef T entry_type;
-
     index_tree()
-    {
-        init();
-    }
+    { }
 
     ~index_tree()
     {
-        clear();
+//        clear();
     }
 
-    void add_to_index(const byte* mem, size_t size, T* entry)
+    void init()
+    {
+        init_impl();
+    }
+
+    void clear()
+    {
+        clear_impl();
+    }
+
+    void index(const byte* mem, size_t size, memory_descriptor descriptor)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
 //        assert(size % PAGE_SIZE == 0);
         const byte* mem_end = mem + size;
         for (const byte* it = mem; it < mem_end; it += PAGE_SIZE) {
-            add_page_to_index(it, entry);
+            add_page_to_index(it, descriptor);
         }
     }
 
-    void remove_from_index(const byte* mem, size_t size)
+    void deindex(const byte* mem, size_t size)
     {
         assert(reinterpret_cast<std::uintptr_t>(mem) % PAGE_SIZE == 0);
 //        assert(size % PAGE_SIZE == 0);
@@ -106,7 +112,7 @@ public:
         }
     }
 
-    T* index(const byte* mem) const
+    inline memory_descriptor get_descriptor(const byte* mem) const
     {
         return index_page(mem);
     }
@@ -159,7 +165,7 @@ private:
             : m_data(other.m_data)
         {}
 
-        void index(idxs_t::iterator idx, T* entry)
+        void index(idxs_t::iterator idx, memory_descriptor entry)
         {
             idxs_t::iterator next_idx = std::next(idx);
 
@@ -191,7 +197,7 @@ private:
             }
         }
 
-        T* get(idxs_t::iterator idx) const
+        memory_descriptor get(idxs_t::iterator idx) const
         {
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             return next_level->get(++idx);
@@ -270,10 +276,10 @@ private:
             : m_data(other.m_data)
         {}
 
-        void index(idxs_t::iterator idx, T* entry)
+        void index(idxs_t::iterator idx, memory_descriptor descriptor)
         {
             assert(!m_data[*idx].m_ptr.load(std::memory_order_acquire));
-            m_data[*idx].m_ptr.store(entry, std::memory_order_release);
+            m_data[*idx].m_ptr.store(descriptor, std::memory_order_release);
         }
 
         void remove_index(idxs_t::iterator idx)
@@ -282,7 +288,7 @@ private:
             m_data[*idx].m_ptr.store(nullptr, std::memory_order_release);
         }
 
-        T* get(idxs_t::iterator idx) const
+        memory_descriptor get(idxs_t::iterator idx) const
         {
             return m_data[*idx].m_ptr.load(std::memory_order_acquire);
         }
@@ -302,7 +308,7 @@ private:
                 : m_ptr(other.m_ptr.load(std::memory_order_relaxed))
             {}
 
-            std::atomic<T*> m_ptr;
+            std::atomic<memory_descriptor> m_ptr;
         };
 
         typedef std::array<handle, LEVEL_SIZE> array_t;
@@ -314,7 +320,7 @@ private:
     typedef internal_level<last_level> second_level_t;
     typedef last_level third_level_t;
 
-    void init()
+    void init_impl()
     {
         m_first_level.init();
         first_level_t::null()->init();
@@ -324,7 +330,7 @@ private:
         level_factory<third_level_t>::instance();
     }
 
-    void add_page_to_index(const byte* page, T* entry)
+    void add_page_to_index(const byte* page, memory_descriptor entry)
     {
         idxs_t idxs = internals::splitter::split(page);
         m_first_level.index(idxs.begin(), entry);
@@ -336,13 +342,13 @@ private:
         m_first_level.remove_index(idxs.begin());
     }
 
-    T* index_page(const byte* page) const
+    memory_descriptor index_page(const byte* page) const
     {
         idxs_t idxs = internals::splitter::split(page);
         return m_first_level.get(idxs.begin());
     }
 
-    void clear()
+    void clear_impl()
     {
         m_first_level.clear();
     }
@@ -353,23 +359,22 @@ private:
 namespace internals {
 struct index_tree_access
 {
-    template <typename T, typename Level>
-    using internal_level = typename index_tree<T>::template internal_level<Level>;
+    template <typename Level>
+    using internal_level = typename index_tree::template internal_level<Level>;
 
-    template <typename T>
-    using last_level = typename index_tree<T>::last_level;
+    using last_level = typename index_tree::last_level;
 
     typedef splitter::idx_t  idx_t;
     typedef splitter::idxs_t idxs_t;
 
-    template <typename T, typename Level>
-    static size_t get_level_count(const internal_level<T, Level>& level, idx_t idx)
+    template <typename Level>
+    static size_t get_level_count(const internal_level<Level>& level, idx_t idx)
     {
         return level.get_count(idx);
     };
 
-    template <typename T, typename Level>
-    static Level* get_level(const internal_level<T, Level>& level, idx_t idx)
+    template <typename Level>
+    static Level* get_level(const internal_level<Level>& level, idx_t idx)
     {
         return level.get_level(idx);
     };

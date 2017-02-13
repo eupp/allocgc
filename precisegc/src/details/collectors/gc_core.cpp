@@ -1,6 +1,7 @@
 #include <libprecisegc/details/collectors/gc_core.hpp>
 
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -10,6 +11,11 @@ gc_core::gc_core(const thread_descriptor& main_thrd_descr)
 {
     m_collect_flag = false;
     register_thread(main_thrd_descr);
+}
+
+gc_core::~gc_core()
+{
+//    allocators::memory_index::clear();
 }
 
 gc_alloc::response gc_core::allocate(const gc_alloc::request& rqst)

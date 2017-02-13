@@ -12,6 +12,7 @@
 #include <libprecisegc/details/collectors/remset.hpp>
 #include <libprecisegc/details/collectors/gc_tagging.hpp>
 #include <libprecisegc/details/collectors/packet_manager.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/utils/scoped_thread.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -47,7 +48,7 @@ public:
             byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
             byte* obj_start = gc_tagging::get_obj_start(ptr);
             if (obj_start) {
-                gc_cell cell = gc_index_object(obj_start);
+                gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
                 cell.set_mark(true);
                 push_root_to_packet(cell, output_packet);
 
@@ -73,7 +74,7 @@ public:
 
         auto trace_cb = [this, &output_packet] (byte* ptr) {
             if (ptr) {
-                gc_cell cell = gc_index_object(ptr);
+                gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
                 cell.set_mark(true);
                 cell.set_pin(true);
                 push_root_to_packet(cell, output_packet);

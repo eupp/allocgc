@@ -14,7 +14,7 @@
 #include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_memory_descriptor.hpp>
+#include <libprecisegc/details/allocators/gc_memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
@@ -133,7 +133,6 @@ public:
 
     void finalize(size_t i);
     void finalize(byte* ptr) override;
-
 
     inline bool get_mark(size_t idx) const
     {

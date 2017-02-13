@@ -9,6 +9,7 @@ inline bool get_mark(const precisegc::gc_alloc::response& rsp)
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;
@@ -19,6 +20,7 @@ inline void set_mark(const precisegc::gc_alloc::response& rsp, bool mark)
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;
@@ -29,6 +31,7 @@ inline bool get_pin(const precisegc::gc_alloc::response& rsp)
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;
@@ -39,6 +42,7 @@ inline void set_pin(const precisegc::gc_alloc::response& rsp, bool pin)
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;
@@ -49,6 +53,7 @@ inline precisegc::details::gc_lifetime_tag get_lifetime_tag(const precisegc::gc_
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;
@@ -59,6 +64,7 @@ inline void commit(const precisegc::gc_alloc::response& rsp)
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;
@@ -69,6 +75,7 @@ inline void commit(const precisegc::gc_alloc::response& rsp, const precisegc::gc
 {
     using namespace precisegc;
     using namespace precisegc::details;
+    using namespace precisegc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
     gc_memory_descriptor* descr = stack_entry->descriptor;

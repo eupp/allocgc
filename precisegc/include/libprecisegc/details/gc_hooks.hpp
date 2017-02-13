@@ -36,12 +36,6 @@ void gc_decrease_heap_size(size_t size);
 void gc_set_heap_limit(size_t size);
 void gc_expand_heap();
 
-void gc_add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry);
-void gc_remove_from_index(const byte* mem, size_t size);
-
-gc_memory_descriptor* gc_index_memory(const byte* mem);
-gc_cell gc_index_object(byte* obj_start);
-
 gc_stat  gc_get_stats();
 
 void gc_enable_print_stats();

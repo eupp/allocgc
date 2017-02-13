@@ -6,7 +6,7 @@
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/gc_common.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc { namespace details { namespace allocators {
 
 class gc_memory_descriptor
 {
@@ -36,6 +36,6 @@ public:
     virtual void finalize(byte* ptr) = 0;
 };
 
-}}
+}}}
 
 #endif //DIPLOMA_CELL_DESCRIPTOR_H

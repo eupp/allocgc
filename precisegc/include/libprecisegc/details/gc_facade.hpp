@@ -4,7 +4,7 @@
 #include <memory>
 #include <mutex>
 
-#include <libprecisegc/details/collectors/index_tree.hpp>
+#include <libprecisegc/details/allocators/index_tree.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_strategy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
@@ -60,26 +60,6 @@ public:
 
     void initiation_point(initiation_point_type ipt, const gc_options& opt);
 
-    inline void add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry)
-    {
-        m_index.add_to_index(mem, size, entry);
-    }
-
-    inline void remove_from_index(const byte* mem, size_t size)
-    {
-        m_index.remove_from_index(mem, size);
-    }
-
-    inline gc_memory_descriptor* index_memory(const byte* mem) const
-    {
-        return m_index.index(mem);
-    }
-
-    inline gc_cell index_object(byte* obj_start) const
-    {
-        return gc_cell::from_obj_start(obj_start, index_memory(obj_start));
-    }
-
     bool is_printer_enabled() const;
     void set_printer_enabled(bool enabled);
 
@@ -88,8 +68,6 @@ public:
 
     gc_stat stats() const;
 private:
-    typedef collectors::index_tree<gc_memory_descriptor> index_tree_t;
-
     bool is_interior_pointer(const gc_handle& handle, byte* iptr);
     bool is_interior_offset(const gc_handle& handle, ptrdiff_t shift);
 
@@ -102,7 +80,6 @@ private:
     std::unique_ptr<gc_strategy> m_strategy;
     gc_manager m_manager;
     std::mutex m_gc_mutex;
-    index_tree_t m_index;
     std::mutex m_heap_mutex;
     size_t m_heap_limit;
     size_t m_heap_maxlimit;

@@ -3,7 +3,7 @@
 #include <memory>
 #include <utility>
 
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/allocators/gc_pool_descriptor.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
 #include <libprecisegc/details/allocators/debug_layer.hpp>

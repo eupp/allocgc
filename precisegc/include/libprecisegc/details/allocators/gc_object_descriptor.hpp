@@ -3,7 +3,7 @@
 
 #include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_memory_descriptor.hpp>
+#include <libprecisegc/details/allocators/gc_memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

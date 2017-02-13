@@ -1,7 +1,7 @@
 #include <libprecisegc/details/collectors/marker.hpp>
 
 #include <libprecisegc/details/collectors/gc_tagging.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -36,7 +36,7 @@ void marker::trace_remset()
     for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
         byte* obj_start = gc_tagging::get_obj_start(*it);
         if (obj_start) {
-            gc_cell cell = gc_index_object(obj_start);
+            gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
             cell.set_mark(true);
             push_root_to_packet(cell, output_packet);
 
@@ -80,7 +80,7 @@ void marker::worker_routine()
                 for (size_t i = 0; i < POP_REMSET_COUNT; ++i) {
                     byte* ptr = m_remset->get();
                     if (ptr) {
-                        push_to_packet(gc_index_object(ptr), output_packet);
+                        push_to_packet(allocators::memory_index::get_gc_cell(ptr), output_packet);
                     } else {
                         break;
                     }
@@ -154,7 +154,7 @@ void marker::trace(gc_handle* handle, packet_manager::mark_packet_handle& output
     byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
     byte* obj_start = gc_tagging::get_obj_start(ptr);
     if (obj_start) {
-        gc_cell cell = gc_index_object(obj_start);
+        gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
         if (!cell.get_mark()) {
             cell.set_mark(true);
             push_to_packet(cell, output_packet);

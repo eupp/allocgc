@@ -48,9 +48,6 @@ public:
 
     static void deallocate(byte* ptr, size_t size);
 
-    static void expand_heap();
-    static void set_heap_limit(size_t size);
-
     static size_t shrink();
 
     static memory_range_type memory_range();

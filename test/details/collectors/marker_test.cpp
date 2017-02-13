@@ -74,7 +74,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
         return;
     }
     gc_pin<node> pin = ptr.pin();
-    gc_index_object((byte*) pin.get()).set_mark(false);
+    allocators::memory_index::get_gc_cell((byte*) pin.get()).set_mark(false);
     if (depth == mark_depth) {
         root_set.roots.push_back(
                 reinterpret_cast<gc_handle*>(&precisegc::internals::gc_ptr_access<node>::get_untyped(ptr))
@@ -94,9 +94,9 @@ void check_nodes_marked(const gc_ptr<node>& ptr, size_t depth, size_t mark_depth
 
     gc_pin<node> pin = ptr.pin();
     if (depth < mark_depth) {
-        EXPECT_FALSE(gc_index_object((byte*) pin.get()).get_mark()) << "ptr=" << pin.get();
+        EXPECT_FALSE(allocators::memory_index::get_gc_cell((byte*) pin.get()).get_mark()) << "ptr=" << pin.get();
     } else {
-        EXPECT_TRUE(gc_index_object((byte*) pin.get()).get_mark()) << "ptr=" << pin.get();
+        EXPECT_TRUE(allocators::memory_index::get_gc_cell((byte*) pin.get()).get_mark()) << "ptr=" << pin.get();
     }
 
     check_nodes_marked(ptr->m_left, depth + 1, mark_depth, max_depth);
@@ -113,9 +113,9 @@ void check_nodes_pinned(const gc_ptr<node>& ptr, size_t depth, size_t pin_depth,
 
     node* raw_ptr = precisegc::internals::gc_ptr_access<node>::get(ptr);
     if (depth == pin_depth) {
-        EXPECT_TRUE(gc_index_object((byte*) raw_ptr).get_pin()) << "ptr=" << raw_ptr;
+        EXPECT_TRUE(allocators::memory_index::get_gc_cell((byte*) raw_ptr).get_pin()) << "ptr=" << raw_ptr;
     } else {
-        EXPECT_FALSE(gc_index_object((byte*) raw_ptr).get_pin()) << "ptr=" << raw_ptr;
+        EXPECT_FALSE(allocators::memory_index::get_gc_cell((byte*) raw_ptr).get_pin()) << "ptr=" << raw_ptr;
     }
 
     check_nodes_pinned(ptr->m_left, depth + 1, pin_depth, max_depth);
@@ -131,7 +131,7 @@ void print_tree(const gc_ptr<node>& root, const std::string& offset = "")
     }
     gc_pin<node> pin = root.pin();
 //    byte* ptr =
-    std::cout << offset << &root << " (" << pin.get() << ") [" << gc_index_object((byte*) pin.get()).get_mark() << "]" << std::endl;
+    std::cout << offset << &root << " (" << pin.get() << ") [" << allocators::memory_index::get_gc_cell((byte*) pin.get()).get_mark() << "]" << std::endl;
     auto new_offset = offset + "    ";
     print_tree(root->m_left, new_offset);
     print_tree(root->m_right, new_offset);

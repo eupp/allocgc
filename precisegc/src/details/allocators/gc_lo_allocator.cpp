@@ -1,5 +1,6 @@
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 
@@ -50,7 +51,7 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
     size_t cell_size  = get_cell_size(rqst.alloc_size());
     byte*  obj_start  = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
 
-    gc_add_to_index(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
+    memory_index::index_gc_heap_memory(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
     stack_entry->descriptor = descr;
@@ -102,7 +103,7 @@ void gc_lo_allocator::destroy(const descriptor_iterator& it)
 
     byte* memblk = get_memblk(blk);
     it->finalize(memblk);
-    gc_remove_from_index(align_by_page(blk), m_alloc.get_blk_size(blk_size));
+    memory_index::deindex(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
     deallocate_blk(blk, blk_size);
 }

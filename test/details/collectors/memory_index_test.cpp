@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 
 #include "memory_descriptor_mock.h"
@@ -19,12 +19,12 @@ TEST(memory_index_test, test_index)
     std::unique_ptr<byte, decltype(deleter)> memory(gc_core_allocator::allocate(PAGE_SIZE), deleter);
 
     memory_descriptor_mock mock;
-    gc_add_to_index(memory.get(), PAGE_SIZE, &mock);
+    allocators::memory_index::index_gc_heap_memory(memory.get(), PAGE_SIZE, &mock);
     auto guard = utils::make_scope_guard([&memory] () {
-        gc_remove_from_index(memory.get(), PAGE_SIZE);
+        allocators::memory_index::deindex(memory.get(), PAGE_SIZE);
     });
 
-    gc_memory_descriptor* descr = gc_index_memory(memory.get());
+    gc_memory_descriptor* descr = allocators::memory_index::get_descriptor(memory.get()).to_gc_descriptor();
 
     ASSERT_EQ(&mock, descr);
 }

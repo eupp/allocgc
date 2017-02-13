@@ -6,7 +6,7 @@
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/collectors/gc_tagging.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
@@ -54,7 +54,7 @@ void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
     if (m_phase == gc_phase::MARK) {
         byte* obj_start = gc_tagging::get_obj_start(ptr);
         if (obj_start) {
-            gc_cell cell = gc_index_object(obj_start);
+            gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
             if (!cell.get_mark()) {
                 m_remset.add(obj_start);
             }

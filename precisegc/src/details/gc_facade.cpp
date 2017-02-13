@@ -4,7 +4,7 @@
 #include <memory>
 #include <iostream>
 
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/utils/scope_guard.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/logging.hpp>
@@ -22,7 +22,7 @@ gc_facade::gc_facade()
 {
     logging::touch();
     // same hack as with logger
-//    collectors::memory_index::add_to_index(nullptr, 0, nullptr);
+    allocators::memory_index::init();
 }
 
 void gc_facade::init(std::unique_ptr<gc_strategy> strategy)
@@ -234,8 +234,10 @@ gc_stat gc_facade::stats() const
 
 bool gc_facade::is_interior_pointer(const gc_handle& handle, byte* iptr)
 {
+    using namespace allocators;
+
     byte* ptr = handle.rbarrier();
-    gc_memory_descriptor* descr = index_memory(ptr);
+    gc_memory_descriptor* descr = memory_index::get_descriptor(ptr).to_gc_descriptor();
     byte* cell_begin = descr->cell_start(ptr);
     byte* cell_end   = cell_begin + descr->cell_size(ptr);
     return (cell_begin <= iptr) && (iptr < cell_end);

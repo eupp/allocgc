@@ -4,10 +4,10 @@
 #include <iterator>
 
 #include <libprecisegc/details/allocators/gc_box.hpp>
-#include <libprecisegc/details/compacting/two_finger_compactor.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
+#include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 
@@ -33,8 +33,8 @@ gc_alloc::response gc_pool_allocator::allocate(const gc_alloc::request& rqst, si
 }
 
 gc_alloc::response gc_pool_allocator::try_expand_and_allocate(size_t size,
-                                                           const gc_alloc::request& rqst,
-                                                           size_t attempt_num)
+                                                              const gc_alloc::request& rqst,
+                                                              size_t attempt_num)
 {
     byte*  blk;
     size_t blk_size;
@@ -81,7 +81,7 @@ gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_
     assert(contains(ptr));
 
     memset(ptr, 0, size);
-    descriptor_t* descr = static_cast<descriptor_t*>(gc_index_memory(ptr));
+    descriptor_t* descr = static_cast<descriptor_t*>(memory_index::get_descriptor(ptr).to_gc_descriptor());
     return init_cell(ptr, rqst, descr);
 }
 
@@ -101,14 +101,14 @@ gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, si
 {
     m_descrs.emplace_back(blk, blk_size, cell_size);
     auto last = std::prev(m_descrs.end());
-    gc_add_to_index(blk, blk_size, &(*last));
+    memory_index::index_gc_heap_memory(blk, blk_size, &(*last));
     return last;
 }
 
 gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it)
 {
     sweep(*it, false);
-    gc_remove_from_index(it->memory(), it->size());
+    memory_index::deindex(it->memory(), it->size());
     deallocate_block(it->memory(), it->size());
     return m_descrs.erase(it);
 }

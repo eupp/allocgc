@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <libprecisegc/gc_common.hpp>
-#include <libprecisegc/details/gc_memory_descriptor.hpp>
+#include <libprecisegc/details/allocators/gc_memory_descriptor.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
@@ -14,6 +14,7 @@ struct gc_new_stack_entry
 {
 public:
     typedef std::vector<size_t> offsets_storage_t;
+    typedef allocators::gc_memory_descriptor gc_memory_descriptor;
 
     byte*                   obj_start;
     gc_memory_descriptor*   descriptor;

@@ -17,14 +17,14 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/ptrs/gc_untyped_ptr.hpp
         include/libprecisegc/details/logging.hpp
         include/libprecisegc/details/allocators/gc_core_allocator.hpp
-        include/libprecisegc/details/collectors/index_tree.hpp
+        include/libprecisegc/details/allocators/index_tree.hpp
         include/libprecisegc/details/allocators/debug_layer.hpp
         include/libprecisegc/details/allocators/bucket_allocator.hpp
         include/libprecisegc/details/allocators/bitmap_pool_chunk.hpp
         include/libprecisegc/details/allocators/stl_adapter.hpp
         include/libprecisegc/details/allocators/pow2_bucket_policy.hpp
         include/libprecisegc/details/allocators/gc_pool_descriptor.hpp
-        include/libprecisegc/details/gc_memory_descriptor.hpp
+        include/libprecisegc/details/allocators/gc_memory_descriptor.hpp
         include/libprecisegc/details/utils/flatten_range.hpp
         include/libprecisegc/details/threads/pending_call.hpp
         include/libprecisegc/details/threads/posix_signal.hpp
@@ -83,7 +83,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/compacting/two_finger_compactor.hpp
         include/libprecisegc/details/collectors/remset.hpp
         include/libprecisegc/details/collectors/dptr_storage.hpp
-        include/libprecisegc/details/collectors/memory_index.hpp
+        include/libprecisegc/details/allocators/memory_index.hpp
         include/libprecisegc/details/allocators/gc_so_allocator.hpp
         include/libprecisegc/gc_type_meta_factory.hpp
         include/libprecisegc/details/allocators/gc_lo_allocator.hpp
@@ -92,7 +92,15 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/list_allocator.hpp
         include/libprecisegc/details/allocators/pool_allocator.hpp
         include/libprecisegc/details/gc_cell.hpp
-        include/libprecisegc/details/allocators/gc_box.hpp include/libprecisegc/gc_cast.hpp include/libprecisegc/details/collectors/gc_tagging.hpp include/libprecisegc/details/collectors/dptr_descriptor.hpp include/libprecisegc/details/collectors/gc_core.hpp include/libprecisegc/details/threads/gc_thread_descriptor.hpp include/libprecisegc/details/collectors/gc_new_stack.hpp include/libprecisegc/gc_common.hpp)
+        include/libprecisegc/details/allocators/gc_box.hpp
+        include/libprecisegc/gc_cast.hpp
+        include/libprecisegc/gc_common.hpp
+        include/libprecisegc/details/collectors/gc_tagging.hpp
+        include/libprecisegc/details/collectors/dptr_descriptor.hpp
+        include/libprecisegc/details/collectors/gc_core.hpp
+        include/libprecisegc/details/threads/gc_thread_descriptor.hpp
+        include/libprecisegc/details/collectors/gc_new_stack.hpp
+        include/libprecisegc/details/allocators/memory_descriptor.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp

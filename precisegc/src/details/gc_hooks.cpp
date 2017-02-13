@@ -2,7 +2,7 @@
 #include <libprecisegc/details/gc_handle.hpp>
 
 #include <libprecisegc/details/collectors/static_root_set.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/gc_facade.hpp>
 
 namespace precisegc { namespace details {
@@ -18,7 +18,7 @@ bool gc_is_heap_ptr(const gc_handle* ptr)
 {
     using namespace threads;
     using namespace collectors;
-    return gc_index_memory(reinterpret_cast<const byte*>(ptr)) != nullptr;
+    return !allocators::memory_index::get_descriptor(reinterpret_cast<const byte*>(ptr)).is_null();
 }
 
 gc_alloc::response gc_allocate(const gc_alloc::request& rqst)
@@ -89,26 +89,6 @@ void gc_set_heap_limit(size_t size)
 void gc_expand_heap()
 {
     gc_instance.expand_heap();
-}
-
-void gc_add_to_index(const byte* mem, size_t size, gc_memory_descriptor* entry)
-{
-    gc_instance.add_to_index(mem, size, entry);
-}
-
-void gc_remove_from_index(const byte* mem, size_t size)
-{
-    gc_instance.remove_from_index(mem, size);
-}
-
-gc_memory_descriptor* gc_index_memory(const byte* mem)
-{
-    return gc_instance.index_memory(mem);
-}
-
-gc_cell gc_index_object(byte* obj_start)
-{
-    return gc_instance.index_object(obj_start);
 }
 
 gc_stat gc_get_stats()

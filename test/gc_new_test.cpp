@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/gc_new.hpp>
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/gc_type_meta_factory.hpp>
 #include <libprecisegc/gc_type_meta.hpp>
 
@@ -39,7 +39,7 @@ TEST(gc_new_test, test_meta)
 {
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
-    gc_cell cell = gc_index_object((byte*) pin.get());
+    gc_cell cell = allocators::memory_index::get_gc_cell((byte*) pin.get());
     const gc_type_meta* type_meta = cell.get_type_meta();
 
     ASSERT_EQ(1, cell.object_count());
@@ -79,7 +79,7 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    gc_cell cell = gc_index_object((byte*) ptr.pin().get());
+    gc_cell cell = allocators::memory_index::get_gc_cell((byte*) ptr.pin().get());
     const gc_type_meta* type_meta = cell.get_type_meta();
 
     ASSERT_NE(nullptr, type_meta);

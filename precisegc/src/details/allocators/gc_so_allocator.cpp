@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include <libprecisegc/details/collectors/memory_index.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace allocators {
 

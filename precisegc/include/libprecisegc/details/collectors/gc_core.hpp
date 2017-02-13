@@ -27,6 +27,8 @@ class gc_core : public gc_strategy, private utils::noncopyable, private utils::n
 public:
     gc_core(const thread_descriptor& main_thrd_descr);
 
+    ~gc_core();
+
     gc_alloc::response allocate(const gc_alloc::request& rqst) override;
 
     void abort(const gc_alloc::response& rsp) override;
@@ -61,6 +63,7 @@ protected:
 private:
     static thread_local threads::gc_thread_descriptor* this_thread;
 
+    int m_index_init;
     threads::gc_thread_manager m_thread_manager;
     static_root_set m_static_roots;
     dptr_storage m_dptr_storage;

@@ -1,5 +1,6 @@
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
 
+#include <libprecisegc/details/allocators/memory_index.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 #include <libprecisegc/details/logging.hpp>
 
@@ -24,7 +25,7 @@ void dptr_storage::destroy_unmarked()
 {
     dptr_descriptor* head = m_head.load(std::memory_order_relaxed);
 
-    while (head && !gc_index_object(head->m_origin).get_mark()) {
+    while (head && !allocators::memory_index::get_gc_cell(head->m_origin).get_mark()) {
         dptr_descriptor* next = head->m_next;
         m_pool.destroy(head);
         head = next;
@@ -39,7 +40,7 @@ void dptr_storage::destroy_unmarked()
     dptr_descriptor* prev = head;
     dptr_descriptor* curr = head->m_next;
     while (curr) {
-        if (!gc_index_object(curr->m_origin).get_mark()) {
+        if (!allocators::memory_index::get_gc_cell(curr->m_origin).get_mark()) {
             dptr_descriptor* next = curr->m_next;
             m_pool.destroy(curr);
             prev->m_next = next;

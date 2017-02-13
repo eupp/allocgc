@@ -17,7 +17,7 @@
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
-#include <gc_alloc.hpp>
+#include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/details/constants.hpp>
 #include <libprecisegc/details/logging.hpp>
 

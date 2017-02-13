@@ -110,10 +110,11 @@ TEST(gc_untyped_ptr_test, test_is_root_1)
     gc_untyped_ptr ptr1;
     EXPECT_TRUE(ptr1.is_root());
 
-    gc_alloc_response rsp = gc_allocate(sizeof(test_type), 1, test_type_meta);
+    gc_buf buf;
+    gc_alloc::response rsp = gc_allocate(gc_alloc::request(sizeof(test_type), 1, test_type_meta, &buf));
     test_type* obj = reinterpret_cast<test_type*>(rsp.obj_start());
     new (obj) test_type();
-    rsp.commit();
+    gc_commit(rsp);
     EXPECT_FALSE(obj->p.is_root());
 }
 
@@ -128,10 +129,11 @@ TEST(gc_untyped_ptr_test, test_is_root_2)
     gc_untyped_ptr ptr2;
 
 
-    gc_alloc_response rsp = gc_allocate(sizeof(test_type), 1, test_type_meta);
+    gc_buf buf;
+    gc_alloc::response rsp = gc_allocate(gc_alloc::request(sizeof(test_type), 1, test_type_meta, &buf));
     test_type* obj = reinterpret_cast<test_type*>(rsp.obj_start());
     new (obj) test_type();
-    rsp.commit();
+    gc_commit(rsp);
 
     ptr2 = ptr1;
     EXPECT_TRUE(ptr2.is_root());

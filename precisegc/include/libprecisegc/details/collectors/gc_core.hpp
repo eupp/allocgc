@@ -33,6 +33,8 @@ public:
     void commit(const gc_alloc::response& rsp) override;
     void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta) override;
 
+    gc_offsets make_offsets(const gc_alloc::response& rsp) override;
+
     byte* rbarrier(const gc_handle& handle) override;
 
     void interior_wbarrier(gc_handle& handle, ptrdiff_t offset) override;

@@ -5,8 +5,6 @@
 #include <vector>
 #include <memory>
 
-#include <boost/range/iterator_range.hpp>
-
 #include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/gc_memory_descriptor.hpp>
 
@@ -16,8 +14,6 @@ struct gc_new_stack_entry
 {
 public:
     typedef std::vector<size_t> offsets_storage_t;
-    typedef offsets_storage_t::const_iterator offsets_iterator;
-    typedef boost::iterator_range<offsets_iterator> offsets_range;
 
     byte*                   obj_start;
     gc_memory_descriptor*   descriptor;

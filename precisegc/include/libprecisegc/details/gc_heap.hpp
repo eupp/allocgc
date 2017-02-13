@@ -19,7 +19,7 @@
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-#include <gc_alloc.hpp>
+#include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/constants.hpp>
 

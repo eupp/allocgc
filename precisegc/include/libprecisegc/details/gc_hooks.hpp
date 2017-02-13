@@ -21,6 +21,8 @@ void gc_abort(const gc_alloc::response& rsp);
 void gc_commit(const gc_alloc::response& rsp);
 void gc_commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
 
+gc_offsets gc_make_offsets(const gc_alloc::response& rsp);
+
 void gc_register_handle(gc_handle& handle, byte* ptr);
 void gc_deregister_handle(gc_handle& handle);
 

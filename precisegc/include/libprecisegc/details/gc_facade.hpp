@@ -30,6 +30,8 @@ public:
     void commit(const gc_alloc::response& rsp);
     void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
 
+    gc_offsets make_offsets(const gc_alloc::response& rsp);
+
     void register_handle(gc_handle& handle, byte* ptr);
     void deregister_handle(gc_handle& handle);
 

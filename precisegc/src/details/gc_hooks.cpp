@@ -41,6 +41,11 @@ void gc_commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
     gc_instance.commit(rsp, type_meta);
 }
 
+gc_offsets gc_make_offsets(const gc_alloc::response& rsp)
+{
+    return gc_instance.make_offsets(rsp);
+}
+
 void gc_register_handle(gc_handle& handle, byte* ptr)
 {
     gc_instance.register_handle(handle, ptr);

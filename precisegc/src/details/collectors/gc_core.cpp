@@ -16,11 +16,13 @@ gc_alloc::response gc_core::allocate(const gc_alloc::request& rqst)
 {
     gc_alloc::response rsp = m_heap.allocate(rqst);
 
-    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
     stack_entry->obj_start = rsp.obj_start();
     stack_entry->meta_requested = rqst.type_meta() == nullptr;
 
     this_thread->register_stack_entry(stack_entry);
+
+    return rsp;
 }
 
 void gc_core::abort(const gc_alloc::response& rsp)
@@ -47,6 +49,12 @@ void gc_core::commit(const gc_alloc::response& rsp, const gc_type_meta* type_met
 
     assert(stack_entry->descriptor);
     stack_entry->descriptor->commit(rsp.cell_start(), type_meta);
+}
+
+gc_offsets gc_core::make_offsets(const gc_alloc::response& rsp)
+{
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+    return boost::make_iterator_range(stack_entry->offsets.begin(), stack_entry->offsets.end());
 }
 
 byte* gc_core::rbarrier(const gc_handle& handle)

@@ -20,7 +20,7 @@ public:
 
     void register_stack_entry(gc_new_stack_entry* stack_entry)
     {
-        new (&stack_entry->offsets) gc_new_stack_entry::offsets_storage_t();
+        new (&stack_entry->offsets) std::vector<size_t>();
         stack_entry->prev = m_stack_top;
         m_stack_top = stack_entry;
         ++m_depth;
@@ -29,7 +29,7 @@ public:
     void deregister_stack_entry(gc_new_stack_entry* stack_entry)
     {
         assert(m_stack_top == stack_entry);
-        stack_entry->offsets.~vector();
+        stack_entry->offsets.~vector<size_t>();
         m_stack_top = m_stack_top->prev;
         --m_depth;
     }

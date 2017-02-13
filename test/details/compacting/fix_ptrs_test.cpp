@@ -5,6 +5,7 @@
 #include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 
 #include "test_forwarding.hpp"
+#include "utils.hpp"
 
 using namespace precisegc;
 using namespace precisegc::details;
@@ -32,9 +33,11 @@ struct fix_ptrs_test : public ::testing::Test
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
-    gc_alloc_response rsp = alloc.allocate(gc_alloc_request(OBJ_SIZE, 1, type_meta), gc_box::box_size(OBJ_SIZE));
-    rsp.set_mark(true);
-    rsp.set_pin(false);
+    gc_buf buf;
+    gc_alloc::response rsp = alloc.allocate(gc_alloc::request(OBJ_SIZE, 1, type_meta, &buf), gc_box::box_size(OBJ_SIZE));
+
+    set_mark(rsp, true);
+    set_pin(rsp, false);
     byte* ptr = rsp.obj_start();
 
     test_type val1;

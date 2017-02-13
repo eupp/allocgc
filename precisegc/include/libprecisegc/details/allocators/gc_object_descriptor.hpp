@@ -1,9 +1,9 @@
 #ifndef DIPLOMA_GC_OBJECT_DESCRIPTOR_HPP
 #define DIPLOMA_GC_OBJECT_DESCRIPTOR_HPP
 
+#include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/gc_memory_descriptor.hpp>
-#include <gc_alloc.hpp>
 #include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

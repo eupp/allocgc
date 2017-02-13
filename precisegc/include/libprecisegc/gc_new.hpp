@@ -138,7 +138,7 @@ auto gc_new(Args&&... args)
 
     if (!type_meta) {
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
-        commiter.commit(gc_type_meta_factory<Tt>::create(stack_entry.offsets()));
+        commiter.commit(gc_type_meta_factory<Tt>::create(gc_make_offsets(rsp)));
     } else {
         new (rsp.obj_start()) Tt(std::forward<Args>(args)...);
         commiter.commit();
@@ -175,7 +175,7 @@ auto gc_new(size_t n)
 
     if (!type_meta) {
         new (begin++) Uu();
-        type_meta = gc_type_meta_factory<Uu>::create(stack_entry.offsets());
+        type_meta = gc_type_meta_factory<Uu>::create(gc_make_offsets(rsp));
     } else {
         new (begin++) Uu();
     }

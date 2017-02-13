@@ -26,6 +26,8 @@ public:
             , m_buf(buf)
         { }
 
+        request() = default;
+
         request(const request&) noexcept = default;
         request(request&&) noexcept = default;
 
@@ -77,6 +79,8 @@ public:
             , m_cell_size(cell_size)
             , m_buf(buf)
         {}
+
+        response() = default;
 
         response(const response&) = default;
         response(response&&) = default;

@@ -10,10 +10,10 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
+#include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/details/gc_cell.hpp>
 #include <libprecisegc/details/utils/bitset.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <gc_alloc.hpp>
 #include <libprecisegc/details/gc_memory_descriptor.hpp>
 #include <libprecisegc/details/constants.hpp>
 

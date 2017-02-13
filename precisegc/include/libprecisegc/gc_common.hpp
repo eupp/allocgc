@@ -4,6 +4,8 @@
 #include <thread>
 #include <atomic>
 
+#include <boost/range/iterator_range.hpp>
+
 namespace precisegc {
 
 typedef std::uint8_t byte;
@@ -26,8 +28,11 @@ public:
         return SIZE;
     }
 
-    std::aligned_storage<SIZE> data;
+//    std::aligned_storage<SIZE> data;
+    byte data[SIZE];
 };
+
+typedef boost::iterator_range<typename std::vector<size_t>::const_iterator> gc_offsets;
 
 }
 

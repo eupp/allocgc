@@ -23,6 +23,8 @@ public:
     virtual void commit(const gc_alloc::response& rsp) = 0;
     virtual void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta) = 0;
 
+    virtual gc_offsets make_offsets(const gc_alloc::response& rsp) = 0;
+
     virtual void register_handle(gc_handle& handle, byte* ptr) = 0;
     virtual void deregister_handle(gc_handle& handle) = 0;
 

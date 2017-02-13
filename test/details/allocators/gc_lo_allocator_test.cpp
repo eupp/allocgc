@@ -3,6 +3,8 @@
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 #include <libprecisegc/gc_type_meta_factory.hpp>
 
+#include "utils.hpp"
+
 using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::allocators;
@@ -19,29 +21,30 @@ const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create();
 struct gc_lo_allocator_test : public ::testing::Test
 {
     gc_lo_allocator_test()
-        : rqst(OBJ_SIZE, 1, nullptr)
+        : rqst(OBJ_SIZE, 1, nullptr, &buf)
     {}
 
     gc_lo_allocator alloc;
-    gc_alloc_request rqst;
+    gc_buf buf;
+    gc_alloc::request rqst;
 };
 
 TEST_F(gc_lo_allocator_test, test_allocate_1)
 {
-    gc_alloc_response rsp = alloc.allocate(rqst);
-    rsp.commit(type_meta);
+    gc_alloc::response rsp = alloc.allocate(rqst);
+    commit(rsp, type_meta);
 
     ASSERT_NE(nullptr, rsp.obj_start());
-    ASSERT_LE(OBJ_SIZE, rsp.size());
-    ASSERT_NE(nullptr, rsp.descriptor());
+    ASSERT_LE(OBJ_SIZE, rsp.cell_size());
 }
 
 TEST_F(gc_lo_allocator_test, test_allocate_2)
 {
-    gc_alloc_response rsp1 = alloc.allocate(rqst);
-    gc_alloc_response rsp2 = alloc.allocate(rqst);
-    rsp1.commit(type_meta);
-    rsp2.commit(type_meta);
+    gc_alloc::response rsp1 = alloc.allocate(rqst);
+    commit(rsp1, type_meta);
+
+    gc_alloc::response rsp2 = alloc.allocate(rqst);
+    commit(rsp2, type_meta);
 
     ASSERT_NE(nullptr, rsp1.obj_start());
     ASSERT_NE(nullptr, rsp2.obj_start());
@@ -50,15 +53,18 @@ TEST_F(gc_lo_allocator_test, test_allocate_2)
 
 TEST_F(gc_lo_allocator_test, test_collect)
 {
-    gc_alloc_response rsps[3];
-    for (auto& rsp: rsps) {
-        rsp = alloc.allocate(rqst);
-        rsp.commit(type_meta);
-    }
+    gc_alloc::response rsp1 = alloc.allocate(rqst);
+    commit(rsp1, type_meta);
+    set_mark(rsp1, true);
+    set_pin(rsp1, true);
 
-    rsps[0].set_mark(true);
-    rsps[0].set_pin(true);
-    rsps[2].set_mark(true);
+    gc_alloc::response rsp2 = alloc.allocate(rqst);
+    commit(rsp2, type_meta);
+
+    gc_alloc::response rsp3 = alloc.allocate(rqst);
+    commit(rsp3, type_meta);
+    set_mark(rsp3, true);
+
 
     compacting::forwarding frwd;
     gc_heap_stat stat = alloc.collect(frwd);

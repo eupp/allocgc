@@ -8,6 +8,7 @@
 #include <libprecisegc/gc_type_meta_factory.hpp>
 #include <libprecisegc/gc_common.hpp>
 
+#include "utils.hpp"
 #include "rand_util.h"
 #include "test_forwarding.hpp"
 
@@ -35,12 +36,13 @@ template <typename Compactor>
 struct compactor_test : public ::testing::Test
 {
     compactor_test()
-        : rqst(OBJ_SIZE, 1, type_meta)
+        : rqst(OBJ_SIZE, 1, type_meta, &buf)
     {}
 
     allocator_t alloc;
     Compactor compactor;
-    gc_alloc_request rqst;
+    gc_buf buf;
+    gc_alloc::request rqst;
 };
 
 typedef ::testing::Types<two_finger_compactor> test_compactor_types;
@@ -67,19 +69,20 @@ TYPED_TEST_CASE(compactor_test, test_compactor_types);
 TYPED_TEST(compactor_test, test_compact_1)
 {
     static const size_t OBJ_COUNT = 5;
-    gc_alloc_response rsps[OBJ_COUNT];
+    gc_alloc::response rsps[OBJ_COUNT];
     for (int i = 0; i < OBJ_COUNT; ++i) {
         rsps[i] = this->alloc.allocate(this->rqst, ALLOC_SIZE);
     }
 
     // mark & pin some objects
-    rsps[0].commit();
-    rsps[0].set_mark(true);
-    rsps[3].commit();
-    rsps[3].set_mark(true);
-    rsps[3].set_pin(true);
-    rsps[4].commit();
-    rsps[4].set_mark(true);
+    commit(rsps[0]);
+    set_mark(rsps[0], true);
+    commit(rsps[3]);
+    set_mark(rsps[3], true);
+    set_pin(rsps[3], true);
+    commit(rsps[4]);
+    commit(rsps[4]);
+    set_mark(rsps[4], true);
 
 //    for (auto p: rng) {
 //        std::cout << (void*) p.get() << " " << p.get_mark() << " " << p.get_pin() << std::endl;
@@ -105,27 +108,27 @@ TYPED_TEST(compactor_test, test_compact_1)
     ASSERT_EQ(exp_from, from);
     ASSERT_EQ(exp_to, to);
 
-    ASSERT_TRUE(rsps[0].get_mark());
-    ASSERT_TRUE(rsps[1].get_mark());
-    ASSERT_TRUE(rsps[3].get_mark());
-    ASSERT_TRUE(rsps[3].get_pin());
+    ASSERT_TRUE(get_mark(rsps[0]));
+    ASSERT_TRUE(get_mark(rsps[1]));
+    ASSERT_TRUE(get_mark(rsps[3]));
+    ASSERT_TRUE(get_pin(rsps[3]));
 
-    ASSERT_EQ(gc_lifetime_tag::LIVE, rsps[0].get_lifetime_tag());
-    ASSERT_EQ(gc_lifetime_tag::LIVE, rsps[1].get_lifetime_tag());
-    ASSERT_EQ(gc_lifetime_tag::LIVE, rsps[3].get_lifetime_tag());
+    ASSERT_EQ(gc_lifetime_tag::LIVE, get_lifetime_tag(rsps[0]));
+    ASSERT_EQ(gc_lifetime_tag::LIVE, get_lifetime_tag(rsps[1]));
+    ASSERT_EQ(gc_lifetime_tag::LIVE, get_lifetime_tag(rsps[3]));
 
-    ASSERT_FALSE(rsps[2].get_mark());
-    ASSERT_FALSE(rsps[4].get_mark());
+    ASSERT_FALSE(get_mark(rsps[2]));
+    ASSERT_FALSE(get_mark(rsps[4]));
 
-    ASSERT_EQ(gc_lifetime_tag::FREE, rsps[2].get_lifetime_tag());
-    ASSERT_EQ(gc_lifetime_tag::FREE, rsps[4].get_lifetime_tag());
+    ASSERT_EQ(gc_lifetime_tag::FREE, get_lifetime_tag(rsps[2]));
+    ASSERT_EQ(gc_lifetime_tag::FREE, get_lifetime_tag(rsps[4]));
 }
 
 TYPED_TEST(compactor_test, test_compact_2)
 {
     const size_t LIVE_CNT = 5;
     const size_t ALLOC_CNT = 4 * LIVE_CNT;
-    gc_alloc_response rsps[ALLOC_CNT];
+    gc_alloc::response rsps[ALLOC_CNT];
 
     for (size_t i = 0; i < ALLOC_CNT; ++i) {
         rsps[i] = this->alloc.allocate(this->rqst, ALLOC_SIZE);
@@ -135,13 +138,13 @@ TYPED_TEST(compactor_test, test_compact_2)
     auto rng = this->alloc.memory_range();
     for (size_t i = 0; i < LIVE_CNT; ++i) {
         size_t rand = rand_gen();
-        gc_alloc_response* rsp = rsps + rand;
-        while (rsp->get_mark()) {
+        gc_alloc::response* rsp = rsps + rand;
+        while (get_mark(*rsp)) {
             rand = rand_gen();
             rsp = rsps + rand;
         }
-        rsp->commit();
-        rsp->set_mark(true);
+        commit(*rsp);
+        set_mark(*rsp, true);
     }
 
     gc_heap_stat stat;
@@ -175,17 +178,17 @@ TYPED_TEST(compactor_test, test_compact_3)
     size_t exp_pin_cnt = 0;
     std::unordered_set<byte*> pinned;
     for (int i = 0; i < OBJ_COUNT; ++i) {
-        gc_alloc_response rsp = this->alloc.allocate(this->rqst, ALLOC_SIZE);
+        gc_alloc::response rsp = this->alloc.allocate(this->rqst, ALLOC_SIZE);
         bool pin = pin_gen();
         bool mark = mark_gen() || pin;
         if (mark) {
             exp_mark_cnt++;
-            rsp.commit();
-            rsp.set_mark(true);
+            commit(rsp);
+            set_mark(rsp, true);
         }
         if (pin) {
             exp_pin_cnt++;
-            rsp.set_pin(true);
+            set_pin(rsp, true);
             pinned.insert(rsp.cell_start());
         }
     }

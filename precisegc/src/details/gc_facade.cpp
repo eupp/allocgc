@@ -43,6 +43,12 @@ gc_alloc::response gc_facade::allocate(const gc_alloc::request& rqst)
     return m_strategy->allocate(rqst);
 }
 
+void gc_facade::abort(const gc_alloc::response& rsp)
+{
+    assert(m_strategy);
+    m_strategy->abort(rsp);
+}
+
 void gc_facade::commit(const gc_alloc::response& rsp)
 {
     assert(m_strategy);
@@ -53,6 +59,12 @@ void gc_facade::commit(const gc_alloc::response& rsp, const gc_type_meta* type_m
 {
     assert(m_strategy);
     m_strategy->commit(rsp, type_meta);
+}
+
+gc_offsets gc_facade::make_offsets(const gc_alloc::response& rsp)
+{
+    assert(m_strategy);
+    return m_strategy->make_offsets(rsp);
 }
 
 void gc_facade::register_handle(gc_handle& handle, byte* ptr)

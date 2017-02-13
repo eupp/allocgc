@@ -83,18 +83,36 @@ void gc_core::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 
 void gc_core::register_handle(gc_handle& handle, byte* ptr)
 {
-    bool is_root = !gc_is_heap_ptr(&handle);
-    gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, is_root));
-    if (!m_collect_flag) {
-        this_thread->register_handle(&handle, &m_static_roots, is_root);
+    using namespace allocators;
+
+    memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+    if (descr.is_stack_descriptor()) {
+        gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, true));
+        this_thread->register_root(&handle);
+    } else if (descr.is_null()) {
+        gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, true));
+        m_static_roots.register_root(&handle);
+    } else {
+        gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, false));
+        if (this_thread) {
+            this_thread->register_heap_ptr(&handle);
+        }
     }
 }
 
 void gc_core::deregister_handle(gc_handle& handle)
 {
-    bool is_root = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(handle));
-    if (!m_collect_flag) {
-        this_thread->deregister_handle(&handle, &m_static_roots, is_root);
+    using namespace allocators;
+
+    memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+    if (descr.is_stack_descriptor()) {
+        this_thread->deregister_root(&handle);
+    } else if (descr.is_null()) {
+        m_static_roots.deregister_root(&handle);
+    } else {
+        if (this_thread) {
+            this_thread->deregister_heap_ptr(&handle);
+        }
     }
 }
 

@@ -4,10 +4,11 @@
 #include <thread>
 #include <cassert>
 
-#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/logging.hpp>
+#include <libprecisegc/details/allocators/memory_index.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/collectors/static_root_set.hpp>
 
 namespace precisegc { namespace details { namespace threads {
@@ -20,8 +21,11 @@ public:
     virtual void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) = 0;
     virtual void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry) = 0;
 
-    virtual void register_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) = 0;
-    virtual void deregister_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) = 0;
+    virtual void register_root(gc_handle* handle) = 0;
+    virtual void deregister_root(gc_handle* handle) = 0;
+
+    virtual void register_heap_ptr(gc_handle* handle) = 0;
+    virtual void deregister_heap_ptr(gc_handle* handle) = 0;
 
     virtual void register_pin(byte* pin) = 0;
     virtual void deregister_pin(byte* pin) = 0;
@@ -43,7 +47,18 @@ public:
         : m_stack_roots(descr.stack_start_addr)
         , m_id(descr.id)
         , m_native_handle(descr.native_handle)
-    {}
+    {
+        assert(m_stack_roots.stack_size() % PAGE_SIZE == 0);
+        allocators::memory_index::index_stack_memory(m_stack_roots.stack_min_addr(),
+                                                     m_stack_roots.stack_size(),
+                                                     m_stack_roots.stack_start_addr());
+    }
+
+    ~gc_thread_descriptor_impl()
+    {
+        allocators::memory_index::deindex(m_stack_roots.stack_min_addr(),
+                                          m_stack_roots.stack_size());
+    }
 
     void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
     {
@@ -55,41 +70,24 @@ public:
         m_init_stack.deregister_stack_entry(stack_entry);
     }
 
-    void register_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) override
+    void register_root(gc_handle* handle) override
     {
-        assert(handle);
-        assert(static_roots);
-
-        if (is_root) {
-            register_root(handle, static_roots);
-        } else {
-            m_init_stack.register_child(handle);
-        }
+        m_stack_roots.register_root(handle);
     }
 
-    void register_root(gc_handle* root, collectors::static_root_set* static_roots)
+    void deregister_root(gc_handle* handle) override
     {
-        if (m_stack_roots.is_stack_ptr(root)) {
-            m_stack_roots.register_root(root);
-        } else {
-            static_roots->register_root(root);
-        }
+        m_stack_roots.deregister_root(handle);
     }
 
-    void deregister_handle(gc_handle* handle, collectors::static_root_set* static_roots, bool is_root) override
+    void register_heap_ptr(gc_handle* handle) override
     {
-//        if (is_root) {
-            deregister_root(handle, static_roots);
-//        }
+        m_init_stack.register_child(handle);
     }
 
-    void deregister_root(gc_handle* root, collectors::static_root_set* static_roots)
+    void deregister_heap_ptr(gc_handle* handle) override
     {
-        if (m_stack_roots.is_stack_ptr(root)) {
-            m_stack_roots.deregister_root(root);
-        } else {
-            static_roots->deregister_root(root);
-        }
+        return;
     }
 
     void register_pin(byte* pin) override

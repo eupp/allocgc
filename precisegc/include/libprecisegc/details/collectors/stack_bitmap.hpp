@@ -39,6 +39,14 @@ public:
     }
 
     bool contains(const gc_handle* ptr) const;
+
+    byte* stack_start_addr() const;
+    byte* stack_end_addr() const;
+
+    byte* stack_min_addr() const;
+    byte* stack_max_addr() const;
+
+    size_t stack_size() const;
 private:
     static const size_t STACK_FRAME_MASK = STACK_FRAME_SIZE - 1;
     static const size_t STACK_FRAME_SIZE_LOG2 = boost::static_log2<STACK_FRAME_SIZE>::value;
@@ -47,6 +55,8 @@ private:
 
     static_assert(check_pow2(STACK_FRAME_SIZE), "STACK_FRAME_SIZE is not a power of two");
     static_assert(check_pow2(GC_HANDLE_SIZE), "GC_HANDLE_SIZE is not a power of two");
+
+    static byte* stack_start_addr_approx(byte* stack_addr);
 
     std::pair<size_t, size_t> root_idxs(const gc_handle* ptr) const;
 

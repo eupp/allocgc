@@ -4,6 +4,7 @@
 #include <sys/resource.h>
 
 #include <libprecisegc/gc_common.hpp>
+#include <libprecisegc/details/constants.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 

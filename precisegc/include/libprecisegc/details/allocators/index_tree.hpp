@@ -75,11 +75,13 @@ class index_tree : private utils::noncopyable, private utils::nonmovable
 {
 public:
     index_tree()
-    { }
+    {
+        assert(std::atomic<memory_descriptor>().is_lock_free());
+    }
 
     ~index_tree()
     {
-//        clear();
+        clear();
     }
 
     void init()

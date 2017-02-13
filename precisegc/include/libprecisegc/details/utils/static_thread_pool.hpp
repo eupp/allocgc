@@ -109,8 +109,8 @@ private:
     dynarray<scoped_thread> m_threads;
     std::vector<std::function<void()>> m_tasks;
     size_t m_tasks_cnt;
-    size_t m_complete_tasks_cnt;
     size_t m_threads_exit_cnt;
+    std::atomic<size_t> m_complete_tasks_cnt;
     std::mutex m_mutex;
     std::mutex m_threads_exit_mutex;
     std::condition_variable m_tasks_ready_cond;

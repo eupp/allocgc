@@ -18,6 +18,15 @@ gc_incremental::gc_incremental(size_t threads_available, const thread_descriptor
     , m_threads_available(threads_available)
 {}
 
+gc_alloc::response gc_incremental::allocate(const gc_alloc::request& rqst)
+{
+    try {
+        return gc_core::allocate(rqst);
+    } catch (gc_bad_alloc& exc) {
+        return gc_core::allocate(rqst);
+    }
+}
+
 void gc_incremental::commit(const gc_alloc::response& rsp)
 {
     gc_core::commit(rsp);

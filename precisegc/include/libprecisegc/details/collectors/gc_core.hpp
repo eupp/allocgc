@@ -9,10 +9,6 @@
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-#include <libprecisegc/details/collectors/pin_set.hpp>
-#include <libprecisegc/details/collectors/pin_stack.hpp>
-#include <libprecisegc/details/collectors/stack_bitmap.hpp>
-#include <libprecisegc/details/collectors/gc_new_stack.hpp>
 #include <libprecisegc/details/collectors/static_root_set.hpp>
 #include <libprecisegc/details/collectors/dptr_storage.hpp>
 #include <libprecisegc/details/collectors/gc_tagging.hpp>
@@ -63,12 +59,10 @@ protected:
 private:
     static thread_local threads::gc_thread_descriptor* this_thread;
 
-    int m_index_init;
     threads::gc_thread_manager m_thread_manager;
     static_root_set m_static_roots;
     dptr_storage m_dptr_storage;
     gc_heap m_heap;
-    bool m_collect_flag;
 };
 
 }}}

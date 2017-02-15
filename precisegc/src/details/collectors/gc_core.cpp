@@ -1,5 +1,10 @@
 #include <libprecisegc/details/collectors/gc_core.hpp>
 
+#include <libprecisegc/details/collectors/pin_set.hpp>
+#include <libprecisegc/details/collectors/pin_stack.hpp>
+#include <libprecisegc/details/collectors/stack_bitmap.hpp>
+#include <libprecisegc/details/collectors/conservative_stack.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>
 
@@ -9,7 +14,6 @@ thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
 
 gc_core::gc_core(const thread_descriptor& main_thrd_descr)
 {
-    m_collect_flag = false;
     register_thread(main_thrd_descr);
 }
 
@@ -158,7 +162,7 @@ void gc_core::register_thread(const thread_descriptor& descr)
 
     std::unique_ptr<gc_thread_descriptor> gc_thrd_descr =
             utils::make_unique<
-                    gc_thread_descriptor_impl<stack_bitmap, pin_set, pin_stack, gc_new_stack>
+                    gc_thread_descriptor_impl<conservative_stack, pin_set, pin_stack, gc_new_stack>
             >(descr);
 
     this_thread = gc_thrd_descr.get();
@@ -189,8 +193,6 @@ threads::world_snapshot gc_core::stop_the_world()
 
 gc_heap_stat gc_core::collect(const threads::world_snapshot& snapshot, size_t threads_available)
 {
-    m_collect_flag = true;
-    auto guard = utils::make_scope_guard([this] { m_collect_flag = false; });
     return m_heap.collect(snapshot, threads_available, &m_static_roots);
 }
 

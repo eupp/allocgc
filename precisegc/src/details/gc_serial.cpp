@@ -16,6 +16,11 @@ gc_serial::gc_serial(size_t threads_available, const thread_descriptor& main_thr
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
+
+    if (&src == (gc_handle*)0x7fffffffe130) {
+        logging::debug() << "HERE!";
+    }
+
     byte* ptr = gc_tagging::clear_root_bit(gc_handle_access::get<std::memory_order_relaxed>(src));
     bool root_bit = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(dst));
     gc_handle_access::set<std::memory_order_relaxed>(dst, gc_tagging::set_root_bit(ptr, root_bit));

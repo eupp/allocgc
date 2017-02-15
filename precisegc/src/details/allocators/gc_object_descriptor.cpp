@@ -77,8 +77,9 @@ size_t gc_object_descriptor::cell_size(byte* ptr) const
 
 byte* gc_object_descriptor::cell_start(byte* ptr) const
 {
-    assert(check_ptr(ptr));
-    return ptr;
+//    assert(check_ptr(ptr));
+    const byte* start = reinterpret_cast<const byte*>(this) + sizeof(gc_object_descriptor);
+    return const_cast<byte*>(start);
 }
 
 size_t gc_object_descriptor::object_count(byte* ptr) const

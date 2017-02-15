@@ -7,21 +7,10 @@
 
 namespace precisegc { namespace details { namespace collectors {
 
-byte * stack_bitmap::stack_start_addr_approx(byte* stack_addr)
-{
-    byte* aligned_addr = reinterpret_cast<byte*>(
-            reinterpret_cast<std::uintptr_t>(stack_addr) & ~((1ull << PAGE_SIZE_LOG2) - 1)
-    );
-    return STACK_DIRECTION == stack_growth_direction::UP ? aligned_addr : aligned_addr + PAGE_SIZE;
-}
-
-stack_bitmap::stack_bitmap(byte* stack_start_addr)
-    : m_stack_start(stack_start_addr_approx(stack_start_addr))
-    , m_stack_end(m_stack_start + STACK_DIRECTION * threads::stack_maxsize())
-{
-    logging::info() << "stack start addr=" << (void*) m_stack_start
-                    << "; stack end addr=" << (void*) m_stack_end;
-}
+stack_bitmap::stack_bitmap(std::thread::id id, byte* stack_start_addr, byte* stack_start_addr_approx, byte* stack_end_addr_approx)
+    : m_stack_start(reinterpret_cast<gc_handle*>(stack_start_addr_approx))
+    , m_stack_end(reinterpret_cast<gc_handle*>(stack_end_addr_approx))
+{}
 
 void stack_bitmap::register_root(gc_handle* root)
 {
@@ -42,7 +31,7 @@ void stack_bitmap::deregister_root(gc_handle* root)
 
 void stack_bitmap::trace(const gc_trace_callback& cb) const
 {
-    gc_handle* it = reinterpret_cast<gc_handle*>(m_stack_start);
+    gc_handle* it = m_stack_start;
     for (auto& bitmap_frame: m_bitmap) {
         for (size_t i = 0; i < bitmap_frame.size(); ++i) {
             if (bitmap_frame.test(i)) {
@@ -71,43 +60,13 @@ bool stack_bitmap::contains(const gc_handle* ptr) const
     return m_bitmap[idxs.first].test(idxs.second);
 }
 
-byte* stack_bitmap::stack_start_addr() const
-{
-    return m_stack_start;
-}
-
-byte* stack_bitmap::stack_end_addr() const
-{
-    return m_stack_end;
-}
-
-byte* stack_bitmap::stack_min_addr() const
-{
-    return STACK_DIRECTION == stack_growth_direction::UP ? m_stack_start : m_stack_end;
-}
-
-byte* stack_bitmap::stack_max_addr() const
-{
-    return STACK_DIRECTION == stack_growth_direction::UP ? m_stack_end : m_stack_start;
-}
-
-size_t stack_bitmap::stack_size() const
-{
-    return STACK_DIRECTION == stack_growth_direction::UP
-           ? (m_stack_end - m_stack_start)
-           : (m_stack_start - m_stack_end);
-}
-
 std::pair<size_t, size_t> stack_bitmap::root_idxs(const gc_handle* ptr) const
 {
-    ptrdiff_t diff = STACK_DIRECTION * (reinterpret_cast<const byte*>(ptr) - m_stack_start);
+    ptrdiff_t diff = STACK_DIRECTION * (ptr - m_stack_start);
     assert(diff >= 0);
-    size_t idx = static_cast<size_t>(diff) >> GC_HANDLE_SIZE_LOG2;
+    size_t idx = static_cast<size_t>(diff);
     assert((idx & STACK_FRAME_MASK) < STACK_FRAME_SIZE);
     return std::make_pair(idx >> STACK_FRAME_SIZE_LOG2, idx & STACK_FRAME_MASK);
 }
-
-
-
 
 }}}

@@ -5,6 +5,7 @@
 #include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/threads/posix_signal.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
+#include <libprecisegc/details/threads/return_address.hpp>
 
 namespace precisegc { namespace details { namespace threads {
 
@@ -13,6 +14,8 @@ void stw_manager::sighandler()
     stw_manager& stwm = stw_manager::instance();
 
 //    logging::debug() << "Thread enters stop-the-world signal handler";
+
+    stwm.m_stack_ends[std::this_thread::get_id()] = frame_address();
 
     ++stwm.m_threads_suspended_cnt;
     std::atomic_thread_fence(std::memory_order_seq_cst);
@@ -74,6 +77,12 @@ void stw_manager::wait_for_world_start()
 size_t stw_manager::threads_suspended() const
 {
     return m_threads_suspended_cnt;
+}
+
+byte* stw_manager::get_thread_stack_end(std::thread::id id)
+{
+    auto it = m_stack_ends.find(id);
+    return it != m_stack_ends.end() ? it->second : frame_address();
 }
 
 }}}

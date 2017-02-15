@@ -42,17 +42,20 @@ public:
     template <typename Functor>
     void trace_roots(Functor&& tracer, static_root_set* static_roots, int)
     {
+        using namespace allocators;
+
         auto output_packet = m_packet_manager->pop_output_packet();
 
         auto trace_cb = [this, &output_packet] (gc_handle* root) {
-            byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
-            byte* obj_start = gc_tagging::get_obj_start(ptr);
-            if (obj_start) {
+            byte* ptr = gc_tagging::clear_root_bit(gc_handle_access::get<std::memory_order_relaxed>(*root));
+            if (ptr) {
+                gc_memory_descriptor* descr = memory_index::get_descriptor(ptr).to_gc_descriptor();
+                byte* obj_start = gc_box::get_obj_start(descr->cell_start(ptr));
                 gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
                 cell.set_mark(true);
                 push_root_to_packet(cell, output_packet);
 
-                logging::debug() << "root: " << (void*) root;
+                logging::info() << "root: " << (void*) root << "; point to: " << (void*) obj_start;
             }
         };
 

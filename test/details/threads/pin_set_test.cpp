@@ -13,10 +13,10 @@ TEST(pin_set_test, test_insert)
     byte* p1;
     byte* p2;
 
-    rs.insert(p1);
+    rs.register_pin(p1);
     ASSERT_TRUE(rs.contains(p1));
 
-    rs.insert(p2);
+    rs.register_pin(p2);
     ASSERT_TRUE(rs.contains(p1));
     ASSERT_TRUE(rs.contains(p2));
 }
@@ -31,14 +31,14 @@ TEST(pin_set_test, test_remove)
     byte* p2 = &b;
     byte* p3 = &c;
 
-    rs.insert(p1);
-    rs.insert(p2);
-    rs.insert(p3);
+    rs.register_pin(p1);
+    rs.register_pin(p2);
+    rs.register_pin(p3);
 
-    rs.remove(p3);
+    rs.deregister_pin(p3);
     ASSERT_FALSE(rs.contains(p3));
 
-    rs.remove(p1);
+    rs.deregister_pin(p1);
     ASSERT_FALSE(rs.contains(p1));
 
     ASSERT_TRUE(rs.contains(p2));

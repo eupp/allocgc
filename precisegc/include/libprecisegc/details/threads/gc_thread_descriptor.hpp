@@ -42,7 +42,7 @@ public:
     virtual std::thread::native_handle_type native_handle() const = 0;
 };
 
-template <typename StackRootSet, typename PinSet, typename PinStack, typename InitStack>
+template <typename StackRootSet, typename PinSet, typename InitStack>
 class gc_thread_descriptor_impl : public gc_thread_descriptor, private utils::noncopyable, private utils::nonmovable
 {
     class stack_descriptor
@@ -155,30 +155,22 @@ public:
 
     void register_pin(byte* pin) override
     {
-        m_pin_set.insert(pin);
+        m_pin_set.register_pin(pin);
     }
 
     void deregister_pin(byte* pin) override
     {
-        m_pin_set.remove(pin);
+        m_pin_set.deregister_pin(pin);
     }
 
     void push_pin(byte* ptr) override
     {
-        if (!m_pin_stack.is_full()) {
-            m_pin_stack.push_pin(ptr);
-        } else {
-            m_pin_set.insert(ptr);
-        }
+        m_pin_set.push_pin(ptr);
     }
 
     void pop_pin(byte* ptr) override
     {
-        if (m_pin_stack.top() == ptr) {
-            m_pin_stack.pop_pin();
-        } else {
-            m_pin_set.remove(ptr);
-        }
+        m_pin_set.pop_pin(ptr);
     }
 
     void trace_roots(const gc_trace_callback& cb) const override
@@ -189,7 +181,6 @@ public:
     void trace_pins(const gc_trace_pin_callback& cb) const override
     {
         m_pin_set.trace(cb);
-        m_pin_stack.trace(cb);
         m_init_stack.trace(cb);
     }
 
@@ -206,7 +197,6 @@ private:
     stack_descriptor                m_stack_descr;
     StackRootSet                    m_stack_roots;
     PinSet                          m_pin_set;
-    PinStack                        m_pin_stack;
     InitStack                       m_init_stack;
     std::thread::id                 m_id;
     std::thread::native_handle_type m_native_handle;

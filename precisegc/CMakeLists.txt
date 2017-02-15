@@ -100,7 +100,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/gc_core.hpp
         include/libprecisegc/details/threads/gc_thread_descriptor.hpp
         include/libprecisegc/details/collectors/gc_new_stack.hpp
-        include/libprecisegc/details/allocators/memory_descriptor.hpp include/libprecisegc/details/collectors/conservative_stack.hpp)
+        include/libprecisegc/details/allocators/memory_descriptor.hpp include/libprecisegc/details/collectors/conservative_stack.hpp include/libprecisegc/details/collectors/conservative_pin_set.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp

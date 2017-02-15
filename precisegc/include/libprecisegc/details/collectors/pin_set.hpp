@@ -11,6 +11,7 @@
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/allocators/pool.hpp>
 #include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
+#include <libprecisegc/details/collectors/pin_stack.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/gc_common.hpp>
 
@@ -21,36 +22,52 @@ class pin_set : private utils::noncopyable, private utils::nonmovable
 public:
     pin_set()
         : m_head(nullptr)
-        , m_pool()
     {};
 
-    void insert(byte* elem)
+    void register_pin(byte* pin)
     {
-        push_front(elem);
+        push_front(pin);
     }
 
-    void remove(byte* elem)
+    void deregister_pin(byte* pin)
     {
-        remove_first(elem);
+        remove_first(pin);
     }
 
-    bool contains(byte* elem) const
+    void push_pin(byte* pin)
     {
-        return std::find(begin(), end(), elem) != end();
+        if (!m_stack.is_full()) {
+            m_stack.push_pin(pin);
+        } else {
+            register_pin(pin);
+        }
+    }
+
+    void pop_pin(byte* pin)
+    {
+        if (m_stack.top() == pin) {
+            m_stack.pop_pin();
+        } else {
+            deregister_pin(pin);
+        }
+    }
+
+    bool contains(byte* ptr) const
+    {
+        return (std::find(begin(), end(), ptr) != end()) || m_stack.contains(ptr);
     }
 
     void trace(const gc_trace_pin_callback& cb) const
     {
         std::for_each(begin(), end(), cb);
+        m_stack.trace(cb);
     }
 
     size_t size() const
     {
-        return std::distance(begin(), end());
+        return std::distance(begin(), end()) + m_stack.size();
     }
 private:
-    static const size_t MAX_FREE_NODE = 4096;
-
     struct node
     {
         byte* m_value;
@@ -150,6 +167,7 @@ private:
 
     std::atomic<node*> m_head;
     allocators::pool<node, utils::dummy_mutex> m_pool;
+    pin_stack m_stack;
 };
 
 }}}

@@ -4,6 +4,7 @@
 #include <libprecisegc/details/collectors/pin_stack.hpp>
 #include <libprecisegc/details/collectors/stack_bitmap.hpp>
 #include <libprecisegc/details/collectors/conservative_stack.hpp>
+#include <libprecisegc/details/collectors/conservative_pin_set.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>
@@ -162,7 +163,7 @@ void gc_core::register_thread(const thread_descriptor& descr)
 
     std::unique_ptr<gc_thread_descriptor> gc_thrd_descr =
             utils::make_unique<
-                    gc_thread_descriptor_impl<conservative_stack, pin_set, pin_stack, gc_new_stack>
+                    gc_thread_descriptor_impl<conservative_stack, conservative_pin_set, gc_new_stack>
             >(descr);
 
     this_thread = gc_thrd_descr.get();

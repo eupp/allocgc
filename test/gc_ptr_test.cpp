@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <libprecisegc/gc_cast.hpp>
+
 #include "libprecisegc/gc_ptr.hpp"
 #include "libprecisegc/gc_new.hpp"
 
@@ -63,4 +65,23 @@ TEST(gc_ptr_test, test_upcast_constructor)
     ASSERT_EQ(0, derived->b1);
     ASSERT_EQ(0, derived->b2);
     ASSERT_DOUBLE_EQ(3.14, derived->d);
+}
+
+namespace {
+
+struct A {
+    size_t d1;
+    size_t d2;
+};
+
+}
+
+TEST(gc_ptr_test, test_take)
+{
+    gc_ptr<A> p = gc_new<A>();
+    p->d1 = -1;
+    p->d2 = 42;
+
+    gc_ptr<size_t> pInner = take_interior<A, size_t, &A::d2>(p);
+    ASSERT_EQ(42, *pInner);
 }

@@ -53,6 +53,14 @@ gc_ptr<T> reinterpret_pointer_cast(const gc_ptr<U>& ptr)
     return gc_ptr<T>(casted);
 };
 
+template <typename T, typename R, R T::*member>
+gc_ptr<R> take_interior(const gc_ptr<T>& ptr)
+{
+    details::gc_unsafe_scope unsafe_scope;
+    T* raw = ptr.get();
+    return gc_ptr<R>(&(raw->*member));
+};
+
 }
 
 #endif //DIPLOMA_GC_CAST_HPP

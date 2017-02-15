@@ -13,6 +13,7 @@
 #include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/gc_pin.hpp>
 #include <libprecisegc/gc_ref.hpp>
+#include <libprecisegc/details/gc_unsafe_scope.hpp>
 
 namespace precisegc {
 
@@ -133,6 +134,9 @@ public:
 
     template <typename U, typename V>
     friend gc_ptr<U> reinterpret_pointer_cast(const gc_ptr<V>&);
+
+    template <typename Tt, typename R, R Tt::*member>
+    friend gc_ptr<R> take_interior(const gc_ptr<Tt>&);
 
     friend class internals::gc_ptr_factory<T>;
     friend class internals::gc_ptr_access<T>;

@@ -23,27 +23,89 @@ public:
     gc_strategy* get_strategy() const;
     std::unique_ptr<gc_strategy> set_strategy(std::unique_ptr<gc_strategy> strategy);
 
-    gc_alloc::response allocate(const gc_alloc::request& rqst);
+    inline gc_alloc::response allocate(const gc_alloc::request& rqst)
+    {
+        assert(m_strategy);
+        return m_strategy->allocate(rqst);
+    }
 
-    void abort(const gc_alloc::response& rsp);
-    void commit(const gc_alloc::response& rsp);
-    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
+    inline void abort(const gc_alloc::response& rsp)
+    {
+        assert(m_strategy);
+        m_strategy->abort(rsp);
+    }
 
-    gc_offsets make_offsets(const gc_alloc::response& rsp);
+    inline void commit(const gc_alloc::response& rsp)
+    {
+        assert(m_strategy);
+        m_strategy->commit(rsp);
+    }
 
-    void register_handle(gc_handle& handle, byte* ptr);
-    void deregister_handle(gc_handle& handle);
+    inline void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
+    {
+        assert(m_strategy);
+        m_strategy->commit(rsp, type_meta);
+    }
 
-    byte* register_pin(const gc_handle& handle);
-    void  deregister_pin(byte* ptr);
+    inline gc_offsets make_offsets(const gc_alloc::response& rsp)
+    {
+        assert(m_strategy);
+        return m_strategy->make_offsets(rsp);
+    }
 
-    byte* push_pin(const gc_handle& handle);
-    void  pop_pin(byte* ptr);
+    inline void register_handle(gc_handle& handle, byte* ptr)
+    {
+        assert(m_strategy);
+        m_strategy->register_handle(handle, ptr);
+    }
 
-    byte* rbarrier(const gc_handle& handle);
-    void  wbarrier(gc_handle& dst, const gc_handle& src);
+    inline void deregister_handle(gc_handle& handle)
+    {
+        assert(m_strategy);
+        m_strategy->deregister_handle(handle);
+    }
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
+    inline byte* register_pin(const gc_handle& handle)
+    {
+        assert(m_strategy);
+        return m_strategy->register_pin(handle);
+    }
+
+    inline void deregister_pin(byte* ptr)
+    {
+        assert(m_strategy);
+        m_strategy->deregister_pin(ptr);
+    }
+
+    inline byte* push_pin(const gc_handle& handle)
+    {
+        assert(m_strategy);
+        return m_strategy->push_pin(handle);
+    }
+
+    inline void pop_pin(byte* ptr)
+    {
+        assert(m_strategy);
+        m_strategy->pop_pin(ptr);
+    }
+
+    inline byte* rbarrier(const gc_handle& handle)
+    {
+        assert(m_strategy);
+        return m_strategy->rbarrier(handle);
+    }
+
+    inline void wbarrier(gc_handle& dst, const gc_handle& src)
+    {
+        assert(m_strategy);
+        m_strategy->wbarrier(dst, src);
+    }
+
+    inline void interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+    {
+        assert(m_strategy);
+        m_strategy->interior_wbarrier(handle, offset);
+    }
 
     bool compare(const gc_handle& a, const gc_handle& b);
 

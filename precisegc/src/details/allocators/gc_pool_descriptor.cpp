@@ -13,44 +13,11 @@ gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_siz
 gc_pool_descriptor::~gc_pool_descriptor()
 {}
 
-gc_memory_descriptor* gc_pool_descriptor::descriptor()
-{
-    return this;
-}
-
-byte* gc_pool_descriptor::init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
-{
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    return gc_box::create(ptr, obj_count, type_meta);
-}
-
 bool gc_pool_descriptor::contains(byte* ptr) const
 {
     byte* mem_begin = memory();
     byte* mem_end   = memory() + size();
     return (mem_begin <= ptr) && (ptr < mem_end);
-}
-
-bool gc_pool_descriptor::unused() const
-{
-    return m_mark_bits.none();
-}
-
-size_t gc_pool_descriptor::count_lived() const
-{
-    return m_mark_bits.count();
-}
-
-size_t gc_pool_descriptor::count_pinned() const
-{
-    return m_pin_bits.count();
-}
-
-void gc_pool_descriptor::unmark()
-{
-    m_mark_bits.reset_all();
-    m_pin_bits.reset_all();
 }
 
 double gc_pool_descriptor::residency() const
@@ -132,11 +99,6 @@ gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(byte* ptr) const
     assert(ptr == cell_start(ptr));
     size_t idx = calc_cell_ind(ptr);
     return get_lifetime_tag(idx);
-}
-
-size_t gc_pool_descriptor::cell_size() const
-{
-    return 1ull << m_cell_size_log2;
 }
 
 size_t gc_pool_descriptor::cell_size(byte* ptr) const

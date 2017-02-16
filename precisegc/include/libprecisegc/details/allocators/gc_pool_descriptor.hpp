@@ -89,17 +89,38 @@ public:
     gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size);
     ~gc_pool_descriptor();
 
-    gc_memory_descriptor* descriptor();
+    gc_memory_descriptor* descriptor()
+    {
+        return this;
+    }
 
-    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
+    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
+    {
+        assert(contains(ptr));
+        assert(ptr == cell_start(ptr));
+        return gc_box::create(ptr, obj_count, type_meta);
+    }
 
-    bool contains(byte* ptr) const;
+    inline bool unused() const
+    {
+        return m_mark_bits.none();
+    }
 
-    bool unused() const;
-    void unmark();
+    inline void unmark()
+    {
+        m_mark_bits.reset_all();
+        m_pin_bits.reset_all();
+    }
 
-    size_t count_lived() const;
-    size_t count_pinned() const;
+    size_t count_lived() const
+    {
+        return m_mark_bits.count();
+    }
+
+    size_t count_pinned() const
+    {
+        return m_pin_bits.count();
+    }
 
     double residency() const;
 
@@ -117,7 +138,11 @@ public:
     gc_lifetime_tag get_lifetime_tag(size_t idx) const;
     gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
 
-    size_t cell_size() const;
+    inline size_t cell_size() const
+    {
+        return 1ull << m_cell_size_log2;
+    }
+
     size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
@@ -162,6 +187,8 @@ public:
     {
         return m_size;
     }
+
+    bool contains(byte* ptr) const;
 private:
     bool is_init(byte* ptr) const;
     void set_init(byte* ptr, bool init);

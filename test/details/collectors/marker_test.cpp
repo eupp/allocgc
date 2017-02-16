@@ -23,25 +23,11 @@ struct node
 
 struct test_root_set
 {
-    void operator()(const gc_trace_callback& cb)
-    {
-        for (auto& root: roots) {
-            cb(root);
-        }
-    }
-
     std::vector<gc_handle*> roots;
 };
 
 struct test_pin_set
 {
-    void operator()(const gc_trace_pin_callback& cb)
-    {
-        for (auto& pin: pins) {
-            cb(pin);
-        }
-    }
-
     std::vector<byte*> pins;
 };
 
@@ -171,7 +157,12 @@ TEST_F(marker_test, test_unmarked)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    marker.trace_roots(root_set, nullptr, 0);
+    for (gc_handle* root: root_set.roots) {
+        byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        cell.set_mark(true);
+        marker.add_root(cell);
+    }
     marker.mark();
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
@@ -198,7 +189,12 @@ TEST_F(marker_test, test_roots)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    marker.trace_roots(root_set, nullptr, 0);
+    for (gc_handle* root: root_set.roots) {
+        byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        cell.set_mark(true);
+        marker.add_root(cell);
+    }
     marker.mark();
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;
@@ -224,7 +220,12 @@ TEST_F(marker_test, test_pins)
     print_tree(root);
 
     pin_set.pins.push_back((byte*) precisegc::internals::gc_ptr_access<node>::get(root));
-    marker.trace_pins(pin_set, 0);
+    for (byte* pin: pin_set.pins) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(pin);
+        cell.set_mark(true);
+        cell.set_pin(true);
+        marker.add_root(cell);
+    }
     marker.mark();
 
     std::cout << std::endl << "Tree after marking" << std::endl << std::endl;

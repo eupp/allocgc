@@ -23,7 +23,6 @@ class gc_pool_descriptor : public gc_memory_descriptor, private utils::noncopyab
 {
 public:
     static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
-    static const size_t CHUNK_MINSIZE = 4;
 private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
@@ -149,7 +148,7 @@ public:
         m_mark_bits.set(idx, mark);
     }
 
-    void set_pin(size_t idx, bool pin)
+    inline void set_pin(size_t idx, bool pin)
     {
         m_pin_bits.set(idx, pin);
     }

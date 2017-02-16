@@ -82,7 +82,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/compacting/forwarding.hpp
         include/libprecisegc/details/compacting/two_finger_compactor.hpp
         include/libprecisegc/details/collectors/remset.hpp
-        include/libprecisegc/details/collectors/dptr_storage.hpp
         include/libprecisegc/details/allocators/memory_index.hpp
         include/libprecisegc/details/allocators/gc_so_allocator.hpp
         include/libprecisegc/gc_type_meta_factory.hpp
@@ -95,12 +94,12 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/gc_box.hpp
         include/libprecisegc/gc_cast.hpp
         include/libprecisegc/gc_common.hpp
-        include/libprecisegc/details/collectors/gc_tagging.hpp
-        include/libprecisegc/details/collectors/dptr_descriptor.hpp
         include/libprecisegc/details/collectors/gc_core.hpp
         include/libprecisegc/details/threads/gc_thread_descriptor.hpp
         include/libprecisegc/details/collectors/gc_new_stack.hpp
-        include/libprecisegc/details/allocators/memory_descriptor.hpp include/libprecisegc/details/collectors/conservative_stack.hpp include/libprecisegc/details/collectors/conservative_pin_set.hpp)
+        include/libprecisegc/details/allocators/memory_descriptor.hpp
+        include/libprecisegc/details/collectors/conservative_stack.hpp
+        include/libprecisegc/details/collectors/conservative_pin_set.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
@@ -127,7 +126,6 @@ set(precisegc_LIB_SRCS
         src/details/threads/static_root_set.cpp
         src/details/compacting/forwarding.cpp
         src/details/collectors/remset.cpp
-        src/details/collectors/dptr_storage.cpp
         src/details/collectors/memory_index.cpp
         src/details/allocators/gc_so_allocator.cpp
         src/details/allocators/gc_pool_allocator.cpp

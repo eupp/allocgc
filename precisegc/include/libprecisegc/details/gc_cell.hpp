@@ -19,6 +19,11 @@ public:
         return gc_cell(cell_start, descr);
     }
 
+    static gc_cell from_internal_ptr(byte* ptr, allocators::gc_memory_descriptor* descr)
+    {
+        return gc_cell(descr->cell_start(ptr), descr);
+    }
+
     gc_cell()
         : m_cell(nullptr)
         , m_descr(nullptr)
@@ -93,18 +98,6 @@ public:
     {
         assert(is_initialized());
         return m_descr->get_type_meta(m_cell);
-    }
-
-    void commit() const
-    {
-        assert(is_initialized());
-        m_descr->commit(m_cell);
-    }
-
-    void commit(const gc_type_meta* type_meta) const
-    {
-        assert(is_initialized());
-        m_descr->commit(m_cell, type_meta);
     }
 
     void trace(const gc_trace_callback& cb) const

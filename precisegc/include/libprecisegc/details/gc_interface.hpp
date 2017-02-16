@@ -42,14 +42,14 @@ enum class gc_kind {
 };
 
 enum class gc_lifetime_tag {
-      FREE = 0
-    , GARBAGE = 1
-    , LIVE = 3
+      FREE      = 0
+    , GARBAGE   = 1
+    , ALLOCATED = 2
+    , LIVE      = 3
 };
 
 inline gc_lifetime_tag get_lifetime_tag_by_bits(bool mark_bit, bool init_bit)
 {
-    assert(!mark_bit || init_bit);
     return static_cast<gc_lifetime_tag>(((int) mark_bit << 1) + (int) init_bit);
 }
 

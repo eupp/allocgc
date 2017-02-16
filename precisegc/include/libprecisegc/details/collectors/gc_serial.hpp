@@ -25,8 +25,6 @@ public:
 private:
     gc_run_stats sweep();
 
-    packet_manager m_packet_manager;
-    marker m_marker;
     size_t m_threads_available;
 };
 

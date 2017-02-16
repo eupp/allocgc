@@ -7,13 +7,11 @@
 #include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>
-#include <libprecisegc/details/collectors/gc_tagging.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
 
 gc_incremental::gc_incremental(size_t threads_available, const thread_descriptor& main_thrd_descr)
-    : gc_core(main_thrd_descr)
-    , m_marker(&m_packet_manager, &m_remset)
+    : gc_core(main_thrd_descr, &m_remset)
     , m_phase(gc_phase::IDLE)
     , m_threads_available(threads_available)
 {}
@@ -48,16 +46,12 @@ void gc_incremental::commit(const gc_alloc::response& rsp, const gc_type_meta* t
 void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* ptr = gc_tagging::clear_root_bit(gc_handle_access::get<std::memory_order_relaxed>(src));
-    bool root_bit = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(dst));
-    gc_handle_access::set<std::memory_order_release>(dst, gc_tagging::set_root_bit(ptr, root_bit));
-    if (m_phase == gc_phase::MARK) {
-        byte* obj_start = gc_tagging::get_obj_start(ptr);
-        if (obj_start) {
-            gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
-            if (!cell.get_mark()) {
-                m_remset.add(obj_start);
-            }
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
+    gc_handle_access::set<std::memory_order_release>(dst, ptr);
+    if (m_phase == gc_phase::MARK && ptr) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        if (!cell.get_mark()) {
+            m_remset.add(ptr);
         }
     }
 }
@@ -65,7 +59,7 @@ void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
 gc_run_stats gc_incremental::gc(const gc_options& options)
 {
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
-        return start_marking();
+        return start_marking_phase();
     } else if (options.kind == gc_kind::COLLECT) {
         gc_run_stats stats = sweep();
         allocators::gc_core_allocator::shrink();
@@ -74,15 +68,15 @@ gc_run_stats gc_incremental::gc(const gc_options& options)
     return gc_run_stats();
 }
 
-gc_run_stats gc_incremental::start_marking()
+gc_run_stats gc_incremental::start_marking_phase()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
 
     auto snapshot = stop_the_world();
-    m_marker.trace_roots(snapshot, get_static_roots());
+    trace_roots(snapshot);
     m_phase = gc_phase::MARK;
-    m_marker.concurrent_mark(std::max((size_t) 1, m_threads_available - 1));
+    start_concurrent_marking(std::max((size_t) 1, m_threads_available - 1));
 
     gc_run_stats stats;
     stats.pause_stat.type     = gc_pause_type::TRACE_ROOTS;
@@ -99,21 +93,19 @@ gc_run_stats gc_incremental::sweep()
     world_snapshot snapshot = stop_the_world();
     if (m_phase == gc_phase::IDLE) {
         type = gc_pause_type::MARK_COLLECT;
-        m_marker.trace_roots(snapshot, get_static_roots());
-        m_marker.trace_pins(snapshot);
-        m_marker.trace_remset();
+        trace_roots(snapshot);
+        trace_pins(snapshot);
+        trace_remset();
         m_phase = gc_phase::MARK;
-        m_marker.concurrent_mark(m_threads_available - 1);
-        m_marker.mark();
+        start_concurrent_marking(m_threads_available - 1);
+        start_marking();
     } else if (m_phase == gc_phase::MARK) {
         type = gc_pause_type::COLLECT;
-        m_marker.trace_pins(snapshot);
-        m_marker.trace_remset();
-        m_marker.mark();
+        trace_pins(snapshot);
+        trace_remset();
+        start_marking();
     }
     m_phase = gc_phase::COLLECT;
-
-    destroy_unmarked_dptrs();
 
     gc_run_stats stats;
 

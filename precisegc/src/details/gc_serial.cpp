@@ -1,29 +1,21 @@
 #include <libprecisegc/details/collectors/gc_serial.hpp>
 
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
-#include <libprecisegc/details/collectors/gc_tagging.hpp>
 #include <libprecisegc/details/threads/world_snapshot.hpp>
 #include <netinet/in.h>
 
 namespace precisegc { namespace details { namespace collectors {
 
 gc_serial::gc_serial(size_t threads_available, const thread_descriptor& main_thrd_descr)
-    : gc_core(main_thrd_descr)
-    , m_marker(&m_packet_manager, nullptr)
+    : gc_core(main_thrd_descr, nullptr)
     , m_threads_available(threads_available)
 {}
 
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
-
-    if (&src == (gc_handle*)0x7fffffffe130) {
-        logging::debug() << "HERE!";
-    }
-
-    byte* ptr = gc_tagging::clear_root_bit(gc_handle_access::get<std::memory_order_relaxed>(src));
-    bool root_bit = gc_tagging::is_root(gc_handle_access::get<std::memory_order_relaxed>(dst));
-    gc_handle_access::set<std::memory_order_relaxed>(dst, gc_tagging::set_root_bit(ptr, root_bit));
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
+    gc_handle_access::set<std::memory_order_relaxed>(dst, ptr);
 }
 
 gc_run_stats gc_serial::gc(const gc_options& options)
@@ -40,11 +32,10 @@ gc_run_stats gc_serial::gc(const gc_options& options)
 gc_run_stats gc_serial::sweep()
 {
     auto snapshot = stop_the_world();
-    m_marker.trace_roots(snapshot, get_static_roots());
-    m_marker.trace_pins(snapshot);
-    m_marker.concurrent_mark(m_threads_available - 1);
-    m_marker.mark();
-    destroy_unmarked_dptrs();
+    trace_roots(snapshot);
+    trace_pins(snapshot);
+    start_concurrent_marking(m_threads_available);
+    start_marking();
 
     gc_run_stats stats;
     stats.heap_stat = collect(snapshot, m_threads_available);

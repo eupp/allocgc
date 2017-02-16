@@ -10,8 +10,7 @@
 #include <libprecisegc/details/utils/utility.hpp>
 
 #include <libprecisegc/details/collectors/static_root_set.hpp>
-#include <libprecisegc/details/collectors/dptr_storage.hpp>
-#include <libprecisegc/details/collectors/gc_tagging.hpp>
+#include <libprecisegc/details/collectors/marker.hpp>
 
 #include <libprecisegc/details/threads/gc_thread_manager.hpp>
 #include <libprecisegc/details/threads/gc_thread_descriptor.hpp>
@@ -21,7 +20,7 @@ namespace precisegc { namespace details { namespace collectors {
 class gc_core : public gc_strategy, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_core(const thread_descriptor& main_thrd_descr);
+    gc_core(const thread_descriptor& main_thrd_descr, remset* rset);
 
     ~gc_core();
 
@@ -49,19 +48,32 @@ public:
     void register_thread(const thread_descriptor& descr) override;
     void deregister_thread(std::thread::id id) override;
 protected:
-    static_root_set* get_static_roots();
+//    static_root_set* get_static_roots();
 
-    void destroy_unmarked_dptrs();
+//    void destroy_unmarked_dptrs();
 
     threads::world_snapshot stop_the_world();
 
+    void trace_roots(const threads::world_snapshot& snapshot);
+    void trace_pins(const threads::world_snapshot& snapshot);
+    void trace_remset();
+
+    void start_concurrent_marking(size_t threads_available);
+    void start_marking();
+
     gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
+    void root_trace_cb(gc_handle* root);
+    void conservative_root_trace_cb(gc_handle* root);
+    void pin_trace_cb(byte* ptr);
+
     static thread_local threads::gc_thread_descriptor* this_thread;
 
     threads::gc_thread_manager m_thread_manager;
     static_root_set m_static_roots;
-    dptr_storage m_dptr_storage;
+//    dptr_storage m_dptr_storage;
+    packet_manager m_packet_manager;
+    marker m_marker;
     gc_heap m_heap;
 };
 

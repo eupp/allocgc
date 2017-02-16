@@ -13,7 +13,8 @@ namespace precisegc { namespace details { namespace collectors {
 
 thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
 
-gc_core::gc_core(const thread_descriptor& main_thrd_descr)
+gc_core::gc_core(const thread_descriptor& main_thrd_descr, remset* rset)
+    : m_marker(&m_packet_manager, rset)
 {
     register_thread(main_thrd_descr);
 }
@@ -70,20 +71,12 @@ gc_offsets gc_core::make_offsets(const gc_alloc::response& rsp)
 
 byte* gc_core::rbarrier(const gc_handle& handle)
 {
-    return gc_tagging::get(gc_handle_access::get<std::memory_order_relaxed>(handle));
+    return gc_handle_access::get<std::memory_order_relaxed>(handle);
 }
 
 void gc_core::interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
 {
-    gc_unsafe_scope unsafe_scope;
-    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(handle);
-    if (gc_tagging::is_derived(ptr)) {
-        gc_tagging::reset_derived_ptr(ptr, offset);
-    } else {
-        dptr_descriptor* descr = m_dptr_storage.make_derived(gc_tagging::clear_root_bit(ptr), offset);
-        byte* dptr = gc_tagging::make_derived_ptr(descr, gc_tagging::is_root(ptr));
-        gc_handle_access::set<std::memory_order_relaxed>(handle, dptr);
-    }
+    gc_handle_access::advance<std::memory_order_relaxed>(handle, offset);
 }
 
 void gc_core::register_handle(gc_handle& handle, byte* ptr)
@@ -91,14 +84,12 @@ void gc_core::register_handle(gc_handle& handle, byte* ptr)
     using namespace allocators;
 
     memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+    gc_handle_access::set<std::memory_order_relaxed>(handle, ptr);
     if (descr.is_stack_descriptor()) {
-        gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, true));
         this_thread->register_root(&handle);
     } else if (descr.is_null()) {
-        gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, true));
         m_static_roots.register_root(&handle);
     } else {
-        gc_handle_access::set<std::memory_order_relaxed>(handle, gc_tagging::set_root_bit(ptr, false));
         if (this_thread) {
             this_thread->register_heap_ptr(&handle);
         }
@@ -163,7 +154,7 @@ void gc_core::register_thread(const thread_descriptor& descr)
 
     std::unique_ptr<gc_thread_descriptor> gc_thrd_descr =
             utils::make_unique<
-                    gc_thread_descriptor_impl<conservative_stack, conservative_pin_set, gc_new_stack>
+                    gc_thread_descriptor_impl<stack_bitmap, pin_set, gc_new_stack>
             >(descr);
 
     this_thread = gc_thrd_descr.get();
@@ -177,19 +168,82 @@ void gc_core::deregister_thread(std::thread::id id)
     m_thread_manager.deregister_thread(id);
 }
 
-static_root_set* gc_core::get_static_roots()
-{
-    return &m_static_roots;
-}
-
-void gc_core::destroy_unmarked_dptrs()
-{
-    m_dptr_storage.destroy_unmarked();
-}
+//static_root_set* gc_core::get_static_roots()
+//{
+//    return &m_static_roots;
+//}
+//
+//void gc_core::destroy_unmarked_dptrs()
+//{
+//    m_dptr_storage.destroy_unmarked();
+//}
 
 threads::world_snapshot gc_core::stop_the_world()
 {
     return m_thread_manager.stop_the_world();
+}
+
+void gc_core::trace_roots(const threads::world_snapshot& snapshot)
+{
+    snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
+    m_static_roots.trace([this] (gc_handle* root) { root_trace_cb(root); });
+}
+
+void gc_core::trace_pins(const threads::world_snapshot& snapshot)
+{
+    snapshot.trace_pins([this] (byte* ptr) { pin_trace_cb(ptr); });
+}
+
+void gc_core::trace_remset()
+{
+    m_marker.trace_remset();
+}
+
+void gc_core::root_trace_cb(gc_handle* root)
+{
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+    if (ptr) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        cell.set_mark(true);
+        m_marker.add_root(cell);
+
+        logging::info() << "root: " /* << (void*) root << "; point to: " << (void*) obj_start */;
+    }
+}
+
+void gc_core::conservative_root_trace_cb(gc_handle* root)
+{
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+    if (ptr) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        cell.set_mark(true);
+        cell.set_pin(true);
+        m_marker.add_root(cell);
+
+        logging::info() << "root: " /* << (void*) root << "; point to: " << (void*) obj_start */;
+    }
+}
+
+void gc_core::pin_trace_cb(byte* ptr)
+{
+    if (ptr) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        cell.set_mark(true);
+        cell.set_pin(true);
+        m_marker.add_root(cell);
+
+        logging::debug() << "pin: " << (void*) ptr;
+    }
+}
+
+void gc_core::start_concurrent_marking(size_t threads_available)
+{
+    m_marker.concurrent_mark(threads_available);
+}
+
+void gc_core::start_marking()
+{
+    m_marker.mark();
 }
 
 gc_heap_stat gc_core::collect(const threads::world_snapshot& snapshot, size_t threads_available)

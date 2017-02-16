@@ -34,7 +34,9 @@ public:
 
     size_t cell_size() const;
     size_t cell_size(byte* ptr) const override;
-    byte*  cell_start(byte* ptr) const override;
+
+    byte* cell_start() const;
+    byte* cell_start(byte* ptr) const override;
 
     size_t object_count(byte* ptr) const override;
 
@@ -52,6 +54,7 @@ private:
     size_t m_size;
     bool   m_mark_bit;
     bool   m_pin_bit;
+    bool   m_init_bit;
 };
 
 }}}

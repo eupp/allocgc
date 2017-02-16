@@ -41,12 +41,9 @@ public:
         return indexer.get_descriptor(mem);
     }
 
-    static inline gc_cell get_gc_cell(byte* obj_start)
+    static inline gc_cell get_gc_cell(byte* ptr)
     {
-        memory_descriptor descr = get_descriptor(obj_start);
-
-        assert(descr.is_gc_heap_descriptor());
-        return gc_cell::from_obj_start(obj_start, descr.to_gc_descriptor());
+        return gc_cell::from_internal_ptr(ptr, get_descriptor(ptr).to_gc_descriptor());
     }
 private:
     static index_tree indexer;

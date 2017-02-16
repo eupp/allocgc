@@ -1,6 +1,5 @@
 #include <libprecisegc/details/collectors/marker.hpp>
 
-#include <libprecisegc/details/collectors/gc_tagging.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>
 
 namespace precisegc { namespace details { namespace collectors {
@@ -18,14 +17,9 @@ marker::~marker()
     m_done.store(true, std::memory_order_release);
 }
 
-void marker::trace_roots(const threads::world_snapshot& snapshot, static_root_set* static_roots)
+void marker::add_root(const gc_cell& cell)
 {
-    trace_roots([&snapshot] (const gc_trace_callback& cb) { snapshot.trace_roots(cb); }, static_roots, 0);
-}
-
-void marker::trace_pins(const threads::world_snapshot& snapshot)
-{
-    trace_pins([&snapshot] (const gc_trace_pin_callback& cb) { snapshot.trace_pins(cb); }, 0);
+    push_root_to_packet(cell, m_roots_packet);
 }
 
 void marker::trace_remset()
@@ -34,13 +28,13 @@ void marker::trace_remset()
     m_remset->flush_buffers();
     auto output_packet = m_packet_manager->pop_output_packet();
     for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
-        byte* obj_start = gc_tagging::get_obj_start(*it);
-        if (obj_start) {
-            gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
+        byte* ptr = *it;
+        if (ptr) {
+            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
             cell.set_mark(true);
             push_root_to_packet(cell, output_packet);
 
-            logging::debug() << "remset ptr: " << (void*) gc_tagging::get(*it);
+            logging::debug() << "remset ptr: " << (void*) *it;
         }
     }
     m_remset->clear();
@@ -49,6 +43,9 @@ void marker::trace_remset()
 
 void marker::mark()
 {
+    if (m_roots_packet) {
+        m_packet_manager->push_packet(std::move(m_roots_packet));
+    }
     m_concurrent_flag = false;
     ++m_running_threads_cnt;
     worker_routine();
@@ -61,6 +58,9 @@ void marker::mark()
 
 void marker::concurrent_mark(size_t threads_num)
 {
+    if (m_roots_packet) {
+        m_packet_manager->push_packet(std::move(m_roots_packet));
+    }
     m_concurrent_flag = true;
     m_running_threads_cnt = threads_num;
     m_workers.resize(threads_num);
@@ -125,7 +125,9 @@ void marker::worker_routine()
 
 void marker::push_root_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet)
 {
-    if (output_packet->is_full()) {
+    if (!output_packet) {
+        output_packet = m_packet_manager->pop_output_packet();
+    } else if (output_packet->is_full()) {
         m_packet_manager->push_packet(std::move(output_packet));
         output_packet = m_packet_manager->pop_output_packet();
     }
@@ -152,9 +154,8 @@ void marker::push_to_packet(const gc_cell& cell, packet_manager::mark_packet_han
 void marker::trace(gc_handle* handle, packet_manager::mark_packet_handle& output_packet)
 {
     byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
-    byte* obj_start = gc_tagging::get_obj_start(ptr);
-    if (obj_start) {
-        gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
+    if (ptr) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
         if (!cell.get_mark()) {
             cell.set_mark(true);
             push_to_packet(cell, output_packet);

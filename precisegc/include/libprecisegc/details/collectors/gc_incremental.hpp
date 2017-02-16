@@ -28,12 +28,10 @@ public:
 
     gc_info info() const;
 private:
-    gc_run_stats start_marking();
+    gc_run_stats start_marking_phase();
     gc_run_stats sweep();
 
-    packet_manager m_packet_manager;
     remset m_remset;
-    marker m_marker;
     size_t m_threads_available;
     gc_phase m_phase;
 };

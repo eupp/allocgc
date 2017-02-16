@@ -3,16 +3,16 @@
 
 #include <thread>
 
-#include <libprecisegc/gc_init_options.hpp>
-#include <libprecisegc/gc_stat.hpp>
+#include <libprecisegc/gc_strategy.hpp>
+#include <libprecisegc/gc_common.hpp>
 
 namespace precisegc {
 
-int gc_init(const gc_init_options& options);
-
-gc_stat gc_stats();
+int gc_init(std::unique_ptr<gc_strategy> strategy);
 
 void gc();
+
+gc_stat gc_stats();
 
 }
 

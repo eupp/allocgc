@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/utils/utility.hpp>

@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/threads/posix_thread.hpp>
 
 namespace precisegc { namespace details {

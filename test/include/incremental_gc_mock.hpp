@@ -3,7 +3,7 @@
 
 #include <gmock/gmock.h>
 
-#include <libprecisegc/details/gc_strategy.hpp>
+#include <libprecisegc/gc_strategy.hpp>
 #include <libprecisegc/details/gc_hooks.hpp>
 
 //class incremental_gc_mock : public precisegc::details::gc_strategy

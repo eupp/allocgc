@@ -6,11 +6,10 @@
 
 #include <libprecisegc/details/allocators/index_tree.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/gc_strategy.hpp>
+#include <libprecisegc/gc_strategy.hpp>
 #include <libprecisegc/details/gc_manager.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/details/logging.hpp>
-#include <libprecisegc/gc_stat.hpp>
 
 namespace precisegc { namespace details {
 
@@ -48,7 +47,6 @@ public:
 
     bool compare(const gc_handle& a, const gc_handle& b);
 
-
     void register_thread(const thread_descriptor& descr);
     void deregister_thread(std::thread::id id);
 
@@ -56,7 +54,6 @@ public:
     void decrement_heap_size(size_t size);
     void set_heap_limit(size_t size);
     void expand_heap();
-
 
     void initiation_point(initiation_point_type ipt, const gc_options& opt);
 

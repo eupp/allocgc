@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-#include "libprecisegc/libprecisegc.hpp"
+#include <libprecisegc/libprecisegc.hpp>
 
 using namespace precisegc;
 
@@ -13,15 +13,13 @@ public:
 
     virtual void SetUp()
     {
-        gc_init_options gc_ops;
-        gc_ops.algo         = gc_algo::SERIAL;
-        gc_ops.initiation   = gc_initiation::MANUAL;
-        gc_ops.compacting   = gc_compacting::DISABLED;
-        gc_ops.loglevel     = gc_loglevel::DEBUG;
+        gc_factory::options gc_ops;
+        gc_ops.manual_init  = true;
         gc_ops.print_stat   = true;
         gc_ops.heapsize     = 128 * 1024 * 1024;
+        gc_ops.loglevel     = gc_loglevel::DEBUG;
 
-        int res = gc_init(gc_ops);
+        int res = gc_init(gc_factory::create(gc_ops));
         assert(res == 0);
     }
 

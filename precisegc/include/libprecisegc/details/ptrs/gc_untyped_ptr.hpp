@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <atomic>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace ptrs {

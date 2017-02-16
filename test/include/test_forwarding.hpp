@@ -7,7 +7,7 @@
 #include <algorithm>
 
 #include <libprecisegc/gc_common.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 
 class test_forwarding
 {
@@ -33,9 +33,9 @@ public:
         m_frwd_list.emplace_back(from, to);
     }
 
-    void forward(precisegc::details::gc_handle* handle) const
+    void forward(precisegc::gc_handle* handle) const
     {
-        using namespace precisegc::details;
+        using namespace precisegc;
 
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*handle);
         auto it = std::find_if(m_frwd_list.begin(), m_frwd_list.end(), [ptr] (const entry& e) {

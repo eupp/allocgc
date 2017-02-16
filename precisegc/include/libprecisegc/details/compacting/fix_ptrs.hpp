@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 
 namespace precisegc { namespace details { namespace compacting {

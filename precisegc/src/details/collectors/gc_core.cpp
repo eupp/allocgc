@@ -13,10 +13,14 @@ namespace precisegc { namespace details { namespace collectors {
 
 thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
 
-gc_core::gc_core(const thread_descriptor& main_thrd_descr, remset* rset)
+gc_core::gc_core(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr, remset* rset)
     : m_marker(&m_packet_manager, rset)
 {
+    logging::init(std::clog, opt.loglevel);
+
     register_thread(main_thrd_descr);
+
+    m_conservative_mode = opt.conservative;
 }
 
 gc_core::~gc_core()
@@ -152,10 +156,14 @@ void gc_core::register_thread(const thread_descriptor& descr)
 
     assert(descr.id == std::this_thread::get_id());
 
-    std::unique_ptr<gc_thread_descriptor> gc_thrd_descr =
-            utils::make_unique<
-                    gc_thread_descriptor_impl<stack_bitmap, pin_set, gc_new_stack>
-            >(descr);
+    std::unique_ptr<gc_thread_descriptor> gc_thrd_descr;
+
+    if (m_conservative_mode) {
+        gc_thrd_descr = utils::make_unique<gc_thread_descriptor_impl<conservative_stack, conservative_pin_set, gc_new_stack>>(descr);
+    } else {
+        gc_thrd_descr = utils::make_unique<gc_thread_descriptor_impl<stack_bitmap, pin_set, gc_new_stack>>(descr);
+    }
+
 
     this_thread = gc_thrd_descr.get();
     m_thread_manager.register_thread(descr.id, std::move(gc_thrd_descr));
@@ -168,16 +176,6 @@ void gc_core::deregister_thread(std::thread::id id)
     m_thread_manager.deregister_thread(id);
 }
 
-//static_root_set* gc_core::get_static_roots()
-//{
-//    return &m_static_roots;
-//}
-//
-//void gc_core::destroy_unmarked_dptrs()
-//{
-//    m_dptr_storage.destroy_unmarked();
-//}
-
 threads::world_snapshot gc_core::stop_the_world()
 {
     return m_thread_manager.stop_the_world();
@@ -185,7 +183,12 @@ threads::world_snapshot gc_core::stop_the_world()
 
 void gc_core::trace_roots(const threads::world_snapshot& snapshot)
 {
-    snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
+
+    if (m_conservative_mode) {
+        snapshot.trace_roots([this] (gc_handle* root) { conservative_root_trace_cb(root); });
+    } else {
+        snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
+    }
     m_static_roots.trace([this] (gc_handle* root) { root_trace_cb(root); });
 }
 

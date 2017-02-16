@@ -232,15 +232,16 @@ int main (int argc, const char* argv[])
     }
 
     #if defined(PRECISE_GC)
-        gc_init_options ops;
+        gc_factory::options ops;
         ops.heapsize    = 32 * 1024 * 1024;      // 32 Mb
-        ops.algo        = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
-        ops.initiation  = gc_initiation::SPACE_BASED;
-        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
+        ops.incremental = incremental_flag;
+        ops.compacting  = compacting_flag;
 //        ops.loglevel    = gc_loglevel::DEBUG;
 //        ops.print_stat  = true;
 //        ops.threads_available = 1;
-        gc_init(ops);
+
+        auto strategy = gc_factory::create(ops);
+        gc_init(std::move(strategy));
     #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {

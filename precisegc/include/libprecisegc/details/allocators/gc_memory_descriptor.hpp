@@ -3,7 +3,7 @@
 
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/gc_type_meta.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/gc_common.hpp>
 
 namespace precisegc { namespace details { namespace allocators {

@@ -3,7 +3,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/gc_ptr.hpp
         include/libprecisegc/gc_new.hpp
         include/libprecisegc/gc.hpp
-        include/libprecisegc/gc_init_options.hpp
         include/libprecisegc/libprecisegc.hpp
 
         include/libprecisegc/gc_type_meta.hpp
@@ -40,7 +39,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/marker.hpp
         include/libprecisegc/details/utils/locked_range.hpp
         include/libprecisegc/details/utils/system_error.hpp
-        include/libprecisegc/details/gc_strategy.hpp
+        include/libprecisegc/gc_strategy.hpp
         include/libprecisegc/details/utils/to_string.hpp
         include/libprecisegc/details/utils/make_reverse_iterator.hpp
         include/libprecisegc/details/allocators/allocator_tag.hpp
@@ -56,11 +55,10 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/allocators/freelist_pool_chunk.hpp
         include/libprecisegc/gc_pin.hpp
         include/libprecisegc/gc_ref.hpp
-        include/libprecisegc/details/gc_handle.hpp
+        include/libprecisegc/gc_handle.hpp
         include/libprecisegc/details/gc_hooks.hpp
         include/libprecisegc/details/utils/base_offset.hpp
-        include/libprecisegc/details/gc_factory.hpp
-        include/libprecisegc/gc_stat.hpp include/libprecisegc/details/utils/static_thread_pool.hpp
+        include/libprecisegc/details/utils/static_thread_pool.hpp
         include/libprecisegc/details/utils/dummy_mutex.hpp
         include/libprecisegc/details/collectors/packet_manager.hpp
         include/libprecisegc/details/utils/safepoint_lock.hpp
@@ -99,7 +97,7 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/gc_new_stack.hpp
         include/libprecisegc/details/allocators/memory_descriptor.hpp
         include/libprecisegc/details/collectors/conservative_stack.hpp
-        include/libprecisegc/details/collectors/conservative_pin_set.hpp)
+        include/libprecisegc/details/collectors/conservative_pin_set.hpp include/libprecisegc/gc_factory.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
@@ -117,7 +115,6 @@ set(precisegc_LIB_SRCS
         src/details/collectors/gc_incremental.cpp
         src/details/allocators/freelist_pool_chunk.cpp
         src/details/gc_hooks.cpp
-        src/details/gc_factory.cpp
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/allocators/gc_object_descriptor.cpp
         src/details/gc_manager.cpp

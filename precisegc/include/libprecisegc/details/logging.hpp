@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#include <libprecisegc/gc_init_options.hpp>
+#include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {

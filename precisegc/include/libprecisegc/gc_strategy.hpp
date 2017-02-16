@@ -3,14 +3,12 @@
 
 #include <chrono>
 
-#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
-#include <libprecisegc/gc_init_options.hpp>
-#include <libprecisegc/details/gc_cell.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
-#include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/gc_alloc.hpp>
+#include <libprecisegc/gc_handle.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc {
 
 class gc_strategy
 {
@@ -42,11 +40,11 @@ public:
     virtual void register_thread(const thread_descriptor& descr) = 0;
     virtual void deregister_thread(std::thread::id id) = 0;
 
-    virtual gc_run_stats gc(const gc_options&) = 0;
+    virtual gc_run_stat gc(const gc_options&) = 0;
 
     virtual gc_info info() const = 0;
 };
 
-}}
+}
 
 #endif //DIPLOMA_GC_STRATEGY_HPP

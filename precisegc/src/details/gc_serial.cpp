@@ -6,9 +6,9 @@
 
 namespace precisegc { namespace details { namespace collectors {
 
-gc_serial::gc_serial(size_t threads_available, const thread_descriptor& main_thrd_descr)
-    : gc_core(main_thrd_descr, nullptr)
-    , m_threads_available(threads_available)
+gc_serial::gc_serial(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr)
+    : gc_core(opt, main_thrd_descr, nullptr)
+    , m_threads_available(opt.threads_available)
 {}
 
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -18,18 +18,18 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_handle_access::set<std::memory_order_relaxed>(dst, ptr);
 }
 
-gc_run_stats gc_serial::gc(const gc_options& options)
+gc_run_stat gc_serial::gc(const gc_options& options)
 {
     if ((options.kind != gc_kind::MARK_COLLECT) && (options.kind != gc_kind::COLLECT)) {
-        return gc_run_stats();
+        return gc_run_stat();
     }
 
-    gc_run_stats stats = sweep();
+    gc_run_stat stats = sweep();
     allocators::gc_core_allocator::shrink();
     return stats;
 }
 
-gc_run_stats gc_serial::sweep()
+gc_run_stat gc_serial::sweep()
 {
     auto snapshot = stop_the_world();
     trace_roots(snapshot);
@@ -37,7 +37,7 @@ gc_run_stats gc_serial::sweep()
     start_concurrent_marking(m_threads_available);
     start_marking();
 
-    gc_run_stats stats;
+    gc_run_stat stats;
     stats.heap_stat = collect(snapshot, m_threads_available);
 
     stats.pause_stat.type       = gc_pause_type::MARK_COLLECT;

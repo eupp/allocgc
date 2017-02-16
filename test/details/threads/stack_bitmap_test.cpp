@@ -6,6 +6,7 @@
 #include <set>
 #include <cstdlib>
 
+using namespace precisegc;
 using namespace precisegc::details;
 using namespace precisegc::details::threads;
 using namespace precisegc::details::collectors;

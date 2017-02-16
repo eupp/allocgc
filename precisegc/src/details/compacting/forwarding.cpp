@@ -26,9 +26,9 @@ void forwarding::forward(gc_handle* handle) const
     if (!from) {
         return;
     }
-    gc_cell from_cell = allocators::memory_index::get_gc_cell(from);
-    byte* from_cell_start = from_cell.cell_start();
-    byte* from_obj_start  = gc_box::get_obj_start(from_cell_start);
+    gc_cell from_cell       = allocators::memory_index::get_gc_cell(from);
+    byte* from_cell_start   = from_cell.cell_start();
+    byte* from_obj_start    = gc_box::get_obj_start(from_cell_start);
 
     if (!gc_box::is_forwarded(from_cell_start)) {
         return;

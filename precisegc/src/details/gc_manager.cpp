@@ -26,7 +26,7 @@ void gc_manager::gc(const gc_options& opt)
         return;
     }
 
-    gc_run_stats run_stats = m_strategy->gc(opt);
+    gc_run_stat run_stats = m_strategy->gc(opt);
     if (run_stats.pause_stat.type == gc_pause_type::SKIP) {
         return;
     }
@@ -89,13 +89,13 @@ bool gc_manager::check_gc_kind(gc_kind kind)
     return true;
 }
 
-void gc_manager::register_gc_run(const gc_run_stats& stats)
+void gc_manager::register_gc_run(const gc_run_stat& stats)
 {
     ++m_gc_cnt;
     m_gc_time += stats.pause_stat.duration;
 }
 
-void gc_manager::print_gc_run_stats(const gc_run_stats& stats)
+void gc_manager::print_gc_run_stats(const gc_run_stat& stats)
 {
     if (!m_print_stats_flag) {
         return;

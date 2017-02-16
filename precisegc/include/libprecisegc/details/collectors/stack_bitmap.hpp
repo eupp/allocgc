@@ -9,7 +9,7 @@
 #include <boost/integer/static_log2.hpp>
 
 #include <libprecisegc/details/constants.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 #include <libprecisegc/details/utils/math.hpp>
 #include <libprecisegc/details/gc_interface.hpp>

@@ -1,13 +1,104 @@
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+
+#include <libprecisegc/gc_handle.hpp>
+#include <libprecisegc/details/gc_facade.hpp>
 
 #include <libprecisegc/details/collectors/static_root_set.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>
-#include <libprecisegc/details/gc_facade.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc {
 
-static gc_facade gc_instance{};
+static details::gc_facade gc_instance{};
+
+byte* gc_handle::rbarrier() const
+{
+    return gc_instance.rbarrier(*this);
+}
+
+void gc_handle::wbarrier(const gc_handle& other)
+{
+    gc_instance.wbarrier(*this, other);
+}
+
+void gc_handle::interior_wbarrier(ptrdiff_t offset)
+{
+    gc_instance.interior_wbarrier(*this, offset);
+}
+
+gc_handle::pin_guard gc_handle::pin() const
+{
+    return pin_guard(*this);
+}
+
+gc_handle::stack_pin_guard gc_handle::push_pin() const
+{
+    return stack_pin_guard(*this);
+}
+
+void gc_handle::reset()
+{
+    gc_instance.wbarrier(*this, null);
+}
+
+bool gc_handle::equal(const gc_handle& other) const
+{
+    return gc_instance.compare(*this, other);
+}
+
+bool gc_handle::is_null() const
+{
+    return rbarrier() == nullptr;
+}
+
+gc_handle::pin_guard::pin_guard(const gc_handle& handle)
+        : m_ptr(gc_instance.register_pin(handle))
+{}
+
+gc_handle::pin_guard::pin_guard(pin_guard&& other)
+        : m_ptr(other.m_ptr)
+{
+    other.m_ptr = nullptr;
+}
+
+gc_handle::pin_guard::~pin_guard()
+{
+    gc_instance.deregister_pin(m_ptr);
+}
+
+gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)
+{
+    std::swap(m_ptr, other.m_ptr);
+    return *this;
+}
+
+byte* gc_handle::pin_guard::get() const noexcept
+{
+    return m_ptr;
+}
+
+gc_handle::stack_pin_guard::stack_pin_guard(const gc_handle& handle)
+        : m_ptr(gc_instance.push_pin(handle))
+{}
+
+gc_handle::stack_pin_guard::stack_pin_guard(stack_pin_guard&& other)
+        : m_ptr(other.m_ptr)
+{
+    other.m_ptr = nullptr;
+}
+
+gc_handle::stack_pin_guard::~stack_pin_guard()
+{
+    gc_instance.pop_pin(m_ptr);
+}
+
+byte* gc_handle::stack_pin_guard::get() const noexcept
+{
+    return m_ptr;
+}
+
+gc_handle gc_handle::null{nullptr};
+
+namespace details {
 
 void gc_initialize(std::unique_ptr<gc_strategy> strategy)
 {
@@ -116,92 +207,6 @@ void gc_deregister_page(const byte* page, size_t size)
     gc_instance.deregister_page(page, size);
 }
 
-byte* gc_handle::rbarrier() const
-{
-    return gc_instance.rbarrier(*this);
 }
 
-void gc_handle::wbarrier(const gc_handle& other)
-{
-    gc_instance.wbarrier(*this, other);
 }
-
-void gc_handle::interior_wbarrier(ptrdiff_t offset)
-{
-    gc_instance.interior_wbarrier(*this, offset);
-}
-
-gc_handle::pin_guard gc_handle::pin() const
-{
-    return pin_guard(*this);
-}
-
-gc_handle::stack_pin_guard gc_handle::push_pin() const
-{
-    return stack_pin_guard(*this);
-}
-
-void gc_handle::reset()
-{
-    gc_instance.wbarrier(*this, null);
-}
-
-bool gc_handle::equal(const gc_handle& other) const
-{
-    return gc_instance.compare(*this, other);
-}
-
-bool gc_handle::is_null() const
-{
-    return rbarrier() == nullptr;
-}
-
-gc_handle::pin_guard::pin_guard(const gc_handle& handle)
-    : m_ptr(gc_instance.register_pin(handle))
-{}
-
-gc_handle::pin_guard::pin_guard(pin_guard&& other)
-    : m_ptr(other.m_ptr)
-{
-    other.m_ptr = nullptr;
-}
-
-gc_handle::pin_guard::~pin_guard()
-{
-    gc_instance.deregister_pin(m_ptr);
-}
-
-gc_handle::pin_guard& gc_handle::pin_guard::operator=(pin_guard&& other)
-{
-    std::swap(m_ptr, other.m_ptr);
-    return *this;
-}
-
-byte* gc_handle::pin_guard::get() const noexcept
-{
-    return m_ptr;
-}
-
-gc_handle::stack_pin_guard::stack_pin_guard(const gc_handle& handle)
-    : m_ptr(gc_instance.push_pin(handle))
-{}
-
-gc_handle::stack_pin_guard::stack_pin_guard(stack_pin_guard&& other)
-    : m_ptr(other.m_ptr)
-{
-    other.m_ptr = nullptr;
-}
-
-gc_handle::stack_pin_guard::~stack_pin_guard()
-{
-    gc_instance.pop_pin(m_ptr);
-}
-
-byte* gc_handle::stack_pin_guard::get() const noexcept
-{
-    return m_ptr;
-}
-
-gc_handle gc_handle::null{nullptr};
-
-}}

@@ -1,10 +1,12 @@
 #ifndef DIPLOMA_GC_CORE_HPP
 #define DIPLOMA_GC_CORE_HPP
 
+#include <libprecisegc/gc_handle.hpp>
+#include <libprecisegc/gc_strategy.hpp>
+#include <libprecisegc/gc_factory.hpp>
+
 #include <libprecisegc/details/gc_hooks.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
 #include <libprecisegc/details/gc_heap.hpp>
-#include <libprecisegc/details/gc_strategy.hpp>
 
 #include <libprecisegc/details/utils/make_unique.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -20,7 +22,7 @@ namespace precisegc { namespace details { namespace collectors {
 class gc_core : public gc_strategy, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_core(const thread_descriptor& main_thrd_descr, remset* rset);
+    gc_core(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr, remset* rset);
 
     ~gc_core();
 
@@ -48,10 +50,6 @@ public:
     void register_thread(const thread_descriptor& descr) override;
     void deregister_thread(std::thread::id id) override;
 protected:
-//    static_root_set* get_static_roots();
-
-//    void destroy_unmarked_dptrs();
-
     threads::world_snapshot stop_the_world();
 
     void trace_roots(const threads::world_snapshot& snapshot);
@@ -71,10 +69,10 @@ private:
 
     threads::gc_thread_manager m_thread_manager;
     static_root_set m_static_roots;
-//    dptr_storage m_dptr_storage;
     packet_manager m_packet_manager;
     marker m_marker;
     gc_heap m_heap;
+    bool m_conservative_mode;
 };
 
 }}}

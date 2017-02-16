@@ -6,8 +6,7 @@
 #include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/gc_strategy.hpp>
-#include <libprecisegc/gc_stat.hpp>
+#include <libprecisegc/gc_strategy.hpp>
 
 namespace precisegc { namespace details {
 

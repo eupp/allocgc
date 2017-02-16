@@ -7,14 +7,14 @@
 #include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
 
-namespace precisegc { namespace details {
+namespace precisegc {
 
 class gc_handle_access;
 
-class gc_handle : private utils::noncopyable, private utils::nonmovable
+class gc_handle : private details::utils::noncopyable, private details::utils::nonmovable
 {
 public:
-    class pin_guard : private utils::noncopyable
+    class pin_guard : private details::utils::noncopyable
     {
     public:
         pin_guard(pin_guard&& other);
@@ -31,7 +31,7 @@ public:
         byte* m_ptr;
     };
 
-    class stack_pin_guard : private utils::noncopyable
+    class stack_pin_guard : private details::utils::noncopyable
     {
     public:
         stack_pin_guard(stack_pin_guard&& other);
@@ -78,25 +78,25 @@ private:
 class gc_handle_access
 {
 public:
-    template <int MemoryOrder>
+    template<int MemoryOrder>
     static byte* get(const gc_handle& handle)
     {
         return handle.m_ptr.load(static_cast<std::memory_order>(MemoryOrder));
     }
 
-    template <int MemoryOrder>
-    static void  set(gc_handle& handle, byte* ptr)
+    template<int MemoryOrder>
+    static void set(gc_handle& handle, byte* ptr)
     {
         handle.m_ptr.store(ptr, static_cast<std::memory_order>(MemoryOrder));
     }
 
-    template <int MemoryOrder>
-    static void  advance(gc_handle& handle, ptrdiff_t n)
+    template<int MemoryOrder>
+    static void advance(gc_handle& handle, ptrdiff_t n)
     {
         handle.m_ptr.fetch_add(n, static_cast<std::memory_order>(MemoryOrder));
     }
 };
 
-}}
+}
 
 #endif //DIPLOMA_GC_HANDLE_HPP

@@ -6,7 +6,7 @@
 
 #include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/constants.hpp>
-#include <libprecisegc/details/gc_handle.hpp>
+#include <libprecisegc/gc_handle.hpp>
 #include <libprecisegc/details/gc_interface.hpp>
 #include <libprecisegc/details/logging.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>

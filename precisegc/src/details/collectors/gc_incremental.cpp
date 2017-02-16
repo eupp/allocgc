@@ -10,10 +10,10 @@
 
 namespace precisegc { namespace details { namespace collectors {
 
-gc_incremental::gc_incremental(size_t threads_available, const thread_descriptor& main_thrd_descr)
-    : gc_core(main_thrd_descr, &m_remset)
+gc_incremental::gc_incremental(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr)
+    : gc_core(opt, main_thrd_descr, &m_remset)
     , m_phase(gc_phase::IDLE)
-    , m_threads_available(threads_available)
+    , m_threads_available(opt.threads_available)
 {}
 
 gc_alloc::response gc_incremental::allocate(const gc_alloc::request& rqst)
@@ -56,19 +56,19 @@ void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
     }
 }
 
-gc_run_stats gc_incremental::gc(const gc_options& options)
+gc_run_stat gc_incremental::gc(const gc_options& options)
 {
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking_phase();
     } else if (options.kind == gc_kind::COLLECT) {
-        gc_run_stats stats = sweep();
+        gc_run_stat stats = sweep();
         allocators::gc_core_allocator::shrink();
         return stats;
     }
-    return gc_run_stats();
+    return gc_run_stat();
 }
 
-gc_run_stats gc_incremental::start_marking_phase()
+gc_run_stat gc_incremental::start_marking_phase()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
@@ -78,13 +78,13 @@ gc_run_stats gc_incremental::start_marking_phase()
     m_phase = gc_phase::MARK;
     start_concurrent_marking(std::max((size_t) 1, m_threads_available - 1));
 
-    gc_run_stats stats;
+    gc_run_stat stats;
     stats.pause_stat.type     = gc_pause_type::TRACE_ROOTS;
     stats.pause_stat.duration = snapshot.time_since_stop_the_world();
     return stats;
 }
 
-gc_run_stats gc_incremental::sweep()
+gc_run_stat gc_incremental::sweep()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
@@ -107,7 +107,7 @@ gc_run_stats gc_incremental::sweep()
     }
     m_phase = gc_phase::COLLECT;
 
-    gc_run_stats stats;
+    gc_run_stat stats;
 
     stats.heap_stat           = collect(snapshot, m_threads_available);
     stats.pause_stat.type     = type;

@@ -16,6 +16,7 @@ namespace precisegc { namespace details {
 gc_heap::gc_heap(const gc_factory::options& opt)
 {
     m_conservative_mode = opt.conservative;
+    m_conservative_mode = opt.compacting;
 }
 
 gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)

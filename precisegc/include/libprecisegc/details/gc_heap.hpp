@@ -48,6 +48,7 @@ private:
     tlab_map_t  m_tlab_map;
     std::mutex  m_tlab_map_mutex;
     bool        m_conservative_mode;
+    bool        m_compacting_mode;
 };
 
 }}

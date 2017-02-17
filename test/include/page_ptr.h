@@ -23,7 +23,7 @@ page_ptr make_page_ptr()
 {
     using namespace precisegc::details;
     using namespace precisegc::details::allocators;
-    byte* p = gc_core_allocator().allocate(PAGE_SIZE);
+    byte* p = gc_core_allocator().allocate(PAGE_SIZE, false);
     assert(p);
     return page_ptr(p);
 }

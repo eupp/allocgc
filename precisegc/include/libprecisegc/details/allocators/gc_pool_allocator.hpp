@@ -63,7 +63,7 @@ private:
     gc_pool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
     iterator_t destroy_descriptor(iterator_t it);
 
-    std::pair<byte*, size_t> allocate_block(size_t cell_size);
+    std::pair<byte*, size_t> allocate_block(size_t cell_size, bool zeroing);
     void deallocate_block(byte* ptr, size_t size);
 
     bool contains(byte* ptr) const;

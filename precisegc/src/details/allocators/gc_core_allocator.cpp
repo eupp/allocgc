@@ -8,7 +8,7 @@ gc_core_allocator::mutex_t gc_core_allocator::mutex{};
 gc_core_allocator::freelist_alloc_t gc_core_allocator::freelist{};
 gc_core_allocator::bucket_alloc_t gc_core_allocator::bucket_alloc{};
 
-byte* gc_core_allocator::allocate(size_t size)
+byte* gc_core_allocator::allocate(size_t size, bool zeroing)
 {
     assert(size != 0);
     size_t aligned_size = sys_allocator::align_size(size);
@@ -22,7 +22,9 @@ byte* gc_core_allocator::allocate(size_t size)
     byte* page = nullptr;
     if (aligned_size <= MAX_BUCKETIZE_SIZE) {
         page = bucket_alloc.allocate(aligned_size);
-        memset(page, 0, aligned_size);
+        if (zeroing) {
+            memset(page, 0, aligned_size);
+        }
     } else {
         page = sys_allocator::allocate(aligned_size);
     }

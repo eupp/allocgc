@@ -16,7 +16,7 @@ TEST(memory_index_test, test_index)
     auto deleter = [] (byte* ptr) {
         gc_core_allocator::deallocate(ptr, PAGE_SIZE);
     };
-    std::unique_ptr<byte, decltype(deleter)> memory(gc_core_allocator::allocate(PAGE_SIZE), deleter);
+    std::unique_ptr<byte, decltype(deleter)> memory(gc_core_allocator::allocate(PAGE_SIZE, false), deleter);
 
     memory_descriptor_mock mock;
     allocators::memory_index::index_gc_heap_memory(memory.get(), PAGE_SIZE, &mock);

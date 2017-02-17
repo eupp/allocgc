@@ -31,9 +31,11 @@ gc_core::~gc_core()
 
 gc_alloc::response gc_core::allocate(const gc_alloc::request& rqst)
 {
+    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
+    stack_entry->zeroing_flag = !m_conservative_mode;
+
     gc_alloc::response rsp = m_heap.allocate(rqst);
 
-    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
     stack_entry->obj_start = rsp.obj_start();
     stack_entry->obj_size  = rqst.alloc_size();
     stack_entry->meta_requested = rqst.type_meta() == nullptr;

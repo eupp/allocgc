@@ -195,14 +195,16 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
 
     size_t freed = 0;
     for (size_t i = 0; it < end; it += size, ++i) {
-        if (descr.get_lifetime_tag(i) == gc_lifetime_tag::GARBAGE) {
-            descr.finalize(i);
-            freed += size;
-            if (add_to_freelist) {
+        if (!descr.get_mark(i)) {
+            if (descr.is_init(i)) {
+                descr.finalize(i);
+                freed += size;
+                if (add_to_freelist) {
+                    insert_into_freelist(it);
+                }
+            } else if (add_to_freelist) {
                 insert_into_freelist(it);
             }
-        } else if (descr.get_lifetime_tag(i) == gc_lifetime_tag::FREE && add_to_freelist) {
-            insert_into_freelist(it);
         }
     }
     return freed;

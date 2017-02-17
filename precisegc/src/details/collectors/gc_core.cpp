@@ -15,12 +15,13 @@ thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
 
 gc_core::gc_core(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr, remset* rset)
     : m_marker(&m_packet_manager, rset)
+    , m_heap(opt)
 {
     logging::init(std::clog, opt.loglevel);
 
-    register_thread(main_thrd_descr);
-
     m_conservative_mode = opt.conservative;
+
+    register_thread(main_thrd_descr);
 }
 
 gc_core::~gc_core()
@@ -34,6 +35,7 @@ gc_alloc::response gc_core::allocate(const gc_alloc::request& rqst)
 
     gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
     stack_entry->obj_start = rsp.obj_start();
+    stack_entry->obj_size  = rqst.alloc_size();
     stack_entry->meta_requested = rqst.type_meta() == nullptr;
 
     this_thread->register_stack_entry(stack_entry);
@@ -197,6 +199,11 @@ void gc_core::trace_pins(const threads::world_snapshot& snapshot)
     snapshot.trace_pins([this] (byte* ptr) { pin_trace_cb(ptr); });
 }
 
+void gc_core::trace_uninit(const threads::world_snapshot& snapshot)
+{
+    snapshot.trace_uninit([this] (byte* obj_start, size_t obj_size) { conservative_obj_trace_cb(obj_start, obj_size); });
+}
+
 void gc_core::trace_remset()
 {
     m_marker.trace_remset();
@@ -210,20 +217,7 @@ void gc_core::root_trace_cb(gc_handle* root)
         cell.set_mark(true);
         m_marker.add_root(cell);
 
-        logging::info() << "root: " /* << (void*) root << "; point to: " << (void*) obj_start */;
-    }
-}
-
-void gc_core::conservative_root_trace_cb(gc_handle* root)
-{
-    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
-    if (ptr) {
-        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
-        cell.set_mark(true);
-        cell.set_pin(true);
-        m_marker.add_root(cell);
-
-        logging::info() << "root: " /* << (void*) root << "; point to: " << (void*) obj_start */;
+        logging::debug() << "root: " << (void*) root /* << "; point to: " << (void*) obj_start */;
     }
 }
 
@@ -236,6 +230,45 @@ void gc_core::pin_trace_cb(byte* ptr)
         m_marker.add_root(cell);
 
         logging::debug() << "pin: " << (void*) ptr;
+    }
+}
+
+void gc_core::conservative_root_trace_cb(gc_handle* root)
+{
+    byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+    if (ptr) {
+        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        if (cell.is_init()) {
+            cell.set_mark(true);
+            cell.set_pin(true);
+            m_marker.add_root(cell);
+
+            logging::debug() << "root: " << (void*) root /* << "; point to: " << (void*) obj_start */;
+        }
+    }
+}
+
+void gc_core::conservative_obj_trace_cb(byte* obj_start, size_t obj_size)
+{
+    assert(obj_start && obj_size > 0);
+    gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
+    cell.set_mark(true);
+    cell.set_pin(true);
+
+    logging::info() << "uninitialized object: " << (void*) obj_start /* << "; point to: " << (void*) obj_start */;
+
+    gc_handle* begin = reinterpret_cast<gc_handle*>(obj_start);
+    gc_handle* end   = reinterpret_cast<gc_handle*>(obj_start + obj_size);
+    for (gc_handle* it = begin; it < end; ++it) {
+        byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
+        cell = allocators::memory_index::get_gc_cell(ptr);
+        if (cell.is_init()) {
+            cell.set_mark(true);
+            cell.set_pin(true);
+            m_marker.add_root(cell);
+
+            logging::debug() << "pointer from uninitialized object: " << (void*) ptr /* << "; point to: " << (void*) obj_start */;
+        }
     }
 }
 

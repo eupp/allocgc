@@ -14,10 +14,12 @@ void stw_manager::sighandler()
     stw_manager& stwm = stw_manager::instance();
 
 //    logging::debug() << "Thread enters stop-the-world signal handler";
+//    std::cout /* << "signal handler --- thread: " */ << std::this_thread::get_id() << std::endl;
 
-    stwm.m_stack_ends[std::this_thread::get_id()] = frame_address();
+    size_t idx = stwm.m_threads_suspended_cnt++;
+    assert(idx < MAX_THREAD_NUM);
+    stwm.m_stack_ends[idx] = std::make_pair(std::this_thread::get_id(), frame_address());
 
-    ++stwm.m_threads_suspended_cnt;
     std::atomic_thread_fence(std::memory_order_seq_cst);
     stwm.m_barrier.notify();
 
@@ -81,8 +83,10 @@ size_t stw_manager::threads_suspended() const
 
 byte* stw_manager::get_thread_stack_end(std::thread::id id)
 {
-    auto it = m_stack_ends.find(id);
-    return it != m_stack_ends.end() ? it->second : frame_address();
+    auto it = std::find_if(m_stack_ends.begin(), m_stack_ends.end(),
+                           [id] (const pair_t& pair) { return pair.first == id; });
+
+    return it != m_stack_ends.end() ? it->second : nullptr;
 }
 
 }}}

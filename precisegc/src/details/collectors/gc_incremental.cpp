@@ -74,6 +74,7 @@ gc_run_stat gc_incremental::start_marking_phase()
     assert(m_phase == gc_phase::IDLE);
 
     auto snapshot = stop_the_world();
+    trace_uninit(snapshot);
     trace_roots(snapshot);
     m_phase = gc_phase::MARK;
     start_concurrent_marking(std::max((size_t) 1, m_threads_available - 1));
@@ -93,6 +94,7 @@ gc_run_stat gc_incremental::sweep()
     world_snapshot snapshot = stop_the_world();
     if (m_phase == gc_phase::IDLE) {
         type = gc_pause_type::MARK_COLLECT;
+        trace_uninit(snapshot);
         trace_roots(snapshot);
         trace_pins(snapshot);
         trace_remset();
@@ -101,6 +103,7 @@ gc_run_stat gc_incremental::sweep()
         start_marking();
     } else if (m_phase == gc_phase::MARK) {
         type = gc_pause_type::COLLECT;
+        trace_uninit(snapshot);
         trace_pins(snapshot);
         trace_remset();
         start_marking();

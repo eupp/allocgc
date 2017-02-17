@@ -24,6 +24,10 @@ std::unique_ptr<gc_strategy> gc_factory::create(const options& opt)
 
     gc_set_heap_limit(opt.heapsize);
 
+    if (opt.print_stat) {
+        gc_enable_print_stats();
+    }
+
     if (opt.incremental) {
         return utils::make_unique<gc_incremental>(opt, main_thrd_descr);
     } else {

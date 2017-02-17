@@ -33,14 +33,28 @@ public:
         using namespace allocators;
 
         gc_handle* stack_end = reinterpret_cast<gc_handle*>(threads::stw_manager::instance().get_thread_stack_end(m_id));
+        if (!stack_end) {
+            assert(std::this_thread::get_id() == m_id);
+            stack_end = reinterpret_cast<gc_handle*>(threads::frame_address());
+        }
+
+//        logging::info() << "stack start: " << (void*) m_stack_start;
+//        logging::info() << "stack end: " << (void*) stack_end;
+
         for (gc_handle* it = m_stack_start; it != stack_end; STACK_DIRECTION == stack_growth_direction::UP
                                                               ? ++it : --it) {
+//            if (reinterpret_cast<std::uintptr_t>(it) % PAGE_SIZE == 0) {
+//                logging::info() << "trace page: " << (void*) it;
+//            }
+
             byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
             memory_descriptor descr = memory_index::get_descriptor(ptr);
             if (descr.is_gc_heap_descriptor()) {
                 cb(it);
             }
         }
+
+//        logging::info() << "FINISH!!!";
     }
 private:
     std::thread::id m_id;

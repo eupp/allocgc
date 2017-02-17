@@ -220,22 +220,26 @@ struct GCBench {
 
 int main (int argc, const char* argv[])
 {
-    bool incremental_flag = false;
     bool compacting_flag = false;
+    bool incremental_flag = false;
+    bool conservative_flag = false;
     for (int i = 1; i < argc; ++i) {
         auto arg = std::string(argv[i]);
         if (arg == "--incremental") {
             incremental_flag = true;
         } else if (arg == "--compacting") {
             compacting_flag = true;
+        } else if (arg == "--conservative") {
+            conservative_flag = true;
         }
     }
 
     #if defined(PRECISE_GC)
         gc_factory::options ops;
-        ops.heapsize    = 32 * 1024 * 1024;      // 32 Mb
-        ops.incremental = incremental_flag;
-        ops.compacting  = compacting_flag;
+        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
+        ops.conservative    = conservative_flag;
+        ops.incremental     = incremental_flag;
+        ops.compacting      = compacting_flag;
 //        ops.loglevel    = gc_loglevel::DEBUG;
 //        ops.print_stat  = true;
 //        ops.threads_available = 1;

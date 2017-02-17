@@ -30,6 +30,8 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    bool is_init(byte* ptr) const override;
+
     gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
 
     size_t cell_size() const;

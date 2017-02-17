@@ -44,12 +44,12 @@ void gc_manager::register_allocation(size_t size)
 
 void gc_manager::register_page(const byte* page, size_t size)
 {
-    logging::debug() << "Page allocated: addr=" << (void*) page << ", size=" << size;
+//    logging::debug() << "Page allocated: addr=" << (void*) page << ", size=" << size;
 }
 
 void gc_manager::deregister_page(const byte* page, size_t size)
 {
-    logging::debug() << "Page deallocated: addr=" << (void*) page << ", size=" << size;
+//    logging::debug() << "Page deallocated: addr=" << (void*) page << ", size=" << size;
 }
 
 gc_stat gc_manager::stats() const

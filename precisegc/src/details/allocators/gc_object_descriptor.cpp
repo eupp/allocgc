@@ -59,6 +59,12 @@ void gc_object_descriptor::set_pin(byte* ptr, bool pin)
     m_pin_bit = pin;
 }
 
+bool gc_object_descriptor::is_init(byte* ptr) const
+{
+    assert(ptr == cell_start());
+    return m_init_bit;
+}
+
 gc_lifetime_tag gc_object_descriptor::get_lifetime_tag(byte* ptr) const
 {
     assert(ptr == cell_start());

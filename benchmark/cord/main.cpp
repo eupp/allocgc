@@ -166,12 +166,18 @@ int main(int argc, const char* argv[])
 {
     size_t len = 0;
     size_t buf_size = 127;
+    bool compacting_flag = false;
     bool incremental_flag = false;
+    bool conservative_flag = false;
     test_type ttype;
     for (int i = 1; i < argc; ++i) {
         auto arg = std::string(argv[i]);
         if (arg == "--incremental") {
             incremental_flag = true;
+        } else if (arg == "--compacting") {
+            compacting_flag = true;
+        } else if (arg == "--conservative") {
+            conservative_flag = true;
         } else if (arg == "--len") {
             assert(i + 1 < argc);
             ++i;
@@ -189,16 +195,17 @@ int main(int argc, const char* argv[])
     init(buf_size);
 
     #if defined(PRECISE_GC)
-        gc_init_options ops;
-//        ops.heapsize    = 32 * 1024 * 1024;      // 32 Mb
-        ops.algo        = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
-        ops.initiation  = gc_initiation::SPACE_BASED;
-        ops.compacting  = gc_compacting::DISABLED;
-//        ops.compacting  = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-//        ops.loglevel    = gc_loglevel::INFO;
-//        ops.print_stat  = true;
-//            ops.threads_available = 1;
-        gc_init(ops);
+        gc_factory::options ops;
+//        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
+        ops.conservative    = conservative_flag;
+        ops.incremental     = incremental_flag;
+        ops.compacting      = compacting_flag;
+    //        ops.loglevel    = gc_loglevel::DEBUG;
+    //        ops.print_stat  = true;
+    //        ops.threads_available = 1;
+
+        auto strategy = gc_factory::create(ops);
+        gc_init(std::move(strategy));
     #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {

@@ -135,6 +135,8 @@ public:
     void set_mark(byte* ptr, bool mark) override;
     void set_pin(byte* ptr, bool pin) override;
 
+    bool is_init(byte* ptr) const override;
+
     gc_lifetime_tag get_lifetime_tag(size_t idx) const;
     gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
 
@@ -168,6 +170,11 @@ public:
         return m_pin_bits.get(idx);
     }
 
+    inline bool is_init(size_t idx) const
+    {
+        return m_init_bits.get(idx);
+    }
+
     inline void set_mark(size_t idx, bool mark)
     {
         m_mark_bits.set(idx, mark);
@@ -190,13 +197,7 @@ public:
 
     bool contains(byte* ptr) const;
 private:
-    bool is_init(byte* ptr) const;
     void set_init(byte* ptr, bool init);
-
-    inline bool is_init(size_t idx) const
-    {
-        return m_init_bits.get(idx);
-    }
 
     inline void set_init(size_t idx, bool init)
     {

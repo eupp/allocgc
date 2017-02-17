@@ -81,6 +81,13 @@ public:
         }
     }
 
+    void trace_uninit(const gc_trace_obj_callback& cb) const
+    {
+        for (auto& thread: m_threads) {
+            thread->trace_uninit(cb);
+        }
+    }
+
     gc_thread_descriptor* lookup_thread(std::thread::id thread_id) const
     {
         auto it = std::find_if(m_threads.begin(), m_threads.end(),

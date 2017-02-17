@@ -3,7 +3,8 @@
 
 #include <thread>
 #include <atomic>
-#include <unordered_map>
+#include <array>
+#include <utility>
 
 #include <libprecisegc/gc_common.hpp>
 #include <libprecisegc/details/utils/utility.hpp>
@@ -28,6 +29,11 @@ public:
 
     byte* get_thread_stack_end(std::thread::id id);
 private:
+    static const size_t MAX_THREAD_NUM = 128;
+
+    typedef std::pair<std::thread::id, byte*> pair_t;
+    typedef std::array<pair_t, MAX_THREAD_NUM> stack_end_map_t;
+
     static void sighandler();
 
     stw_manager();
@@ -36,7 +42,7 @@ private:
     ass_event m_event;
     size_t m_threads_cnt;
     std::atomic<size_t> m_threads_suspended_cnt;
-    std::unordered_map<std::thread::id, byte*> m_stack_ends;
+    stack_end_map_t m_stack_ends;
 };
 
 }}}

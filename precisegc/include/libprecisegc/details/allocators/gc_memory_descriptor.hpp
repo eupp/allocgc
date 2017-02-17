@@ -19,6 +19,8 @@ public:
     virtual void set_mark(byte* ptr, bool mark) = 0;
     virtual void set_pin(byte* ptr, bool pin) = 0;
 
+    virtual bool is_init(byte* ptr) const = 0;
+
     virtual gc_lifetime_tag get_lifetime_tag(byte* ptr) const = 0;
 
     virtual size_t cell_size(byte* ptr) const = 0;

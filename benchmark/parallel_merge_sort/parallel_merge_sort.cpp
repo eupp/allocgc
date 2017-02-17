@@ -266,27 +266,32 @@ void routine(List* input, List* output)
 
 int main(int argc, const char* argv[])
 {
-    bool incremental_flag = false;
     bool compacting_flag = false;
+    bool incremental_flag = false;
+    bool conservative_flag = false;
     for (int i = 1; i < argc; ++i) {
         auto arg = std::string(argv[i]);
         if (arg == "--incremental") {
             incremental_flag = true;
         } else if (arg == "--compacting") {
             compacting_flag = true;
+        } else if (arg == "--conservative") {
+            conservative_flag = true;
         }
     }
 
     #if defined(PRECISE_GC)
-        gc_init_options ops;
+    gc_factory::options ops;
         ops.heapsize            = 4 * 1024 * 1024;      // 4 Mb
         ops.threads_available   = 1;
-        ops.algo                = incremental_flag ? gc_algo::INCREMENTAL : gc_algo::SERIAL;
-        ops.initiation          = gc_initiation::SPACE_BASED;
-        ops.compacting          = compacting_flag ? gc_compacting::ENABLED : gc_compacting::DISABLED;
-//        ops.loglevel            = gc_loglevel::DEBUG;
-//        ops.print_stat          = true;
-        gc_init(ops);
+        ops.conservative    = conservative_flag;
+        ops.incremental     = incremental_flag;
+        ops.compacting      = compacting_flag;
+//        ops.loglevel        = gc_loglevel::INFO;
+//        ops.print_stat  = true;
+
+        auto strategy = gc_factory::create(ops);
+        gc_init(std::move(strategy));
     #elif defined(BDW_GC)
         GC_INIT();
         GC_allow_register_threads();

@@ -13,8 +13,10 @@
 
 namespace precisegc { namespace details {
 
-gc_heap::gc_heap()
-{}
+gc_heap::gc_heap(const gc_factory::options& opt)
+{
+    m_conservative_mode = opt.conservative;
+}
 
 gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
 {
@@ -48,7 +50,9 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
         };
 
         static_roots->trace(fix_roots_cb);
-        snapshot.trace_roots(fix_roots_cb);
+        if (!m_conservative_mode) {
+            snapshot.trace_roots(fix_roots_cb);
+        }
     }
 
     for (auto& kv: m_tlab_map) {

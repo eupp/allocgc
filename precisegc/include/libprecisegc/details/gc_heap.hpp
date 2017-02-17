@@ -8,20 +8,21 @@
 #include <memory>
 #include <unordered_map>
 
+#include <libprecisegc/gc_alloc.hpp>
+#include <libprecisegc/gc_factory.hpp>
+#include <libprecisegc/details/gc_interface.hpp>
+#include <libprecisegc/details/constants.hpp>
+
 #include <libprecisegc/details/allocators/gc_lo_allocator.hpp>
 #include <libprecisegc/details/allocators/gc_so_allocator.hpp>
 
 #include <libprecisegc/details/compacting/forwarding.hpp>
 
 #include <libprecisegc/details/threads/world_snapshot.hpp>
-
 #include <libprecisegc/details/utils/safepoint_lock.hpp>
 #include <libprecisegc/details/utils/dummy_mutex.hpp>
-#include <libprecisegc/details/utils/utility.hpp>
 
-#include <libprecisegc/gc_alloc.hpp>
-#include <libprecisegc/details/gc_interface.hpp>
-#include <libprecisegc/details/constants.hpp>
+#include <libprecisegc/details/utils/utility.hpp>
 
 namespace precisegc { namespace details {
 
@@ -31,7 +32,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef allocators::gc_lo_allocator mlo_alloc_t;
     typedef compacting::forwarding forwarding;
 public:
-    gc_heap();
+    gc_heap(const gc_factory::options& opt);
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
@@ -46,6 +47,7 @@ private:
     mlo_alloc_t m_loa;
     tlab_map_t  m_tlab_map;
     std::mutex  m_tlab_map_mutex;
+    bool        m_conservative_mode;
 };
 
 }}

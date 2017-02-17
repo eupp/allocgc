@@ -49,11 +49,11 @@ public:
         return m_depth;
     }
 
-    void trace(const gc_trace_pin_callback& cb) const
+    void trace(const gc_trace_obj_callback& cb) const
     {
         gc_new_stack_entry* curr = m_stack_top;
         while (curr) {
-            cb(curr->obj_start);
+            cb(curr->obj_start, curr->obj_size);
             curr = curr->prev;
         }
     }

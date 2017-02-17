@@ -17,6 +17,7 @@ public:
     typedef allocators::gc_memory_descriptor gc_memory_descriptor;
 
     byte*                   obj_start;
+    size_t                  obj_size;
     gc_memory_descriptor*   descriptor;
     offsets_storage_t       offsets;
     gc_new_stack_entry*     prev;

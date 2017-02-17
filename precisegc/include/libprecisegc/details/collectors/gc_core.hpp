@@ -54,6 +54,7 @@ protected:
 
     void trace_roots(const threads::world_snapshot& snapshot);
     void trace_pins(const threads::world_snapshot& snapshot);
+    void trace_uninit(const threads::world_snapshot& snapshot);
     void trace_remset();
 
     void start_concurrent_marking(size_t threads_available);
@@ -62,8 +63,9 @@ protected:
     gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
     void root_trace_cb(gc_handle* root);
-    void conservative_root_trace_cb(gc_handle* root);
     void pin_trace_cb(byte* ptr);
+    void conservative_root_trace_cb(gc_handle* root);
+    void conservative_obj_trace_cb(byte* obj_start, size_t obj_size);
 
     static thread_local threads::gc_thread_descriptor* this_thread;
 

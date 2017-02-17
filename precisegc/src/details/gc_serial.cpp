@@ -32,8 +32,11 @@ gc_run_stat gc_serial::gc(const gc_options& options)
 gc_run_stat gc_serial::sweep()
 {
     auto snapshot = stop_the_world();
+
+    trace_uninit(snapshot);
     trace_roots(snapshot);
     trace_pins(snapshot);
+
     start_concurrent_marking(m_threads_available);
     start_marking();
 

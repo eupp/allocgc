@@ -37,12 +37,14 @@ public:
 
     virtual void trace_roots(const gc_trace_callback& cb) const = 0;
     virtual void trace_pins(const gc_trace_pin_callback& cb) const = 0;
+    virtual void trace_uninit(const gc_trace_obj_callback& cb) const = 0;
+
 
     virtual std::thread::id get_id() const = 0;
     virtual std::thread::native_handle_type native_handle() const = 0;
 };
 
-template <typename StackRootSet, typename PinSet, typename InitStack>
+template <typename StackRootSet, typename PinSet, typename UninitStack>
 class gc_thread_descriptor_impl : public gc_thread_descriptor, private utils::noncopyable, private utils::nonmovable
 {
     class stack_descriptor
@@ -57,7 +59,7 @@ class gc_thread_descriptor_impl : public gc_thread_descriptor, private utils::no
     public:
         inline stack_descriptor(byte* stack_start_addr)
             : m_stack_start(stack_start_addr_approx(stack_start_addr))
-            , m_stack_end(m_stack_start + STACK_DIRECTION * threads::stack_maxsize())
+            , m_stack_end(m_stack_start + STACK_DIRECTION * (threads::stack_maxsize() - PAGE_SIZE))
         {
             logging::info() << "stack start addr=" << (void*) m_stack_start
                             << "; stack end addr=" << (void*) m_stack_end;
@@ -123,12 +125,12 @@ public:
 
     void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
     {
-        m_init_stack.register_stack_entry(stack_entry);
+        m_uninit_stack.register_stack_entry(stack_entry);
     }
 
     void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
     {
-        m_init_stack.deregister_stack_entry(stack_entry);
+        m_uninit_stack.deregister_stack_entry(stack_entry);
     }
 
     void register_root(gc_handle* handle) override
@@ -145,7 +147,7 @@ public:
 
     void register_heap_ptr(gc_handle* handle) override
     {
-        m_init_stack.register_child(handle);
+        m_uninit_stack.register_child(handle);
     }
 
     void deregister_heap_ptr(gc_handle* handle) override
@@ -175,13 +177,19 @@ public:
 
     void trace_roots(const gc_trace_callback& cb) const override
     {
+        logging::info() << "Trace stack of thread " << m_id;
+
         m_stack_roots.trace(cb);
     }
 
     void trace_pins(const gc_trace_pin_callback& cb) const override
     {
         m_pin_set.trace(cb);
-        m_init_stack.trace(cb);
+    }
+
+    void trace_uninit(const gc_trace_obj_callback& cb) const override
+    {
+        m_uninit_stack.trace(cb);
     }
 
     std::thread::id get_id() const override
@@ -197,7 +205,7 @@ private:
     stack_descriptor                m_stack_descr;
     StackRootSet                    m_stack_roots;
     PinSet                          m_pin_set;
-    InitStack                       m_init_stack;
+    UninitStack                       m_uninit_stack;
     std::thread::id                 m_id;
     std::thread::native_handle_type m_native_handle;
 };

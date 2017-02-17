@@ -151,6 +151,7 @@ void gc_pool_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
 {
     assert(contains(ptr));
     assert(ptr == cell_start(ptr));
+    assert(is_init(ptr));
     gc_box::trace(ptr, cb);
 }
 

@@ -282,12 +282,12 @@ int main(int argc, const char* argv[])
 
     #if defined(PRECISE_GC)
     gc_factory::options ops;
-        ops.heapsize            = 4 * 1024 * 1024;      // 4 Mb
+//        ops.heapsize            = 4 * 1024 * 1024;      // 4 Mb
         ops.threads_available   = 1;
         ops.conservative    = conservative_flag;
         ops.incremental     = incremental_flag;
         ops.compacting      = compacting_flag;
-//        ops.loglevel        = gc_loglevel::INFO;
+//        ops.loglevel        = gc_loglevel::DEBUG;
 //        ops.print_stat  = true;
 
         auto strategy = gc_factory::create(ops);

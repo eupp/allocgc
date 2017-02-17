@@ -238,12 +238,12 @@ void gc_core::conservative_root_trace_cb(gc_handle* root)
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
     if (ptr) {
         gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
-        if (cell.is_init()) {
+        if (!cell.get_mark() && cell.is_init()) {
             cell.set_mark(true);
             cell.set_pin(true);
             m_marker.add_root(cell);
 
-            logging::debug() << "root: " << (void*) root /* << "; point to: " << (void*) obj_start */;
+            logging::debug() << "root: " << (void*) root << "; point to: " << (void*) ptr;
         }
     }
 }
@@ -262,7 +262,7 @@ void gc_core::conservative_obj_trace_cb(byte* obj_start, size_t obj_size)
     for (gc_handle* it = begin; it < end; ++it) {
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
         cell = allocators::memory_index::get_gc_cell(ptr);
-        if (cell.is_init()) {
+        if (!cell.get_mark() && cell.is_init()) {
             cell.set_mark(true);
             cell.set_pin(true);
             m_marker.add_root(cell);

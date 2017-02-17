@@ -130,7 +130,7 @@ void gc_object_descriptor::commit(byte* ptr, const gc_type_meta* type_meta)
 void gc_object_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
 {
     assert(ptr == cell_start());
-    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::LIVE || get_lifetime_tag(ptr) == gc_lifetime_tag::ALLOCATED);
+    assert(is_init(ptr));
     gc_box::trace(ptr, cb);
 }
 

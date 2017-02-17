@@ -83,9 +83,9 @@ size_t stw_manager::threads_suspended() const
 
 byte* stw_manager::get_thread_stack_end(std::thread::id id)
 {
-    auto it = std::find_if(m_stack_ends.begin(), m_stack_ends.end(),
-                           [id] (const pair_t& pair) { return pair.first == id; });
-
+    auto begin = m_stack_ends.begin();
+    auto end = begin + m_threads_suspended_cnt;
+    auto it = std::find_if(begin, end, [id] (const pair_t& pair) { return pair.first == id; });
     return it != m_stack_ends.end() ? it->second : nullptr;
 }
 

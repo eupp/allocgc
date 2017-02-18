@@ -186,16 +186,22 @@ class Reporter:
 
     def __init__(self, cols):
         self._cols = cols
-        self._rows = []
+        self._targets = []
+        self._table = collections.defaultdict(list)
 
-    def add_stats(self, row):
-        self._rows.append(self._match_columns(row, self._cols))
+    def add_stats(self, target, row):
+        if target not in self._targets:
+            self._targets.append(target)
+        self._table[target].append(self._match_columns(row, self._cols))
 
     def cols(self):
         return self._cols
 
-    def rows(self):
-        return self._rows
+    def items(self):
+        return [(target, self._table[target]) for target in self._targets]
+
+    def targets_num(self):
+        return len(self._targets)
 
     @staticmethod
     def _match_columns(row, cols):
@@ -207,7 +213,7 @@ class Reporter:
 
 class TexTableReporter(Reporter):
 
-    def __init__(self, name):
+    def __init__(self):
         super().__init__([
             "name",
             STATS_GC_COUNT,
@@ -215,50 +221,66 @@ class TexTableReporter(Reporter):
             STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
             STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MAX,
         ])
-        self._outfn = name + ".tex"
 
     def create_report(self):
         import tabulate
-        with open(self._outfn, "w") as outfile:
-            outfile.write(tabulate.tabulate(self.rows(), self.cols(), tablefmt="latex"))
+        for target, data in self.items():
+            outfn = target + ".tex"
+            with open(outfn, "w") as outfile:
+                outfile.write(tabulate.tabulate(data, self.cols(), tablefmt="latex"))
 
 
 class TimeBarPlotReporter(Reporter):
 
-    def __init__(self, name):
+    def __init__(self, outfn, rownum, figsize):
         super().__init__([
             "name", STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD
         ])
-        self._name  = name
-        self._outfn = name + ".eps"
+        self._outfn = outfn
+        self._rownum = int(rownum)
+        self._figsize = figsize
 
     def create_report(self):
-        fig, ax = plt.subplots()
+        n = self.targets_num()
+        rownum = self._rownum
+        colnum = math.ceil(float(n) / rownum)
 
-        ind   = range(0, len(self.rows()))
-        width = 0.5
-        names  = [row[0] for row in self.rows()]
-        means  = [row[1] for row in self.rows()]
-        stds   = [row[2] for row in self.rows()]
+        fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
+        fig.tight_layout()
 
-        rects = ax.bar(ind, means, width, yerr=stds, color='r')
+        i, j = 0, 0
+        for target, data in self.items():
+            ax = axs[i, j]
 
-        # add some text for labels, title and axes ticks
-        ax.set_ylabel("Time (ms)")
-        ax.set_title(self._name)
-        ax.set_xticks([x + width for x in ind])
-        ax.set_xticklabels(names)
-        # ax.set_yticks(range(0, 5500, 500))
-        # ax.set_ylim([0, 5500])
+            j += 1
+            if j == colnum:
+                i += 1
+                j = 0
+
+            ind   = range(0, len(data))
+            width = 0.5
+            names  = ["\n".join(row[0].split(' ')) for row in data]
+            means  = [row[1] for row in data]
+            stds   = [row[2] for row in data]
+
+            rects = ax.bar(ind, means, width, yerr=stds, color='r', ecolor='b')
+
+            # add some text for labels, title and axes ticks
+            ax.set_title(target)
+            ax.set_ylabel("Time (ms)")
+            ax.set_xticks([x + width for x in ind])
+            ax.set_xticklabels(names)
+            # ax.set_yticks(range(0, 5500, 500))
+            # ax.set_ylim([0, 5500])
 
         fig.savefig(self._outfn)
 
 
-def create_reporter(reporter_name, *args):
+def create_reporter(reporter_name, *args, **kwargs):
     if reporter_name == "tex-table":
-        return TexTableReporter(*args)
+        return TexTableReporter(*args, **kwargs)
     elif reporter_name == "time-bar-plot":
-        return TimeBarPlotReporter(*args)
+        return TimeBarPlotReporter(*args, **kwargs)
 
 
 class RunChecker:
@@ -308,8 +330,6 @@ class Target:
         self._runnable  = runnable
 
     def run(self, params_space, reporters, checker):
-        reporters = [create_reporter(rep, self._alias) for rep in reporters]
-
         for suite in self._suites:
             build = suite["builder"].build(self._name)
             for params in params_space:
@@ -339,11 +359,7 @@ class Target:
                 parsed["name"]   = suite["name"]
                 parsed["params"] = params
                 for reporter in reporters:
-                    reporter.add_stats(parsed)
-
-        logging.info("Produce reports")
-        for reporter in reporters:
-            reporter.create_report()
+                    reporter.add_stats(self._alias, parsed)
 
     @staticmethod
     def parse_params(params):
@@ -415,25 +431,38 @@ if __name__ == '__main__':
                 builders[name] = CMakeBuilder(PROJECT_DIR, *builder["options"])
 
     suites = {}
-    for suite in cfg["suites"]:
+    for suite, i in zip(cfg["suites"], range(0, len(cfg["suites"]))):
         name = suite["name"]
 
         suites[name] = {
             "name": name,
             "builder": builders[suite["builder"]],
-            "args": suite.get("args", [])
+            "args": suite.get("args", []),
+            "ord": i
         }
+
+    suites = dict(sorted(suites.items(), key=lambda x: x[1]["ord"]))
+
+    reporters = {}
+    for reporter in cfg.get("reporters", []):
+        name = reporter["name"]
+        reporters[name] = create_reporter(name, **reporter.get("params", {}))
 
     checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
     for target in cfg["targets"]:
         trgt_name       = target["name"]
         trgt_alias      = target.get("alias", trgt_name)
         trgt_suites     = [suites[name] for name in target["suites"]]
-        trgt_reporters  = target.get("reports", [])
+        trgt_reporters  = [reporters[name] for name in target.get("reports", [])]
         trgt_params     = Target.parse_params(target.get("params", []))
 
         trgt = Target(trgt_name, trgt_alias, target["runnable"], trgt_suites)
 
         trgt.run(trgt_params, trgt_reporters, checker)
 
+    logging.info("Produce reports")
+    for reporter in reporters.values():
+        reporter.create_report()
+
     print(checker.results())
+

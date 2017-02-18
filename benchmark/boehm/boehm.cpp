@@ -90,6 +90,10 @@ struct Node
     }
 };
 
+enum test_type {
+      TOP_DOWN  = 1
+    , BOTTOM_UP = 2
+};
 
 struct GCBench {
 
@@ -128,7 +132,8 @@ struct GCBench {
         }
     }
 
-    static void TimeConstruction(int depth) {
+    static void TimeConstruction(int depth, int ttype)
+    {
         long    tStart, tFinish;
         int     iNumIters = NumIters(depth);
         ptr_t(Node) tempTree;
@@ -136,25 +141,30 @@ struct GCBench {
         cout << "Creating " << iNumIters << " trees of depth " << depth << endl;
 
         timer tm;
-        for (int i = 0; i < iNumIters; ++i) {
-            tempTree = new_(Node);
-            Populate(depth, tempTree);
-            delete_(tempTree);
-            set_null(tempTree);
-        }
 
-        cout << "\tTop down construction took " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
+        if (ttype & TOP_DOWN) {
+            for (int i = 0; i < iNumIters; ++i) {
+                tempTree = new_(Node);
+                Populate(depth, tempTree);
+                delete_(tempTree);
+                set_null(tempTree);
+            }
+            cout << "\tTop down construction took " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
+        }
 
         tm.reset();
-        for (int i = 0; i < iNumIters; ++i) {
-            tempTree = MakeTree(depth);
-            delete_(tempTree);
-            set_null(tempTree);
+
+        if (ttype & BOTTOM_UP) {
+            for (int i = 0; i < iNumIters; ++i) {
+                tempTree = MakeTree(depth);
+                delete_(tempTree);
+                set_null(tempTree);
+            }
+            cout << "\tBottom up construction took " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
         }
-        cout << "\tBottom up construction took " << tm.elapsed<std::chrono::milliseconds>() << " msec" << endl;
     }
 
-    void main() {
+    void main(int ttype) {
         ptr_t(Node) root;
         ptr_t(Node) longLivedTree;
         ptr_t(Node) tempTree;
@@ -195,7 +205,7 @@ struct GCBench {
         }
 
         for (int d = kMinTreeDepth; d <= kMaxTreeDepth; d += 2) {
-            TimeConstruction(d);
+            TimeConstruction(d, ttype);
         }
 
         if (!longLivedTree || array[1000] != 1.0 / 1000 ) {
@@ -220,6 +230,7 @@ struct GCBench {
 
 int main (int argc, const char* argv[])
 {
+    int ttype = 0;
     bool compacting_flag = false;
     bool incremental_flag = false;
     bool conservative_flag = false;
@@ -231,6 +242,10 @@ int main (int argc, const char* argv[])
             compacting_flag = true;
         } else if (arg == "--conservative") {
             conservative_flag = true;
+        } else if (arg == "--top-down") {
+            ttype |= TOP_DOWN;
+        } else if (arg == "--bottom-up") {
+            ttype |= BOTTOM_UP;
         }
     }
 
@@ -253,7 +268,7 @@ int main (int argc, const char* argv[])
         }
     #endif
     GCBench x;
-    x.main();
+    x.main(ttype);
 
     cout.flush();
     return 0;

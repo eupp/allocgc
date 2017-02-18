@@ -17,6 +17,15 @@ remove_cxx_release_flag("-O3")
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
+option(LIGHT_MODE OFF)
+set(LIGHT_MODE ON)
+
+if(LIGHT_MODE)
+    message("HELLO WORLD!!!")
+    add_definitions(-DLIGHT_MODE)
+endif()
+
+
 add_subdirectory(precisegc)
 add_subdirectory(microbenchmark)
 add_subdirectory(test)

@@ -43,7 +43,7 @@ public:
 
     gc_alloc::response allocate(const gc_alloc::request& rqst, size_t aligned_size);
 
-    gc_heap_stat collect(compacting::forwarding& frwd);
+    gc_heap_stat collect(compacting::forwarding& frwd, bool compact_flag);
     void fix(const compacting::forwarding& frwd);
     void finalize();
 

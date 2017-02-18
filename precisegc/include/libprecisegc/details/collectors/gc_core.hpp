@@ -62,6 +62,8 @@ protected:
 
     gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
 private:
+
+
     void root_trace_cb(gc_handle* root);
     void pin_trace_cb(byte* ptr);
     void conservative_root_trace_cb(gc_handle* root);

@@ -52,6 +52,8 @@ public:
 
     virtual void destroy(byte* ptr) const = 0;
     virtual void move(byte* from, byte* to) const = 0;
+
+    virtual bool with_destructor() const = 0;
 protected:
     template <typename Iter>
     gc_type_meta(size_t type_size,

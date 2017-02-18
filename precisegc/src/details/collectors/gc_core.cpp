@@ -42,6 +42,12 @@ gc_alloc::response gc_core::allocate(const gc_alloc::request& rqst)
 
     this_thread->register_stack_entry(stack_entry);
 
+    if (m_conservative_mode) {
+        assert(rqst.type_meta());
+        assert(stack_entry->descriptor);
+        stack_entry->descriptor->commit(rsp.cell_start());
+    }
+
     return rsp;
 }
 
@@ -57,8 +63,12 @@ void gc_core::commit(const gc_alloc::response& rsp)
 
     this_thread->deregister_stack_entry(stack_entry);
 
-    assert(stack_entry->descriptor);
-    stack_entry->descriptor->commit(rsp.cell_start());
+//    #if !defined(LIGHT_MODE)
+    if (!m_conservative_mode) {
+        assert(stack_entry->descriptor);
+        stack_entry->descriptor->commit(rsp.cell_start());
+    }
+//    #endif
 }
 
 void gc_core::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
@@ -67,8 +77,12 @@ void gc_core::commit(const gc_alloc::response& rsp, const gc_type_meta* type_met
 
     this_thread->deregister_stack_entry(stack_entry);
 
-    assert(stack_entry->descriptor);
-    stack_entry->descriptor->commit(rsp.cell_start(), type_meta);
+//    #if !defined(LIGHT_MODE)
+    if (!m_conservative_mode) {
+        assert(stack_entry->descriptor);
+        stack_entry->descriptor->commit(rsp.cell_start(), type_meta);
+    }
+//    #endif
 }
 
 gc_offsets gc_core::make_offsets(const gc_alloc::response& rsp)
@@ -91,33 +105,46 @@ void gc_core::register_handle(gc_handle& handle, byte* ptr)
 {
     using namespace allocators;
 
-    memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+//    #if !defined(LIGHT_MODE)
+
     gc_handle_access::set<std::memory_order_relaxed>(handle, ptr);
-    if (descr.is_stack_descriptor()) {
-        this_thread->register_root(&handle);
-    } else if (descr.is_null()) {
-        m_static_roots.register_root(&handle);
-    } else {
-        if (this_thread) {
-            this_thread->register_heap_ptr(&handle);
+
+    if (!m_conservative_mode) {
+        memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+        if (descr.is_stack_descriptor()) {
+            this_thread->register_root(&handle);
+        } else if (descr.is_null()) {
+            m_static_roots.register_root(&handle);
+        } else {
+            if (this_thread) {
+                this_thread->register_heap_ptr(&handle);
+            }
         }
     }
+//    #endif
 }
 
 void gc_core::deregister_handle(gc_handle& handle)
 {
     using namespace allocators;
 
-    memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
-    if (descr.is_stack_descriptor()) {
-        this_thread->deregister_root(&handle);
-    } else if (descr.is_null()) {
-        m_static_roots.deregister_root(&handle);
+//    #if defined(LIGHT_MODE)
+    if (m_conservative_mode) {
+        gc_handle_access::set<std::memory_order_relaxed>(handle, nullptr);
+//    #else
     } else {
-        if (this_thread) {
-            this_thread->deregister_heap_ptr(&handle);
+        memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+        if (descr.is_stack_descriptor()) {
+            this_thread->deregister_root(&handle);
+        } else if (descr.is_null()) {
+            m_static_roots.deregister_root(&handle);
+        } else {
+            if (this_thread) {
+                this_thread->deregister_heap_ptr(&handle);
+            }
         }
     }
+//    #endif
 }
 
 byte* gc_core::register_pin(const gc_handle& handle)

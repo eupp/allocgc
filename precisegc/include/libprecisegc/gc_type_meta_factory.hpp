@@ -30,11 +30,17 @@ public:
         move_impl(from, to);
     }
 
+    bool with_destructor() const override
+    {
+        return m_with_dtor;
+    }
+
     friend class gc_type_meta_factory<T>;
 private:
     template <typename Iter>
-    gc_type_meta_instance(Iter offsets_first, Iter offsets_last)
-            : gc_type_meta(sizeof(T), std::is_move_constructible<T>::value, offsets_first, offsets_last)
+    gc_type_meta_instance(Iter offsets_first, Iter offsets_last, bool with_dtor = true)
+        : gc_type_meta(sizeof(T), std::is_move_constructible<T>::value, offsets_first, offsets_last)
+        , m_with_dtor(with_dtor)
     {}
 
     template <typename U = T>
@@ -50,6 +56,8 @@ private:
     {
         throw forbidden_move_exception(from);
     }
+
+    bool m_with_dtor;
 };
 
 }
@@ -70,13 +78,13 @@ public:
     }
 
     template <typename Range>
-    static const gc_type_meta* create(Range&& range)
+    static const gc_type_meta* create(Range&& range, bool with_dtor = true)
     {
-        return create(range.begin(), range.end());
+        return create(range.begin(), range.end(), with_dtor);
     }
 
     template <typename Iter>
-    static const gc_type_meta* create(Iter offsets_begin, Iter offsets_end)
+    static const gc_type_meta* create(Iter offsets_begin, Iter offsets_end, bool with_dtor = true)
     {
         static_assert(std::is_same<typename Iter::value_type, size_t>::value, "Offsets should have size_t type");
 
@@ -85,7 +93,7 @@ public:
             return type_meta;
         }
 
-        std::unique_ptr<gc_type_meta> meta_owner(new internals::gc_type_meta_instance<T>(offsets_begin, offsets_end));
+        std::unique_ptr<gc_type_meta> meta_owner(new internals::gc_type_meta_instance<T>(offsets_begin, offsets_end, with_dtor));
         if (meta.compare_exchange_strong(type_meta, meta_owner.get(), std::memory_order_acq_rel)) {
             meta_owner.release();
         }

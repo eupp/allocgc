@@ -206,6 +206,11 @@ int main(int argc, const char* argv[])
 
         auto strategy = gc_factory::create(ops);
         gc_init(std::move(strategy));
+
+        if (ops.conservative) {
+            gc_type_meta_factory<Concatenation>::create(std::vector<size_t>({8, 16}), false);
+            gc_type_meta_factory<double>::create(std::vector<size_t>(), false);
+        }
     #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {

@@ -29,7 +29,7 @@ public:
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    gc_heap_stat collect(compacting::forwarding& frwd, thread_pool_t& thread_pool);
+    gc_heap_stat collect(compacting::forwarding& frwd, thread_pool_t& thread_pool, bool compact);
     void fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool);
     void finalize();
 private:

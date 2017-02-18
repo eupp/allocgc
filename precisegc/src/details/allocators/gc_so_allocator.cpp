@@ -23,7 +23,7 @@ gc_alloc::response gc_so_allocator::allocate(const gc_alloc::request& rqst)
     return it->second.allocate(rqst, it->first);
 }
 
-gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
+gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool, bool compact)
 {
     std::vector<std::function<void()>> tasks;
     std::array<gc_heap_stat, BUCKET_COUNT> part_stats;
@@ -31,8 +31,8 @@ gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_
         if (m_buckets[i].second.empty()) {
             continue;
         }
-        tasks.emplace_back([this, i, &frwd, &part_stats] {
-            part_stats[i] = m_buckets[i].second.collect(frwd);
+        tasks.emplace_back([this, i, compact, &frwd, &part_stats] {
+            part_stats[i] = m_buckets[i].second.collect(frwd, compact);
         });
     }
     thread_pool.run(tasks.begin(), tasks.end());

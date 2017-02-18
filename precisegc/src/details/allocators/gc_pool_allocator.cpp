@@ -142,7 +142,7 @@ bool gc_pool_allocator::contains(byte* ptr) const
     return false;
 }
 
-gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
+gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd, bool compact_flag)
 {
     if (m_descrs.begin() == m_descrs.end()) {
         return gc_heap_stat();
@@ -156,7 +156,7 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
     m_end = m_top;
     m_freelist = nullptr;
 
-    if (is_compaction_required(stat)) {
+    if (compact_flag && is_compaction_required(stat)) {
         compact(frwd, stat);
     } else {
         sweep(stat);

@@ -130,7 +130,6 @@ set(precisegc_LIB_SRCS
         src/details/collectors/gc_core.cpp
         src/details/collectors/marker.cpp)
 
-
 find_package(Threads REQUIRED)
 find_package(Boost 1.54)
 

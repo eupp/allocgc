@@ -147,6 +147,10 @@ public:
         box_meta* meta = get_box_meta(cell_start);
         const gc_type_meta* type_meta = get_type_meta(cell_start);
 
+        if (!type_meta->with_destructor()) {
+            return;
+        }
+
         assert(type_meta);
         assert(meta->object_count() > 0);
         byte*  obj      = get_obj_start(cell_start);

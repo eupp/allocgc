@@ -10,8 +10,6 @@ import itertools
 import subprocess
 import collections
 
-if "--plots" in sys.argv:
-    import matplotlib.pyplot as plt
 
 STATS_FULL_TIME_MEAN    = "full time mean"
 STATS_FULL_TIME_STD     = "full time std"
@@ -20,12 +18,14 @@ STATS_GC_TIME_STD       = "gc time std"
 STATS_STW_TIME_MEAN     = "stw time mean"
 STATS_STW_TIME_STD      = "stw time std"
 STATS_STW_TIME_MAX      = "stw time max"
+STATS_STW_TIME_MIN      = "stw time min"
 STATS_GC_COUNT          = "gc count"
 
 def mean(xs):
     s = 0.0
     for x in xs:
         s += x
+    res = s / len(xs)
     return s / len(xs)
 
 
@@ -33,16 +33,20 @@ def std(xs):
     return math.sqrt(mean([x**2 for x in xs]) - mean(xs)**2)
 
 
-def stat_mean(arr, default=float('NaN'), ndigits=None):
+def stat_mean(arr, default=float('NaN'), ndigits=0):
     return round(mean(arr), ndigits) if len(arr) > 0 else default
 
 
-def stat_std(arr, default=float('NaN'), ndigits=None):
+def stat_std(arr, default=float('NaN'), ndigits=0):
     return round(std(arr), ndigits) if len(arr) > 0 else default
 
 
-def stat_max(arr, default=float('NaN'), ndigits=None):
+def stat_max(arr, default=float('NaN'), ndigits=0):
     return round(max(arr), ndigits) if len(arr) > 0 else default
+
+
+def stat_min(arr, default=float('NaN'), ndigits=0):
+    return round(min(arr), ndigits) if len(arr) > 0 else default
 
 
 def call_with_cwd(args, cwd):
@@ -170,11 +174,16 @@ class Parser:
             STATS_FULL_TIME_STD   : stat_std(self._context["full_time"], ndigits=3),
             STATS_GC_TIME_MEAN    : stat_mean(self._context["gc_time"], ndigits=0),
             STATS_GC_TIME_STD     : stat_std(self._context["gc_time"], ndigits=3),
-            STATS_STW_TIME_MEAN   : stat_mean(self._context["stw_time"], ndigits=0),
-            STATS_STW_TIME_STD    : stat_std(self._context["stw_time"], ndigits=3),
-            STATS_STW_TIME_MAX    : stat_max(self._context["stw_time"], ndigits=0),
+            STATS_STW_TIME_MEAN   : self._us_to_ms(stat_mean(self._context["stw_time"]), ndigits=3),
+            STATS_STW_TIME_STD    : self._us_to_ms(stat_std(self._context["stw_time"]), ndigits=3),
+            STATS_STW_TIME_MAX    : self._us_to_ms(stat_max(self._context["stw_time"]), ndigits=3),
+            STATS_STW_TIME_MIN    : self._us_to_ms(stat_min(self._context["stw_time"]), ndigits=3),
             STATS_GC_COUNT        : stat_mean(self._context["gc_count"], default=0, ndigits=0)
         }
+
+    @staticmethod
+    def _us_to_ms(us, ndigits=3):
+        return round(float(us) / 1000, ndigits)
 
 
 def create_parser(target):
@@ -182,12 +191,21 @@ def create_parser(target):
         return Parser()
 
 
-class Reporter:
+class Report:
 
-    def __init__(self, cols):
-        self._cols = cols
+    def __init__(self, saved=None):
+        self._cols = ["name",
+                      STATS_GC_COUNT,
+                      STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
+                      STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
+                      STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MIN, STATS_STW_TIME_MAX]
         self._targets = []
         self._table = collections.defaultdict(list)
+
+        if saved is not None:
+            for target, data in saved:
+                self._targets.append(target)
+                self._table[target] = data
 
     def add_stats(self, target, row):
         if target not in self._targets:
@@ -211,37 +229,39 @@ class Reporter:
         return res
 
 
-class TexTableReporter(Reporter):
+class JSONPrinter:
 
-    def __init__(self):
-        super().__init__([
-            "name",
-            STATS_GC_COUNT,
-            STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
-            STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
-            STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MAX,
-        ])
+    def __init__(self, outfn):
+        self._outfn = outfn
 
-    def create_report(self):
+    def print_report(self, report):
+        with open(self._outfn, "w") as outfile:
+            json.dump(report.items(), outfile)
+
+    def outfn(self):
+        return self._outfn
+
+
+class TexTablePrinter:
+
+    def print_report(self, report):
         import tabulate
-        for target, data in self.items():
+        for target, data in report.items():
             outfn = target + ".tex"
             with open(outfn, "w") as outfile:
-                outfile.write(tabulate.tabulate(data, self.cols(), tablefmt="latex"))
+                outfile.write(tabulate.tabulate(data, report.cols(), tablefmt="latex"))
 
 
-class TimeBarPlotReporter(Reporter):
+class TimeBarPlotPrinter:
 
     def __init__(self, outfn, rownum, figsize):
-        super().__init__([
-            "name", STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD
-        ])
         self._outfn = outfn
         self._rownum = int(rownum)
         self._figsize = figsize
 
-    def create_report(self):
-        n = self.targets_num()
+    def print_report(self, report):
+        import matplotlib.pyplot as plt
+        n = report.targets_num()
         rownum = self._rownum
         colnum = math.ceil(float(n) / rownum)
 
@@ -249,7 +269,7 @@ class TimeBarPlotReporter(Reporter):
         fig.tight_layout()
 
         i, j = 0, 0
-        for target, data in self.items():
+        for target, data in report.items():
             ax = axs[i, j]
 
             j += 1
@@ -260,15 +280,15 @@ class TimeBarPlotReporter(Reporter):
             ind   = range(0, len(data))
             width = 0.5
             names  = ["\n".join(row[0].split(' ')) for row in data]
-            means  = [row[1] for row in data]
-            stds   = [row[2] for row in data]
+            means  = [row[2] for row in data]
+            stds   = [row[3] for row in data]
 
             rects = ax.bar(ind, means, width, yerr=stds, color='r', ecolor='b')
 
             # add some text for labels, title and axes ticks
             ax.set_title(target)
             ax.set_ylabel("Time (ms)")
-            ax.set_xticks([x + width for x in ind])
+            ax.set_xticks([x + width/2 for x in ind])
             ax.set_xticklabels(names)
             # ax.set_yticks(range(0, 5500, 500))
             # ax.set_ylim([0, 5500])
@@ -276,11 +296,61 @@ class TimeBarPlotReporter(Reporter):
         fig.savefig(self._outfn)
 
 
-def create_reporter(reporter_name, *args, **kwargs):
-    if reporter_name == "tex-table":
-        return TexTableReporter(*args, **kwargs)
-    elif reporter_name == "time-bar-plot":
-        return TimeBarPlotReporter(*args, **kwargs)
+class PauseTimePlotPrinter:
+
+    def __init__(self, outfn, rownum, figsize):
+        self._outfn = outfn
+        self._rownum = int(rownum)
+        self._figsize = figsize
+
+    def print_report(self, report):
+        import matplotlib.pyplot as plt
+        n = report.targets_num()
+        rownum = self._rownum
+        colnum = math.ceil(float(n) / rownum)
+
+        fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
+        fig.tight_layout()
+
+        i, j = 0, 0
+        for target, data in report.items():
+            m = len(data)
+            ax = axs[i, j]
+
+            j += 1
+            if j == colnum:
+                i += 1
+                j = 0
+
+            names  = ["\n".join(row[0].split(' ')) for row in data]
+            means = [row[6] for row in data]
+            std   = [row[7] for row in data]
+            mins  = [row[6] - row[8] for row in data]
+            maxes = [row[9] - row[6] for row in data]
+
+            # create stacked errorbars:
+            ax.errorbar(range(0, m), means, std, fmt='ok', lw=3)
+            ax.errorbar(range(0, m), means, [mins, maxes],
+                         fmt='.k', ecolor='gray', lw=1)
+            ax.set_xlim(-1, m+1)
+
+            ax.set_title(target)
+            ax.set_ylabel("Time (ms)")
+            ax.set_xticks(range(0, m))
+            ax.set_xticklabels(names)
+
+        fig.savefig(self._outfn)
+
+
+def create_printer(printer_name, *args, **kwargs):
+    if printer_name == "json":
+        return JSONPrinter(*args, **kwargs)
+    if printer_name == "tex-table":
+        return TexTablePrinter(*args, **kwargs)
+    if printer_name == "time-bar-plot":
+        return TimeBarPlotPrinter(*args, **kwargs)
+    if printer_name == "pause-time-plot":
+        return PauseTimePlotPrinter(*args, **kwargs)
 
 
 class RunChecker:
@@ -293,8 +363,8 @@ class RunChecker:
     def check_run(self, target, run_name, rc):
         name = self._full_name(target, run_name)
         self._runs[name]["run count"] += 1
-        if self._maxn is not None and self._runs[name]["run count"] > self._maxn:
-            assert False, "Too many runs"
+        # if self._maxn is not None and self._runs[name]["run count"] > self._maxn:
+        #     assert False, "Too many runs"
         if rc != 0:
             if self._assert_on_fail:
                 assert False, "Run failed with error code %d" % rc
@@ -304,8 +374,8 @@ class RunChecker:
     def interrupted_run(self, target, run_name):
         name = self._full_name(target, run_name)
         self._runs[name]["run count"] += 1
-        if self._maxn is not None and self._runs[name]["run count"] > self._maxn:
-            assert False, "Too many runs"
+        # if self._maxn is not None and self._runs[name]["run count"] > self._maxn:
+        #     assert False, "Too many runs"
         self._runs[name]["interrupted count"] += 1
 
     def results(self):
@@ -329,7 +399,7 @@ class Target:
         self._suites    = suites
         self._runnable  = runnable
 
-    def run(self, params_space, reporters, checker):
+    def run(self, params_space, report, checker):
         for suite in self._suites:
             build = suite["builder"].build(self._name)
             for params in params_space:
@@ -358,8 +428,8 @@ class Target:
                 logging.info("Add parser output to reporter")
                 parsed["name"]   = suite["name"]
                 parsed["params"] = params
-                for reporter in reporters:
-                    reporter.add_stats(self._alias, parsed)
+
+                report.add_stats(self._alias, parsed)
 
     @staticmethod
     def parse_params(params):
@@ -396,19 +466,22 @@ class Target:
 
 PROJECT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../")
 
+
 if __name__ == '__main__':
 
     print(sys.version)
     print(os.getcwd())
 
-    opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "cmake-dir=", "plots"])
+    opts, args = getopt.getopt(sys.argv[1:], "", ["cfg=", "cmake-dir=", "use-saved-data"])
     cmake_dir = None
-    cli_options = []
+    use_saved = False
     for opt, arg in opts:
         if opt == "--cfg":
             config = arg
         elif opt == "--cmake-dir":
             cmake_dir = arg
+        elif opt == "--use-saved-data":
+            use_saved = True
 
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -416,53 +489,58 @@ if __name__ == '__main__':
     with open(config) as fd:
         cfg = json.load(fd)
 
-    nruns       = cfg.get("nruns")
-    failquick   = cfg.get("failquick", False)
 
-    builders = {}
-    for builder in cfg["builders"]:
-        name = builder["name"]
-        type = builder["type"]
+    printers = {}
+    for printer in cfg.get("printers", []):
+        name = printer["name"]
+        printers[name] = create_printer(name, **printer.get("params", {}))
 
-        if type == "cmake":
-            if cmake_dir is not None:
-                builders[name] = MakeBuilder(cmake_dir)
-            else:
-                builders[name] = CMakeBuilder(PROJECT_DIR, *builder["options"])
+    if not use_saved:
+        nruns       = cfg.get("nruns")
+        failquick   = cfg.get("failquick", False)
 
-    suites = {}
-    for suite, i in zip(cfg["suites"], range(0, len(cfg["suites"]))):
-        name = suite["name"]
+        builders = {}
+        for builder in cfg["builders"]:
+            name = builder["name"]
+            type = builder["type"]
 
-        suites[name] = {
-            "name": name,
-            "builder": builders[suite["builder"]],
-            "args": suite.get("args", []),
-            "ord": i
-        }
+            if type == "cmake":
+                if cmake_dir is not None:
+                    builders[name] = MakeBuilder(cmake_dir)
+                else:
+                    builders[name] = CMakeBuilder(PROJECT_DIR, *builder["options"])
 
-    suites = dict(sorted(suites.items(), key=lambda x: x[1]["ord"]))
+        suites = {}
+        for suite, i in zip(cfg["suites"], range(0, len(cfg["suites"]))):
+            name = suite["name"]
 
-    reporters = {}
-    for reporter in cfg.get("reporters", []):
-        name = reporter["name"]
-        reporters[name] = create_reporter(name, **reporter.get("params", {}))
+            suites[name] = {
+                "name": name,
+                "builder": builders[suite["builder"]],
+                "args": suite.get("args", []),
+                "ord": i
+            }
 
-    checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
-    for target in cfg["targets"]:
-        trgt_name       = target["name"]
-        trgt_alias      = target.get("alias", trgt_name)
-        trgt_suites     = [suites[name] for name in target["suites"]]
-        trgt_reporters  = [reporters[name] for name in target.get("reports", [])]
-        trgt_params     = Target.parse_params(target.get("params", []))
+        suites = dict(sorted(suites.items(), key=lambda x: x[1]["ord"]))
 
-        trgt = Target(trgt_name, trgt_alias, target["runnable"], trgt_suites)
+        report = Report()
+        checker = RunChecker(maxn=3*nruns, assert_on_fail=failquick)
+        for target in cfg["targets"]:
+            trgt_name       = target["name"]
+            trgt_alias      = target.get("alias", trgt_name)
+            trgt_suites     = [suites[name] for name in target["suites"]]
+            trgt_params     = Target.parse_params(target.get("params", []))
+            trgt = Target(trgt_name, trgt_alias, target["runnable"], trgt_suites)
 
-        trgt.run(trgt_params, trgt_reporters, checker)
+            trgt.run(trgt_params, report, checker)
+            print(checker.results())
+    else:
+        saved_fn = printers["json"].outfn()
+        with open(saved_fn) as saved:
+            report = Report(json.load(saved))
 
     logging.info("Produce reports")
-    for reporter in reporters.values():
-        reporter.create_report()
+    for printer in printers.values():
+        printer.print_report(report)
 
-    print(checker.results())
 

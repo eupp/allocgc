@@ -251,7 +251,7 @@ int main (int argc, const char* argv[])
 
     #if defined(PRECISE_GC)
         gc_factory::options ops;
-        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
+//        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
         ops.conservative    = conservative_flag;
         ops.incremental     = incremental_flag;
         ops.compacting      = compacting_flag;

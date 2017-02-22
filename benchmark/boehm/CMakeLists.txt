@@ -22,11 +22,13 @@ target_link_libraries(boehm ${CMAKE_THREAD_LIBS_INIT})
 
 option(NO_GC OFF)
 option(BDW_GC OFF)
+option(UNIQUE_PTR OFF)
 option(SHARED_PTR OFF)
 option(PRECISE_GC OFF)
 
 #set(NO_GC ON)
 #set(BDW_GC ON)
+#set(UNIQUE_PTR ON)
 #set(SHARED_PTR ON)
 #set(PRECISE_GC ON)
 
@@ -37,6 +39,10 @@ endif()
 if(BDW_GC)
     target_link_libraries(boehm ${BDWGC})
     add_definitions(-DBDW_GC)
+endif()
+
+if(UNIQUE_PTR)
+    add_definitions(-DUNIQUE_PTR)
 endif()
 
 if(SHARED_PTR)

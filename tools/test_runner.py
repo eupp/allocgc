@@ -266,7 +266,6 @@ class TimeBarPlotPrinter:
         colnum = math.ceil(float(n) / rownum)
 
         fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
-        fig.tight_layout()
 
         i, j = 0, 0
         for target, data in report.items():
@@ -283,16 +282,18 @@ class TimeBarPlotPrinter:
             means  = [row[2] for row in data]
             stds   = [row[3] for row in data]
 
-            rects = ax.bar(ind, means, width, yerr=stds, color='r', ecolor='b')
+            rects = ax.bar(ind, means, width, yerr=stds, color='r', ecolor='black')
 
             # add some text for labels, title and axes ticks
             ax.set_title(target)
             ax.set_ylabel("Time (ms)")
             ax.set_xticks([x + width/2 for x in ind])
             ax.set_xticklabels(names)
+            ax.set_xlim(-1, len(data)+1)
             # ax.set_yticks(range(0, 5500, 500))
             # ax.set_ylim([0, 5500])
 
+        plt.tight_layout()
         fig.savefig(self._outfn)
 
 
@@ -310,11 +311,9 @@ class PauseTimePlotPrinter:
         colnum = math.ceil(float(n) / rownum)
 
         fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
-        fig.tight_layout()
 
         i, j = 0, 0
         for target, data in report.items():
-            m = len(data)
             ax = axs[i, j]
 
             j += 1
@@ -322,23 +321,27 @@ class PauseTimePlotPrinter:
                 i += 1
                 j = 0
 
+            ind   = range(0, len(data))
+            width = 0.5
             names  = ["\n".join(row[0].split(' ')) for row in data]
-            means = [row[6] for row in data]
-            std   = [row[7] for row in data]
-            mins  = [row[6] - row[8] for row in data]
-            maxes = [row[9] - row[6] for row in data]
+            means  = [row[6] for row in data]
+            stds    = [row[7] for row in data]
+
+            rects = ax.bar(ind, means, width, yerr=stds, color='b', ecolor='black')
 
             # create stacked errorbars:
-            ax.errorbar(range(0, m), means, std, fmt='ok', lw=3)
-            ax.errorbar(range(0, m), means, [mins, maxes],
-                         fmt='.k', ecolor='gray', lw=1)
-            ax.set_xlim(-1, m+1)
+            # ax.errorbar(range(0, m), means, std, fmt='ok', lw=1)
+            # ax.errorbar(range(0, m), means, [mins, maxes],
+            #              fmt='.k', ecolor='gray', lw=1)
+            ax.set_xlim(-1, len(data)+1)
 
             ax.set_title(target)
-            ax.set_ylabel("Time (ms)")
-            ax.set_xticks(range(0, m))
+            ax.set_ylabel("Pause Time (ms)")
+            ax.set_xticks([x + width/2 for x in ind])
             ax.set_xticklabels(names)
+            # ax.set_ylim([min(means) - 0.2, max(means) + 0.5])
 
+        plt.tight_layout()
         fig.savefig(self._outfn)
 
 

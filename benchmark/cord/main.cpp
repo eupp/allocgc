@@ -202,7 +202,7 @@ int main(int argc, const char* argv[])
         ops.compacting      = compacting_flag;
     //        ops.loglevel    = gc_loglevel::DEBUG;
     //        ops.print_stat  = true;
-    //        ops.threads_available = 1;
+//            ops.threads_available = 4;
 
         auto strategy = gc_factory::create(ops);
         gc_init(std::move(strategy));

@@ -54,8 +54,7 @@
   "printers": [
     {"name": "json", "params": {"outfn": "benchmark.json"}},
     {"name": "tex-table"},
-    {"name": "time-bar-plot", "params": {"outfn": "time-plot-tmp.eps", "rownum": 2, "figsize": [30, 12]}},
-    {"name": "pause-time-plot", "params": {"outfn": "pause-time-plot.eps", "rownum": 2, "figsize": [15, 40]}}
+    {"name": "pause-time-plot", "params": {"outfn": "pause-time-plot.eps", "rownum": 2, "figsize": [20, 10]}}
   ],
   "nruns" : 20
 }

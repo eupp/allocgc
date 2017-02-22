@@ -58,6 +58,7 @@
     {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
   ],
   "printers": [
+    {"name": "json", "params": {"outfn": "benchmark-all.json"}},
     {"name": "tex-table"},
     {"name": "time-bar-plot", "params": {"outfn": "time-plot.eps", "rownum": 2, "figsize": [30, 10]}}
   ],

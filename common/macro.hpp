@@ -14,6 +14,10 @@
     #include <memory>
 #endif
 
+#ifdef UNIQUE_PTR
+    #include <memory>
+#endif
+
 #if defined(PRECISE_GC)
     #define ptr_t(T) precisegc::gc_ptr<T>
     #define ptr_in(T) const precisegc::gc_ptr<T>&
@@ -105,6 +109,26 @@
 
     #define const_array_pointer_cast_(T, ptr) std::const_pointer_cast<T>(ptr)
     #define reinterpret_array_pointer_cast_(T, ptr) reinterpret_pointer_cast<T>(ptr)
+
+#elif defined(UNIQUE_PTR)
+    #define ptr_t(T) std::unique_ptr<T>
+    #define ptr_in(T) std::unique_ptr<T>&
+    #define ref_t(T) T&
+    #define pin_t(T) T*
+    #define pin(ptr) ptr.get()
+
+    #define raw_ptr(pin_ptr) pin_ptr
+
+    #define ptr_array_t(T) std::unique_ptr<T[]>
+    #define pin_array_t(T) T*
+
+    #define new_(T) std::unique_ptr<T>(new T())
+    #define new_args_(T, ...) std::unique_ptr<T>(new T(__VA_ARGS__))
+    #define new_array_(T, size) std::unique_ptr<T[]>(new std::remove_cv<T>::type[size])
+
+    #define delete_(ptr)
+    #define set_null(ptr) ptr.reset()
+    #define null_ptr(T) std::unique_ptr<T>()
 
 #elif defined(NO_GC)
     #define ptr_t(T) T*

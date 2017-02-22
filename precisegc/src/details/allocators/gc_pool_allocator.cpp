@@ -172,7 +172,7 @@ void gc_pool_allocator::shrink(gc_heap_stat& stat)
             stat.mem_freed += it->size();
             it = destroy_descriptor(it);
         } else {
-            stat.mem_all    += it->size();
+            stat.mem_occupied    += it->size();
             stat.mem_live   += it->cell_size() * it->count_lived();
             stat.pinned_cnt += it->count_pinned();
             ++it;
@@ -246,8 +246,8 @@ bool gc_pool_allocator::empty() const
 
 bool gc_pool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
-    return false;
-//    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD;
+//    return false;
+    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD;
 //    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
 //           || (stat.residency() < RESIDENCY_NON_COMPACTING_THRESHOLD
 //               && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);

@@ -21,6 +21,13 @@ STATS_STW_TIME_MAX      = "stw time max"
 STATS_STW_TIME_MIN      = "stw time min"
 STATS_GC_COUNT          = "gc count"
 
+STATS_PAUSES = "pauses"
+STATS_HEAP_SIZE = "heap size"
+STATS_HEAP_LIVE = "heap live"
+STATS_HEAP_OCCUPIED = "heap occupied"
+STATS_HEAP_SWEPT = "heap swept"
+STATS_HEAP_COPIED = "heap copied"
+
 def mean(xs):
     s = 0.0
     for x in xs:
@@ -155,11 +162,40 @@ class Parser:
         def parse_gc_count(match):
             self._context["gc_count"] += [int(match.group("gc_count"))]
 
+        def parse_size(match, key):
+            sz = int(match.group(key))
+            self._context[key].append(sz)
+
+        def parse_heap_size(match):
+            parse_size(match, "heap_size")
+
+        def parse_occupied(match):
+            parse_size(match, "occupied")
+
+        def parse_live(match):
+            parse_size(match, "live")
+
+        def parse_swept(match):
+            parse_size(match, "swept")
+
+        def parse_copied(match):
+            parse_size(match, "copied")
+
+        def parse_pause_time(match):
+            self._context["pause_time"] += [int(match.group("pause_time"))]
+
         token_spec = {
             "FULL_TIME" : {"cmd": parse_full_time, "re": "Completed in (?P<full_time>\d*) ms"},
             "GC_TIME"   : {"cmd": parse_gc_time, "re": "Time spent in gc (?P<gc_time>\d*) ms"},
             "STW_TIME"  : {"cmd": parse_stw_time, "re": "Average pause time (?P<stw_time>\d*) us"},
-            "GC_COUNT"  : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"}
+            "GC_COUNT"  : {"cmd": parse_gc_count, "re": "Completed (?P<gc_count>\d*) collections"},
+            "HEAP_SIZE" : {"cmd": parse_heap_size, "re": "heap size: \s*(?P<heap_size>\d*) b "},
+            "OCCUPIED"  : {"cmd": parse_occupied, "re": "occupied: \s*(?P<occupied>\d*) b "},
+            "LIVE"      : {"cmd": parse_live, "re": "live: \s*(?P<live>\d*) b "},
+            "SWEPT"     : {"cmd": parse_swept, "re": "swept: \s*(?P<swept>\d*) b "},
+            "COPIED"    : {"cmd": parse_copied, "re": "copied: \s*(?P<copied>\d*) b "},
+            "PAUSE_TIME": {"cmd": parse_pause_time, "re": "pause time: \s*(?P<pause_time>\d*) us"}
+
         }
 
         self._scanner = Scanner(token_spec)
@@ -178,7 +214,14 @@ class Parser:
             STATS_STW_TIME_STD    : self._us_to_ms(stat_std(self._context["stw_time"]), ndigits=3),
             STATS_STW_TIME_MAX    : self._us_to_ms(stat_max(self._context["stw_time"]), ndigits=3),
             STATS_STW_TIME_MIN    : self._us_to_ms(stat_min(self._context["stw_time"]), ndigits=3),
-            STATS_GC_COUNT        : stat_mean(self._context["gc_count"], default=0, ndigits=0)
+            STATS_GC_COUNT        : stat_mean(self._context["gc_count"], default=0, ndigits=0),
+
+            STATS_HEAP_SIZE     : self._context["heap_size"],
+            STATS_HEAP_OCCUPIED : self._context["occupied"],
+            STATS_HEAP_LIVE     : self._context["live"],
+            STATS_HEAP_SWEPT    : self._context["swept"],
+            STATS_HEAP_COPIED   : self._context["copied"],
+            STATS_PAUSES        : self._context["pause_time"]
         }
 
     @staticmethod
@@ -198,7 +241,9 @@ class Report:
                       STATS_GC_COUNT,
                       STATS_FULL_TIME_MEAN, STATS_FULL_TIME_STD,
                       STATS_GC_TIME_MEAN, STATS_GC_TIME_STD,
-                      STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MIN, STATS_STW_TIME_MAX]
+                      STATS_STW_TIME_MEAN, STATS_STW_TIME_STD, STATS_STW_TIME_MIN, STATS_STW_TIME_MAX,
+                      STATS_HEAP_SIZE, STATS_HEAP_OCCUPIED, STATS_HEAP_LIVE, STATS_HEAP_SWEPT, STATS_HEAP_COPIED,
+                      STATS_PAUSES]
         self._targets = []
         self._table = collections.defaultdict(list)
 

@@ -104,29 +104,35 @@ void gc_manager::print_gc_run_stats(const gc_run_stat& stats)
     static std::string text =
             "****************************************************************************\n"
             "   GC SUMMARY                                                               \n"
-            "pause type: xxxx yy                                                         \n"
-            "pause time: xxxx yy                                                         \n"
-            "heap size:  xxxx yy                                                         \n"
-            "swept:      xxxx yy                                                         \n"
-            "copied:     xxxx yy                                                         \n"
+            "pause type: xxxxxxxxx yy                                                    \n"
+            "pause time: xxxxxxxxx yy                                                    \n"
+            "heap size:  xxxxxxxxx yy                                                    \n"
+            "occupied:   xxxxxxxxx yy                                                    \n"
+            "live:       xxxxxxxxx yy                                                    \n"
+            "swept:      xxxxxxxxx yy                                                    \n"
+            "copied:     xxxxxxxxx yy                                                    \n"
             "****************************************************************************\n";
 
-    static const std::string placeholder = "xxxx yy";
+    static const std::string placeholder = "xxxxxxxxx yy";
 
     static const size_t pause_type_pos = text.find(placeholder, 0);
     static const size_t pause_time_pos = text.find(placeholder, pause_type_pos + placeholder.size());
     static const size_t heap_size_pos  = text.find(placeholder, pause_time_pos + placeholder.size());
-    static const size_t swept_pos      = text.find(placeholder, heap_size_pos + placeholder.size());
+    static const size_t occupied_pos   = text.find(placeholder, heap_size_pos + placeholder.size());
+    static const size_t live_pos       = text.find(placeholder, occupied_pos + placeholder.size());
+    static const size_t swept_pos      = text.find(placeholder, live_pos + placeholder.size());
     static const size_t copied_pos     = text.find(placeholder, swept_pos + placeholder.size());
 
     std::string gc_type_str = gc_pause_type_to_str(stats.pause_stat.type);
     gc_type_str.resize(20, ' ');
 
     text.replace(pause_type_pos, gc_type_str.size(), gc_type_str);
-    text.replace(pause_time_pos, placeholder.size(), duration_to_str(stats.pause_stat.duration, 4));
-    text.replace(heap_size_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_before_gc, 4));
-    text.replace(swept_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_freed, 4));
-    text.replace(copied_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_copied, 4));
+    text.replace(pause_time_pos, placeholder.size(), duration_to_str(stats.pause_stat.duration, 9));
+    text.replace(heap_size_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_before_gc, 9));
+    text.replace(occupied_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_occupied, 9));
+    text.replace(live_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_live, 9));
+    text.replace(swept_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_freed, 9));
+    text.replace(copied_pos, placeholder.size(), heapsize_to_str(stats.heap_stat.mem_copied, 9));
 
     m_print_stream << text;
 }

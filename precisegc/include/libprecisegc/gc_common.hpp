@@ -100,7 +100,8 @@ struct gc_heap_stat
 
     gc_heap_stat& operator+=(const gc_heap_stat& other)
     {
-        mem_all         += other.mem_all;
+        mem_before_gc   += other.mem_before_gc;
+        mem_occupied    += other.mem_occupied;
         mem_live        += other.mem_live;
         mem_freed       += other.mem_freed;
         mem_copied      += other.mem_copied;
@@ -116,11 +117,11 @@ struct gc_heap_stat
 
     double residency() const
     {
-        return mem_live / (double) mem_all;
+        return mem_live / (double) mem_occupied;
     }
 
     size_t mem_before_gc = 0;
-    size_t mem_all       = 0;
+    size_t mem_occupied       = 0;
     size_t mem_live      = 0;
     size_t mem_freed     = 0;
     size_t mem_copied    = 0;

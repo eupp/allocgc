@@ -52,8 +52,7 @@
     {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
   ],
   "printers": [
-    {"name": "json", "params": {"outfn": "benchmark.json"}},
-    {"name": "pause-time-plot", "params": {"outfn": "pause-time-plot.eps", "rownum": 2, "figsize": [20, 10]}}
+    {"name": "json", "params": {"outfn": "distrib.json"}}
   ],
-  "nruns" : 20
+  "nruns" : 1
 }

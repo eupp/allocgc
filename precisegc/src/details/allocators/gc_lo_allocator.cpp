@@ -71,7 +71,7 @@ gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
             stat.mem_freed += it->cell_size();
             destroy(it);
         } else {
-            stat.mem_all  += it->cell_size();
+            stat.mem_occupied  += it->cell_size();
             stat.mem_live += it->cell_size();
         }
         if (it->get_pin()) {

@@ -70,7 +70,7 @@ TEST_F(gc_lo_allocator_test, test_collect)
     gc_heap_stat stat = alloc.collect(frwd);
 
     ASSERT_EQ(3 * OBJ_SIZE, stat.mem_before_gc);
-    ASSERT_EQ(2 * OBJ_SIZE, stat.mem_all);
+    ASSERT_EQ(2 * OBJ_SIZE, stat.mem_occupied);
     ASSERT_EQ(2 * OBJ_SIZE, stat.mem_live);
     ASSERT_EQ(OBJ_SIZE, stat.mem_freed);
     ASSERT_EQ(0, stat.mem_copied);

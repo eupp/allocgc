@@ -161,6 +161,7 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
     } else {
         sweep(stat);
     }
+
     return stat;
 }
 

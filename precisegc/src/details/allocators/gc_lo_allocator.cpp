@@ -64,22 +64,25 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
 gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
 {
     gc_heap_stat stat;
+    size_t freed = 0;
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
         auto next = std::next(it);
         stat.mem_before_gc += it->cell_size();
         if (!it->get_mark()) {
             stat.mem_freed += it->cell_size();
+            freed += m_alloc.get_blk_size(align_size(it->cell_size()));
             destroy(it);
         } else {
             stat.mem_occupied  += it->cell_size();
             stat.mem_live += it->cell_size();
-        }
-        if (it->get_pin()) {
-            ++stat.pinned_cnt;
+            if (it->get_pin()) {
+                ++stat.pinned_cnt;
+            }
         }
         it = next;
     }
-    gc_decrease_heap_size(stat.mem_freed);
+
+    gc_decrease_heap_size(freed);
     return stat;
 }
 

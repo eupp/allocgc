@@ -4,41 +4,41 @@
       "name": "boehm",
       "alias": "gcbench top-down",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["top-down"]
     },
     {
       "name": "boehm",
       "alias": "gcbench bottom-up",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["bottom-up"]
     },
     {
       "name": "parallel_merge_sort",
       "alias": "parallel merge sort",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr incremental"]
+      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"]
     },
     {
       "name": "cord",
       "alias": "cord-build",
       "runnable": "benchmark/cord/cord",
-      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["build", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-substr",
       "runnable": "benchmark/cord/cord",
-      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["substr", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-flatten",
       "runnable": "benchmark/cord/cord",
-      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["flatten", {"len": [5]}]
     }
   ],
@@ -49,7 +49,7 @@
     {"name": "BDW GC incremental", "builder": "BDW GC", "args": ["--incremental"]},
     {"name": "gc_ptr conservative", "builder": "gc_ptr", "args": ["--conservative"]},
     {"name": "gc_ptr", "builder": "gc_ptr"},
-    {"name": "gc_ptr incremental", "builder": "gc_ptr", "args": ["--incremental"]}
+    {"name": "gc_ptr concurrent-mark", "builder": "gc_ptr", "args": ["--incremental"]}
   ],
   "builders": [
     {"name": "manual", "type": "cmake", "options": ["NO_GC"]},
@@ -59,7 +59,7 @@
   ],
   "printers": [
     {"name": "json", "params": {"outfn": "benchmark-all.json"}},
-    {"name": "time-bar-plot", "params": {"outfn": "time-plot.eps", "rownum": 2, "figsize": [30, 10]}}
+    {"name": "time-bar-plot", "params": {"outfn": "total-time-plot"}}
   ],
   "nruns" : 20
 }

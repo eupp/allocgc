@@ -4,55 +4,56 @@
       "name": "boehm",
       "alias": "gcbench top-down",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["top-down"]
     },
     {
       "name": "boehm",
       "alias": "gcbench bottom-up",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["bottom-up"]
     },
     {
       "name": "parallel_merge_sort",
       "alias": "parallel merge sort",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "reports": ["tex-table"]
     },
     {
       "name": "cord",
       "alias": "cord-build",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["build", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-substr",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["substr", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-flatten",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr incremental"],
+      "suites": ["gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
       "params": ["flatten", {"len": [5]}]
     }
   ],
   "suites": [
     {"name": "gc_ptr conservative", "builder": "gc_ptr", "args": ["--conservative"]},
     {"name": "gc_ptr", "builder": "gc_ptr"},
-    {"name": "gc_ptr incremental", "builder": "gc_ptr", "args": ["--incremental"]}
+    {"name": "gc_ptr concurrent-mark", "builder": "gc_ptr", "args": ["--incremental"]}
   ],
   "builders": [
     {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
   ],
   "printers": [
-    {"name": "json", "params": {"outfn": "distrib.json"}}
+    {"name": "json", "params": {"outfn": "distrib.json"}},
+    {"name": "heap-plot", "params": {"outfn": "heap-plot"}}
   ],
   "nruns" : 1
 }

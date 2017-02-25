@@ -307,19 +307,21 @@ class TimeBarPlotPrinter:
         n = report.targets_num()
 
         for target, data in report.items():
+            plt.clf()
+
             ind   = range(0, len(data))
             width = 0.5
             names  = ["\n".join(row[0].split(' ')) for row in data]
             means  = [row[2] for row in data]
             stds   = [row[3] for row in data]
 
-            rects = plt.bar(ind, means, width, yerr=stds, color='r')
+            rects = plt.bar(ind, means, width, yerr=stds, color='r', ecolor='black')
 
             # add some text for labels, title and axes ticks
             plt.title(target)
             plt.ylabel("Time (ms)")
             # plt.xticks([x + width/2 for x in ind])
-            plt.xticks(ind)
+            plt.xticks([i + width/2 for i in ind])
             plt.gca().set_xticklabels(names)
             # plt.xlim(-1, len(data)+1)
             # ax.set_yticks(range(0, 5500, 500))
@@ -340,6 +342,7 @@ class PauseTimePlotPrinter:
         n = report.targets_num()
 
         for target, data in report.items():
+            plt.clf()
 
             ind   = range(0, len(data))
             width = 0.5
@@ -368,27 +371,15 @@ class PauseTimePlotPrinter:
 
 class GCTimePlotPrinter:
 
-    def __init__(self, outfn, rownum, figsize):
+    def __init__(self, outfn):
         self._outfn = outfn
-        self._rownum = int(rownum)
-        self._figsize = figsize
 
     def print_report(self, report):
         import matplotlib.pyplot as plt
         n = report.targets_num()
-        rownum = self._rownum
-        colnum = math.ceil(float(n) / rownum)
 
-        fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
-
-        i, j = 0, 0
         for target, data in report.items():
-            ax = axs[i, j]
-
-            j += 1
-            if j == colnum:
-                i += 1
-                j = 0
+            plt.clf()
 
             ind   = range(0, len(data))
             width = 0.5
@@ -396,18 +387,25 @@ class GCTimePlotPrinter:
             means  = [row[4] for row in data]
             stds   = [row[5] for row in data]
 
-            rects = ax.bar(ind, means, width, color='b')
+            rects = plt.bar(ind, means, width, yerr=stds, color='b', ecolor='black')
 
-            # add some text for labels, title and axes ticks
-            ax.set_title(target)
-            ax.set_ylabel("GC Time (ms)")
-            ax.set_xticks(ind)
-            ax.set_xticklabels(names)
-            # ax.set_yticks(range(0, 5500, 500))
-            # ax.set_ylim([0, 5500])
+            # create stacked errorbars:
+            # ax.errorbar(range(0, m), means, std, fmt='ok', lw=1)
+            # ax.errorbar(range(0, m), means, [mins, maxes],
+            #              fmt='.k', ecolor='gray', lw=1)
+            plt.xlim(-1, len(data)+1)
 
-        fig.tight_layout()
-        fig.savefig(self._outfn)
+            plt.title(target)
+            plt.ylabel("GC Time (ms)")
+            plt.xticks([x + width/2 for x in ind])
+            plt.gca().set_xticklabels(names)
+            # ax.set_ylim([min(means) - 0.2, max(means) + 0.5])
+
+            outfn = self._outfn + '-' + target + '.eps'
+
+            plt.tight_layout()
+            plt.savefig(outfn)
+
 
 class HeapPlotPrinter:
 
@@ -443,7 +441,7 @@ class HeapPlotPrinter:
 
             outfn = self._outfn + '-' + target + '.eps'
 
-            plt.title(target)
+            plt.suptitle(target)
             plt.tight_layout()
             plt.savefig(outfn)
 

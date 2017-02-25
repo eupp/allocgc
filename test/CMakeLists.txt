@@ -52,7 +52,7 @@ set(precisegc_TESTS
         details/allocators/gc_lo_allocator_test.cpp
         details/allocators/gc_pool_allocator_test.cpp
         details/allocators/gc_box_test.cpp
-        details/collectors/memory_index_test.cpp include/utils.hpp)
+        details/collectors/memory_index_test.cpp include/utils.hpp graph.cpp)
 
 include_directories(include)
 include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)

@@ -19,6 +19,8 @@ public:
     MOCK_METHOD2(set_mark, void(byte* ptr, bool mark));
     MOCK_METHOD2(set_pin, void(byte* ptr, bool pin));
 
+    MOCK_CONST_METHOD1(is_init, bool(byte*));
+
     MOCK_CONST_METHOD1(get_lifetime_tag, gc_lifetime_tag(byte* ptr));
 
     MOCK_CONST_METHOD1(cell_size, size_t(byte* ptr));

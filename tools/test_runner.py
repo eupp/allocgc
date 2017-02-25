@@ -299,72 +299,47 @@ class TexTablePrinter:
 
 class TimeBarPlotPrinter:
 
-    def __init__(self, outfn, rownum, figsize):
+    def __init__(self, outfn):
         self._outfn = outfn
-        self._rownum = int(rownum)
-        self._figsize = figsize
 
     def print_report(self, report):
         import matplotlib.pyplot as plt
         n = report.targets_num()
-        rownum = self._rownum
-        colnum = math.ceil(float(n) / rownum)
 
-        fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
-
-        i, j = 0, 0
         for target, data in report.items():
-            ax = axs[i, j]
-
-            j += 1
-            if j == colnum:
-                i += 1
-                j = 0
-
             ind   = range(0, len(data))
             width = 0.5
             names  = ["\n".join(row[0].split(' ')) for row in data]
             means  = [row[2] for row in data]
             stds   = [row[3] for row in data]
 
-            rects = ax.bar(ind, means, width, yerr=stds, color='r', ecolor='black')
+            rects = plt.bar(ind, means, width, yerr=stds, color='r')
 
             # add some text for labels, title and axes ticks
-            ax.set_title(target)
-            ax.set_ylabel("Time (ms)")
-            ax.set_xticks([x + width/2 for x in ind])
-            ax.set_xticklabels(names)
-            ax.set_xlim(-1, len(data)+1)
+            plt.title(target)
+            plt.ylabel("Time (ms)")
+            # plt.xticks([x + width/2 for x in ind])
+            plt.xticks(ind)
+            plt.gca().set_xticklabels(names)
+            # plt.xlim(-1, len(data)+1)
             # ax.set_yticks(range(0, 5500, 500))
             # ax.set_ylim([0, 5500])
 
-        plt.tight_layout()
-        fig.savefig(self._outfn)
+            outfn = self._outfn + '-' + target + '.eps'
+
+            plt.savefig(outfn)
 
 
 class PauseTimePlotPrinter:
 
-    def __init__(self, outfn, rownum, figsize):
+    def __init__(self, outfn):
         self._outfn = outfn
-        self._rownum = int(rownum)
-        self._figsize = figsize
 
     def print_report(self, report):
         import matplotlib.pyplot as plt
         n = report.targets_num()
-        rownum = self._rownum
-        colnum = math.ceil(float(n) / rownum)
 
-        fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
-
-        i, j = 0, 0
         for target, data in report.items():
-            ax = axs[i, j]
-
-            j += 1
-            if j == colnum:
-                i += 1
-                j = 0
 
             ind   = range(0, len(data))
             width = 0.5
@@ -372,22 +347,105 @@ class PauseTimePlotPrinter:
             means  = [row[6] for row in data]
             stds    = [row[7] for row in data]
 
-            rects = ax.bar(ind, means, width, yerr=stds, color='b', ecolor='black')
+            rects = plt.bar(ind, means, width, yerr=stds, color='b', ecolor='black')
 
             # create stacked errorbars:
             # ax.errorbar(range(0, m), means, std, fmt='ok', lw=1)
             # ax.errorbar(range(0, m), means, [mins, maxes],
             #              fmt='.k', ecolor='gray', lw=1)
-            ax.set_xlim(-1, len(data)+1)
+            plt.xlim(-1, len(data)+1)
 
-            ax.set_title(target)
-            ax.set_ylabel("Pause Time (ms)")
-            ax.set_xticks([x + width/2 for x in ind])
-            ax.set_xticklabels(names)
+            plt.title(target)
+            plt.ylabel("Pause Time (ms)")
+            plt.xticks([x + width/2 for x in ind])
+            plt.gca().set_xticklabels(names)
             # ax.set_ylim([min(means) - 0.2, max(means) + 0.5])
 
-        plt.tight_layout()
+            outfn = self._outfn + '-' + target + '.eps'
+
+            plt.tight_layout()
+            plt.savefig(outfn)
+
+class GCTimePlotPrinter:
+
+    def __init__(self, outfn, rownum, figsize):
+        self._outfn = outfn
+        self._rownum = int(rownum)
+        self._figsize = figsize
+
+    def print_report(self, report):
+        import matplotlib.pyplot as plt
+        n = report.targets_num()
+        rownum = self._rownum
+        colnum = math.ceil(float(n) / rownum)
+
+        fig, axs = plt.subplots(rownum, colnum, figsize=self._figsize)
+
+        i, j = 0, 0
+        for target, data in report.items():
+            ax = axs[i, j]
+
+            j += 1
+            if j == colnum:
+                i += 1
+                j = 0
+
+            ind   = range(0, len(data))
+            width = 0.5
+            names  = ["\n".join(row[0].split(' ')) for row in data]
+            means  = [row[4] for row in data]
+            stds   = [row[5] for row in data]
+
+            rects = ax.bar(ind, means, width, color='b')
+
+            # add some text for labels, title and axes ticks
+            ax.set_title(target)
+            ax.set_ylabel("GC Time (ms)")
+            ax.set_xticks(ind)
+            ax.set_xticklabels(names)
+            # ax.set_yticks(range(0, 5500, 500))
+            # ax.set_ylim([0, 5500])
+
+        fig.tight_layout()
         fig.savefig(self._outfn)
+
+class HeapPlotPrinter:
+
+    def __init__(self, outfn):
+        self._outfn = outfn
+
+    def print_report(self, report):
+        import matplotlib.pyplot as plt
+        n = report.targets_num()
+
+        for target, data in report.items():
+            plt.clf()
+
+            m = len(data)
+            fig, axs = plt.subplots(m)
+            for i, row in zip(range(0, m), data):
+                name       = row[0]
+                before_gcs = row[10]
+                after_gcs  = row[11]
+
+                if name == "gc_ptr concurrent-mark":
+                    before_gcs = list(filter(lambda x: x != 0, before_gcs))
+                    after_gcs  = list(filter(lambda x: x != 0, after_gcs))
+
+                ax = axs[i]
+                x  = range(0, len(before_gcs))
+                ax.fill_between(x, before_gcs, 0, color='gray')
+                ax.fill_between(x, after_gcs, 0, color='black')
+
+
+                ax.set_title(name)
+                ax.set_ylabel('Memory (bytes)')
+
+            outfn = self._outfn + '-' + target + '.eps'
+
+            plt.title(target)
+            plt.tight_layout()
+            plt.savefig(outfn)
 
 
 def create_printer(printer_name, *args, **kwargs):
@@ -399,6 +457,10 @@ def create_printer(printer_name, *args, **kwargs):
         return TimeBarPlotPrinter(*args, **kwargs)
     if printer_name == "pause-time-plot":
         return PauseTimePlotPrinter(*args, **kwargs)
+    if printer_name == "heap-plot":
+        return HeapPlotPrinter(*args, **kwargs)
+    if printer_name == "gc-time-plot":
+        return GCTimePlotPrinter(*args, **kwargs)
 
 
 class RunChecker:

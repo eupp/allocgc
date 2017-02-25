@@ -121,7 +121,7 @@ struct gc_heap_stat
     }
 
     size_t mem_before_gc = 0;
-    size_t mem_occupied       = 0;
+    size_t mem_occupied  = 0;
     size_t mem_live      = 0;
     size_t mem_freed     = 0;
     size_t mem_copied    = 0;

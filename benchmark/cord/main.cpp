@@ -126,7 +126,7 @@ CORD build_rope(size_t total_len)
 CORD substr(CORD_IN cord, size_t total_len)
 {
     size_t substr_len_mean = 0.001 * total_len;
-    size_t substr_len_var  = substr_len_mean / 4;
+    size_t substr_len_var  = substr_len_mean / 10;
 
     static std::default_random_engine gen;
     static std::uniform_int_distribution<size_t> dist_pos;
@@ -200,9 +200,9 @@ int main(int argc, const char* argv[])
         ops.conservative    = conservative_flag;
         ops.incremental     = incremental_flag;
         ops.compacting      = compacting_flag;
-    //        ops.loglevel    = gc_loglevel::DEBUG;
-    //        ops.print_stat  = true;
-//            ops.threads_available = 4;
+//            ops.loglevel    = gc_loglevel::WARNING;
+//            ops.print_stat  = true;
+//            ops.threads_available =q 4;
 
         auto strategy = gc_factory::create(ops);
         gc_init(std::move(strategy));
@@ -238,7 +238,7 @@ int main(int argc, const char* argv[])
             substr(cord, total_len);
         }
     } else if (ttype == test_type::FLATTENING) {
-        const size_t REPEAT_CNT = 10000;
+        const size_t REPEAT_CNT = 1000;
 
         std::cout << "Flattening " << REPEAT_CNT << " ropes with length = 10^" << len << std::endl;
 

@@ -11,7 +11,7 @@
 
 namespace precisegc { namespace details {
 
-const size_t gc_facade::HEAP_START_LIMIT = 2 * 1024 * 1024;
+const size_t gc_facade::HEAP_START_LIMIT = 4 * 1024 * 1024;
 
 const double gc_facade::INCREASE_FACTOR      = 2.0;
 const double gc_facade::MARK_THRESHOLD       = 0.6;
@@ -19,6 +19,9 @@ const double gc_facade::COLLECT_THRESHOLD    = 1.0;
 
 gc_facade::gc_facade()
     : m_manager(nullptr)
+    , m_heap_size(0)
+    , m_heap_limit(0)
+    , m_heap_maxlimit(0)
 {
     logging::touch();
     // same hack as with logger

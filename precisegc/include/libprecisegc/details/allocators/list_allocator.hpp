@@ -115,6 +115,8 @@ public:
         return get_memblk_size(((get_blk_size(size) + alignment - 1) / alignment) * alignment);
     }
 
+//    static constexpr
+
     list_allocator()
         : m_head(get_fake_block())
     {

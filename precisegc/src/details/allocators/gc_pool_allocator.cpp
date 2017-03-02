@@ -15,6 +15,7 @@ gc_pool_allocator::gc_pool_allocator()
     : m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
+    , m_prev_residency(0)
 {}
 
 gc_pool_allocator::~gc_pool_allocator()
@@ -158,8 +159,10 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 
     if (is_compaction_required(stat)) {
         compact(frwd, stat);
+        m_prev_residency = 1.0;
     } else {
         sweep(stat);
+        m_prev_residency = stat.residency();
     }
 
     return stat;
@@ -248,10 +251,17 @@ bool gc_pool_allocator::empty() const
 bool gc_pool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
 //    return false;
-    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD;
-//    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD
-//           || (stat.residency() < RESIDENCY_NON_COMPACTING_THRESHOLD
-//               && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS);
+//    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD;
+    if (stat.residency() < RESIDENCY_COMPACTING_THRESHOLD) {
+        return true;
+    }
+    if (stat.residency() > RESIDENCY_NON_COMPACTING_THRESHOLD) {
+        return false;
+    }
+    if ((m_prev_residency > 0) && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS) {
+        return true;
+    }
+    return false;
 }
 
 gc_pool_allocator::memory_range_type gc_pool_allocator::memory_range()

@@ -7,21 +7,21 @@
 //#include <queue>
 //#include <pthread.h>
 //
-//#include <libprecisegc/details/utils/make_unique.hpp>
-//#include <libprecisegc/details/utils/scoped_thread.hpp>
-//#include <libprecisegc/details/utils/scope_guard.hpp>
-//#include <libprecisegc/details/threads/managed_thread.hpp>
-//#include <libprecisegc/details/collectors/gc_serial.hpp>
-//#include <libprecisegc/details/collectors/incremental_gc.hpp>
-//#include <libprecisegc/gc_ptr.hpp>
-//#include <libprecisegc/gc_new.hpp>
-//#include <libprecisegc/gc.hpp>
-//#include <libprecisegc/details/gc_mark.h>
-//#include <libprecisegc/details/utils/barrier.hpp>
-//#include <libprecisegc/details/utils/math.hpp>
+//#include <liballocgc/details/utils/make_unique.hpp>
+//#include <liballocgc/details/utils/scoped_thread.hpp>
+//#include <liballocgc/details/utils/scope_guard.hpp>
+//#include <liballocgc/details/threads/managed_thread.hpp>
+//#include <liballocgc/details/collectors/gc_serial.hpp>
+//#include <liballocgc/details/collectors/incremental_gc.hpp>
+//#include <liballocgc/gc_ptr.hpp>
+//#include <liballocgc/gc_new.hpp>
+//#include <liballocgc/gc.hpp>
+//#include <liballocgc/details/gc_mark.h>
+//#include <liballocgc/details/utils/barrier.hpp>
+//#include <liballocgc/details/utils/math.hpp>
 //
-//using namespace precisegc;
-//using namespace precisegc::details;
+//using namespace allocgc;
+//using namespace allocgc::details;
 //
 //#define DEBUG_PRINT_TREE
 //

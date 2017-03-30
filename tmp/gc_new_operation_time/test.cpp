@@ -1,4 +1,4 @@
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 #include <iostream>
 #include <math.h>
 #include <sys/time.h>

@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_RAND_UTIL_H
-#define DIPLOMA_RAND_UTIL_H
+#ifndef ALLOCGC_RAND_UTIL_H
+#define ALLOCGC_RAND_UTIL_H
 
 #include <random>
 
@@ -51,4 +51,4 @@ private:
 };
 
 
-#endif //DIPLOMA_RAND_UTIL_H
+#endif //ALLOCGC_RAND_UTIL_H

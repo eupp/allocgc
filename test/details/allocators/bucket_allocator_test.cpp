@@ -3,18 +3,18 @@
 #include <cassert>
 #include <mutex>
 
-#include <libprecisegc/details/allocators/default_allocator.hpp>
-#include <libprecisegc/details/allocators/pool_allocator.hpp>
-#include <libprecisegc/details/allocators/bucket_allocator.hpp>
-#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/details/allocators/debug_layer.hpp>
-#include <libprecisegc/gc_common.hpp>
+#include <liballocgc/details/allocators/default_allocator.hpp>
+#include <liballocgc/details/allocators/pool_allocator.hpp>
+#include <liballocgc/details/allocators/bucket_allocator.hpp>
+#include <liballocgc/details/allocators/gc_core_allocator.hpp>
+#include <liballocgc/details/allocators/debug_layer.hpp>
+#include <liballocgc/gc_common.hpp>
 
 #include "test_chunk.h"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
 
 namespace {
 

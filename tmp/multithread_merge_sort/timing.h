@@ -1,10 +1,10 @@
 //
 // Created by danya on 26.05.15.
 //
-//#ifndef DIPLOMA_TIMING_H
-//#define DIPLOMA_TIMING_H
+//#ifndef ALLOCGC_TIMING_H
+//#define ALLOCGC_TIMING_H
 //
-//#endif //DIPLOMA_TIMING_H
+//#endif //ALLOCGC_TIMING_H
 
 #pragma once
 #include <sys/time.h>

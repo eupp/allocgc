@@ -2,7 +2,7 @@ enable_testing()
 #find_package(GTest REQUIRED)
 #include_directories(${GTEST_INCLUDE_DIRS})
 
-set(precisegc_TESTS
+set(allocgc_TESTS
         include/time_util.h
         include/memory_descriptor_mock.h
         include/test_chunk.h
@@ -55,7 +55,7 @@ set(precisegc_TESTS
         details/collectors/memory_index_test.cpp include/utils.hpp graph.cpp)
 
 include_directories(include)
-include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
+include_directories(${CMAKE_SOURCE_DIR}/allocgc/include)
 
 find_package(Threads REQUIRED)
 
@@ -76,18 +76,10 @@ find_library(GMOCK_MAIN_LIB NAMES libgmock_main.a
         )
 
 
-add_executable(precisegc_test ${precisegc_TESTS})
-target_link_libraries(precisegc_test ${GMOCK_LIB})
-target_link_libraries(precisegc_test ${GMOCK_MAIN_LIB})
-target_link_libraries(precisegc_test ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(precisegc_test libprecisegc)
+add_executable(allocgc_test ${allocgc_TESTS})
+target_link_libraries(allocgc_test ${GMOCK_LIB})
+target_link_libraries(allocgc_test ${GMOCK_MAIN_LIB})
+target_link_libraries(allocgc_test ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(allocgc_test liballocgc)
 
-add_test(all_tests precisegc_test)
-
-add_custom_target(precisegc_test_memcheck
-        COMMAND valgrind --leak-check=full --leak-resolution=med ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/precisegc_test
-        DEPENDS precisegc_test)
-
-add_custom_target(precisegc_test_helgrind
-        COMMAND valgrind --tool=helgrind ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/precisegc_test
-        DEPENDS precisegc_test)
+add_test(all_tests allocgc_test)

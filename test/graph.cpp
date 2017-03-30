@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 
-using namespace precisegc;
+using namespace allocgc;
 
 namespace test_gc {
 

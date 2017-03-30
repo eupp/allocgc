@@ -3,9 +3,9 @@
 #include <thread>
 #include <atomic>
 
-#include <libprecisegc/details/threads/ass_sync.hpp>
+#include <liballocgc/details/threads/ass_sync.hpp>
 
-using namespace precisegc::details::threads;
+using namespace allocgc::details::threads;
 
 class ass_sync_test : public ::testing::Test
 {

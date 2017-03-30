@@ -1,18 +1,18 @@
-#ifndef DIPLOMA_LIST_FORWARDING_HPP
-#define DIPLOMA_LIST_FORWARDING_HPP
+#ifndef ALLOCGC_LIST_FORWARDING_HPP
+#define ALLOCGC_LIST_FORWARDING_HPP
 
 #include <cstdlib>
 #include <cstring>
 #include <vector>
 #include <algorithm>
 
-#include <libprecisegc/gc_common.hpp>
-#include <libprecisegc/gc_handle.hpp>
+#include <liballocgc/gc_common.hpp>
+#include <liballocgc/gc_handle.hpp>
 
 class test_forwarding
 {
 public:
-    typedef precisegc::byte byte;
+    typedef allocgc::byte byte;
 
     struct entry
     {
@@ -33,9 +33,9 @@ public:
         m_frwd_list.emplace_back(from, to);
     }
 
-    void forward(precisegc::gc_handle* handle) const
+    void forward(allocgc::gc_handle* handle) const
     {
-        using namespace precisegc;
+        using namespace allocgc;
 
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*handle);
         auto it = std::find_if(m_frwd_list.begin(), m_frwd_list.end(), [ptr] (const entry& e) {
@@ -54,4 +54,4 @@ private:
     std::vector<entry> m_frwd_list;
 };
 
-#endif //DIPLOMA_LIST_FORWARDING_HPP
+#endif //ALLOCGC_LIST_FORWARDING_HPP

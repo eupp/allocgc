@@ -43,6 +43,6 @@ if(SHARED_PTR)
 endif()
 
 if(PRECISE_GC)
-    target_link_libraries(producer_consumer libprecisegc)
+    target_link_libraries(producer_consumer liballocgc)
     add_definitions(-DPRECISE_GC)
 endif()

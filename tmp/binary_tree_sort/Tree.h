@@ -1,7 +1,7 @@
 #pragma once
 #include <stdio.h>
-//#include <libprecisegc/libprecisegc.h>
-#include "../../sources/libprecisegc.h"
+//#include <liballocgc/liballocgc.h>
+#include "../../sources/liballocgc.h"
 #include "List.h"
 
 class Node {

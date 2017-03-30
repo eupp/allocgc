@@ -2,20 +2,20 @@
 
 #include <unordered_set>
 
-#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
-#include <libprecisegc/details/compacting/two_finger_compactor.hpp>
-#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/gc_type_meta.hpp>
-#include <libprecisegc/gc_common.hpp>
+#include <liballocgc/details/allocators/gc_pool_allocator.hpp>
+#include <liballocgc/details/compacting/two_finger_compactor.hpp>
+#include <liballocgc/details/allocators/gc_core_allocator.hpp>
+#include <liballocgc/gc_type_meta.hpp>
+#include <liballocgc/gc_common.hpp>
 
 #include "utils.hpp"
 #include "rand_util.h"
 #include "test_forwarding.hpp"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
-using namespace precisegc::details::compacting;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
+using namespace allocgc::details::compacting;
 
 namespace {
 static const size_t OBJ_SIZE = 16;      // PAGE_SIZE / OBJECTS_PER_PAGE;

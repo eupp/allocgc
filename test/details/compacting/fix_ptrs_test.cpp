@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/gc_type_meta.hpp>
-#include <libprecisegc/details/compacting/fix_ptrs.hpp>
-#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
+#include <liballocgc/gc_type_meta.hpp>
+#include <liballocgc/details/compacting/fix_ptrs.hpp>
+#include <liballocgc/details/allocators/gc_pool_allocator.hpp>
 
 #include "test_forwarding.hpp"
 #include "utils.hpp"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
-using namespace precisegc::details::compacting;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
+using namespace allocgc::details::compacting;
 
 namespace {
 static const size_t OBJ_SIZE = gc_box::obj_size(32);

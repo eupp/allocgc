@@ -1,17 +1,17 @@
-#ifndef DIPLOMA_MEMORY_DESCRIPTOR_MOCK_H
-#define DIPLOMA_MEMORY_DESCRIPTOR_MOCK_H
+#ifndef ALLOCGC_MEMORY_DESCRIPTOR_MOCK_H
+#define ALLOCGC_MEMORY_DESCRIPTOR_MOCK_H
 
 #include <gmock/gmock.h>
 
-#include "libprecisegc/details/allocators/gc_pool_descriptor.hpp"
+#include "liballocgc/details/allocators/gc_pool_descriptor.hpp"
 
-class memory_descriptor_mock : public precisegc::details::allocators::gc_memory_descriptor
+class memory_descriptor_mock : public allocgc::details::allocators::gc_memory_descriptor
 {
-    typedef precisegc::byte byte;
-    typedef precisegc::gc_type_meta gc_type_meta;
-    typedef precisegc::details::gc_lifetime_tag gc_lifetime_tag;
-    typedef precisegc::details::gc_trace_callback gc_trace_callback;
-    typedef precisegc::details::allocators::gc_memory_descriptor memory_descriptor;
+    typedef allocgc::byte byte;
+    typedef allocgc::gc_type_meta gc_type_meta;
+    typedef allocgc::details::gc_lifetime_tag gc_lifetime_tag;
+    typedef allocgc::details::gc_trace_callback gc_trace_callback;
+    typedef allocgc::details::allocators::gc_memory_descriptor memory_descriptor;
 public:
     MOCK_CONST_METHOD1(get_mark, bool(byte*));
     MOCK_CONST_METHOD1(get_pin, bool(byte*));
@@ -38,4 +38,4 @@ public:
 };
 
 
-#endif //DIPLOMA_MEMORY_DESCRIPTOR_MOCK_H
+#endif //ALLOCGC_MEMORY_DESCRIPTOR_MOCK_H

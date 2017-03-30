@@ -12,13 +12,13 @@
 #endif
 
 #ifdef PRECISE_GC
-    #include <libprecisegc/libprecisegc.hpp>
-    #include <libprecisegc/details/threads/managed_thread.hpp>
+    #include <liballocgc/liballocgc.hpp>
+    #include <liballocgc/details/threads/managed_thread.hpp>
 using namespace precisegc;
 #endif
 
-#include <libprecisegc/details/utils/scoped_thread.hpp>
-#include <libprecisegc/details/utils/scope_guard.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/utils/scope_guard.hpp>
 
 #include "../../common/macro.hpp"
 #include "../../common/timer.hpp"
@@ -85,7 +85,7 @@ void producer_routine(pc_queue* queue)
         GC_stack_base sb;
         GC_get_stack_base(&sb);
         GC_register_my_thread(&sb);
-        auto guard = precisegc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
+        auto guard = allocgc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
     #endif
 
     for (size_t n = 0; n < TOTAL_WORK; ++n) {
@@ -105,7 +105,7 @@ void consumer_routine(pc_queue* queue)
         GC_stack_base sb;
         GC_get_stack_base(&sb);
         GC_register_my_thread(&sb);
-        auto guard = precisegc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
+        auto guard = allocgc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
     #endif
 
     for (size_t n = 0; n < TOTAL_WORK; ++n) {

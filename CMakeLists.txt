@@ -1,4 +1,4 @@
-project(diploma)
+project(allocgc)
 include(CheckIncludeFile)
 include(CheckFunctionExists)
 include (CheckLibraryExists)
@@ -17,7 +17,7 @@ remove_cxx_release_flag("-O3")
 
 #set(CMAKE_VERBOSE_MAKEFILE on)
 
-add_subdirectory(precisegc)
+add_subdirectory(allocgc)
 add_subdirectory(test)
 add_subdirectory(benchmark/cord)
 add_subdirectory(benchmark/boehm)

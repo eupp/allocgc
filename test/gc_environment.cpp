@@ -2,9 +2,9 @@
 
 #include <cassert>
 
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 
-using namespace precisegc;
+using namespace allocgc;
 
 class gc_environment: public ::testing::Environment
 {

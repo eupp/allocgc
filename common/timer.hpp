@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_TIMER_HPP
-#define DIPLOMA_TIMER_HPP
+#ifndef ALLOCGC_TIMER_HPP
+#define ALLOCGC_TIMER_HPP
 
 #include <chrono>
 
@@ -31,4 +31,4 @@ private:
     clock_t::time_point m_tm;
 };
 
-#endif //DIPLOMA_TIMER_HPP
+#endif //ALLOCGC_TIMER_HPP

@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/collectors/stack_bitmap.hpp>
-#include <libprecisegc/details/threads/return_address.hpp>
+#include <liballocgc/details/collectors/stack_bitmap.hpp>
+#include <liballocgc/details/threads/return_address.hpp>
 
 #include <set>
 #include <cstdlib>
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::threads;
-using namespace precisegc::details::collectors;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::threads;
+using namespace allocgc::details::collectors;
 
 void test_register_root_1_helper(stack_bitmap& stack_map)
 {

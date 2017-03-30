@@ -3,8 +3,8 @@
 #include <vector>
 #include <cmath>
 #include "timing.h"
-//#include <libprecisegc/libprecisegc.h>
-#include "../../sources/libprecisegc.h"
+//#include <liballocgc/liballocgc.h>
+#include "../../sources/liballocgc.h"
 //const int ARRAY_SIZE = 800000;
 const int ARRAY_SIZE = 8000;
 

@@ -1,15 +1,15 @@
-#ifndef DIPLOMA_TEST_CHUNK_H
-#define DIPLOMA_TEST_CHUNK_H
+#ifndef ALLOCGC_TEST_CHUNK_H
+#define ALLOCGC_TEST_CHUNK_H
 
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/range/iterator_range.hpp>
 
-#include <libprecisegc/details/allocators/allocator_tag.hpp>
-#include <libprecisegc/gc_common.hpp>
+#include <liballocgc/details/allocators/allocator_tag.hpp>
+#include <liballocgc/gc_common.hpp>
 
 class test_chunk
 {
-    typedef precisegc::byte byte;
+    typedef allocgc::byte byte;
 public:
     typedef byte* pointer_type;
 
@@ -163,4 +163,4 @@ private:
     bool m_available;
 };
 
-#endif //DIPLOMA_TEST_CHUNK_H
+#endif //ALLOCGC_TEST_CHUNK_H

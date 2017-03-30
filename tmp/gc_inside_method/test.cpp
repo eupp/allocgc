@@ -1,4 +1,4 @@
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 
 class B; // forward declaration
 

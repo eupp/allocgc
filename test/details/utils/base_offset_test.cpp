@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/utils/base_offset.hpp>
+#include <liballocgc/details/utils/base_offset.hpp>
 
-using namespace precisegc::details::utils;
+using namespace allocgc::details::utils;
 
 namespace {
 

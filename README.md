@@ -10,7 +10,7 @@ The project is still in development. Everything could change in the future.
 ```bash
 cd {PRJ_DIR}
 cmake .
-make libprecisegc
+make liballocgc
 ```
 
 ### Requirements
@@ -48,9 +48,9 @@ Two main primitives of the library are template class `gc_ptr` and template func
 Before using any of library's primitives one should initialize garbage collector via `gc_init` function.
 
 ```C++
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 
-using namespace precisegc;
+using namespace allocgc;
 
 struct A {
     int x, y;

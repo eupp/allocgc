@@ -1,8 +1,8 @@
-#ifndef DIPLOMA_MACRO_HPP
-#define DIPLOMA_MACRO_HPP
+#ifndef ALLOCGC_MACRO_HPP
+#define ALLOCGC_MACRO_HPP
 
 #ifdef PRECISE_GC
-    #include "libprecisegc/libprecisegc.hpp"
+    #include <liballocgc/liballocgc.hpp>
 #endif
 
 #ifdef BDW_GC
@@ -19,32 +19,32 @@
 #endif
 
 #if defined(PRECISE_GC)
-    #define ptr_t(T) precisegc::gc_ptr<T>
-    #define ptr_in(T) const precisegc::gc_ptr<T>&
-    #define ref_t(T) precisegc::gc_ref<T>
-    #define pin_t(T) precisegc::gc_pin<T>
+    #define ptr_t(T) allocgc::gc_ptr<T>
+    #define ptr_in(T) const allocgc::gc_ptr<T>&
+    #define ref_t(T) allocgc::gc_ref<T>
+    #define pin_t(T) allocgc::gc_pin<T>
     #define pin(ptr) ptr.pin()
 
     #define raw_ptr(pin_ptr) pin_ptr.get()
 
-    #define ptr_array_t(T) precisegc::gc_ptr<T[]>
-    #define pin_array_t(T) precisegc::gc_pin<T[]>
+    #define ptr_array_t(T) allocgc::gc_ptr<T[]>
+    #define pin_array_t(T) allocgc::gc_pin<T[]>
 
-    #define new_(T) precisegc::gc_new<T>()
-    #define new_args_(T, ...) precisegc::gc_new<T>(__VA_ARGS__)
-    #define new_array_(T, size) precisegc::gc_new<T[]>(size)
+    #define new_(T) allocgc::gc_new<T>()
+    #define new_args_(T, ...) allocgc::gc_new<T>(__VA_ARGS__)
+    #define new_array_(T, size) allocgc::gc_new<T[]>(size)
 
     #define delete_(ptr)
     #define set_null(ptr) ptr.reset()
-    #define null_ptr(T) precisegc::gc_ptr<T>()
+    #define null_ptr(T) allocgc::gc_ptr<T>()
 
-    #define const_pointer_cast_(T, ptr) precisegc::const_pointer_cast<T>(ptr)
-    #define static_pointer_cast_(T, ptr) precisegc::static_pointer_cast<T>(ptr)
-    #define dynamic_pointer_cast_(T, ptr) precisegc::dynamic_pointer_cast<T>(ptr)
-    #define reinterpret_pointer_cast_(T, ptr) precisegc::reinterpret_pointer_cast<T>(ptr)
+    #define const_pointer_cast_(T, ptr) allocgc::const_pointer_cast<T>(ptr)
+    #define static_pointer_cast_(T, ptr) allocgc::static_pointer_cast<T>(ptr)
+    #define dynamic_pointer_cast_(T, ptr) allocgc::dynamic_pointer_cast<T>(ptr)
+    #define reinterpret_pointer_cast_(T, ptr) allocgc::reinterpret_pointer_cast<T>(ptr)
 
-    #define const_array_pointer_cast_(T, ptr) precisegc::const_pointer_cast<T>(ptr)
-    #define reinterpret_array_pointer_cast_(T, ptr) precisegc::reinterpret_pointer_cast<T[]>(ptr)
+    #define const_array_pointer_cast_(T, ptr) allocgc::const_pointer_cast<T>(ptr)
+    #define reinterpret_array_pointer_cast_(T, ptr) allocgc::reinterpret_pointer_cast<T[]>(ptr)
 
 #elif defined(BDW_GC)
     #define ptr_t(T) T*
@@ -151,4 +151,4 @@
     #define null_ptr(T) nullptr
 #endif
 
-#endif //DIPLOMA_MACRO_HPP
+#endif //ALLOCGC_MACRO_HPP

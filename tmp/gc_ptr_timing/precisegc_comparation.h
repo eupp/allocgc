@@ -2,7 +2,7 @@
 // Created by danya on 26.05.15.
 //
 #pragma once
-#include "../../sources/libprecisegc.h"
+#include "../../sources/liballocgc.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>

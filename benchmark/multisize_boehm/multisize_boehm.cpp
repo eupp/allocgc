@@ -52,7 +52,7 @@
 
 
 #ifdef PRECISE_GC
-    #include <libprecisegc/libprecisegc.hpp>
+    #include <liballocgc/liballocgc.hpp>
     using namespace precisegc;
 #endif
 

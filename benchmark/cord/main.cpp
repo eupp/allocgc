@@ -12,8 +12,8 @@
 #include <sys/resource.h>
 
 #ifdef PRECISE_GC
-    #include "libprecisegc/libprecisegc.hpp"
-    using namespace precisegc;
+    #include "liballocgc/liballocgc.hpp"
+    using namespace allocgc;
 #endif
 
 #ifdef BDW_GC

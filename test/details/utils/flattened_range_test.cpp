@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/gc_common.hpp>
-#include <libprecisegc/details/utils/flatten_range.hpp>
+#include <liballocgc/gc_common.hpp>
+#include <liballocgc/details/utils/flatten_range.hpp>
 
 #include <memory>
 #include <iostream>
@@ -11,9 +11,9 @@
 
 #include "rand_util.h"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::utils;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::utils;
 
 namespace {
 static const size_t RANGE_SIZE = 4;

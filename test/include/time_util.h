@@ -1,5 +1,5 @@
-#ifndef DIPLOMA_TIME_UTIL_H
-#define DIPLOMA_TIME_UTIL_H
+#ifndef ALLOCGC_TIME_UTIL_H
+#define ALLOCGC_TIME_UTIL_H
 
 #include <sys/time.h>
 
@@ -19,4 +19,4 @@ inline timespec ts_now()
     return ts;
 }
 
-#endif //DIPLOMA_TIME_UTIL_H
+#endif //ALLOCGC_TIME_UTIL_H

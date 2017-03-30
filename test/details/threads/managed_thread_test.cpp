@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/gc_thread_manager.hpp>
-#include <libprecisegc/details/threads/posix_thread.hpp>
-#include <libprecisegc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/threads/gc_thread_manager.hpp>
+#include <liballocgc/details/threads/posix_thread.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
 
-using namespace precisegc::details::utils;
-using namespace precisegc::details::threads;
+using namespace allocgc::details::utils;
+using namespace allocgc::details::threads;
 
 //TEST(managed_thread_test, test_managed_thread)
 //{

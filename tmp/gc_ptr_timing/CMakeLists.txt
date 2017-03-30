@@ -5,7 +5,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-as-needed")
 file(GLOB SOURCE "*.cpp" "../../precisegc/sources/*.cpp")
 add_executable(${TEST} EXCLUDE_FROM_ALL ${SOURCE})
 
-#find_path(PRECISEGC_PATH libprecisegc/libprecisegc.h)
+#find_path(PRECISEGC_PATH liballocgc/liballocgc.h)
 #include_directories(${PRECISEGC_PATH})
 
 #find_library(PRECISEGC_LIB precisegc REQUIRED)

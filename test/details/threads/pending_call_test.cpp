@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/pending_call.hpp>
-#include <libprecisegc/details/utils/scope_guard.hpp>
+#include <liballocgc/details/threads/pending_call.hpp>
+#include <liballocgc/details/utils/scope_guard.hpp>
 
-using namespace precisegc::details::threads;
-using namespace precisegc::details::utils;
+using namespace allocgc::details::threads;
+using namespace allocgc::details::utils;
 
 struct pending_call_test : public ::testing::Test
 {

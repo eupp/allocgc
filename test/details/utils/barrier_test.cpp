@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/utils/scoped_thread.hpp>
-#include <libprecisegc/details/utils/barrier.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/utils/barrier.hpp>
 
 #include <thread>
 #include <atomic>
 
-using namespace precisegc::details::utils;
+using namespace allocgc::details::utils;
 
 TEST(barrier_test, test_barrier)
 {

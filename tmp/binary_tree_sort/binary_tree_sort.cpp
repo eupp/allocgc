@@ -1,7 +1,7 @@
 #include <cstdlib>
 #include <string>
-//#include <libprecisegc/libprecisegc.h>
-#include "../../sources/libprecisegc.h"
+//#include <liballocgc/liballocgc.h>
+#include "../../sources/liballocgc.h"
 #include "List.h"
 
 // You may need to change it to fix segfault in threading.cpp:117

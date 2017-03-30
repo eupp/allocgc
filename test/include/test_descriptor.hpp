@@ -1,18 +1,18 @@
-#ifndef DIPLOMA_TEST_DESCRIPTOR_HPP
-#define DIPLOMA_TEST_DESCRIPTOR_HPP
+#ifndef ALLOCGC_TEST_DESCRIPTOR_HPP
+#define ALLOCGC_TEST_DESCRIPTOR_HPP
 
 #include <cstddef>
 #include <cassert>
 
-#include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/types.hpp>
+#include <liballocgc/details/utils/utility.hpp>
+#include <liballocgc/details/types.hpp>
 
-class test_descriptor : private precisegc::details::utils::noncopyable,
-                        private precisegc::details::utils::nonmovable
+class test_descriptor : private allocgc::details::utils::noncopyable,
+                        private allocgc::details::utils::nonmovable
 {
-    typedef precisegc::details::byte byte;
+    typedef allocgc::details::byte byte;
 public:
-    typedef precisegc::details::byte* pointer_type;
+    typedef allocgc::details::byte* pointer_type;
 
     static size_t align_size(size_t size)
     {
@@ -46,4 +46,4 @@ private:
     bool  m_empty;
 };
 
-#endif //DIPLOMA_TEST_DESCRIPTOR_HPP
+#endif //ALLOCGC_TEST_DESCRIPTOR_HPP

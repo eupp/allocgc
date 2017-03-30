@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/gc_new.hpp>
-#include <libprecisegc/details/allocators/memory_index.hpp>
-#include <libprecisegc/gc_type_meta.hpp>
+#include <liballocgc/gc_new.hpp>
+#include <liballocgc/details/allocators/memory_index.hpp>
+#include <liballocgc/gc_type_meta.hpp>
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::collectors;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::collectors;
 
 TEST(gc_new_test, test_gc_new_int)
 {

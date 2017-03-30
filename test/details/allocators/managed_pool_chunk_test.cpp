@@ -3,18 +3,18 @@
 #include <memory>
 #include <utility>
 
-#include <libprecisegc/details/allocators/memory_index.hpp>
-#include <libprecisegc/details/allocators/gc_pool_descriptor.hpp>
-#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/details/allocators/debug_layer.hpp>
-#include <libprecisegc/details/allocators/gc_box.hpp>
+#include <liballocgc/details/allocators/memory_index.hpp>
+#include <liballocgc/details/allocators/gc_pool_descriptor.hpp>
+#include <liballocgc/details/allocators/gc_core_allocator.hpp>
+#include <liballocgc/details/allocators/debug_layer.hpp>
+#include <liballocgc/details/allocators/gc_box.hpp>
 
 #include "rand_util.h"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
-using namespace precisegc::details::collectors;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
+using namespace allocgc::details::collectors;
 
 namespace {
 const size_t CELL_SIZE  = 64;

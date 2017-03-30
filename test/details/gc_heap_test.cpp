@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/details/gc_heap.hpp"
+#include "liballocgc/details/gc_heap.hpp"
 
-using namespace precisegc::details;
+using namespace allocgc::details;
 
 static const int OBJ_SIZE = sizeof(size_t);
 

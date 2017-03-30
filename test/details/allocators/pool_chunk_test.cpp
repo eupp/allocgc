@@ -3,15 +3,15 @@
 #include <memory>
 #include <algorithm>
 
-#include <libprecisegc/gc_common.hpp>
-#include <libprecisegc/details/allocators/bitmap_pool_chunk.hpp>
-#include <libprecisegc/details/allocators/freelist_pool_chunk.hpp>
+#include <liballocgc/gc_common.hpp>
+#include <liballocgc/details/allocators/bitmap_pool_chunk.hpp>
+#include <liballocgc/details/allocators/freelist_pool_chunk.hpp>
 
 #include <boost/integer/static_min_max.hpp>
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
 
 template <typename Chunk>
 struct pool_chunk_test : public ::testing::Test

@@ -10,10 +10,10 @@
 #include <type_traits>
 #include <utility>
 
-#include <libprecisegc/details/utils/barrier.hpp>
-#include <libprecisegc/details/utils/scope_guard.hpp>
-#include <libprecisegc/details/utils/utility.hpp>
-#include <libprecisegc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/utils/barrier.hpp>
+#include <liballocgc/details/utils/scope_guard.hpp>
+#include <liballocgc/details/utils/utility.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
 
 #ifdef BDW_GC
     #define GC_THREADS
@@ -21,8 +21,8 @@
 #endif
 
 #ifdef PRECISE_GC
-    #include <libprecisegc/libprecisegc.hpp>
-    using namespace precisegc;
+    #include <liballocgc/liballocgc.hpp>
+    using namespace allocgc;
 #endif
 
 #include "../../common/macro.hpp"
@@ -90,7 +90,7 @@ void thread_routine(const List& input, List& output)
         GC_stack_base sb;
         GC_get_stack_base(&sb);
         GC_register_my_thread(&sb);
-        auto guard = precisegc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
+        auto guard = allocgc::details::utils::make_scope_guard([] { GC_unregister_my_thread(); });
     #endif
 
     while (true) {

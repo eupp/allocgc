@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/stw_manager.hpp>
-#include <libprecisegc/details/utils/scoped_thread.hpp>
-#include <libprecisegc/details/utils/scope_guard.hpp>
+#include <liballocgc/details/threads/stw_manager.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/utils/scope_guard.hpp>
 
 #include <thread>
 #include <atomic>
 
-using namespace precisegc::details::utils;
-using namespace precisegc::details::threads;
+using namespace allocgc::details::utils;
+using namespace allocgc::details::threads;
 
 TEST(stw_manager_test, test_stw)
 {

@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/posix_signal.hpp>
+#include <liballocgc/details/threads/posix_signal.hpp>
 
 #include <thread>
 #include <atomic>
 #include <chrono>
 #include <mutex>
 
-using namespace precisegc::details::threads;
+using namespace allocgc::details::threads;
 
 namespace {
 int counter = 0;

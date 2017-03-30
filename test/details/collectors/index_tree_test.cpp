@@ -2,15 +2,15 @@
 
 #include <random>
 #include <limits>
-#include <libprecisegc/details/allocators/index_tree.hpp>
+#include <liballocgc/details/allocators/index_tree.hpp>
 
-#include "libprecisegc/details/allocators/index_tree.hpp"
-#include "libprecisegc/details/allocators/debug_layer.hpp"
-#include "libprecisegc/details/allocators/gc_core_allocator.hpp"
+#include "liballocgc/details/allocators/index_tree.hpp"
+#include "liballocgc/details/allocators/debug_layer.hpp"
+#include "liballocgc/details/allocators/gc_core_allocator.hpp"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
 
 //TEST(index_tree_level_test, test_level)
 //{

@@ -3,9 +3,9 @@
 #include <functional>
 #include <array>
 
-#include <libprecisegc/details/utils/static_thread_pool.hpp>
+#include <liballocgc/details/utils/static_thread_pool.hpp>
 
-using namespace precisegc::details::utils;
+using namespace allocgc::details::utils;
 
 TEST(static_thread_pool_test, test_run)
 {

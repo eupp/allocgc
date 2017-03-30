@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <cstdlib>
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 
 using std::cout;
 using std::endl;

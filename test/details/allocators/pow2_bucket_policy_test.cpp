@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "libprecisegc/details/allocators/pow2_bucket_policy.hpp"
+#include "liballocgc/details/allocators/pow2_bucket_policy.hpp"
 
-using namespace precisegc::details::allocators;
+using namespace allocgc::details::allocators;
 
 TEST(pow2_bucket_policy_test, test_1)
 {

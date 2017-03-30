@@ -3,7 +3,7 @@
 # SOURCE=test3.cpp
 SOURCE=test4.cpp
 CPPC=g++
-LOAD_LIBRARY=-L /usr/local/lib/ -l precisegc -l pthread -l msmalloc
+LOAD_LIBRARY=-L /usr/local/lib/ -l allocgc -l pthread -l msmalloc
 
 all: output
 

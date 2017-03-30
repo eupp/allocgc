@@ -1,16 +1,16 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/threads/gc_thread_descriptor.hpp>
-#include <libprecisegc/details/threads/gc_thread_manager.hpp>
-#include <libprecisegc/details/threads/world_snapshot.hpp>
-#include <libprecisegc/details/utils/scoped_thread.hpp>
-#include <libprecisegc/details/threads/stw_manager.hpp>
+#include <liballocgc/details/threads/gc_thread_descriptor.hpp>
+#include <liballocgc/details/threads/gc_thread_manager.hpp>
+#include <liballocgc/details/threads/world_snapshot.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/threads/stw_manager.hpp>
 
 #include <atomic>
 #include <unordered_set>
 
-using namespace precisegc::details::utils;
-using namespace precisegc::details::threads;
+using namespace allocgc::details::utils;
+using namespace allocgc::details::threads;
 
 //class thread_manager_test : public ::testing::Test
 //{
@@ -56,7 +56,7 @@ using namespace precisegc::details::threads;
 //
 //TEST_F(thread_manager_test, test_get_managed_threads)
 //{
-//    using namespace precisegc::details::threads::internals;
+//    using namespace allocgc::details::threads::internals;
 //
 //    std::unordered_set<std::thread::id> managed_threads;
 //    for (auto thread: gc_thread_manager::instance().threads_snapshot()) {

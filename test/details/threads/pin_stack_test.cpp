@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/collectors/pin_stack.hpp>
+#include <liballocgc/details/collectors/pin_stack.hpp>
 
 #include <set>
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::collectors;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::collectors;
 
 TEST(pin_stack_test, test_push)
 {

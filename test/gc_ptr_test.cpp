@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/gc_cast.hpp>
+#include <liballocgc/gc_cast.hpp>
 
-#include "libprecisegc/gc_ptr.hpp"
-#include "libprecisegc/gc_new.hpp"
+#include "liballocgc/gc_ptr.hpp"
+#include "liballocgc/gc_new.hpp"
 
-using namespace precisegc;
+using namespace allocgc;
 
 TEST(gc_ptr_test, test_gc_ptr)
 {

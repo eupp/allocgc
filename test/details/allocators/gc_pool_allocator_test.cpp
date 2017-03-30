@@ -1,13 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
-#include <libprecisegc/gc_type_meta.hpp>
+#include <liballocgc/details/allocators/gc_pool_allocator.hpp>
+#include <liballocgc/gc_type_meta.hpp>
 
 #include "utils.hpp"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
 
 namespace {
 static const size_t OBJ_SIZE = 16;

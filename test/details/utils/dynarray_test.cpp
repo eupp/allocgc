@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/utils/dynarray.hpp>
+#include <liballocgc/details/utils/dynarray.hpp>
 
-using namespace precisegc::details::utils;
+using namespace allocgc::details::utils;
 
 TEST(dynarray_test, test_constructor)
 {

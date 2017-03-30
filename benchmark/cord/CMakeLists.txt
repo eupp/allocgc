@@ -9,7 +9,7 @@ set(cord_SRC
         cordxtra.cpp
         main.cpp)
 
-include_directories(${CMAKE_SOURCE_DIR}/precisegc/include)
+include_directories(${CMAKE_SOURCE_DIR}/allocgc/include)
 
 set( CMAKE_VERBOSE_MAKEFILE on )
 
@@ -48,6 +48,6 @@ if(SHARED_PTR)
 endif()
 
 if(PRECISE_GC)
-    target_link_libraries(cord libprecisegc)
+    target_link_libraries(cord liballocgc)
     add_definitions(-DPRECISE_GC)
 endif()

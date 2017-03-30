@@ -1,22 +1,22 @@
-#ifndef DIPLOMA_SERIAL_GC_MOCK_HPP
-#define DIPLOMA_SERIAL_GC_MOCK_HPP
+#ifndef ALLOCGC_SERIAL_GC_MOCK_HPP
+#define ALLOCGC_SERIAL_GC_MOCK_HPP
 
 #include <gmock/gmock.h>
 
-#include <libprecisegc/gc_strategy.hpp>
+#include <liballocgc/gc_strategy.hpp>
 
-//class serial_gc_mock : public precisegc::details::gc_strategy
+//class serial_gc_mock : public allocgc::details::gc_strategy
 //{
-//    typedef precisegc::details::byte byte;
-//    typedef precisegc::details::gc_cell gc_cell;
-//    typedef precisegc::details::gc_handle gc_handle;
-//    typedef precisegc::details::gc_type_meta gc_type_meta;
-//    typedef precisegc::details::allocators::gc_alloc_response gc_alloc_response;
-//    typedef precisegc::details::initiation_point_type initation_point_type;
-//    typedef precisegc::details::gc_options gc_options;
-//    typedef precisegc::details::gc_run_stats gc_stats;
-//    typedef precisegc::details::gc_phase gc_phase;
-//    typedef precisegc::details::gc_info gc_info;
+//    typedef allocgc::details::byte byte;
+//    typedef allocgc::details::gc_cell gc_cell;
+//    typedef allocgc::details::gc_handle gc_handle;
+//    typedef allocgc::details::gc_type_meta gc_type_meta;
+//    typedef allocgc::details::allocators::gc_alloc_response gc_alloc_response;
+//    typedef allocgc::details::initiation_point_type initation_point_type;
+//    typedef allocgc::details::gc_options gc_options;
+//    typedef allocgc::details::gc_run_stats gc_stats;
+//    typedef allocgc::details::gc_phase gc_phase;
+//    typedef allocgc::details::gc_info gc_info;
 //public:
 //    MOCK_METHOD3(allocate, gc_alloc_response (size_t obj_size, size_t obj_cnt, const gc_type_meta* tmeta));
 //
@@ -46,4 +46,4 @@
 //    }
 //};
 
-#endif //DIPLOMA_SERIAL_GC_MOCK_HPP
+#endif //ALLOCGC_SERIAL_GC_MOCK_HPP

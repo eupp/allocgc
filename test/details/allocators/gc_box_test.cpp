@@ -2,12 +2,12 @@
 
 #include <unordered_set>
 
-#include <libprecisegc/details/allocators/gc_box.hpp>
-#include <libprecisegc/gc_type_meta.hpp>
+#include <liballocgc/details/allocators/gc_box.hpp>
+#include <liballocgc/gc_type_meta.hpp>
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::allocators;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::allocators;
 
 namespace {
 struct test_type

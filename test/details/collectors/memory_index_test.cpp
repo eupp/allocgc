@@ -1,15 +1,15 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/details/allocators/memory_index.hpp>
-#include <libprecisegc/details/utils/scope_guard.hpp>
+#include <liballocgc/details/allocators/gc_core_allocator.hpp>
+#include <liballocgc/details/allocators/memory_index.hpp>
+#include <liballocgc/details/utils/scope_guard.hpp>
 
 #include "memory_descriptor_mock.h"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::collectors;
-using namespace precisegc::details::allocators;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::collectors;
+using namespace allocgc::details::allocators;
 
 TEST(memory_index_test, test_index)
 {

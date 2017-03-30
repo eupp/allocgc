@@ -1,4 +1,4 @@
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 #include <iostream>
 #include <string.h>
 #include <stdio.h>

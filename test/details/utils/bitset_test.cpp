@@ -2,10 +2,10 @@
 
 #include <atomic>
 
-#include <libprecisegc/details/utils/bitset.hpp>
-#include <libprecisegc/details/utils/scoped_thread.hpp>
+#include <liballocgc/details/utils/bitset.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
 
-using namespace precisegc::details::utils;
+using namespace allocgc::details::utils;
 
 namespace {
 static const size_t ULL_SIZE = CHAR_BIT * sizeof(unsigned long long);

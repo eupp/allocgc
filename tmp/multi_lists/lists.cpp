@@ -1,4 +1,4 @@
-#include "../../sources/libprecisegc.h"
+#include "../../sources/liballocgc.h"
 
 const int ObjArraySize = 5;
 const int ThreadsCount = 4;

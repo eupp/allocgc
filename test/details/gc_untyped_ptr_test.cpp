@@ -4,18 +4,18 @@
 #include <utility>
 #include <type_traits>
 
-#include <libprecisegc/details/utils/scope_guard.hpp>
-#include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/ptrs/gc_untyped_ptr.hpp>
-#include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
-#include <libprecisegc/gc_type_meta.hpp>
-#include <libprecisegc/details/gc_hooks.hpp>
+#include <liballocgc/details/utils/scope_guard.hpp>
+#include <liballocgc/details/utils/make_unique.hpp>
+#include <liballocgc/details/ptrs/gc_untyped_ptr.hpp>
+#include <liballocgc/details/collectors/gc_new_stack_entry.hpp>
+#include <liballocgc/gc_type_meta.hpp>
+#include <liballocgc/details/gc_hooks.hpp>
 
 #include "serial_gc_mock.hpp"
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::ptrs;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::ptrs;
 
 using ::testing::_;
 using ::testing::Exactly;

@@ -2,7 +2,7 @@
 #include <cstring>
 #include <cmath>
 #include "timing.h"
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 
 #define MAX_LEVEL 6
 const float P = 0.5;

@@ -1,6 +1,6 @@
 SOURCE=test.cpp
 CPPC=g++
-LOAD_LIBRARY=-L /usr/local/lib/ -l msmalloc -l precisegc -l pthread
+LOAD_LIBRARY=-L /usr/local/lib/ -l msmalloc -l allocgc -l pthread
 
 all: output
 

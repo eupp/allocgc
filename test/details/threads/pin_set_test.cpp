@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/details/collectors/pin_set.hpp>
+#include <liballocgc/details/collectors/pin_set.hpp>
 
-using namespace precisegc;
-using namespace precisegc::details;
-using namespace precisegc::details::collectors;
+using namespace allocgc;
+using namespace allocgc::details;
+using namespace allocgc::details::collectors;
 
 TEST(pin_set_test, test_insert)
 {

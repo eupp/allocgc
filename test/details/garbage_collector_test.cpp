@@ -3,13 +3,13 @@
 
 #include <memory>
 
-#include <libprecisegc/details/utils/make_unique.hpp>
-#include <libprecisegc/details/gc_facade.hpp>
+#include <liballocgc/details/utils/make_unique.hpp>
+#include <liballocgc/details/gc_facade.hpp>
 
 #include "incremental_gc_mock.hpp"
 #include "initiation_policy_mock.hpp"
 
-using namespace precisegc::details;
+using namespace allocgc::details;
 
 using ::testing::_;
 using ::testing::Exactly;

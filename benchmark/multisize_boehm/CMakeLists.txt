@@ -43,6 +43,6 @@ if(SHARED_PTR)
 endif()
 
 if(PRECISE_GC)
-    target_link_libraries(multisize_boehm libprecisegc)
+    target_link_libraries(multisize_boehm liballocgc)
     add_definitions(-DPRECISE_GC)
 endif()

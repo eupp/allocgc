@@ -2,10 +2,10 @@
 
 #include <type_traits>
 
-#include <libprecisegc/gc_handle.hpp>
+#include <liballocgc/gc_handle.hpp>
 
-using namespace precisegc;
-using namespace precisegc::details;
+using namespace allocgc;
+using namespace allocgc::details;
 
 TEST(gc_handle_test, test_podness)
 {

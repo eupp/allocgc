@@ -4,14 +4,14 @@
 #include <vector>
 #include <algorithm>
 
-#include <libprecisegc/gc_type_meta.hpp>
-#include <libprecisegc/details/utils/barrier.hpp>
-#include <libprecisegc/details/utils/scoped_thread.hpp>
+#include <liballocgc/gc_type_meta.hpp>
+#include <liballocgc/details/utils/barrier.hpp>
+#include <liballocgc/details/utils/scoped_thread.hpp>
 
 using namespace std;
 
-using namespace precisegc;
-using namespace precisegc::details;
+using namespace allocgc;
+using namespace allocgc::details;
 
 namespace {
 struct type_1 {};

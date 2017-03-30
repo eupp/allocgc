@@ -1,7 +1,7 @@
 //
 // Created by evagl on 26.03.15.
 //
-#include <libprecisegc/libprecisegc.hpp>
+#include <liballocgc/liballocgc.hpp>
 void* routine(void* num) {
     for (int i = 0; i < 50; ++i) {
         gc_ptr<int> p[10];

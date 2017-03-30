@@ -82,7 +82,6 @@ set(precisegc_LIB_HDRS
         include/libprecisegc/details/collectors/remset.hpp
         include/libprecisegc/details/allocators/memory_index.hpp
         include/libprecisegc/details/allocators/gc_so_allocator.hpp
-        include/libprecisegc/gc_type_meta_factory.hpp
         include/libprecisegc/details/allocators/gc_lo_allocator.hpp
         include/libprecisegc/details/allocators/gc_pool_allocator.hpp
         include/libprecisegc/gc_alloc.hpp

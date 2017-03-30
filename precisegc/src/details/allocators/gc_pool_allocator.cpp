@@ -1,5 +1,6 @@
 #include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 
+#include <cmath>
 #include <tuple>
 #include <iterator>
 

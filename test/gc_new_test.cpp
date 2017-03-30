@@ -2,7 +2,6 @@
 
 #include <libprecisegc/gc_new.hpp>
 #include <libprecisegc/details/allocators/memory_index.hpp>
-#include <libprecisegc/gc_type_meta_factory.hpp>
 #include <libprecisegc/gc_type_meta.hpp>
 
 using namespace precisegc;
@@ -138,7 +137,7 @@ public:
     simple_object_with_ctor()
     {
         gc_ptr<simple_object> p = gc_new<simple_object>();
-        check_rootness(p);
+//        check_rootness(p);
     }
 
     static void check_rootness(const gc_ptr<simple_object>& p)

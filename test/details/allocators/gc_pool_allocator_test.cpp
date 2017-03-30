@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
-#include <libprecisegc/gc_type_meta_factory.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 
 #include "utils.hpp"
 

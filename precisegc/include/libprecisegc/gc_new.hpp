@@ -9,7 +9,6 @@
 #include <libprecisegc/gc_ptr.hpp>
 #include <libprecisegc/gc_alloc.hpp>
 #include <libprecisegc/gc_type_meta.hpp>
-#include <libprecisegc/gc_type_meta_factory.hpp>
 #include <libprecisegc/details/collectors/gc_new_stack_entry.hpp>
 #include <libprecisegc/details/gc_unsafe_scope.hpp>
 #include <libprecisegc/details/utils/utility.hpp>

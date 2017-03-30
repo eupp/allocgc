@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 #include <libprecisegc/details/allocators/gc_box.hpp>
-#include <libprecisegc/gc_type_meta_factory.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 
 using namespace precisegc;
 using namespace precisegc::details;

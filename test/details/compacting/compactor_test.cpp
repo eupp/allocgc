@@ -5,7 +5,7 @@
 #include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 #include <libprecisegc/details/compacting/two_finger_compactor.hpp>
 #include <libprecisegc/details/allocators/gc_core_allocator.hpp>
-#include <libprecisegc/gc_type_meta_factory.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 #include <libprecisegc/gc_common.hpp>
 
 #include "utils.hpp"

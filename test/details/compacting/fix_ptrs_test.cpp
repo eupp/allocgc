@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <libprecisegc/gc_type_meta_factory.hpp>
+#include <libprecisegc/gc_type_meta.hpp>
 #include <libprecisegc/details/compacting/fix_ptrs.hpp>
 #include <libprecisegc/details/allocators/gc_pool_allocator.hpp>
 
@@ -36,6 +36,7 @@ TEST_F(fix_ptrs_test, test_fix_ptrs)
     gc_buf buf;
     gc_alloc::response rsp = alloc.allocate(gc_alloc::request(OBJ_SIZE, 1, type_meta, &buf), gc_box::box_size(OBJ_SIZE));
 
+    commit(rsp, type_meta);
     set_mark(rsp, true);
     set_pin(rsp, false);
     byte* ptr = rsp.obj_start();

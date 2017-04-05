@@ -251,8 +251,6 @@ bool gc_pool_allocator::empty() const
 
 bool gc_pool_allocator::is_compaction_required(const gc_heap_stat& stat) const
 {
-//    return false;
-//    return stat.residency() < RESIDENCY_COMPACTING_THRESHOLD;
     if (stat.residency() < RESIDENCY_COMPACTING_THRESHOLD) {
         return true;
     }

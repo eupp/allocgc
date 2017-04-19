@@ -250,17 +250,16 @@ int main (int argc, const char* argv[])
     }
 
     #if defined(PRECISE_GC)
-        gc_factory::options ops;
+        gc_params params;
 //        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
-        ops.conservative    = conservative_flag;
-        ops.incremental     = incremental_flag;
-        ops.compacting      = compacting_flag;
+        params.conservative    = conservative_flag;
+        params.incremental     = incremental_flag;
+        params.compacting      = compacting_flag;
 //        ops.loglevel    = gc_loglevel::DEBUG;
 //        ops.print_stat  = true;
 //        ops.threads_available = 1;
 
-        auto strategy = gc_factory::create(ops);
-        gc_init(std::move(strategy));
+        gc_init(params);
     #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {

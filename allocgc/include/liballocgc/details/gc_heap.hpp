@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include <liballocgc/gc_alloc.hpp>
-#include <liballocgc/gc_factory.hpp>
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/details/constants.hpp>
 
@@ -32,7 +31,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef allocators::gc_lo_allocator mlo_alloc_t;
     typedef compacting::forwarding forwarding;
 public:
-    gc_heap(const gc_factory::options& opt);
+    gc_heap();
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
@@ -47,8 +46,6 @@ private:
     mlo_alloc_t m_loa;
     tlab_map_t  m_tlab_map;
     std::mutex  m_tlab_map_mutex;
-    bool        m_conservative_mode;
-    bool        m_compacting_mode;
 };
 
 }}

@@ -4,32 +4,33 @@
 #include <utility>
 #include <type_traits>
 
+#include <liballocgc/details/gc_untyped_ptr.hpp>
 #include <liballocgc/details/utils/scope_guard.hpp>
 #include <liballocgc/details/utils/make_unique.hpp>
-#include <liballocgc/details/ptrs/gc_untyped_ptr.hpp>
 #include <liballocgc/details/collectors/gc_new_stack_entry.hpp>
+#include <liballocgc/details/collectors/gc_serial.hpp>
 #include <liballocgc/gc_type_meta.hpp>
 #include <liballocgc/details/gc_hooks.hpp>
 
 #include "serial_gc_mock.hpp"
 
 using namespace allocgc;
-using namespace allocgc::details;
-using namespace allocgc::details::ptrs;
 
 using ::testing::_;
 using ::testing::Exactly;
 
+typedef allocgc::pointers::gc_untyped_ptr<allocgc::details::collectors::gc_serial> gc_untyped_ptr;
+
 TEST(gc_untyped_ptr_test, test_default_construct)
 {
     gc_untyped_ptr ptr;
-    EXPECT_EQ(nullptr, ptr.get());
+    EXPECT_EQ(nullptr, ptr.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_nullptr_construct)
 {
     gc_untyped_ptr ptr(nullptr);
-    EXPECT_EQ(nullptr, ptr.get());
+    EXPECT_EQ(nullptr, ptr.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_raw_ptr_construct)
@@ -37,7 +38,7 @@ TEST(gc_untyped_ptr_test, test_raw_ptr_construct)
     size_t val;
     byte* ptr = (byte*) &val;
     gc_untyped_ptr ptr1(ptr);
-    EXPECT_EQ(ptr, ptr1.get());
+    EXPECT_EQ(ptr, ptr1.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_copy_construct)
@@ -47,7 +48,7 @@ TEST(gc_untyped_ptr_test, test_copy_construct)
     gc_untyped_ptr ptr1(ptr);
 
     gc_untyped_ptr ptr2(ptr1);
-    EXPECT_EQ(ptr, ptr2.get());
+    EXPECT_EQ(ptr, ptr2.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_move_construct)
@@ -57,7 +58,7 @@ TEST(gc_untyped_ptr_test, test_move_construct)
     gc_untyped_ptr ptr1(ptr);
 
     gc_untyped_ptr ptr2(std::move(ptr1));
-    EXPECT_EQ(ptr, ptr2.get());
+    EXPECT_EQ(ptr, ptr2.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_nullptr_assignment)
@@ -67,7 +68,7 @@ TEST(gc_untyped_ptr_test, test_nullptr_assignment)
 
     gc_untyped_ptr ptr1(ptr);
     ptr1 = nullptr;
-    EXPECT_EQ(nullptr, ptr1.get());
+    EXPECT_EQ(nullptr, ptr1.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_copy_assignment)
@@ -78,7 +79,7 @@ TEST(gc_untyped_ptr_test, test_copy_assignment)
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
     ptr2 = ptr1;
-    EXPECT_EQ(ptr, ptr2.get());
+    EXPECT_EQ(ptr, ptr2.rbarrier());
 }
 
 TEST(gc_untyped_ptr_test, test_move_assignment)
@@ -89,7 +90,7 @@ TEST(gc_untyped_ptr_test, test_move_assignment)
     gc_untyped_ptr ptr1(ptr);
     gc_untyped_ptr ptr2;
     ptr2 = std::move(ptr1);
-    EXPECT_EQ(ptr, ptr2.get());
+    EXPECT_EQ(ptr, ptr2.rbarrier());
 }
 
 namespace {
@@ -164,6 +165,6 @@ TEST(gc_untyped_ptr_test, test_swap)
 
     swap(ptr1, ptr2);
 
-    EXPECT_EQ(ptr, ptr1.get());
-    EXPECT_EQ(nullptr, ptr2.get());
+    EXPECT_EQ(ptr, ptr1.rbarrier());
+    EXPECT_EQ(nullptr, ptr2.rbarrier());
 }

@@ -281,11 +281,75 @@ class JSONPrinter:
 
     def print_report(self, report):
         with open(self._outfn, "w") as outfile:
-            json.dump(report.items(), outfile)
+            json.dump(report.items(), outfile, indent=4)
 
     def outfn(self):
         return self._outfn
 
+class TextTotalTimePrinter:
+
+    def __init__(self, outfn):
+        self._outfn = outfn
+
+    def print_report(self, report):
+
+        outfn = self._outfn + ".txt"
+        with open(outfn, 'w') as out:
+            for target, data in report.items():
+                out.write("{}:\n".format(target))
+                baseline = next(row for row in data if row[0] == "shared_ptr")
+                total_time_baseline = baseline[2]
+                ident = " "*4
+                for row in data:
+                    name = row[0]
+                    total_time = row[2]
+                    total_time_std = row[3]
+
+                    out.write("{}{}: {:.0f}+-{:.2f} ms\n".format(
+                        ident, name,
+                        total_time, total_time_std,
+                    ))
+
+                    out.write("{}{}: {:.0f}+-{:.0f} %\n".format(
+                        ident, name,
+                        100 * total_time/total_time_baseline,
+                        100 * total_time_std/total_time_baseline,
+                    ))
+
+                out.write('\n')
+
+class TextPauseTimePrinter:
+
+    def __init__(self, outfn):
+        self._outfn = outfn
+
+    def print_report(self, report):
+
+        outfn = self._outfn + ".txt"
+        with open(outfn, 'w') as out:
+            for target, data in report.items():
+                out.write("{}:\n".format(target))
+                baseline = next(row for row in data if row[0] == "gc_ptr")
+                pause_time_baseline = baseline[6]
+                ident = " "*4
+                for row in data:
+                    name = row[0]
+                    pause_time = row[6]
+                    pause_time_std = row[7]
+
+                    out.write("{}{}: {:.0f}+-{:.2f} ms\n".format(
+                        ident, name,
+                        pause_time, pause_time_std
+                    ))
+
+
+                    out.write("{}{}: {:.0f}+-{:.0f} %\n".format(
+                        ident, name,
+                        100 * pause_time/pause_time_baseline,
+                        100 * pause_time/pause_time_baseline
+                    ))
+
+                out.write('\n')
 
 class TexTablePrinter:
 
@@ -316,6 +380,17 @@ class TimeBarPlotPrinter:
             stds   = [row[3] for row in data]
 
             rects = plt.bar(ind, means, width, yerr=stds, color='r', ecolor='black')
+
+            SMALL_SIZE = 8
+            MEDIUM_SIZE = 12
+            BIGGER_SIZE = 20
+
+            # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+            plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
+            plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+            plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
+            plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
+            plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
             # add some text for labels, title and axes ticks
             plt.title(target)
@@ -351,6 +426,17 @@ class PauseTimePlotPrinter:
             stds    = [row[7] for row in data]
 
             rects = plt.bar(ind, means, width, yerr=stds, color='b', ecolor='black')
+
+            SMALL_SIZE = 8
+            MEDIUM_SIZE = 16
+            BIGGER_SIZE = 20
+
+            # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+            plt.rc('axes', titlesize=MEDIUM_SIZE)     # fontsize of the axes title
+            plt.rc('axes', labelsize=MEDIUM_SIZE)    # fontsize of the x and y labels
+            plt.rc('xtick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
+            plt.rc('ytick', labelsize=MEDIUM_SIZE)    # fontsize of the tick labels
+            plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 
             # create stacked errorbars:
             # ax.errorbar(range(0, m), means, std, fmt='ok', lw=1)
@@ -461,6 +547,10 @@ def create_printer(printer_name, *args, **kwargs):
         return HeapPlotPrinter(*args, **kwargs)
     if printer_name == "gc-time-plot":
         return GCTimePlotPrinter(*args, **kwargs)
+    if printer_name == "total-time-text":
+        return TextTotalTimePrinter(*args, **kwargs)
+    if printer_name == "pause-time-text":
+        return TextPauseTimePrinter(*args, **kwargs)
 
 
 class RunChecker:

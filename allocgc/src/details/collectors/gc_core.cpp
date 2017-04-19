@@ -13,15 +13,12 @@ namespace allocgc { namespace details { namespace collectors {
 
 thread_local threads::gc_thread_descriptor* gc_core::this_thread = nullptr;
 
-gc_core::gc_core(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr, remset* rset)
+gc_core::gc_core(remset* rset)
     : m_marker(&m_packet_manager, rset)
-    , m_heap(opt)
+    , m_heap()
 {
-    logging::init(std::clog, opt.loglevel);
-
-    m_conservative_mode = opt.conservative;
-
-    register_thread(main_thrd_descr);
+//    m_conservative_mode = opt.conservative;
+    m_conservative_mode = false;
 }
 
 gc_core::~gc_core()
@@ -123,7 +120,7 @@ void gc_core::deregister_handle(gc_handle& handle)
 byte* gc_core::register_pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* ptr = handle.rbarrier();
+    byte* ptr = rbarrier(handle);
     if (ptr) {
         this_thread->register_pin(ptr);
     }
@@ -140,7 +137,7 @@ void gc_core::deregister_pin(byte* pin)
 byte* gc_core::push_pin(const gc_handle& handle)
 {
     gc_unsafe_scope unsafe_scope;
-    byte* ptr = handle.rbarrier();
+    byte* ptr = rbarrier(handle);
     if (ptr) {
         this_thread->push_pin(ptr);
     }

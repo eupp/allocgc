@@ -5,12 +5,12 @@
 #include <queue>
 
 #include <liballocgc/liballocgc.hpp>
-#include <liballocgc/details/ptrs/gc_untyped_ptr.hpp>
+#include <liballocgc/gc_ptr.hpp>
 #include <liballocgc/details/collectors/marker.hpp>
 
 using namespace allocgc;
+using namespace allocgc::serial;
 using namespace allocgc::details;
-using namespace allocgc::details::ptrs;
 using namespace allocgc::details::collectors;
 
 #define DEBUG_PRINT_TREE
@@ -63,7 +63,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
     allocators::memory_index::get_gc_cell((byte*) pin.get()).set_mark(false);
     if (depth == mark_depth) {
         root_set.roots.push_back(
-                reinterpret_cast<gc_handle*>(&allocgc::internals::gc_ptr_access<node>::get_untyped(ptr))
+                reinterpret_cast<gc_handle*>(&allocgc::pointers::internals::gc_ptr_access::get_untyped(ptr))
         );
     }
     mark_tree(ptr->m_left, depth + 1, mark_depth, root_set);
@@ -97,7 +97,7 @@ void check_nodes_pinned(const gc_ptr<node>& ptr, size_t depth, size_t pin_depth,
         return;
     };
 
-    node* raw_ptr = allocgc::internals::gc_ptr_access<node>::get(ptr);
+    node* raw_ptr = allocgc::pointers::internals::gc_ptr_access::get(ptr);
     if (depth == pin_depth) {
         EXPECT_TRUE(allocators::memory_index::get_gc_cell((byte*) raw_ptr).get_pin()) << "ptr=" << raw_ptr;
     } else {
@@ -219,7 +219,7 @@ TEST_F(marker_test, test_pins)
     std::cout << "Tree before marking" << std::endl << std::endl;
     print_tree(root);
 
-    pin_set.pins.push_back((byte*) allocgc::internals::gc_ptr_access<node>::get(root));
+    pin_set.pins.push_back((byte*) allocgc::pointers::internals::gc_ptr_access::get(root));
     for (byte* pin: pin_set.pins) {
         gc_cell cell = allocators::memory_index::get_gc_cell(pin);
         cell.set_mark(true);

@@ -28,7 +28,6 @@ byte* gc_core_allocator::allocate(size_t size, bool zeroing)
     } else {
         page = sys_allocator::allocate(aligned_size);
     }
-    gc_register_page(page, aligned_size);
     return page;
 }
 
@@ -39,7 +38,6 @@ void gc_core_allocator::deallocate(byte* ptr, size_t size)
     std::lock_guard<mutex_t> lock(mutex);
 
     size_t aligned_size = sys_allocator::align_size(size);
-    gc_deregister_page(ptr, aligned_size);
 
     if (aligned_size <= MAX_BUCKETIZE_SIZE) {
         bucket_alloc.deallocate(ptr, aligned_size);

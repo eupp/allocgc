@@ -10,7 +10,6 @@
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/details/gc_unsafe_scope.hpp>
 #include <liballocgc/details/allocators/pool.hpp>
-#include <liballocgc/details/ptrs/gc_untyped_ptr.hpp>
 #include <liballocgc/details/collectors/pin_stack.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/gc_common.hpp>

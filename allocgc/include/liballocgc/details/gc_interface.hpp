@@ -6,8 +6,7 @@
 #include <functional>
 
 #include <liballocgc/gc_exception.hpp>
-#include <liballocgc/details/gc_clock.hpp>
-#include <liballocgc/gc_handle.hpp>
+#include <liballocgc/gc_common.hpp>
 
 namespace allocgc { namespace details {
 

@@ -30,7 +30,7 @@ option(PRECISE_GC OFF)
 #set(BDW_GC ON)
 #set(UNIQUE_PTR ON)
 #set(SHARED_PTR ON)
-#set(PRECISE_GC ON)
+set(PRECISE_GC ON)
 
 if(NO_GC)
     add_definitions(-DNO_GC)

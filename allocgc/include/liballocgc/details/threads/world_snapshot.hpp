@@ -8,7 +8,6 @@
 #include <liballocgc/details/threads/gc_thread_manager.hpp>
 #include <liballocgc/details/threads/stw_manager.hpp>
 #include <liballocgc/details/utils/utility.hpp>
-#include <liballocgc/details/gc_clock.hpp>
 #include <liballocgc/details/logging.hpp>
 
 namespace allocgc { namespace details { namespace threads {

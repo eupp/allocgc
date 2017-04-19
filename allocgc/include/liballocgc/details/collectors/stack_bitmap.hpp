@@ -9,7 +9,6 @@
 #include <boost/integer/static_log2.hpp>
 
 #include <liballocgc/details/constants.hpp>
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/utils/math.hpp>
 #include <liballocgc/details/gc_interface.hpp>

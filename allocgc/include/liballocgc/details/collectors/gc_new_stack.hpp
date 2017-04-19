@@ -4,7 +4,6 @@
 #include <cassert>
 
 #include <liballocgc/details/collectors/gc_new_stack_entry.hpp>
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/gc_interface.hpp>
 

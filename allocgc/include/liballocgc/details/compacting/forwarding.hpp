@@ -4,7 +4,6 @@
 #include <cstddef>
 
 #include <liballocgc/gc_common.hpp>
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 
 namespace allocgc { namespace details { namespace compacting {

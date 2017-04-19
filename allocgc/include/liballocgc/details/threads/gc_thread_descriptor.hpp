@@ -6,7 +6,6 @@
 
 #include <liballocgc/gc_common.hpp>
 #include <liballocgc/details/constants.hpp>
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/details/logging.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>
@@ -205,7 +204,7 @@ private:
     stack_descriptor                m_stack_descr;
     StackRootSet                    m_stack_roots;
     PinSet                          m_pin_set;
-    UninitStack                       m_uninit_stack;
+    UninitStack                     m_uninit_stack;
     std::thread::id                 m_id;
     std::thread::native_handle_type m_native_handle;
 };

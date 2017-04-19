@@ -59,7 +59,8 @@
   ],
   "printers": [
     {"name": "json", "params": {"outfn": "benchmark-all.json"}},
-    {"name": "time-bar-plot", "params": {"outfn": "total-time-plot"}}
+    {"name": "time-bar-plot", "params": {"outfn": "total-time-plot"}},
+    {"name": "total-time-text", "params": {"outfn": "total-time"}}
   ],
   "nruns" : 20
 }

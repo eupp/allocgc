@@ -3,6 +3,7 @@
 #include <liballocgc/liballocgc.hpp>
 
 using namespace allocgc;
+using namespace allocgc::serial;
 
 class B;
 

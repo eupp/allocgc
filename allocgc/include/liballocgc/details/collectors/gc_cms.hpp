@@ -8,23 +8,22 @@
 #include <liballocgc/details/collectors/remset.hpp>
 #include <liballocgc/details/collectors/marker.hpp>
 #include <liballocgc/details/utils/utility.hpp>
-#include <liballocgc/gc_strategy.hpp>
 
 namespace allocgc { namespace details { namespace collectors {
 
-class gc_incremental : public gc_core, private utils::noncopyable, private utils::nonmovable
+class gc_cms : public gc_core, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_incremental(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr);
+    gc_cms();
 
-    gc_alloc::response allocate(const gc_alloc::request& rqst) override;
+    gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    void commit(const gc_alloc::response& rsp) override;
-    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta) override;
+    void commit(const gc_alloc::response& rsp);
+    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
 
-    void  wbarrier(gc_handle& dst, const gc_handle& src) override;
+    void  wbarrier(gc_handle& dst, const gc_handle& src);
 
-    gc_run_stat gc(const gc_options& options) override;
+    gc_run_stat gc(const gc_options& options);
 
     gc_info info() const;
 private:

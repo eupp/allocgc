@@ -6,9 +6,10 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-gc_serial::gc_serial(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr)
-    : gc_core(opt, main_thrd_descr, nullptr)
-    , m_threads_available(opt.threads_available)
+gc_serial::gc_serial()
+    : gc_core(nullptr)
+//    , m_threads_available(opt.threads_available)
+    , m_threads_available(std::thread::hardware_concurrency())
 {}
 
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)

@@ -3,7 +3,6 @@
 
 #include <gmock/gmock.h>
 
-#include <liballocgc/gc_strategy.hpp>
 
 //class serial_gc_mock : public allocgc::details::gc_strategy
 //{

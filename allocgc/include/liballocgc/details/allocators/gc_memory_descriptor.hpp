@@ -3,7 +3,6 @@
 
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/gc_type_meta.hpp>
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/gc_common.hpp>
 
 namespace allocgc { namespace details { namespace allocators {

@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
-#include <liballocgc/gc_new.hpp>
+#include <liballocgc/liballocgc.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>
 #include <liballocgc/gc_type_meta.hpp>
 
 using namespace allocgc;
+using namespace allocgc::serial;
 using namespace allocgc::details;
 using namespace allocgc::details::collectors;
 

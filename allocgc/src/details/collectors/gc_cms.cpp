@@ -1,4 +1,4 @@
-#include <liballocgc/details/collectors/gc_incremental.hpp>
+#include <liballocgc/details/collectors/gc_cms.hpp>
 
 #include <cassert>
 
@@ -10,13 +10,14 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-gc_incremental::gc_incremental(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr)
-    : gc_core(opt, main_thrd_descr, &m_remset)
+gc_cms::gc_cms()
+    : gc_core(&m_remset)
     , m_phase(gc_phase::IDLE)
-    , m_threads_available(opt.threads_available)
+//    , m_threads_available(opt.threads_available)
+    , m_threads_available(std::thread::hardware_concurrency())
 {}
 
-gc_alloc::response gc_incremental::allocate(const gc_alloc::request& rqst)
+gc_alloc::response gc_cms::allocate(const gc_alloc::request& rqst)
 {
     try {
         return gc_core::allocate(rqst);
@@ -25,7 +26,7 @@ gc_alloc::response gc_incremental::allocate(const gc_alloc::request& rqst)
     }
 }
 
-void gc_incremental::commit(const gc_alloc::response& rsp)
+void gc_cms::commit(const gc_alloc::response& rsp)
 {
     gc_core::commit(rsp);
     if (m_phase == gc_phase::MARK) {
@@ -34,7 +35,7 @@ void gc_incremental::commit(const gc_alloc::response& rsp)
     }
 }
 
-void gc_incremental::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
+void gc_cms::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
 {
     gc_core::commit(rsp, type_meta);
     if (m_phase == gc_phase::MARK) {
@@ -43,7 +44,7 @@ void gc_incremental::commit(const gc_alloc::response& rsp, const gc_type_meta* t
     }
 }
 
-void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
+void gc_cms::wbarrier(gc_handle& dst, const gc_handle& src)
 {
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
@@ -56,7 +57,7 @@ void gc_incremental::wbarrier(gc_handle& dst, const gc_handle& src)
     }
 }
 
-gc_run_stat gc_incremental::gc(const gc_options& options)
+gc_run_stat gc_cms::gc(const gc_options& options)
 {
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking_phase();
@@ -68,7 +69,7 @@ gc_run_stat gc_incremental::gc(const gc_options& options)
     return gc_run_stat();
 }
 
-gc_run_stat gc_incremental::start_marking_phase()
+gc_run_stat gc_cms::start_marking_phase()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
@@ -85,7 +86,7 @@ gc_run_stat gc_incremental::start_marking_phase()
     return stats;
 }
 
-gc_run_stat gc_incremental::sweep()
+gc_run_stat gc_cms::sweep()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
@@ -121,7 +122,7 @@ gc_run_stat gc_incremental::sweep()
     return stats;
 }
 
-gc_info gc_incremental::info() const
+gc_info gc_cms::info() const
 {
     static gc_info inf = {
             .incremental_flag                = true,

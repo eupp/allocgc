@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <unordered_set>
 
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/details/gc_unsafe_scope.hpp>
 #include <liballocgc/details/utils/utility.hpp>

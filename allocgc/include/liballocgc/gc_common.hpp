@@ -12,6 +12,46 @@ namespace allocgc {
 typedef std::uint8_t byte;
 typedef std::atomic<byte*> atomic_byte_ptr;
 
+class gc_handle_access;
+
+class gc_handle
+{
+public:
+    gc_handle() = default;
+
+    constexpr gc_handle(byte* ptr)
+            : m_ptr(ptr)
+    {}
+
+    static gc_handle null;
+private:
+    friend class gc_handle_access;
+
+    atomic_byte_ptr m_ptr;
+};
+
+class gc_handle_access
+{
+public:
+    template<int MemoryOrder>
+    static byte* get(const gc_handle& handle)
+    {
+        return handle.m_ptr.load(static_cast<std::memory_order>(MemoryOrder));
+    }
+
+    template<int MemoryOrder>
+    static void set(gc_handle& handle, byte* ptr)
+    {
+        handle.m_ptr.store(ptr, static_cast<std::memory_order>(MemoryOrder));
+    }
+
+    template<int MemoryOrder>
+    static void advance(gc_handle& handle, ptrdiff_t n)
+    {
+        handle.m_ptr.fetch_add(n, static_cast<std::memory_order>(MemoryOrder));
+    }
+};
+
 struct thread_descriptor
 {
     std::thread::id id;
@@ -141,6 +181,18 @@ enum class gc_loglevel {
     , WARNING
     , ERROR
     , SILENT
+};
+
+struct gc_params
+{
+    size_t      heapsize            = std::numeric_limits<size_t>::max();
+    size_t      threads_available   = std::thread::hardware_concurrency();
+    gc_loglevel loglevel            = gc_loglevel::SILENT;
+    bool        conservative        = false;
+    bool        compacting          = false;
+    bool        incremental         = false;
+    bool        manual_init         = false;
+    bool        print_stat          = false;
 };
 
 }

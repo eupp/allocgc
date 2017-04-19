@@ -4,6 +4,7 @@
 #include <tuple>
 #include <iterator>
 
+#include <liballocgc/details/gc_facade.hpp>
 #include <liballocgc/details/allocators/gc_box.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>
 #include <liballocgc/details/compacting/fix_ptrs.hpp>

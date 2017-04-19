@@ -1,11 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <liballocgc/gc_cast.hpp>
-
-#include "liballocgc/gc_ptr.hpp"
-#include "liballocgc/gc_new.hpp"
+#include <liballocgc/liballocgc.hpp>
 
 using namespace allocgc;
+using namespace allocgc::serial;
 
 TEST(gc_ptr_test, test_gc_ptr)
 {
@@ -76,12 +74,12 @@ struct A {
 
 }
 
-TEST(gc_ptr_test, test_take)
-{
-    gc_ptr<A> p = gc_new<A>();
-    p->d1 = -1;
-    p->d2 = 42;
-
-    gc_ptr<size_t> pInner = take_interior<A, size_t, &A::d2>(p);
-    ASSERT_EQ(42, *pInner);
-}
+//TEST(gc_ptr_test, test_take)
+//{
+//    gc_ptr<A> p = gc_new<A>();
+//    p->d1 = -1;
+//    p->d2 = 42;
+//
+//    gc_ptr<size_t> pInner = take_interior<A, size_t, &A::d2>(p);
+//    ASSERT_EQ(42, *pInner);
+//}

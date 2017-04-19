@@ -1,10 +1,6 @@
 #ifndef ALLOCGC_GC_CORE_HPP
 #define ALLOCGC_GC_CORE_HPP
 
-#include <liballocgc/gc_handle.hpp>
-#include <liballocgc/gc_strategy.hpp>
-#include <liballocgc/gc_factory.hpp>
-
 #include <liballocgc/details/gc_hooks.hpp>
 #include <liballocgc/details/gc_heap.hpp>
 
@@ -19,36 +15,36 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-class gc_core : public gc_strategy, private utils::noncopyable, private utils::nonmovable
+class gc_core : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_core(const gc_factory::options& opt, const thread_descriptor& main_thrd_descr, remset* rset);
+    gc_core(remset* rset);
 
     ~gc_core();
 
-    gc_alloc::response allocate(const gc_alloc::request& rqst) override;
+    gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    void abort(const gc_alloc::response& rsp) override;
-    void commit(const gc_alloc::response& rsp) override;
-    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta) override;
+    void abort(const gc_alloc::response& rsp);
+    void commit(const gc_alloc::response& rsp);
+    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
 
-    gc_offsets make_offsets(const gc_alloc::response& rsp) override;
+    gc_offsets make_offsets(const gc_alloc::response& rsp);
 
-    byte* rbarrier(const gc_handle& handle) override;
+    byte* rbarrier(const gc_handle& handle);
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset) override;
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
 
-    void register_handle(gc_handle& handle, byte* ptr) override;
-    void deregister_handle(gc_handle& handle) override;
+    void register_handle(gc_handle& handle, byte* ptr);
+    void deregister_handle(gc_handle& handle);
 
-    byte* register_pin(const gc_handle& handle) override;
-    void  deregister_pin(byte* pin) override;
+    byte* register_pin(const gc_handle& handle);
+    void  deregister_pin(byte* pin);
 
-    byte* push_pin(const gc_handle& handle) override;
-    void  pop_pin(byte* pin) override;
+    byte* push_pin(const gc_handle& handle);
+    void  pop_pin(byte* pin);
 
-    void register_thread(const thread_descriptor& descr) override;
-    void deregister_thread(std::thread::id id) override;
+    void register_thread(const thread_descriptor& descr);
+    void deregister_thread(std::thread::id id);
 protected:
     threads::world_snapshot stop_the_world();
 

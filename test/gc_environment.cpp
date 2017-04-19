@@ -13,13 +13,13 @@ public:
 
     virtual void SetUp()
     {
-        gc_factory::options gc_ops;
-        gc_ops.manual_init  = true;
-        gc_ops.print_stat   = true;
-        gc_ops.heapsize     = 128 * 1024 * 1024;
-        gc_ops.loglevel     = gc_loglevel::DEBUG;
+        gc_params params;
+        params.manual_init  = true;
+        params.print_stat   = true;
+        params.heapsize     = 128 * 1024 * 1024;
+        params.loglevel     = gc_loglevel::DEBUG;
 
-        int res = gc_init(gc_factory::create(gc_ops));
+        int res = gc_init(params);
         assert(res == 0);
     }
 

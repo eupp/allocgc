@@ -29,7 +29,8 @@
   ],
   "reporters":
   [
-    {"name": "tex_table", "output": "_ball.tex"}
+    {"name": "tex_table", "output": "_ball.tex"},
+
   ],
   "nruns" : 20
 }

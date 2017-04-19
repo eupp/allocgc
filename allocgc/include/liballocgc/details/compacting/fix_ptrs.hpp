@@ -3,7 +3,6 @@
 
 #include <cstddef>
 
-#include <liballocgc/gc_handle.hpp>
 #include <liballocgc/details/gc_interface.hpp>
 
 namespace allocgc { namespace details { namespace compacting {

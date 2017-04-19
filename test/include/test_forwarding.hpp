@@ -7,7 +7,6 @@
 #include <algorithm>
 
 #include <liballocgc/gc_common.hpp>
-#include <liballocgc/gc_handle.hpp>
 
 class test_forwarding
 {

@@ -6,12 +6,12 @@
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/gc_pin.hpp>
 
-namespace allocgc {
+namespace allocgc { namespace pointers {
 
-template <typename T>
+template <typename T, typename GCStrategy>
 class gc_ptr;
 
-template <typename T>
+template <typename T, typename GCStrategy>
 class gc_ref : private details::utils::noncopyable
 {
 public:
@@ -30,17 +30,17 @@ public:
         return *this;
     }
 
-    friend class gc_ptr<T>;
+    friend class gc_ptr<T, GCStrategy>;
 private:
-    gc_ref(gc_pin<T>&& pin)
+    gc_ref(gc_pin<T, GCStrategy>&& pin)
         : m_pin(std::move(pin))
     {}
 
-    gc_pin<T> m_pin;
+    gc_pin<T, GCStrategy> m_pin;
 };
 
-template <typename T>
-class gc_ref<T[]> : private details::utils::noncopyable
+template <typename T, typename GCStrategy>
+class gc_ref<T[], GCStrategy> : private details::utils::noncopyable
 {
 public:
     gc_ref(gc_ref&&) = default;
@@ -58,20 +58,20 @@ public:
         return *this;
     }
 
-    friend class gc_ptr<T[]>;
+    friend class gc_ptr<T[], GCStrategy>;
 private:
-    gc_ref(gc_pin<T[]>&& pin, size_t idx)
+    gc_ref(gc_pin<T[], GCStrategy>&& pin, size_t idx)
         : m_pin(std::move(pin))
         , m_idx(idx)
     {}
 
-    gc_pin<T[]> m_pin;
+    gc_pin<T[], GCStrategy> m_pin;
     size_t m_idx;
 };
 
-template <typename T, size_t N>
-class gc_ref<T[N]>;
+template <typename T, size_t N, typename GCStrategy>
+class gc_ref<T[N], GCStrategy>;
 
-}
+}}
 
 #endif //ALLOCGC_GC_REF_HPP

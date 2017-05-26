@@ -10,7 +10,6 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <liballocgc/details/allocators/allocator_tag.hpp>
-#include <liballocgc/details/utils/block_ptr.hpp>
 #include <liballocgc/details/logging.hpp>
 #include <liballocgc/details/constants.hpp>
 #include <liballocgc/gc_common.hpp>

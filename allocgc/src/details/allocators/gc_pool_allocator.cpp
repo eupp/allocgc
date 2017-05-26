@@ -14,7 +14,8 @@
 namespace allocgc { namespace details { namespace allocators {
 
 gc_pool_allocator::gc_pool_allocator()
-    : m_freelist(nullptr)
+    : m_core_alloc(nullptr)
+    , m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
     , m_prev_residency(0)
@@ -27,6 +28,16 @@ gc_pool_allocator::~gc_pool_allocator()
     }
 }
 
+gc_core_allocator* gc_pool_allocator::get_core_allocator() const
+{
+    return m_core_alloc;
+}
+
+void gc_pool_allocator::set_core_allocator(gc_core_allocator* core_alloc)
+{
+    m_core_alloc = core_alloc;
+}
+
 gc_alloc::response gc_pool_allocator::allocate(const gc_alloc::request& rqst, size_t aligned_size)
 {
     if (m_top == m_end) {
@@ -35,10 +46,11 @@ gc_alloc::response gc_pool_allocator::allocate(const gc_alloc::request& rqst, si
     return stack_allocation(aligned_size, rqst);
 }
 
-gc_alloc::response gc_pool_allocator::try_expand_and_allocate(size_t size,
-                                                              const gc_alloc::request& rqst,
-                                                              size_t attempt_num)
-{
+gc_alloc::response gc_pool_allocator::try_expand_and_allocate(
+        size_t size,
+        const gc_alloc::request& rqst,
+        size_t attempt_num
+) {
     using namespace collectors;
 
     byte*  blk;
@@ -59,7 +71,7 @@ gc_alloc::response gc_pool_allocator::try_expand_and_allocate(size_t size,
             opt.gen  = 0;
             gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
         } else if (attempt_num == 1) {
-            gc_expand_heap();
+            m_core_alloc->expand_heap();
         } else {
             throw gc_bad_alloc();
         }
@@ -126,13 +138,15 @@ gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t i
 
 std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size, bool zeroing)
 {
+    assert(m_core_alloc);
     size_t chunk_size = descriptor_t::chunk_size(cell_size);
-    return std::make_pair(gc_core_allocator::allocate(chunk_size, zeroing), chunk_size);
+    return std::make_pair(m_core_alloc->allocate(chunk_size, zeroing), chunk_size);
 }
 
 void gc_pool_allocator::deallocate_block(byte* ptr, size_t size)
 {
-    gc_core_allocator::deallocate(ptr, size);
+    assert(m_core_alloc);
+    m_core_alloc->deallocate(ptr, size);
 }
 
 bool gc_pool_allocator::contains(byte* ptr) const
@@ -153,7 +167,6 @@ gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 
     gc_heap_stat stat;
     shrink(stat);
-    gc_decrease_heap_size(stat.mem_freed);
 
     m_top = nullptr;
     m_end = m_top;

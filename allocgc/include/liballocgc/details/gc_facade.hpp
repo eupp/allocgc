@@ -109,46 +109,6 @@ public:
         strategy.deregister_thread(id);
     }
 
-    static bool increment_heap_size(size_t alloc_size)
-    {
-        std::unique_lock<std::mutex> lock(heap_mutex);
-        size_t size = heap_size + alloc_size;
-        if (size > COLLECT_THRESHOLD * heap_limit) {
-            return false;
-        }
-        else if (size > MARK_THRESHOLD * heap_limit) {
-            gc_options opt;
-            opt.kind = gc_kind::CONCURRENT_MARK;
-            opt.gen  = 0;
-
-            lock.unlock();
-            initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
-            lock.lock();
-        }
-        heap_size += alloc_size;
-        return true;
-    }
-
-    static void decrement_heap_size(size_t size)
-    {
-        std::lock_guard<std::mutex> lock(heap_mutex);
-        heap_size -= size;
-    }
-
-    static void set_heap_limit(size_t size)
-    {
-        std::lock_guard<std::mutex> lock(heap_mutex);
-        heap_limit = (size == std::numeric_limits<size_t>::max()) ? HEAP_START_LIMIT : size;
-        heap_maxlimit = size;
-    }
-
-    static void expand_heap()
-    {
-        std::lock_guard<std::mutex> lock(heap_mutex);
-        size_t increased_size = INCREASE_FACTOR * heap_limit;
-        heap_limit = std::min(increased_size, heap_maxlimit);
-    }
-
     static void initiation_point(initiation_point_type ipt, const gc_options& opt)
     {
         gc_safe_scope safe_scope;
@@ -168,6 +128,11 @@ public:
         } else if (ipt == initiation_point_type::START_COLLECTING) {
             gc(opt);
         }
+    }
+
+    static void set_heap_limit(size_t limit)
+    {
+        strategy.set_heap_limit(limit);
     }
 
     static inline gc_stat stats()
@@ -227,22 +192,11 @@ private:
         return is_interior_pointer(handle, rbarrier(handle) + shift);
     }
 
-    static const size_t HEAP_START_LIMIT;
-
-    static const double INCREASE_FACTOR;
-    static const double MARK_THRESHOLD;
-    static const double COLLECT_THRESHOLD;
-
     static GCStrategy strategy;
     static std::mutex gc_mutex;
-    static std::mutex heap_mutex;
 
     static size_t gc_cnt;
     static gc_clock::duration gc_time;
-
-    static size_t heap_limit;
-    static size_t heap_maxlimit;
-    static size_t heap_size;
 };
 
 template <typename GCStrategy>
@@ -252,34 +206,10 @@ template <typename GCStrategy>
 std::mutex gc_facade<GCStrategy>::gc_mutex{};
 
 template <typename GCStrategy>
-std::mutex gc_facade<GCStrategy>::heap_mutex{};
-
-template <typename GCStrategy>
 size_t gc_facade<GCStrategy>::gc_cnt = 0;
 
 template <typename GCStrategy>
 gc_clock::duration gc_facade<GCStrategy>::gc_time{0};
-
-template <typename GCStrategy>
-size_t gc_facade<GCStrategy>::heap_limit = 0;
-
-template <typename GCStrategy>
-size_t gc_facade<GCStrategy>::heap_maxlimit = 0;
-
-template <typename GCStrategy>
-size_t gc_facade<GCStrategy>::heap_size = 0;
-
-template <typename GCStrategy>
-const size_t gc_facade<GCStrategy>::HEAP_START_LIMIT = 4 * 1024 * 1024;
-
-template <typename GCStrategy>
-const double gc_facade<GCStrategy>::INCREASE_FACTOR = 2.0;
-
-template <typename GCStrategy>
-const double gc_facade<GCStrategy>::MARK_THRESHOLD = 0.6;
-
-template <typename GCStrategy>
-const double gc_facade<GCStrategy>::COLLECT_THRESHOLD = 1.0;
 
 }}
 

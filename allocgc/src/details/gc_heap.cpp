@@ -1,4 +1,4 @@
-#include "gc_heap.hpp"
+#include "liballocgc/details/collectors/gc_heap.hpp"
 
 #include <cassert>
 #include <vector>
@@ -14,6 +14,7 @@
 namespace allocgc { namespace details {
 
 gc_heap::gc_heap()
+    : m_loa(&m_core_alloc)
 {}
 
 gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
@@ -25,10 +26,12 @@ gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
     }
 }
 
-gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t threads_available,
-                              collectors::static_root_set* static_roots)
-{
-    forwarding frwd;
+gc_heap_stat gc_heap::collect(
+        const threads::world_snapshot& snapshot,
+        size_t threads_available,
+        collectors::static_root_set* static_roots
+) {
+    compacting::forwarding frwd;
     utils::static_thread_pool thread_pool(threads_available);
 
     gc_heap_stat stat;
@@ -61,14 +64,19 @@ gc_heap_stat gc_heap::collect(const threads::world_snapshot& snapshot, size_t th
 
 gc_alloc::response gc_heap::allocate_on_tlab(const gc_alloc::request& rqst)
 {
-    static thread_local mso_alloc_t& tlab = get_tlab();
+    static thread_local so_alloc_t& tlab = get_tlab();
     return tlab.allocate(rqst);
 }
 
-gc_heap::mso_alloc_t& gc_heap::get_tlab()
+gc_heap::so_alloc_t& gc_heap::get_tlab()
 {
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
-    return m_tlab_map[std::this_thread::get_id()];
+    return m_tlab_map.emplace(&m_core_alloc).first->second;
+}
+
+void gc_heap::set_limit(size_t limit)
+{
+    m_core_alloc.set_heap_limit(limit);
 }
 
 }}

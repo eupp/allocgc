@@ -10,6 +10,7 @@
 #include <liballocgc/details/allocators/stl_adapter.hpp>
 
 #include <liballocgc/details/utils/static_thread_pool.hpp>
+#include <liballocgc/details/utils/dynarray.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 
 #include <liballocgc/details/compacting/forwarding.hpp>
@@ -25,7 +26,7 @@ public:
     typedef stateful_alloc_tag alloc_tag;
     typedef utils::static_thread_pool thread_pool_t;
 
-    gc_so_allocator();
+    explicit gc_so_allocator(gc_core_allocator* core_alloc);
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 

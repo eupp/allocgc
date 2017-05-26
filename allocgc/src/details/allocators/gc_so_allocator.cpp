@@ -6,11 +6,12 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-gc_so_allocator::gc_so_allocator()
+gc_so_allocator::gc_so_allocator(gc_core_allocator* core_alloc)
 {
     for (size_t i = 0; i < BUCKET_COUNT; ++i) {
         size_t sz_cls = 1ull << (i + MIN_CELL_SIZE_LOG2);
         m_buckets[i].first = sz_cls;
+        m_buckets[i].second.set_core_allocator(core_alloc);
     }
 }
 

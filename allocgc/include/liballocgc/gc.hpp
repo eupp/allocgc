@@ -43,6 +43,8 @@ auto gc_new(size_t n)
     return pointers::gc_new<T, details::collectors::gc_serial>(n);
 };
 
+void set_heap_limit(size_t limit);
+
 }
 
 }

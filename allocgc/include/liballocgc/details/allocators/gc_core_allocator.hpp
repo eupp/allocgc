@@ -37,20 +37,23 @@ public:
     typedef stateless_alloc_tag alloc_tag;
     typedef boost::iterator_range<byte*> memory_range_type;
 
-    gc_core_allocator() = default;
+    gc_core_allocator();
     gc_core_allocator(const gc_core_allocator&) = default;
     gc_core_allocator(gc_core_allocator&&) = default;
 
     gc_core_allocator& operator=(const gc_core_allocator&) = default;
     gc_core_allocator& operator=(gc_core_allocator&&) = default;
 
-    static byte* allocate(size_t size, bool zeroing = true);
+    byte* allocate(size_t size, bool zeroing = true);
 
-    static void deallocate(byte* ptr, size_t size);
+    void deallocate(byte* ptr, size_t size);
 
-    static size_t shrink();
+    size_t shrink();
 
-    static memory_range_type memory_range();
+    memory_range_type memory_range();
+
+    void set_heap_limit(size_t limit);
+    void expand_heap();
 private:
     typedef freelist_allocator<sys_allocator> freelist_alloc_t;
     typedef freelist_allocator<sys_allocator> fixsize_page_alloc_t;
@@ -58,9 +61,21 @@ private:
 
     typedef std::mutex mutex_t;
 
-    static bucket_alloc_t bucket_alloc;
-    static freelist_alloc_t freelist;
-    static mutex_t mutex;
+    static const size_t HEAP_START_LIMIT;
+
+    static const double INCREASE_FACTOR;
+    static const double MARK_THRESHOLD;
+    static const double COLLECT_THRESHOLD;
+
+    bool increase_heap_size(size_t size, std::unique_lock<mutex_t>* lock);
+    void decrease_heap_size(size_t size);
+
+    size_t m_heap_size;
+    size_t m_heap_limit;
+    size_t m_heap_maxlimit;
+    bucket_alloc_t m_bucket_alloc;
+    freelist_alloc_t m_freelist;
+    mutex_t m_mutex;
 };
 
 }}}

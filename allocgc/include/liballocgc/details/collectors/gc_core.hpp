@@ -2,7 +2,7 @@
 #define ALLOCGC_GC_CORE_HPP
 
 #include <liballocgc/details/gc_hooks.hpp>
-#include <liballocgc/details/gc_heap.hpp>
+#include <liballocgc/details/collectors/gc_heap.hpp>
 
 #include <liballocgc/details/utils/make_unique.hpp>
 #include <liballocgc/details/utils/utility.hpp>
@@ -45,6 +45,8 @@ public:
 
     void register_thread(const thread_descriptor& descr);
     void deregister_thread(std::thread::id id);
+
+    void set_heap_limit(size_t limit);
 protected:
     threads::world_snapshot stop_the_world();
 

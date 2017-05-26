@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "liballocgc/details/gc_heap.hpp"
+#include "liballocgc/details/collectors/gc_heap.hpp"
 
 using namespace allocgc::details;
 

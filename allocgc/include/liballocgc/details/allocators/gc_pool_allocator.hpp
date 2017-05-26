@@ -41,6 +41,9 @@ public:
     gc_pool_allocator();
     ~gc_pool_allocator();
 
+    gc_core_allocator* get_core_allocator() const;
+    void set_core_allocator(gc_core_allocator* core_alloc);
+
     gc_alloc::response allocate(const gc_alloc::request& rqst, size_t aligned_size);
 
     gc_heap_stat collect(compacting::forwarding& frwd);
@@ -79,6 +82,7 @@ private:
 
     void insert_into_freelist(byte* ptr);
 
+    gc_core_allocator* m_core_alloc;
     descriptor_list_t m_descrs;
     byte** m_freelist;
     byte*  m_top;

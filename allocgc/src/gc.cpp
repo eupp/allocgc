@@ -29,8 +29,6 @@ int gc_init(const gc_params& params)
 
     gc_register_thread(main_thrd_descr);
 
-    gc_set_heap_limit(params.heapsize);
-
     return 0;
 }
 
@@ -45,6 +43,15 @@ void gc()
     opt.kind = gc_kind::MARK_COLLECT;
     opt.gen  = -1;
     gc_initiation_point(details::initiation_point_type::USER_REQUEST, opt);
+}
+
+namespace serial {
+
+void set_heap_limit(size_t limit)
+{
+    gc_facade<gc_serial>::set_heap_limit(limit);
+}
+
 }
 
 }

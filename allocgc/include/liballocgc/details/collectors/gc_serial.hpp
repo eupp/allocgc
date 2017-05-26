@@ -6,7 +6,7 @@
 #include <liballocgc/details/collectors/gc_core.hpp>
 #include <liballocgc/details/collectors/packet_manager.hpp>
 #include <liballocgc/details/collectors/marker.hpp>
-#include <liballocgc/details/gc_heap.hpp>
+#include <liballocgc/details/collectors/gc_heap.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 
 namespace allocgc { namespace details { namespace collectors {

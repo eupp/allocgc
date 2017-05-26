@@ -14,6 +14,7 @@
 #include <liballocgc/details/allocators/sys_allocator.hpp>
 #include <liballocgc/details/allocators/list_allocator.hpp>
 #include <liballocgc/details/allocators/gc_core_allocator.hpp>
+#include <liballocgc/details/allocators/redirection_allocator.hpp>
 #include <liballocgc/details/allocators/gc_object_descriptor.hpp>
 
 #include <liballocgc/details/utils/locked_range.hpp>
@@ -26,7 +27,11 @@ namespace allocgc { namespace details { namespace allocators {
 
 class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    typedef list_allocator<gc_core_allocator, utils::dummy_mutex> list_alloc_t;
+    typedef list_allocator<
+            redirection_allocator<gc_core_allocator>,
+            utils::dummy_mutex
+        > list_alloc_t;
+
     typedef gc_object_descriptor descriptor_t;
     typedef std::mutex mutex_t;
 
@@ -103,7 +108,7 @@ class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
 public:
     typedef stateful_alloc_tag alloc_tag;
 
-    gc_lo_allocator();
+    explicit gc_lo_allocator(gc_core_allocator* core_alloc);
     ~gc_lo_allocator();
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);

@@ -6,7 +6,8 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-gc_lo_allocator::gc_lo_allocator()
+gc_lo_allocator::gc_lo_allocator(gc_core_allocator* core_alloc)
+    : m_alloc(redirection_allocator(core_alloc))
 { }
 
 gc_lo_allocator::~gc_lo_allocator()
@@ -36,7 +37,7 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
 
         blk.reset(allocate_blk(blk_size));
         if (!blk) {
-            gc_expand_heap();
+            m_alloc.upstream_allocator().allocator()->expand_heap();
             blk.reset(allocate_blk(blk_size));
             if (!blk) {
                 throw gc_bad_alloc();
@@ -70,7 +71,7 @@ gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
         stat.mem_before_gc += it->cell_size();
         if (!it->get_mark()) {
             stat.mem_freed += it->cell_size();
-            freed += m_alloc.get_blk_size(align_size(it->cell_size()));
+            freed += get_cell_size(it->cell_size());
             destroy(it);
         } else {
             stat.mem_occupied  += it->cell_size();
@@ -82,7 +83,6 @@ gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
         it = next;
     }
 
-    gc_decrease_heap_size(freed);
     return stat;
 }
 

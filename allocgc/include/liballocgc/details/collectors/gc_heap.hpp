@@ -12,6 +12,7 @@
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/details/constants.hpp>
 
+#include <liballocgc/details/allocators/gc_core_allocator.hpp>
 #include <liballocgc/details/allocators/gc_lo_allocator.hpp>
 #include <liballocgc/details/allocators/gc_so_allocator.hpp>
 
@@ -27,25 +28,31 @@ namespace allocgc { namespace details {
 
 class gc_heap : public utils::noncopyable, public utils::nonmovable
 {
-    typedef allocators::gc_so_allocator mso_alloc_t;
-    typedef allocators::gc_lo_allocator mlo_alloc_t;
-    typedef compacting::forwarding forwarding;
+    typedef allocators::gc_core_allocator   core_alloc_t;
+    typedef allocators::gc_so_allocator     so_alloc_t;
+    typedef allocators::gc_lo_allocator     lo_alloc_t;
 public:
     gc_heap();
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available,
-                             collectors::static_root_set* static_roots);
+    gc_heap_stat collect(
+            const threads::world_snapshot& snapshot,
+            size_t threads_available,
+            collectors::static_root_set* static_roots
+    );
+
+    void set_limit(size_t limit);
 private:
-    typedef std::unordered_map<std::thread::id, mso_alloc_t> tlab_map_t;
+    typedef std::unordered_map<std::thread::id, so_alloc_t> tlab_map_t;
 
     gc_alloc::response allocate_on_tlab(const gc_alloc::request& rqst);
-    mso_alloc_t& get_tlab();
+    so_alloc_t& get_tlab();
 
-    mlo_alloc_t m_loa;
-    tlab_map_t  m_tlab_map;
-    std::mutex  m_tlab_map_mutex;
+    core_alloc_t    m_core_alloc;
+    lo_alloc_t      m_loa;
+    tlab_map_t      m_tlab_map;
+    std::mutex      m_tlab_map_mutex;
 };
 
 }}

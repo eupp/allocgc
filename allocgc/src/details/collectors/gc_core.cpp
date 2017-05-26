@@ -177,6 +177,11 @@ void gc_core::deregister_thread(std::thread::id id)
     m_thread_manager.deregister_thread(id);
 }
 
+void gc_core::set_heap_limit(size_t limit)
+{
+    m_heap.set_limit(limit);
+}
+
 threads::world_snapshot gc_core::stop_the_world()
 {
     return m_thread_manager.stop_the_world();

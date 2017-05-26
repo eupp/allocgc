@@ -15,9 +15,7 @@
 namespace allocgc { namespace details { namespace allocators {
 
 template <typename UpstreamAlloc, typename Lock>
-class list_allocator : private utils::ebo<UpstreamAlloc>,
-                       private utils::noncopyable,
-                       private utils::nonmovable
+class list_allocator : UpstreamAlloc, private utils::noncopyable, private utils::nonmovable
 {
     struct control_block
     {
@@ -115,13 +113,22 @@ public:
         return get_memblk_size(((get_blk_size(size) + alignment - 1) / alignment) * alignment);
     }
 
-//    static constexpr
-
     list_allocator()
-        : m_head(get_fake_block())
     {
-        m_fake.m_next = get_fake_block();
-        m_fake.m_prev = get_fake_block();
+        init();
+
+    }
+
+    explicit list_allocator(const UpstreamAlloc& upstream_alloc)
+        : UpstreamAlloc(upstream_alloc)
+    {
+        init();
+    }
+
+    explicit list_allocator(UpstreamAlloc&& upstream_alloc)
+        : UpstreamAlloc(std::move(upstream_alloc))
+    {
+        init();
     }
 
     ~list_allocator()
@@ -210,6 +217,13 @@ public:
         return this->template get_base<UpstreamAlloc>();
     }
 private:
+    void init()
+    {
+        m_head        = get_fake_block();
+        m_fake.m_next = get_fake_block();
+        m_fake.m_prev = get_fake_block();
+    }
+
     control_block* get_fake_block()
     {
         return &m_fake;

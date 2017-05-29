@@ -13,14 +13,11 @@ public:
 
     virtual void SetUp()
     {
-        gc_params params;
-        params.manual_init  = true;
-        params.print_stat   = true;
-        params.heapsize     = 128 * 1024 * 1024;
-        params.loglevel     = gc_loglevel::DEBUG;
+        enable_logging(gc_loglevel::DEBUG);
 
-        int res = gc_init(params);
-        assert(res == 0);
+        serial::set_heap_limit(128 * 1024 * 1024);
+
+        serial::register_main_thread();
     }
 
     virtual void TearDown() {}

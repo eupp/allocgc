@@ -20,15 +20,19 @@ struct test_type
     byte data[OBJ_SIZE];
 };
 
-typedef gc_pool_allocator allocator_t;
-
 }
 
 static const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create(std::vector<size_t>({0}));
 
 struct fix_ptrs_test : public ::testing::Test
 {
-    allocator_t alloc;
+    fix_ptrs_test()
+    {
+        alloc.set_core_allocator(&core_alloc);
+    }
+
+    gc_core_allocator core_alloc;
+    gc_pool_allocator alloc;
 };
 
 TEST_F(fix_ptrs_test, test_fix_ptrs)

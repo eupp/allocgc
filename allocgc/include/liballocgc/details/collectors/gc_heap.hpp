@@ -32,7 +32,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef allocators::gc_so_allocator     so_alloc_t;
     typedef allocators::gc_lo_allocator     lo_alloc_t;
 public:
-    gc_heap();
+    explicit gc_heap(gc_launcher* launcher);
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
@@ -41,6 +41,8 @@ public:
             size_t threads_available,
             collectors::static_root_set* static_roots
     );
+
+    void shrink();
 
     void set_limit(size_t limit);
 private:

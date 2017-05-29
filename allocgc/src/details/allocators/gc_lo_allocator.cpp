@@ -7,7 +7,7 @@
 namespace allocgc { namespace details { namespace allocators {
 
 gc_lo_allocator::gc_lo_allocator(gc_core_allocator* core_alloc)
-    : m_alloc(redirection_allocator(core_alloc))
+    : m_alloc(redirection_allocator<gc_core_allocator>(core_alloc))
 { }
 
 gc_lo_allocator::~gc_lo_allocator()
@@ -33,7 +33,8 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
         gc_options opt;
         opt.kind = gc_kind::COLLECT;
         opt.gen  = 0;
-        gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
+
+        m_alloc.upstream_allocator().allocator()->gc(opt);
 
         blk.reset(allocate_blk(blk_size));
         if (!blk) {

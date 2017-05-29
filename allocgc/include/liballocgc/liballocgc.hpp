@@ -6,4 +6,3 @@
 #include <liballocgc/gc_ref.hpp>
 #include <liballocgc/gc_pin.hpp>
 #include <liballocgc/gc_cast.hpp>
-#include <liballocgc/gc_thread.hpp>

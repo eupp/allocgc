@@ -14,7 +14,6 @@
 #include <liballocgc/details/gc_unsafe_scope.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/logging.hpp>
-#include <liballocgc/details/gc_hooks.hpp>
 
 namespace allocgc { namespace pointers {
 

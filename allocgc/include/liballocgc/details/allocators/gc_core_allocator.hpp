@@ -13,10 +13,10 @@
 #include <liballocgc/details/allocators/sys_allocator.hpp>
 #include <liballocgc/details/allocators/bucket_allocator.hpp>
 #include <liballocgc/details/allocators/freelist_allocator.hpp>
-#include <liballocgc/details/gc_hooks.hpp>
 #include <liballocgc/details/constants.hpp>
 #include <liballocgc/details/logging.hpp>
 #include <liballocgc/gc_common.hpp>
+#include <liballocgc/details/gc_interface.hpp>
 
 namespace allocgc { namespace details { namespace allocators {
 
@@ -38,6 +38,9 @@ public:
     typedef boost::iterator_range<byte*> memory_range_type;
 
     gc_core_allocator();
+
+    explicit gc_core_allocator(gc_launcher* gc);
+
     gc_core_allocator(const gc_core_allocator&) = default;
     gc_core_allocator(gc_core_allocator&&) = default;
 
@@ -54,6 +57,8 @@ public:
 
     void set_heap_limit(size_t limit);
     void expand_heap();
+
+    gc_run_stat gc(const gc_options& options);
 private:
     typedef freelist_allocator<sys_allocator> freelist_alloc_t;
     typedef freelist_allocator<sys_allocator> fixsize_page_alloc_t;
@@ -70,6 +75,7 @@ private:
     bool increase_heap_size(size_t size, std::unique_lock<mutex_t>* lock);
     void decrease_heap_size(size_t size);
 
+    gc_launcher* m_gc_launcher;
     size_t m_heap_size;
     size_t m_heap_limit;
     size_t m_heap_maxlimit;

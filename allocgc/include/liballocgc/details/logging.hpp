@@ -14,16 +14,12 @@ class logging
 {
     class log_line;
 public:
-    static void init(std::ostream& stream, gc_loglevel lv);
+    static void set_loglevel(gc_loglevel loglevel);
+
     static log_line debug();
     static log_line info();
     static log_line warning();
     static log_line error();
-
-    // auxiliary method to fix order of objects construction/destruction;
-    // it's used in some static/global object constructor to guarantee that logger will be constructed before that object
-    // and hence it's safe to use logger inside destructor (because it will be destructed after)
-    static void touch();
 private:
     typedef std::mutex mutex_t;
 
@@ -31,6 +27,8 @@ private:
     {
     public:
         logger(const std::ostream& stream, gc_loglevel lv);
+
+        void set_loglevel(gc_loglevel loglevel);
 
         template <typename T>
         logger& operator<<(const T& x)

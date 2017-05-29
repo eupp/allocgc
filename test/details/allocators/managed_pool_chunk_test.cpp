@@ -14,7 +14,6 @@
 using namespace allocgc;
 using namespace allocgc::details;
 using namespace allocgc::details::allocators;
-using namespace allocgc::details::collectors;
 
 namespace {
 const size_t CELL_SIZE  = 64;

@@ -37,9 +37,12 @@ struct compactor_test : public ::testing::Test
 {
     compactor_test()
         : rqst(OBJ_SIZE, 1, type_meta, &buf)
-    {}
+    {
+        alloc.set_core_allocator(&core_alloc);
+    }
 
-    allocator_t alloc;
+    gc_core_allocator core_alloc;
+    gc_pool_allocator alloc;
     Compactor compactor;
     gc_buf buf;
     gc_alloc::request rqst;

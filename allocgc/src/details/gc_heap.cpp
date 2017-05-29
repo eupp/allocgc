@@ -1,8 +1,7 @@
 #include "liballocgc/details/collectors/gc_heap.hpp"
 
 #include <cassert>
-#include <vector>
-#include <functional>
+#include <utility>
 
 #include <liballocgc/details/compacting/fix_ptrs.hpp>
 #include <liballocgc/details/compacting/two_finger_compactor.hpp>
@@ -13,8 +12,9 @@
 
 namespace allocgc { namespace details {
 
-gc_heap::gc_heap()
-    : m_loa(&m_core_alloc)
+gc_heap::gc_heap(gc_launcher* launcher)
+    : m_core_alloc(launcher)
+    , m_loa(&m_core_alloc)
 {}
 
 gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
@@ -71,7 +71,16 @@ gc_alloc::response gc_heap::allocate_on_tlab(const gc_alloc::request& rqst)
 gc_heap::so_alloc_t& gc_heap::get_tlab()
 {
     std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
-    return m_tlab_map.emplace(&m_core_alloc).first->second;
+    return m_tlab_map.emplace(
+            std::piecewise_construct,
+            std::make_tuple(std::this_thread::get_id()),
+            std::make_tuple(&m_core_alloc)
+    ).first->second;
+}
+
+void gc_heap::shrink()
+{
+    m_core_alloc.shrink();
 }
 
 void gc_heap::set_limit(size_t limit)

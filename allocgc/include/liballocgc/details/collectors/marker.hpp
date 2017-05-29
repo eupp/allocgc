@@ -8,7 +8,6 @@
 #include <condition_variable>
 
 #include <liballocgc/details/gc_cell.hpp>
-#include <liballocgc/details/gc_hooks.hpp>
 #include <liballocgc/details/collectors/remset.hpp>
 #include <liballocgc/details/collectors/packet_manager.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>

@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include <liballocgc/details/gc_hooks.hpp>
 #include <liballocgc/details/gc_unsafe_scope.hpp>
 #include <liballocgc/details/threads/gc_thread_manager.hpp>
 #include <liballocgc/details/threads/world_snapshot.hpp>
@@ -11,7 +10,7 @@
 namespace allocgc { namespace details { namespace collectors {
 
 gc_cms::gc_cms()
-    : gc_core(&m_remset)
+    : gc_core(this, &m_remset)
     , m_phase(gc_phase::IDLE)
 //    , m_threads_available(opt.threads_available)
     , m_threads_available(std::thread::hardware_concurrency())
@@ -59,11 +58,14 @@ void gc_cms::wbarrier(gc_handle& dst, const gc_handle& src)
 
 gc_run_stat gc_cms::gc(const gc_options& options)
 {
+    gc_safe_scope safe_scope;
+    std::lock_guard<std::mutex> lock(m_mutex);
+
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
         return start_marking_phase();
     } else if (options.kind == gc_kind::COLLECT) {
         gc_run_stat stats = sweep();
-        allocators::gc_core_allocator::shrink();
+        shrink();
         return stats;
     }
     return gc_run_stat();

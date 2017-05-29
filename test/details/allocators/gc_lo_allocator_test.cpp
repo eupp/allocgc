@@ -21,9 +21,11 @@ const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create();
 struct gc_lo_allocator_test : public ::testing::Test
 {
     gc_lo_allocator_test()
-        : rqst(OBJ_SIZE, 1, nullptr, &buf)
+        : alloc(&core_alloc)
+        , rqst(OBJ_SIZE, 1, nullptr, &buf)
     {}
 
+    gc_core_allocator core_alloc;
     gc_lo_allocator alloc;
     gc_buf buf;
     gc_alloc::request rqst;

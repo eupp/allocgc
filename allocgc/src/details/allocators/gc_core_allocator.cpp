@@ -4,16 +4,24 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-double gc_core_allocator::HEAP_START_LIMIT = 4 * 1024 * 1024;
+const size_t gc_core_allocator::HEAP_START_LIMIT = 4 * 1024 * 1024;
 
-double gc_core_allocator::INCREASE_FACTOR = 2.0;
+const double gc_core_allocator::INCREASE_FACTOR = 2.0;
 
-double gc_core_allocator::MARK_THRESHOLD = 0.6;
+const double gc_core_allocator::MARK_THRESHOLD = 0.6;
 
-double gc_core_allocator::COLLECT_THRESHOLD = 1.0;
+const double gc_core_allocator::COLLECT_THRESHOLD = 1.0;
 
 gc_core_allocator::gc_core_allocator()
-    : m_heap_size(0)
+    : m_gc_launcher(nullptr)
+    , m_heap_size(0)
+    , m_heap_limit(HEAP_START_LIMIT)
+    , m_heap_maxlimit(HEAP_START_LIMIT)
+{ }
+
+gc_core_allocator::gc_core_allocator(gc_launcher* gc)
+    : m_gc_launcher(gc)
+    , m_heap_size(0)
     , m_heap_limit(HEAP_START_LIMIT)
     , m_heap_maxlimit(HEAP_START_LIMIT)
 { }
@@ -76,12 +84,14 @@ bool gc_core_allocator::increase_heap_size(size_t alloc_size, std::unique_lock<m
         return false;
     }
     else if (size > MARK_THRESHOLD * m_heap_limit) {
+        assert(m_gc_launcher);
+
         gc_options opt;
         opt.kind = gc_kind::CONCURRENT_MARK;
         opt.gen  = 0;
 
         lock->unlock();
-        initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
+        m_gc_launcher->gc(opt);
         lock->lock();
     }
     m_heap_size += alloc_size;
@@ -104,6 +114,12 @@ void gc_core_allocator::expand_heap()
     std::lock_guard<std::mutex> lock(m_mutex);
     size_t increased_size = INCREASE_FACTOR * m_heap_limit;
     m_heap_limit = std::min(increased_size, m_heap_maxlimit);
+}
+
+gc_run_stat gc_core_allocator::gc(const gc_options& options)
+{
+    assert(m_gc_launcher);
+    return m_gc_launcher->gc(options);
 }
 
 size_t gc_core_allocator::page_bucket_policy::bucket(size_t size)

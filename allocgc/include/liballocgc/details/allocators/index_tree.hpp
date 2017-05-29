@@ -84,7 +84,7 @@ public:
         clear();
     }
 
-    void init()
+    static void init()
     {
         init_impl();
     }
@@ -161,7 +161,12 @@ private:
     {
     public:
         internal_level()
-        {}
+        {
+            for (auto& hdl: m_data) {
+                hdl.m_ptr.store(null(), std::memory_order_release);
+                hdl.m_cnt.store(0, std::memory_order_release);
+            }
+        }
 
         internal_level(const internal_level& other)
             : m_data(other.m_data)
@@ -203,14 +208,6 @@ private:
         {
             Level* next_level = m_data[*idx].m_ptr.load(std::memory_order_acquire);
             return next_level->get(++idx);
-        }
-
-        void init()
-        {
-            for (auto& hdl: m_data) {
-                hdl.m_ptr.store(null(), std::memory_order_release);
-                hdl.m_cnt.store(0, std::memory_order_release);
-            }
         }
 
         void clear()
@@ -322,10 +319,9 @@ private:
     typedef internal_level<last_level> second_level_t;
     typedef last_level third_level_t;
 
-    void init_impl()
+    static void init_impl()
     {
-        m_first_level.init();
-        first_level_t::null()->init();
+        first_level_t::null();
         second_level_t::null();
 
         level_factory<second_level_t>::instance();

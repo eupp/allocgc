@@ -3,7 +3,6 @@
 
 #include <gmock/gmock.h>
 
-#include <liballocgc/details/gc_hooks.hpp>
 
 //class incremental_gc_mock : public allocgc::details::gc_strategy
 //{

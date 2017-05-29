@@ -3,7 +3,6 @@
 
 #include <cstddef>
 
-#include <liballocgc/details/gc_hooks.hpp>
 #include <liballocgc/details/gc_untyped_ptr.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 

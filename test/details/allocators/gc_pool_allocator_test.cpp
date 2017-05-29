@@ -24,8 +24,11 @@ struct gc_pool_allocator_test : public ::testing::Test
 {
     gc_pool_allocator_test()
         : rqst(OBJ_SIZE, 1, type_meta, &buf)
-    {}
+    {
+        alloc.set_core_allocator(&core_alloc);
+    }
 
+    gc_core_allocator core_alloc;
     gc_pool_allocator alloc;
     gc_buf buf;
     gc_alloc::request rqst;

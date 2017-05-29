@@ -10,7 +10,6 @@
 #include <liballocgc/details/collectors/gc_new_stack_entry.hpp>
 #include <liballocgc/details/collectors/gc_serial.hpp>
 #include <liballocgc/gc_type_meta.hpp>
-#include <liballocgc/details/gc_hooks.hpp>
 
 #include "serial_gc_mock.hpp"
 

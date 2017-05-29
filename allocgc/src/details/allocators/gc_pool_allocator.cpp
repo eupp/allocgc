@@ -69,7 +69,7 @@ gc_alloc::response gc_pool_allocator::try_expand_and_allocate(
             gc_options opt;
             opt.kind = gc_kind::COLLECT;
             opt.gen  = 0;
-            gc_initiation_point(initiation_point_type::HEAP_LIMIT_EXCEEDED, opt);
+            m_core_alloc->gc(opt);
         } else if (attempt_num == 1) {
             m_core_alloc->expand_heap();
         } else {

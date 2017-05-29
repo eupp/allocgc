@@ -1,7 +1,7 @@
 #ifndef ALLOCGC_INCREMENTAL_GC_HPP
 #define ALLOCGC_INCREMENTAL_GC_HPP
 
-#include <atomic>
+#include <mutex>
 
 #include <liballocgc/details/collectors/gc_core.hpp>
 #include <liballocgc/details/collectors/packet_manager.hpp>
@@ -11,7 +11,9 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-class gc_cms : public gc_core, private utils::noncopyable, private utils::nonmovable
+struct gc_cms_tag {};
+
+class gc_cms : public gc_core<gc_cms_tag>, public gc_launcher, private utils::noncopyable, private utils::nonmovable
 {
 public:
     gc_cms();
@@ -23,7 +25,7 @@ public:
 
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 
-    gc_run_stat gc(const gc_options& options);
+    gc_run_stat gc(const gc_options& options) override;
 
     gc_info info() const;
 private:
@@ -32,6 +34,7 @@ private:
 
     remset m_remset;
     size_t m_threads_available;
+    std::mutex m_mutex;
     gc_phase m_phase;
 };
 

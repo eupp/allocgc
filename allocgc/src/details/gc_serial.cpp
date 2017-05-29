@@ -7,7 +7,7 @@
 namespace allocgc { namespace details { namespace collectors {
 
 gc_serial::gc_serial()
-    : gc_core(nullptr)
+    : gc_core(this, nullptr)
 //    , m_threads_available(opt.threads_available)
     , m_threads_available(std::thread::hardware_concurrency())
 {}
@@ -21,12 +21,15 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
 
 gc_run_stat gc_serial::gc(const gc_options& options)
 {
+    gc_safe_scope safe_scope;
+    std::lock_guard<std::mutex> lock(m_mutex);
+
     if ((options.kind != gc_kind::MARK_COLLECT) && (options.kind != gc_kind::COLLECT)) {
         return gc_run_stat();
     }
 
     gc_run_stat stats = sweep();
-    allocators::gc_core_allocator::shrink();
+    shrink();
     return stats;
 }
 

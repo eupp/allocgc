@@ -44,7 +44,7 @@ typedef std::function<void(byte*, size_t)> gc_trace_obj_callback;
 class gc_launcher
 {
 public:
-    virtual void gc(const gc_options& opt) = 0;
+    virtual gc_run_stat gc(const gc_options& opt) = 0;
 };
 
 inline const char* gc_pause_type_to_str(gc_pause_type pause_type)

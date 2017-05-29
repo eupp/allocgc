@@ -9,9 +9,9 @@ namespace allocgc { namespace details {
 
 const char* logging::prefix_ = "allocgc-";
 
-void logging::init(std::ostream& stream, gc_loglevel lv)
+void logging::set_loglevel(gc_loglevel loglevel)
 {
-    get_logger().reset(new logger(stream, lv));
+    get_logger()->set_loglevel(loglevel);
 }
 
 logging::log_line logging::debug()
@@ -34,14 +34,9 @@ logging::log_line logging::error()
     return log(gc_loglevel::ERROR);
 }
 
-void logging::touch()
-{
-    get_logger();
-}
-
 std::unique_ptr<logging::logger>& logging::get_logger()
 {
-    static std::unique_ptr<logging::logger> lg;
+    static std::unique_ptr<logging::logger> lg{new logger(std::clog, gc_loglevel::SILENT)};
     return lg;
 }
 
@@ -56,6 +51,11 @@ logging::logger::logger(const std::ostream& stream, gc_loglevel lv)
     , m_loglevel(lv)
 {
     m_stream.rdbuf()->pubsetbuf(0, 0);
+}
+
+void logging::logger::set_loglevel(gc_loglevel loglevel)
+{
+    m_loglevel = loglevel;
 }
 
 logging::log_line::log_line(gc_loglevel lv)

@@ -1,12 +1,15 @@
 #ifndef ALLOCGC_GC_CORE_HPP
 #define ALLOCGC_GC_CORE_HPP
 
-#include <liballocgc/details/gc_hooks.hpp>
 #include <liballocgc/details/collectors/gc_heap.hpp>
 
 #include <liballocgc/details/utils/make_unique.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 
+#include <liballocgc/details/collectors/pin_set.hpp>
+#include <liballocgc/details/collectors/pin_stack.hpp>
+#include <liballocgc/details/collectors/stack_bitmap.hpp>
+#include <liballocgc/details/collectors/gc_new_stack.hpp>
 #include <liballocgc/details/collectors/static_root_set.hpp>
 #include <liballocgc/details/collectors/marker.hpp>
 
@@ -15,55 +18,283 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
+template <typename Tag>
 class gc_core : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_core(remset* rset);
+    gc_core(gc_launcher* launcher, remset* rset)
+        : m_marker(&m_packet_manager, rset)
+        , m_heap(launcher)
+    {
+        allocators::memory_index::init();
 
-    ~gc_core();
+        m_conservative_mode = false;
+    }
 
-    gc_alloc::response allocate(const gc_alloc::request& rqst);
+    ~gc_core()
+    {}
 
-    void abort(const gc_alloc::response& rsp);
-    void commit(const gc_alloc::response& rsp);
-    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta);
+    gc_alloc::response allocate(const gc_alloc::request& rqst)
+    {
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
+        stack_entry->zeroing_flag = !m_conservative_mode;
 
-    gc_offsets make_offsets(const gc_alloc::response& rsp);
+        gc_alloc::response rsp = m_heap.allocate(rqst);
 
-    byte* rbarrier(const gc_handle& handle);
+        stack_entry->obj_start = rsp.obj_start();
+        stack_entry->obj_size  = rqst.alloc_size();
+        stack_entry->meta_requested = rqst.type_meta() == nullptr;
 
-    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset);
+        this_thread->register_stack_entry(stack_entry);
 
-    void register_handle(gc_handle& handle, byte* ptr);
-    void deregister_handle(gc_handle& handle);
+        return rsp;
+    }
 
-    byte* register_pin(const gc_handle& handle);
-    void  deregister_pin(byte* pin);
+    void abort(const gc_alloc::response& rsp)
+    {
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+        this_thread->deregister_stack_entry(stack_entry);
+    }
 
-    byte* push_pin(const gc_handle& handle);
-    void  pop_pin(byte* pin);
+    void commit(const gc_alloc::response& rsp)
+    {
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
 
-    void register_thread(const thread_descriptor& descr);
-    void deregister_thread(std::thread::id id);
+        this_thread->deregister_stack_entry(stack_entry);
 
-    void set_heap_limit(size_t limit);
+        assert(stack_entry->descriptor);
+        stack_entry->descriptor->commit(rsp.cell_start());
+    }
+
+    void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
+    {
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+
+        this_thread->deregister_stack_entry(stack_entry);
+
+        assert(stack_entry->descriptor);
+        stack_entry->descriptor->commit(rsp.cell_start(), type_meta);
+    }
+
+    gc_offsets make_offsets(const gc_alloc::response& rsp)
+    {
+        gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
+        return boost::make_iterator_range(stack_entry->offsets.begin(), stack_entry->offsets.end());
+    }
+
+    byte* rbarrier(const gc_handle& handle)
+    {
+        return gc_handle_access::get<std::memory_order_relaxed>(handle);
+    }
+
+    void interior_wbarrier(gc_handle& handle, ptrdiff_t offset)
+    {
+        gc_handle_access::advance<std::memory_order_relaxed>(handle, offset);
+    }
+
+    void register_handle(gc_handle& handle, byte* ptr)
+    {
+        using namespace allocators;
+
+        memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+        gc_handle_access::set<std::memory_order_relaxed>(handle, ptr);
+        if (descr.is_stack_descriptor()) {
+            this_thread->register_root(&handle);
+        } else if (descr.is_null()) {
+            m_static_roots.register_root(&handle);
+        } else {
+            if (this_thread) {
+                this_thread->register_heap_ptr(&handle);
+            }
+        }
+    }
+
+    void deregister_handle(gc_handle& handle)
+    {
+        using namespace allocators;
+
+        memory_descriptor descr = memory_index::get_descriptor(reinterpret_cast<byte*>(&handle));
+        if (descr.is_stack_descriptor()) {
+            this_thread->deregister_root(&handle);
+        } else if (descr.is_null()) {
+            m_static_roots.deregister_root(&handle);
+        } else {
+            if (this_thread) {
+                this_thread->deregister_heap_ptr(&handle);
+            }
+        }
+    }
+
+    byte* register_pin(const gc_handle& handle)
+    {
+        gc_unsafe_scope unsafe_scope;
+        byte* ptr = rbarrier(handle);
+        if (ptr) {
+            this_thread->register_pin(ptr);
+        }
+        return ptr;
+    }
+
+    void  deregister_pin(byte* pin)
+    {
+        if (pin) {
+            this_thread->deregister_pin(pin);
+        }
+    }
+
+    byte* push_pin(const gc_handle& handle)
+    {
+        gc_unsafe_scope unsafe_scope;
+        byte* ptr = rbarrier(handle);
+        if (ptr) {
+            this_thread->push_pin(ptr);
+        }
+        return ptr;
+    }
+
+    void  pop_pin(byte* pin)
+    {
+        if (pin) {
+            this_thread->pop_pin(pin);
+        }
+    }
+
+    void register_thread(const thread_descriptor& descr)
+    {
+        using namespace threads;
+
+        assert(descr.id == std::this_thread::get_id());
+
+        std::unique_ptr<gc_thread_descriptor> gc_thrd_descr
+                = utils::make_unique<gc_thread_descriptor_impl<stack_bitmap, pin_set, gc_new_stack>>(descr);
+
+        this_thread = gc_thrd_descr.get();
+        m_thread_manager.register_thread(descr.id, std::move(gc_thrd_descr));
+    }
+
+    void deregister_thread(std::thread::id id)
+    {
+        assert(id == std::this_thread::get_id());
+
+        m_thread_manager.deregister_thread(id);
+    }
+
+    void set_heap_limit(size_t limit)
+    {
+        m_heap.set_limit(limit);
+    }
 protected:
-    threads::world_snapshot stop_the_world();
+    threads::world_snapshot stop_the_world()
+    {
+        return m_thread_manager.stop_the_world();
+    }
 
-    void trace_roots(const threads::world_snapshot& snapshot);
-    void trace_pins(const threads::world_snapshot& snapshot);
-    void trace_uninit(const threads::world_snapshot& snapshot);
-    void trace_remset();
+    void trace_roots(const threads::world_snapshot& snapshot)
+    {
+        if (m_conservative_mode) {
+            snapshot.trace_roots([this] (gc_handle* root) { conservative_root_trace_cb(root); });
+        } else {
+            snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
+        }
+        m_static_roots.trace([this] (gc_handle* root) { root_trace_cb(root); });
+    }
 
-    void start_concurrent_marking(size_t threads_available);
-    void start_marking();
+    void trace_pins(const threads::world_snapshot& snapshot)
+    {
+        snapshot.trace_pins([this] (byte* ptr) { pin_trace_cb(ptr); });
+    }
 
-    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available);
+    void trace_uninit(const threads::world_snapshot& snapshot)
+    {
+        snapshot.trace_uninit([this] (byte* obj_start, size_t obj_size) { conservative_obj_trace_cb(obj_start, obj_size); });
+    }
+
+    void trace_remset()
+    {
+        m_marker.trace_remset();
+    }
+
+    void start_concurrent_marking(size_t threads_available)
+    {
+        m_marker.concurrent_mark(threads_available);
+    }
+    void start_marking()
+    {
+        m_marker.mark();
+    }
+
+    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available)
+    {
+        return m_heap.collect(snapshot, threads_available, &m_static_roots);
+    }
+
+    void shrink()
+    {
+        m_heap.shrink();
+    }
 private:
-    void root_trace_cb(gc_handle* root);
-    void pin_trace_cb(byte* ptr);
-    void conservative_root_trace_cb(gc_handle* root);
-    void conservative_obj_trace_cb(byte* obj_start, size_t obj_size);
+    void root_trace_cb(gc_handle* root)
+    {
+        byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+        if (ptr) {
+            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+            cell.set_mark(true);
+            m_marker.add_root(cell);
+
+            logging::debug() << "root: " << (void*) root /* << "; point to: " << (void*) obj_start */;
+        }
+    }
+
+    void pin_trace_cb(byte* ptr)
+    {
+        if (ptr) {
+            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+            cell.set_mark(true);
+            cell.set_pin(true);
+            m_marker.add_root(cell);
+
+            logging::debug() << "pin: " << (void*) ptr;
+        }
+    }
+
+    void conservative_root_trace_cb(gc_handle* root)
+    {
+        byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
+        if (ptr) {
+            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+            if (!cell.get_mark() && cell.is_init()) {
+                cell.set_mark(true);
+                cell.set_pin(true);
+                m_marker.add_root(cell);
+
+                logging::debug() << "root: " << (void*) root << "; point to: " << (void*) ptr;
+            }
+        }
+    }
+
+    void conservative_obj_trace_cb(byte* obj_start, size_t obj_size)
+    {
+        assert(obj_start && obj_size > 0);
+        gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
+        cell.set_mark(true);
+        cell.set_pin(true);
+
+        logging::info() << "uninitialized object: " << (void*) obj_start /* << "; point to: " << (void*) obj_start */;
+
+        gc_handle* begin = reinterpret_cast<gc_handle*>(obj_start);
+        gc_handle* end   = reinterpret_cast<gc_handle*>(obj_start + obj_size);
+        for (gc_handle* it = begin; it < end; ++it) {
+            byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
+            cell = allocators::memory_index::get_gc_cell(ptr);
+            if (!cell.get_mark() && cell.is_init()) {
+                cell.set_mark(true);
+                cell.set_pin(true);
+                m_marker.add_root(cell);
+
+                logging::debug() << "pointer from uninitialized object: " << (void*) ptr /* << "; point to: " << (void*) obj_start */;
+            }
+        }
+    }
 
     static thread_local threads::gc_thread_descriptor* this_thread;
 
@@ -74,6 +305,9 @@ private:
     gc_heap m_heap;
     bool m_conservative_mode;
 };
+
+template <typename Tag>
+thread_local threads::gc_thread_descriptor* gc_core<Tag>::this_thread = nullptr;
 
 }}}
 

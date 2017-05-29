@@ -52,7 +52,6 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/allocators/freelist_pool_chunk.hpp
         include/liballocgc/gc_pin.hpp
         include/liballocgc/gc_ref.hpp
-        include/liballocgc/details/gc_hooks.hpp
         include/liballocgc/details/utils/base_offset.hpp
         include/liballocgc/details/utils/static_thread_pool.hpp
         include/liballocgc/details/utils/dummy_mutex.hpp
@@ -67,7 +66,6 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/allocators/sys_allocator.hpp
         include/liballocgc/details/allocators/null_allocator.hpp
         include/liballocgc/details/collectors/pin_stack.hpp
-        include/liballocgc/gc_thread.hpp
         include/liballocgc/details/collectors/stack_bitmap.hpp
         include/liballocgc/details/threads/return_address.hpp
         include/liballocgc/details/collectors/static_root_set.hpp
@@ -106,7 +104,6 @@ set(precisegc_LIB_SRCS
         src/details/gc_serial.cpp
         src/details/collectors/gc_cms.cpp
         src/details/allocators/freelist_pool_chunk.cpp
-        src/details/gc_hooks.cpp
         src/gc.cpp src/details/collectors/packet_manager.cpp
         src/details/allocators/gc_object_descriptor.cpp
         src/details/allocators/gc_core_allocator.cpp
@@ -118,7 +115,6 @@ set(precisegc_LIB_SRCS
         src/details/allocators/gc_so_allocator.cpp
         src/details/allocators/gc_pool_allocator.cpp
         src/details/allocators/gc_lo_allocator.cpp
-        src/details/collectors/gc_core.cpp
         src/details/collectors/marker.cpp)
 
 

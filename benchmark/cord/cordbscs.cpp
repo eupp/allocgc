@@ -25,11 +25,15 @@
 
 #include "cord.hpp"
 
-#include "../../common/macro.hpp"
-
-#ifdef PRECISE_GC
-    using namespace precisegc;
+#if defined(PRECISE_GC_SERIAL)
+    using namespace allocgc::serial;
 #endif
+
+#if defined(PRECISE_GC_CMS)
+    using namespace allocgc::cms;
+#endif
+
+#include "../../common/macro.hpp"
 
 /* An implementation of the cord primitives.  These are the only        */
 /* Functions that understand the representation.  We perform only       */
@@ -240,7 +244,7 @@ CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
             memcpy(result_raw + lenx, yraw, leny);
             result_raw[result_len] = '\0';
 
-            return const_array_pointer_cast_(const char, result);
+            return const_pointer_cast_(const char[], result);
         } else {
             depth = 1;
         }
@@ -281,7 +285,7 @@ CORD CORD_cat_char_star(CORD x, PCHAR y, size_t leny)
                     memcpy(new_right_raw + right_len, yraw, leny);
                     new_right_raw[result_len] = '\0';
 
-                    y = const_array_pointer_cast_(const char, new_right);
+                    y = const_pointer_cast_(const char[], new_right);
                     leny = result_len;
                     x = left;
                     lenx -= right_len;
@@ -460,7 +464,7 @@ CORD CORD_substr_checked(CORD_IN x, size_t i, size_t n)
         strncpy(result_raw, xraw+i, n);
         result_raw[n] = '\0';
 
-        return const_array_pointer_cast_(const char, result);
+        return const_pointer_cast_(const char[], result);
 
     } else if (IS_CONCATENATION(xraw)) {
         CordRep::Concatenation* conc = ((CordRep::Concatenation*) xraw);

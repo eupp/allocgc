@@ -25,6 +25,8 @@ public:
     gc_core(gc_launcher* launcher, remset* rset)
         : m_marker(&m_packet_manager, rset)
         , m_heap(launcher)
+        , m_gc_cnt(0)
+        , m_gc_time(0)
     {
         allocators::memory_index::init();
 
@@ -179,6 +181,15 @@ public:
         m_thread_manager.deregister_thread(id);
     }
 
+    gc_stat stats()
+    {
+        gc_stat stats = {
+                .gc_count   = m_gc_cnt,
+                .gc_time    = m_gc_time
+        };
+        return stats;
+    }
+
     void set_heap_limit(size_t limit)
     {
         m_heap.set_limit(limit);
@@ -231,6 +242,19 @@ protected:
     void shrink()
     {
         m_heap.shrink();
+    }
+
+    void register_gc_run(const gc_run_stat& stats)
+    {
+        if (stats.pause_stat.type == gc_pause_type::SKIP) {
+            return;
+        }
+
+        logging::info() << "GC pause (" << gc_pause_type_to_str(stats.pause_stat.type)
+                        << ") duration "<< duration_to_str(stats.pause_stat.duration);
+
+        ++m_gc_cnt;
+        m_gc_time += stats.pause_stat.duration;
     }
 private:
     void root_trace_cb(gc_handle* root)
@@ -303,6 +327,8 @@ private:
     packet_manager m_packet_manager;
     marker m_marker;
     gc_heap m_heap;
+    size_t m_gc_cnt;
+    gc_clock::duration m_gc_time;
     bool m_conservative_mode;
 };
 

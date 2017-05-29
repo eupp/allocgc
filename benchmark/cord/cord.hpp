@@ -107,14 +107,23 @@
 
     #define CORD_EMPTY nullptr
     #define CORD_IS_EMPTY(x) (x == nullptr)
-#elif defined(PRECISE_GC)
+#elif defined(PRECISE_GC_SERIAL)
     #include "liballocgc/liballocgc.hpp"
 
-    typedef allocgc::gc_ptr<const char[]> CORD;
-    typedef const allocgc::gc_ptr<const char[]>& CORD_IN;
+    typedef allocgc::serial::gc_ptr<const char[]> CORD;
+    typedef const allocgc::serial::gc_ptr<const char[]>& CORD_IN;
 
-    typedef allocgc::gc_ptr<const char[]> PCHAR;
-    typedef const allocgc::gc_ptr<const char[]>& PCHAR_IN;
+    typedef allocgc::serial::gc_ptr<const char[]> PCHAR;
+    typedef const allocgc::serial::gc_ptr<const char[]>& PCHAR_IN;
+
+    #define CORD_EMPTY nullptr
+    #define CORD_IS_EMPTY(x) (x == nullptr)
+#elif defined(PRECISE_GC_CMS)
+    typedef allocgc::cms::gc_ptr<const char[]> CORD;
+    typedef const allocgc::cms::gc_ptr<const char[]>& CORD_IN;
+
+    typedef allocgc::cms::gc_ptr<const char[]> PCHAR;
+    typedef const allocgc::cms::gc_ptr<const char[]>& PCHAR_IN;
 
     #define CORD_EMPTY nullptr
     #define CORD_IS_EMPTY(x) (x == nullptr)

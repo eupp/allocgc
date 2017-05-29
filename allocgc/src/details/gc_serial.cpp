@@ -21,12 +21,12 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
 
 gc_run_stat gc_serial::gc(const gc_options& options)
 {
-    gc_safe_scope safe_scope;
-    std::lock_guard<std::mutex> lock(m_mutex);
-
     if ((options.kind != gc_kind::MARK_COLLECT) && (options.kind != gc_kind::COLLECT)) {
         return gc_run_stat();
     }
+
+    gc_safe_scope safe_scope;
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     gc_run_stat stats = sweep();
     shrink();

@@ -42,13 +42,20 @@
 #include <iostream>
 #include <type_traits>
 
-#include "../../common/macro.hpp"
-#include "../../common/timer.hpp"
-
-#ifdef PRECISE_GC
+#ifdef PRECISE_GC_SERIAL
     #include "liballocgc/liballocgc.hpp"
     using namespace allocgc;
+    using namespace allocgc::serial;
 #endif
+
+#ifdef PRECISE_GC_CMS
+    #include "liballocgc/liballocgc.hpp"
+    using namespace allocgc;
+    using namespace allocgc::cms;
+#endif
+
+#include "../../common/macro.hpp"
+#include "../../common/timer.hpp"
 
 #ifdef BDW_GC
     #include <gc/gc.h>
@@ -219,8 +226,8 @@ struct GCBench {
         #if defined(BDW_GC)
             cout << "Completed " << GC_get_gc_no() << " collections" << endl;
             cout << "Heap size is " << GC_get_heap_size() << endl;
-        #elif defined(PRECISE_GC)
-            gc_stat stat = gc_stats();
+        #elif defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+            gc_stat stat = stats();
             cout << "Completed " << stat.gc_count << " collections" << endl;
             cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << endl;
             cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << endl;
@@ -233,15 +240,12 @@ int main (int argc, const char* argv[])
     int ttype = 0;
     bool compacting_flag = false;
     bool incremental_flag = false;
-    bool conservative_flag = false;
     for (int i = 1; i < argc; ++i) {
         auto arg = std::string(argv[i]);
         if (arg == "--incremental") {
             incremental_flag = true;
         } else if (arg == "--compacting") {
             compacting_flag = true;
-        } else if (arg == "--conservative") {
-            conservative_flag = true;
         } else if (arg == "--top-down") {
             ttype |= TOP_DOWN;
         } else if (arg == "--bottom-up") {
@@ -249,17 +253,10 @@ int main (int argc, const char* argv[])
         }
     }
 
-    #if defined(PRECISE_GC)
-        gc_params params;
-//        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
-        params.conservative    = conservative_flag;
-        params.incremental     = incremental_flag;
-        params.compacting      = compacting_flag;
-//        ops.loglevel    = gc_loglevel::DEBUG;
-//        ops.print_stat  = true;
-//        ops.threads_available = 1;
-
-        gc_init(params);
+    #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+        register_main_thread();
+        set_heap_limit(36 * 1024 * 1024);
+//        enable_logging(gc_loglevel::DEBUG);
     #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {

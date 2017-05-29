@@ -23,7 +23,7 @@ void gc()
     gc_facade<gc_serial>::initiation_point(details::initiation_point_type::USER_REQUEST, opt);
 }
 
-gc_stat gc_stats()
+gc_stat stats()
 {
     return gc_facade<gc_serial>::stats();
 }
@@ -64,7 +64,7 @@ void gc()
     gc_facade<gc_cms>::initiation_point(details::initiation_point_type::USER_REQUEST, opt);
 }
 
-gc_stat gc_stats()
+gc_stat stats()
 {
     return gc_facade<gc_cms>::stats();
 }

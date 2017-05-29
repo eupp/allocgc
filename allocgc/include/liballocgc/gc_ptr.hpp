@@ -123,20 +123,20 @@ public:
     template <typename U, typename GCStrategy1>
     friend class gc_ptr;
 
-//    template <typename U, typename V>
-//    friend gc_ptr<U> static_pointer_cast(const gc_ptr<V>&);
-//
-//    template <typename U, typename V>
-//    friend gc_ptr<U> dynamic_pointer_cast(const gc_ptr<V>&);
-//
-//    template <typename U, typename V>
-//    friend gc_ptr<U> const_pointer_cast(const gc_ptr<V>&);
-//
-//    template <typename U, typename V>
-//    friend gc_ptr<U> reinterpret_pointer_cast(const gc_ptr<V>&);
-//
-//    template <typename Tt, typename R, R Tt::*member>
-//    friend gc_ptr<R> take_interior(const gc_ptr<Tt>&);
+    template <typename U, typename V, typename GCS>
+    friend gc_ptr<U, GCS> static_pointer_cast(const gc_ptr<V, GCS>&);
+
+    template <typename U, typename V, typename GCS>
+    friend gc_ptr<U, GCS> dynamic_pointer_cast(const gc_ptr<V, GCS>&);
+
+    template <typename U, typename V, typename GCS>
+    friend gc_ptr<U, GCS> const_pointer_cast(const gc_ptr<V, GCS>&);
+
+    template <typename U, typename V, typename GCS>
+    friend gc_ptr<U, GCS> reinterpret_pointer_cast(const gc_ptr<V, GCS>&);
+
+    template <typename Tt, typename R, R Tt::*member, typename GCS>
+    friend gc_ptr<R, GCS> take_interior(const gc_ptr<Tt, GCS>&);
 
     friend class internals::gc_ptr_factory<T, GCStrategy>;
     friend class internals::gc_ptr_access;
@@ -298,11 +298,11 @@ public:
         a.swap(b);
     }
 
-//    template <typename U, typename V>
-//    friend gc_ptr<U[]> const_pointer_cast(const gc_ptr<V[]>&);
-//
-//    template <typename U, typename V>
-//    friend gc_ptr<U> reinterpret_pointer_cast(const gc_ptr<V>&);
+    template <typename U, typename V, typename GCS>
+    friend gc_ptr<U, GCS> const_pointer_cast(const gc_ptr<V, GCS>&);
+
+    template <typename U, typename V, typename GCS>
+    friend gc_ptr<U, GCS> reinterpret_pointer_cast(const gc_ptr<V, GCS>&);
 
     friend class internals::gc_ptr_factory<T[], GCStrategy>;
     friend class internals::gc_ptr_access;

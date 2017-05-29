@@ -111,23 +111,7 @@ public:
 
     static void initiation_point(initiation_point_type ipt, const gc_options& opt)
     {
-        gc_safe_scope safe_scope;
-        std::lock_guard<std::mutex> lock(gc_mutex);
-
-        if (ipt == initiation_point_type::USER_REQUEST) {
-            logging::info() << "Thread initiates gc by user's request";
-            gc(opt);
-        } else if (ipt == initiation_point_type::HEAP_LIMIT_EXCEEDED) {
-//        logging::info() << "Heap limit exceeded - thread initiates gc";
-            gc(opt);
-        } else if (ipt == initiation_point_type::CONCURRENT_MARKING_FINISHED) {
-            logging::info() << "Concurrent marking finished - Thread initiates gc";
-            gc(opt);
-        } else if (ipt == initiation_point_type::START_MARKING) {
-            gc(opt);
-        } else if (ipt == initiation_point_type::START_COLLECTING) {
-            gc(opt);
-        }
+        strategy.gc(opt);
     }
 
     static void set_heap_limit(size_t limit)
@@ -137,30 +121,10 @@ public:
 
     static inline gc_stat stats()
     {
-        gc_stat stats = {
-            .gc_count   = gc_cnt,
-            .gc_time    = gc_time
-        };
-        return stats;
+        return strategy.stats();
     }
 private:
     gc_facade() = delete;
-
-    static void gc(const gc_options& opt)
-    {
-        if (!check_gc_kind(opt.kind)) {
-            return;
-        }
-
-        gc_run_stat run_stats = strategy.gc(opt);
-        if (run_stats.pause_stat.type == gc_pause_type::SKIP) {
-            return;
-        }
-
-        logging::info() << "GC pause (" << gc_pause_type_to_str(run_stats.pause_stat.type)
-                        << ") duration "<< duration_to_str(run_stats.pause_stat.duration);
-        register_gc_run(run_stats);
-    }
 
     static bool check_gc_kind(gc_kind kind)
     {
@@ -168,12 +132,6 @@ private:
             return false;
         }
         return true;
-    }
-
-    static void register_gc_run(const gc_run_stat& stats)
-    {
-        ++gc_cnt;
-        gc_time += stats.pause_stat.duration;
     }
 
     static bool is_interior_pointer(const gc_handle& handle, byte* iptr)
@@ -193,10 +151,6 @@ private:
     }
 
     static GCStrategy strategy;
-    static std::mutex gc_mutex;
-
-    static size_t gc_cnt;
-    static gc_clock::duration gc_time;
 };
 
 template <typename GCStrategy>
@@ -204,12 +158,6 @@ GCStrategy gc_facade<GCStrategy>::strategy{};
 
 template <typename GCStrategy>
 std::mutex gc_facade<GCStrategy>::gc_mutex{};
-
-template <typename GCStrategy>
-size_t gc_facade<GCStrategy>::gc_cnt = 0;
-
-template <typename GCStrategy>
-gc_clock::duration gc_facade<GCStrategy>::gc_time{0};
 
 }}
 

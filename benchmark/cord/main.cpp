@@ -1,6 +1,3 @@
-#include "../../common/macro.hpp"
-#include "../../common/timer.hpp"
-
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -11,9 +8,16 @@
 
 #include <sys/resource.h>
 
-#ifdef PRECISE_GC
+#ifdef PRECISE_GC_SERIAL
     #include "liballocgc/liballocgc.hpp"
     using namespace allocgc;
+    using namespace allocgc::serial;
+#endif
+
+#ifdef PRECISE_GC_CMS
+    #include "liballocgc/liballocgc.hpp"
+    using namespace allocgc;
+    using namespace allocgc::cms;
 #endif
 
 #ifdef BDW_GC
@@ -21,6 +25,9 @@
 #endif
 
 #include "cord.hpp"
+
+#include "../../common/macro.hpp"
+#include "../../common/timer.hpp"
 
 std::unique_ptr<char[]> buf_content;
 
@@ -176,8 +183,6 @@ int main(int argc, const char* argv[])
             incremental_flag = true;
         } else if (arg == "--compacting") {
             compacting_flag = true;
-        } else if (arg == "--conservative") {
-            conservative_flag = true;
         } else if (arg == "--len") {
             assert(i + 1 < argc);
             ++i;
@@ -194,18 +199,9 @@ int main(int argc, const char* argv[])
 
     init(buf_size);
 
-    #if defined(PRECISE_GC)
-        gc_factory::options ops;
-//        ops.heapsize        = 36 * 1024 * 1024;      // 32 Mb
-        ops.conservative    = conservative_flag;
-        ops.incremental     = incremental_flag;
-        ops.compacting      = compacting_flag;
-//            ops.loglevel    = gc_loglevel::WARNING;
-//            ops.print_stat  = true;
-//            ops.threads_available =q 4;
-
-        auto strategy = gc_factory::create(ops);
-        gc_init(std::move(strategy));
+    #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+        register_main_thread();
+//        enable_logging(gc_loglevel::INFO);
     #elif defined(BDW_GC)
         GC_INIT();
         if (incremental_flag) {
@@ -251,8 +247,8 @@ int main(int argc, const char* argv[])
 
     std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
 
-    #if defined(PRECISE_GC)
-        gc_stat stat = gc_stats();
+    #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+        gc_stat stat = stats();
         std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
         std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << std::endl;
         std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;

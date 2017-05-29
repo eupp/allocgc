@@ -231,7 +231,7 @@ private:
 
     byte* upstream_allocate(size_t size)
     {
-        UpstreamAlloc::allocate(size);
+        return UpstreamAlloc::allocate(size);
     }
 
     void upstream_deallocate(byte* ptr, size_t size)

@@ -156,9 +156,6 @@ private:
 template <typename GCStrategy>
 GCStrategy gc_facade<GCStrategy>::strategy{};
 
-template <typename GCStrategy>
-std::mutex gc_facade<GCStrategy>::gc_mutex{};
-
 }}
 
 #endif //ALLOCGC_GARBAGE_COLLECTOR_HPP

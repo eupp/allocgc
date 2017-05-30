@@ -30,6 +30,7 @@ gc_run_stat gc_serial::gc(const gc_options& options)
 
     gc_run_stat stats = sweep();
     shrink();
+    register_gc_run(stats);
     return stats;
 }
 

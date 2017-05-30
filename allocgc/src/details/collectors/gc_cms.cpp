@@ -62,10 +62,13 @@ gc_run_stat gc_cms::gc(const gc_options& options)
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
-        return start_marking_phase();
+        gc_run_stat stats = start_marking_phase();
+        register_gc_run(stats);
+        return stats;
     } else if (options.kind == gc_kind::COLLECT) {
         gc_run_stat stats = sweep();
         shrink();
+        register_gc_run(stats);
         return stats;
     }
     return gc_run_stat();

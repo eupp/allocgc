@@ -6,10 +6,6 @@
 #include <liballocgc/details/utils/make_unique.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 
-#include <liballocgc/details/collectors/pin_set.hpp>
-#include <liballocgc/details/collectors/pin_stack.hpp>
-#include <liballocgc/details/collectors/stack_bitmap.hpp>
-#include <liballocgc/details/collectors/gc_new_stack.hpp>
 #include <liballocgc/details/collectors/static_root_set.hpp>
 #include <liballocgc/details/collectors/marker.hpp>
 
@@ -169,7 +165,7 @@ public:
         assert(descr.id == std::this_thread::get_id());
 
         std::unique_ptr<gc_thread_descriptor> gc_thrd_descr
-                = utils::make_unique<gc_thread_descriptor_impl<stack_bitmap, pin_set, gc_new_stack>>(descr);
+                = utils::make_unique<gc_thread_descriptor>(descr);
 
         this_thread = gc_thrd_descr.get();
         m_thread_manager.register_thread(descr.id, std::move(gc_thrd_descr));

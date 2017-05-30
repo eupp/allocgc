@@ -13,38 +13,14 @@
 #include <liballocgc/details/collectors/static_root_set.hpp>
 #include <liballocgc/details/threads/return_address.hpp>
 
+#include <liballocgc/details/collectors/pin_set.hpp>
+#include <liballocgc/details/collectors/pin_stack.hpp>
+#include <liballocgc/details/collectors/stack_bitmap.hpp>
+#include <liballocgc/details/collectors/gc_new_stack.hpp>
+
 namespace allocgc { namespace details { namespace threads {
 
-class gc_thread_descriptor
-{
-public:
-    virtual ~gc_thread_descriptor() {}
-
-    virtual void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) = 0;
-    virtual void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry) = 0;
-
-    virtual void register_root(gc_handle* handle) = 0;
-    virtual void deregister_root(gc_handle* handle) = 0;
-
-    virtual void register_heap_ptr(gc_handle* handle) = 0;
-    virtual void deregister_heap_ptr(gc_handle* handle) = 0;
-
-    virtual void register_pin(byte* pin) = 0;
-    virtual void deregister_pin(byte* pin) = 0;
-    virtual void push_pin(byte* pin) = 0;
-    virtual void pop_pin(byte* pin) = 0;
-
-    virtual void trace_roots(const gc_trace_callback& cb) const = 0;
-    virtual void trace_pins(const gc_trace_pin_callback& cb) const = 0;
-    virtual void trace_uninit(const gc_trace_obj_callback& cb) const = 0;
-
-
-    virtual std::thread::id get_id() const = 0;
-    virtual std::thread::native_handle_type native_handle() const = 0;
-};
-
-template <typename StackRootSet, typename PinSet, typename UninitStack>
-class gc_thread_descriptor_impl : public gc_thread_descriptor, private utils::noncopyable, private utils::nonmovable
+class gc_thread_descriptor : private utils::noncopyable, private utils::nonmovable
 {
     class stack_descriptor
     {
@@ -103,7 +79,7 @@ class gc_thread_descriptor_impl : public gc_thread_descriptor, private utils::no
         byte* m_stack_end;
     };
 public:
-    gc_thread_descriptor_impl(const thread_descriptor& descr)
+    gc_thread_descriptor(const thread_descriptor& descr)
         : m_stack_descr(descr.stack_start_addr)
         , m_stack_roots(descr.id, descr.stack_start_addr,
                         m_stack_descr.stack_start_addr(), m_stack_descr.stack_end_addr())
@@ -116,95 +92,95 @@ public:
                                                      m_stack_descr.stack_start_addr());
     }
 
-    ~gc_thread_descriptor_impl()
+    ~gc_thread_descriptor()
     {
         allocators::memory_index::deindex(m_stack_descr.stack_min_addr(),
                                           m_stack_descr.stack_size());
     }
 
-    void register_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
+    void register_stack_entry(collectors::gc_new_stack_entry* stack_entry)
     {
         m_uninit_stack.register_stack_entry(stack_entry);
     }
 
-    void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry) override
+    void deregister_stack_entry(collectors::gc_new_stack_entry* stack_entry)
     {
         m_uninit_stack.deregister_stack_entry(stack_entry);
     }
 
-    void register_root(gc_handle* handle) override
+    void register_root(gc_handle* handle)
     {
         assert(m_stack_descr.is_stack_ptr(handle));
         m_stack_roots.register_root(handle);
     }
 
-    void deregister_root(gc_handle* handle) override
+    void deregister_root(gc_handle* handle)
     {
         assert(m_stack_descr.is_stack_ptr(handle));
         m_stack_roots.deregister_root(handle);
     }
 
-    void register_heap_ptr(gc_handle* handle) override
+    void register_heap_ptr(gc_handle* handle)
     {
         m_uninit_stack.register_child(handle);
     }
 
-    void deregister_heap_ptr(gc_handle* handle) override
+    void deregister_heap_ptr(gc_handle* handle)
     {
         return;
     }
 
-    void register_pin(byte* pin) override
+    void register_pin(byte* pin)
     {
         m_pin_set.register_pin(pin);
     }
 
-    void deregister_pin(byte* pin) override
+    void deregister_pin(byte* pin)
     {
         m_pin_set.deregister_pin(pin);
     }
 
-    void push_pin(byte* ptr) override
+    void push_pin(byte* ptr)
     {
         m_pin_set.push_pin(ptr);
     }
 
-    void pop_pin(byte* ptr) override
+    void pop_pin(byte* ptr)
     {
         m_pin_set.pop_pin(ptr);
     }
 
-    void trace_roots(const gc_trace_callback& cb) const override
+    void trace_roots(const gc_trace_callback& cb) const
     {
         logging::info() << "Trace stack of thread " << m_id;
 
         m_stack_roots.trace(cb);
     }
 
-    void trace_pins(const gc_trace_pin_callback& cb) const override
+    void trace_pins(const gc_trace_pin_callback& cb) const
     {
         m_pin_set.trace(cb);
     }
 
-    void trace_uninit(const gc_trace_obj_callback& cb) const override
+    void trace_uninit(const gc_trace_obj_callback& cb) const
     {
         m_uninit_stack.trace(cb);
     }
 
-    std::thread::id get_id() const override
+    std::thread::id get_id() const
     {
         return m_id;
     }
 
-    std::thread::native_handle_type native_handle() const override
+    std::thread::native_handle_type native_handle() const
     {
         return m_native_handle;
     }
 private:
     stack_descriptor                m_stack_descr;
-    StackRootSet                    m_stack_roots;
-    PinSet                          m_pin_set;
-    UninitStack                     m_uninit_stack;
+    collectors::stack_bitmap        m_stack_roots;
+    collectors::pin_set             m_pin_set;
+    collectors::gc_new_stack        m_uninit_stack;
     std::thread::id                 m_id;
     std::thread::native_handle_type m_native_handle;
 };

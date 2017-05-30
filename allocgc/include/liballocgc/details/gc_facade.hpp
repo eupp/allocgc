@@ -114,6 +114,11 @@ public:
         strategy.gc(opt);
     }
 
+    static void set_threads_available(size_t threads_available)
+    {
+        strategy.set_threads_available(threads_available);
+    }
+
     static void set_heap_limit(size_t limit)
     {
         strategy.set_heap_limit(limit);

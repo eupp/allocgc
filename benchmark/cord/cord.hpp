@@ -119,6 +119,8 @@
     #define CORD_EMPTY nullptr
     #define CORD_IS_EMPTY(x) (x == nullptr)
 #elif defined(PRECISE_GC_CMS)
+    #include "liballocgc/liballocgc.hpp"
+
     typedef allocgc::cms::gc_ptr<const char[]> CORD;
     typedef const allocgc::cms::gc_ptr<const char[]>& CORD_IN;
 

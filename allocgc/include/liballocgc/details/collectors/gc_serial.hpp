@@ -26,7 +26,6 @@ public:
 private:
     gc_run_stat sweep();
 
-    size_t m_threads_available;
     std::mutex m_mutex;
 };
 

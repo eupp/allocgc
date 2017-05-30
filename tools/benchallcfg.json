@@ -4,41 +4,41 @@
       "name": "boehm",
       "alias": "gcbench top-down",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
       "params": ["top-down"]
     },
     {
       "name": "boehm",
       "alias": "gcbench bottom-up",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
       "params": ["bottom-up"]
     },
     {
       "name": "parallel_merge_sort",
       "alias": "parallel merge sort",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"]
+      "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"]
     },
     {
       "name": "cord",
       "alias": "cord-build",
       "runnable": "benchmark/cord/cord",
-      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
       "params": ["build", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-substr",
       "runnable": "benchmark/cord/cord",
-      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
       "params": ["substr", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-flatten",
       "runnable": "benchmark/cord/cord",
-      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr conservative", "gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
       "params": ["flatten", {"len": [5]}]
     }
   ],
@@ -47,15 +47,15 @@
     {"name": "shared_ptr", "builder": "shared_ptr"},
     {"name": "BDW GC", "builder": "BDW GC"},
     {"name": "BDW GC incremental", "builder": "BDW GC", "args": ["--incremental"]},
-    {"name": "gc_ptr conservative", "builder": "gc_ptr", "args": ["--conservative"]},
-    {"name": "gc_ptr", "builder": "gc_ptr"},
-    {"name": "gc_ptr concurrent-mark", "builder": "gc_ptr", "args": ["--incremental"]}
+    {"name": "gc_ptr serial", "builder": "gc_ptr_serial"},
+    {"name": "gc_ptr cms", "builder": "gc_ptr_cms"}
   ],
   "builders": [
     {"name": "manual", "type": "cmake", "options": ["NO_GC"]},
     {"name": "shared_ptr", "type": "cmake", "options": ["SHARED_PTR"]},
     {"name": "BDW GC", "type": "cmake", "options": ["BDW_GC"]},
-    {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
+    {"name": "gc_ptr_serial", "type": "cmake", "options": ["PRECISE_GC_SERIAL"]},
+    {"name": "gc_ptr_cms", "type": "cmake", "options": ["PRECISE_GC_CMS"]}
   ],
   "printers": [
     {"name": "json", "params": {"outfn": "benchmark-all.json"}},

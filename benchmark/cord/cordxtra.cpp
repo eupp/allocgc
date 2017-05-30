@@ -253,7 +253,7 @@ PCHAR CORD_to_char_star(CORD_IN x)
     if (len > 0 && CORD_fill_buf(x, 0, len, result_raw) != 1)
       ABORT("CORD_fill_buf malfunction");
     result_raw[len] = '\0';
-    return (const_pointer_cast_(const char[], result));
+    return (const_array_pointer_cast_(const char, result));
 }
 //
 //CORD CORD_from_char_star(const char *s)

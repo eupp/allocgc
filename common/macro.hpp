@@ -43,7 +43,7 @@
     #define dynamic_pointer_cast_(T, ptr) allocgc::pointers::dynamic_pointer_cast<T>(ptr)
     #define reinterpret_pointer_cast_(T, ptr) allocgc::pointers::reinterpret_pointer_cast<T>(ptr)
 
-//    #define const_array_pointer_cast_(T, ptr) allocgc::pointers::const_pointer_cast<T>(ptr)
+    #define const_array_pointer_cast_(T, ptr) allocgc::pointers::const_pointer_cast<T[]>(ptr)
     #define reinterpret_array_pointer_cast_(T, ptr) allocgc::pointers::reinterpret_pointer_cast<T[]>(ptr)
 
 #elif defined(PRECISE_GC_CMS)
@@ -66,13 +66,13 @@
     #define set_null(ptr) ptr.reset()
     #define null_ptr(T) allocgc::cms::gc_ptr<T>()
 
-    #define const_pointer_cast_(T, ptr) allocgc::const_pointer_cast<T>(ptr)
-    #define static_pointer_cast_(T, ptr) allocgc::static_pointer_cast<T>(ptr)
-    #define dynamic_pointer_cast_(T, ptr) allocgc::dynamic_pointer_cast<T>(ptr)
-    #define reinterpret_pointer_cast_(T, ptr) allocgc::reinterpret_pointer_cast<T>(ptr)
+    #define const_pointer_cast_(T, ptr) allocgc::pointers::const_pointer_cast<T>(ptr)
+    #define static_pointer_cast_(T, ptr) allocgc::pointers::static_pointer_cast<T>(ptr)
+    #define dynamic_pointer_cast_(T, ptr) allocgc::pointers::dynamic_pointer_cast<T>(ptr)
+    #define reinterpret_pointer_cast_(T, ptr) allocgc::pointers::reinterpret_pointer_cast<T>(ptr)
 
-    #define const_array_pointer_cast_(T, ptr) allocgc::const_pointer_cast<T>(ptr)
-    #define reinterpret_array_pointer_cast_(T, ptr) allocgc::reinterpret_pointer_cast<T[]>(ptr)
+    #define const_array_pointer_cast_(T, ptr) allocgc::pointers::const_pointer_cast<T[]>(ptr)
+    #define reinterpret_array_pointer_cast_(T, ptr) allocgc::pointers::reinterpret_pointer_cast<T[]>(ptr)
 
 #elif defined(BDW_GC)
     #define ptr_t(T) T*

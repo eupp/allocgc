@@ -12,8 +12,6 @@ namespace allocgc { namespace details { namespace collectors {
 gc_cms::gc_cms()
     : gc_core(this, &m_remset)
     , m_phase(gc_phase::IDLE)
-//    , m_threads_available(opt.threads_available)
-    , m_threads_available(std::thread::hardware_concurrency())
 {}
 
 gc_alloc::response gc_cms::allocate(const gc_alloc::request& rqst)
@@ -83,7 +81,7 @@ gc_run_stat gc_cms::start_marking_phase()
     trace_uninit(snapshot);
     trace_roots(snapshot);
     m_phase = gc_phase::MARK;
-    start_concurrent_marking(std::max((size_t) 1, m_threads_available - 1));
+    start_concurrent_marking(std::max((size_t) 1, threads_available() - 1));
 
     gc_run_stat stats;
     stats.pause_stat.type     = gc_pause_type::TRACE_ROOTS;
@@ -105,7 +103,7 @@ gc_run_stat gc_cms::sweep()
         trace_pins(snapshot);
         trace_remset();
         m_phase = gc_phase::MARK;
-        start_concurrent_marking(m_threads_available - 1);
+        start_concurrent_marking(threads_available() - 1);
         start_marking();
     } else if (m_phase == gc_phase::MARK) {
         type = gc_pause_type::COLLECT;
@@ -118,7 +116,7 @@ gc_run_stat gc_cms::sweep()
 
     gc_run_stat stats;
 
-    stats.heap_stat           = collect(snapshot, m_threads_available);
+    stats.heap_stat           = collect(snapshot, threads_available());
     stats.pause_stat.type     = type;
     stats.pause_stat.duration = snapshot.time_since_stop_the_world();
 

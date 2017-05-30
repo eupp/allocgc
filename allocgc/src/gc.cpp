@@ -33,6 +33,11 @@ void set_heap_limit(size_t limit)
     gc_facade<gc_serial>::set_heap_limit(limit);
 }
 
+void set_threads_available(size_t threads_available)
+{
+    gc_facade<gc_serial>::set_threads_available(threads_available);
+}
+
 void register_main_thread()
 {
     thread_descriptor main_thrd_descr;
@@ -72,6 +77,11 @@ gc_stat stats()
 void set_heap_limit(size_t limit)
 {
     gc_facade<gc_cms>::set_heap_limit(limit);
+}
+
+void set_threads_available(size_t threads_available)
+{
+    gc_facade<gc_cms>::set_threads_available(threads_available);
 }
 
 void register_main_thread()

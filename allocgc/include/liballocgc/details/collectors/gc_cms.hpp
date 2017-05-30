@@ -33,7 +33,6 @@ private:
     gc_run_stat sweep();
 
     remset m_remset;
-    size_t m_threads_available;
     std::mutex m_mutex;
     gc_phase m_phase;
 };

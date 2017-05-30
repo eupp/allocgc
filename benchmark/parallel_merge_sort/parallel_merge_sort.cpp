@@ -20,9 +20,16 @@
     #include <gc/gc.h>
 #endif
 
-#ifdef PRECISE_GC
-    #include <liballocgc/liballocgc.hpp>
+#ifdef PRECISE_GC_SERIAL
+#include "liballocgc/liballocgc.hpp"
     using namespace allocgc;
+    using namespace allocgc::serial;
+#endif
+
+#ifdef PRECISE_GC_CMS
+#include "liballocgc/liballocgc.hpp"
+    using namespace allocgc;
+    using namespace allocgc::cms;
 #endif
 
 #include "../../common/macro.hpp"
@@ -66,21 +73,20 @@ ptr_t(Node) advance(ptr_t(Node) node, size_t n)
     return node;
 }
 
-template <typename Function, typename... Args>
-std::thread create_thread(Function&& f, Args&&... args)
-{
-#ifdef PRECISE_GC
-    return gc_thread::create(std::forward<Function>(f), std::forward<Args>(args)...);
-#else
-    return std::thread(std::forward<Function>(f), std::forward<Args>(args)...);
+#if !(defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS))
+    template <typename Function, typename... Args>
+    std::thread create_thread(Function&& f, Args&&... args)
+    {
+        return std::thread(std::forward<Function>(f), std::forward<Args>(args)...);
+    };
 #endif
-};
+
 
 static std::atomic<bool> done_flag{false};
-static precisegc::details::utils::barrier tasks_ready_barrier{threads_cnt};
-static precisegc::details::utils::barrier tasks_done_barrier{threads_cnt};
+static allocgc::details::utils::barrier tasks_ready_barrier{threads_cnt};
+static allocgc::details::utils::barrier tasks_done_barrier{threads_cnt};
 
-static std::vector<precisegc::details::utils::scoped_thread> threads{threads_cnt - 1};
+static std::vector<allocgc::details::utils::scoped_thread> threads{threads_cnt - 1};
 
 List merge_sort(const List& list);
 
@@ -268,30 +274,19 @@ int main(int argc, const char* argv[])
 {
     bool compacting_flag = false;
     bool incremental_flag = false;
-    bool conservative_flag = false;
     for (int i = 1; i < argc; ++i) {
         auto arg = std::string(argv[i]);
         if (arg == "--incremental") {
             incremental_flag = true;
         } else if (arg == "--compacting") {
             compacting_flag = true;
-        } else if (arg == "--conservative") {
-            conservative_flag = true;
         }
     }
 
-    #if defined(PRECISE_GC)
-    gc_factory::options ops;
-//        ops.heapsize            = 4 * 1024 * 1024;      // 4 Mb
-        ops.threads_available   = 1;
-        ops.conservative    = conservative_flag;
-        ops.incremental     = incremental_flag;
-        ops.compacting      = compacting_flag;
-//        ops.loglevel        = gc_loglevel::DEBUG;
-//        ops.print_stat  = true;
-
-        auto strategy = gc_factory::create(ops);
-        gc_init(std::move(strategy));
+    #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+        register_main_thread();
+        set_threads_available(1);
+//        enable_logging(gc_loglevel::DEBUG);
     #elif defined(BDW_GC)
         GC_INIT();
         GC_allow_register_threads();
@@ -304,7 +299,7 @@ int main(int argc, const char* argv[])
     List output_lists[threads_cnt - 1];
 
     init(input_lists, output_lists);
-    auto guard = precisegc::details::utils::make_scope_guard([&done_flag, &tasks_ready_barrier] {
+    auto guard = allocgc::details::utils::make_scope_guard([&done_flag, &tasks_ready_barrier] {
         done_flag = true;
         tasks_ready_barrier.wait();
     });
@@ -325,8 +320,8 @@ int main(int argc, const char* argv[])
     #if defined(BDW_GC)
         std::cout << "Completed " << GC_get_gc_no() << " collections" << std::endl;
         std::cout << "Heap size is " << GC_get_heap_size() << std::endl;
-    #elif defined(PRECISE_GC)
-        gc_stat stat = gc_stats();
+    #elif defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+        gc_stat stat = stats();
         std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
         std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << std::endl;
         std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;

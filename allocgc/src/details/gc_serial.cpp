@@ -8,8 +8,6 @@ namespace allocgc { namespace details { namespace collectors {
 
 gc_serial::gc_serial()
     : gc_core(this, nullptr)
-//    , m_threads_available(opt.threads_available)
-    , m_threads_available(std::thread::hardware_concurrency())
 {}
 
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -42,11 +40,11 @@ gc_run_stat gc_serial::sweep()
     trace_roots(snapshot);
     trace_pins(snapshot);
 
-    start_concurrent_marking(m_threads_available);
+    start_concurrent_marking(threads_available());
     start_marking();
 
     gc_run_stat stats;
-    stats.heap_stat = collect(snapshot, m_threads_available);
+    stats.heap_stat = collect(snapshot, threads_available());
 
     stats.pause_stat.type       = gc_pause_type::MARK_COLLECT;
     stats.pause_stat.duration   = snapshot.time_since_stop_the_world();

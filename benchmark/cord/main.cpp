@@ -201,6 +201,7 @@ int main(int argc, const char* argv[])
 
     #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
         register_main_thread();
+        set_threads_available(1);
 //        enable_logging(gc_loglevel::INFO);
     #elif defined(BDW_GC)
         GC_INIT();

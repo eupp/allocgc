@@ -48,6 +48,7 @@ void gc();
 gc_stat stats();
 
 void set_heap_limit(size_t limit);
+void set_threads_available(size_t threads_available);
 
 void register_main_thread();
 void register_thread(const thread_descriptor& descr);
@@ -103,6 +104,7 @@ void gc();
 gc_stat stats();
 
 void set_heap_limit(size_t limit);
+void set_threads_available(size_t threads_available);
 
 void register_main_thread();
 void register_thread(const thread_descriptor& descr);

@@ -25,6 +25,7 @@ public:
     gc_core(gc_launcher* launcher, remset* rset)
         : m_marker(&m_packet_manager, rset)
         , m_heap(launcher)
+        , m_threads_available(std::thread::hardware_concurrency())
         , m_gc_cnt(0)
         , m_gc_time(0)
     {
@@ -190,6 +191,16 @@ public:
         return stats;
     }
 
+    size_t threads_available() const
+    {
+        return m_threads_available;
+    }
+
+    void set_threads_available(size_t threads_available)
+    {
+        m_threads_available = threads_available;
+    }
+
     void set_heap_limit(size_t limit)
     {
         m_heap.set_limit(limit);
@@ -327,6 +338,7 @@ private:
     packet_manager m_packet_manager;
     marker m_marker;
     gc_heap m_heap;
+    size_t m_threads_available;
     size_t m_gc_cnt;
     gc_clock::duration m_gc_time;
     bool m_conservative_mode;

@@ -19,6 +19,7 @@ gc_heap::gc_heap(gc_launcher* launcher)
 
 gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
 {
+    assert(rqst.alloc_size() > 0);
     if (rqst.alloc_size() <= LARGE_CELL_SIZE) {
         return allocate_on_tlab(rqst);
     } else {

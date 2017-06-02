@@ -5,6 +5,8 @@
 #include <array>
 #include <utility>
 
+#include <liballocgc/gc_common.hpp>
+
 #include <liballocgc/details/allocators/gc_pool_allocator.hpp>
 #include <liballocgc/details/allocators/allocator_tag.hpp>
 #include <liballocgc/details/allocators/stl_adapter.hpp>
@@ -37,10 +39,14 @@ private:
     // we have buckets for each 2^k size
     // i.g. [32, 64, 128, 256, ...]
     static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_LOG2 - MIN_CELL_SIZE_LOG2 + 1;
+    static const size_t MAX_SIZE = LARGE_CELL_SIZE;
 
-    typedef std::pair<size_t, gc_pool_allocator> bucket_t;
+    static size_t SZ_CLS[BUCKET_COUNT];
 
-    std::array<bucket_t, BUCKET_COUNT> m_buckets;
+    static_assert(BUCKET_COUNT <= std::numeric_limits<byte>::max(), "Too many buckets");
+
+    std::array<byte, MAX_SIZE> m_sztbl;
+    std::array<gc_pool_allocator, BUCKET_COUNT> m_buckets;
 };
 
 }}}

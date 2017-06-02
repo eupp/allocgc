@@ -36,7 +36,6 @@ public:
     gc_alloc::response allocate(const gc_alloc::request& rqst)
     {
         gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
-        stack_entry->zeroing_flag = !m_conservative_mode;
 
         // TODO: correct size check including gc_box meta-information
         gc_alloc::response rsp = rqst.alloc_size() <= LARGE_CELL_SIZE

@@ -56,7 +56,7 @@ gc_alloc::response gc_pool_allocator::try_expand_and_allocate(
     byte*  blk;
     size_t blk_size;
     gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
-    std::tie(blk, blk_size) = allocate_block(size, stack_entry->zeroing_flag);
+    std::tie(blk, blk_size) = allocate_block(size);
     if (blk) {
         create_descriptor(blk, blk_size, size);
         m_top = blk;
@@ -101,9 +101,7 @@ gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_
     assert(contains(ptr));
 
     gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
-    if (stack_entry->zeroing_flag) {
-        memset(ptr, 0, size);
-    }
+    memset(ptr, 0, size);
     descriptor_t* descr = static_cast<descriptor_t*>(memory_index::get_descriptor(ptr).to_gc_descriptor());
     return init_cell(ptr, rqst, descr);
 }
@@ -136,11 +134,11 @@ gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t i
     return m_descrs.erase(it);
 }
 
-std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size, bool zeroing)
+std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size)
 {
     assert(m_core_alloc);
     size_t chunk_size = descriptor_t::chunk_size(cell_size);
-    return std::make_pair(m_core_alloc->allocate(chunk_size, zeroing), chunk_size);
+    return std::make_pair(m_core_alloc->allocate(chunk_size), chunk_size);
 }
 
 void gc_pool_allocator::deallocate_block(byte* ptr, size_t size)

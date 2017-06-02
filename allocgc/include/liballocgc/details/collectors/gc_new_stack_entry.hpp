@@ -22,7 +22,6 @@ public:
     offsets_storage_t       offsets;
     gc_new_stack_entry*     prev;
     bool                    meta_requested;
-    bool                    zeroing_flag;
 };
 
 static_assert(sizeof(gc_new_stack_entry) <= gc_buf::size(), "gc_new_stack_entry is too large");

@@ -26,7 +26,7 @@ gc_core_allocator::gc_core_allocator(gc_launcher* gc)
     , m_heap_maxlimit(HEAP_START_LIMIT)
 { }
 
-byte* gc_core_allocator::allocate(size_t size, bool zeroing)
+byte* gc_core_allocator::allocate(size_t size)
 {
     assert(size != 0);
     size_t aligned_size = sys_allocator::align_size(size);
@@ -40,9 +40,7 @@ byte* gc_core_allocator::allocate(size_t size, bool zeroing)
     byte* page = nullptr;
     if (aligned_size <= MAX_BUCKETIZE_SIZE) {
         page = m_bucket_alloc.allocate(aligned_size);
-        if (zeroing) {
-            memset(page, 0, aligned_size);
-        }
+        memset(page, 0, aligned_size);
     } else {
         page = sys_allocator::allocate(aligned_size);
     }

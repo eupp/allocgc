@@ -47,7 +47,7 @@ public:
     gc_core_allocator& operator=(const gc_core_allocator&) = default;
     gc_core_allocator& operator=(gc_core_allocator&&) = default;
 
-    byte* allocate(size_t size, bool zeroing = true);
+    byte* allocate(size_t size);
 
     void deallocate(byte* ptr, size_t size);
 

@@ -19,6 +19,7 @@ remove_cxx_release_flag("-O3")
 
 add_subdirectory(allocgc)
 add_subdirectory(test)
+add_subdirectory(benchmark/micro)
 add_subdirectory(benchmark/cord)
 add_subdirectory(benchmark/boehm)
 add_subdirectory(benchmark/multisize_boehm)

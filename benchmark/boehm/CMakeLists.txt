@@ -15,7 +15,7 @@ find_library(BDWGC NAMES gc
         /usr/lib64
         /usr/local/lib
         /usr/local/lib64
-        )
+    )
 
 add_executable(boehm ${boehm_SRC})
 target_link_libraries(boehm ${CMAKE_THREAD_LIBS_INIT})
@@ -31,7 +31,7 @@ option(PRECISE_GC_CMS OFF)
 #set(BDW_GC ON)
 #set(UNIQUE_PTR ON)
 #set(SHARED_PTR ON)
-#set(PRECISE_GC_SERIAL ON)
+set(PRECISE_GC_SERIAL ON)
 #set(PRECISE_GC_CMS ON)
 
 if(NO_GC)

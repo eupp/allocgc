@@ -1,7 +1,7 @@
 #ifndef ALLOCGC_MACRO_HPP
 #define ALLOCGC_MACRO_HPP
 
-#ifdef PRECISE_GC
+#if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
     #include <liballocgc/liballocgc.hpp>
 #endif
 

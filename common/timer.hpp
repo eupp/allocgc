@@ -5,7 +5,7 @@
 
 class timer
 {
-    typedef std::chrono::steady_clock clock_t;
+    typedef std::chrono::high_resolution_clock clock_t;
 public:
     timer()
         : m_tm(clock_t::now())

@@ -32,7 +32,7 @@ class gc_heap : public utils::noncopyable, public utils::nonmovable
     typedef allocators::gc_so_allocator     so_alloc_t;
     typedef allocators::gc_lo_allocator     lo_alloc_t;
 public:
-    explicit gc_heap(gc_launcher* launcher);
+    explicit gc_heap(gc_launcher* launcher = nullptr);
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 

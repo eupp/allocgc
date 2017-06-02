@@ -9,7 +9,6 @@
 #include <boost/range/iterator_range.hpp>
 #include <boost/range/adaptor/map.hpp>
 
-#include <liballocgc/details/threads/gc_thread_descriptor.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/utils/locked_range.hpp>
 #include <liballocgc/gc_common.hpp>
@@ -18,6 +17,7 @@ namespace allocgc { namespace details { namespace threads {
 
 class threads_snapshot;
 class world_snapshot;
+class gc_thread_descriptor;
 
 class gc_thread_manager : private utils::noncopyable, private utils::nonmovable
 {

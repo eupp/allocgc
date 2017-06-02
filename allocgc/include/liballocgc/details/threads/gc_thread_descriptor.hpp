@@ -9,6 +9,7 @@
 #include <liballocgc/details/gc_interface.hpp>
 #include <liballocgc/details/logging.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>
+#include <liballocgc/details/collectors/gc_heap.hpp>
 #include <liballocgc/details/collectors/gc_new_stack_entry.hpp>
 #include <liballocgc/details/collectors/static_root_set.hpp>
 #include <liballocgc/details/threads/return_address.hpp>
@@ -79,12 +80,13 @@ class gc_thread_descriptor : private utils::noncopyable, private utils::nonmovab
         byte* m_stack_end;
     };
 public:
-    gc_thread_descriptor(const thread_descriptor& descr)
+    gc_thread_descriptor(const thread_descriptor& descr, gc_heap::tlab* tlab)
         : m_stack_descr(descr.stack_start_addr)
         , m_stack_roots(descr.id, descr.stack_start_addr,
                         m_stack_descr.stack_start_addr(), m_stack_descr.stack_end_addr())
         , m_id(descr.id)
         , m_native_handle(descr.native_handle)
+        , m_tlab(tlab)
     {
         assert(m_stack_descr.stack_size() % PAGE_SIZE == 0);
         allocators::memory_index::index_stack_memory(m_stack_descr.stack_min_addr(),
@@ -96,6 +98,12 @@ public:
     {
         allocators::memory_index::deindex(m_stack_descr.stack_min_addr(),
                                           m_stack_descr.stack_size());
+    }
+
+    gc_alloc::response allocate(const gc_alloc::request& rqst)
+    {
+        assert(rqst.alloc_size() <= LARGE_CELL_SIZE);
+        return m_tlab->allocate(rqst);
     }
 
     void register_stack_entry(collectors::gc_new_stack_entry* stack_entry)
@@ -181,6 +189,7 @@ private:
     collectors::stack_bitmap        m_stack_roots;
     collectors::pin_set             m_pin_set;
     collectors::gc_new_stack        m_uninit_stack;
+    gc_heap::tlab*                  m_tlab;
     std::thread::id                 m_id;
     std::thread::native_handle_type m_native_handle;
 };

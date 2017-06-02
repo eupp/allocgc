@@ -38,7 +38,10 @@ public:
         gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
         stack_entry->zeroing_flag = !m_conservative_mode;
 
-        gc_alloc::response rsp = m_heap.allocate(rqst);
+        // TODO: correct size check including gc_box meta-information
+        gc_alloc::response rsp = rqst.alloc_size() <= LARGE_CELL_SIZE
+            ? this_thread->allocate(rqst)
+            : m_heap.allocate(rqst);
 
         stack_entry->obj_start = rsp.obj_start();
         stack_entry->obj_size  = rqst.alloc_size();
@@ -162,10 +165,10 @@ public:
     {
         using namespace threads;
 
-        assert(descr.id == std::this_thread::get_id());
+//        assert(descr.id == std::this_thread::get_id());
 
         std::unique_ptr<gc_thread_descriptor> gc_thrd_descr
-                = utils::make_unique<gc_thread_descriptor>(descr);
+                = utils::make_unique<gc_thread_descriptor>(descr, m_heap.allocate_tlab(descr.id));
 
         this_thread = gc_thrd_descr.get();
         m_thread_manager.register_thread(descr.id, std::move(gc_thrd_descr));

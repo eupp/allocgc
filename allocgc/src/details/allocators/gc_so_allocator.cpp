@@ -25,9 +25,6 @@ gc_alloc::response gc_so_allocator::allocate(const gc_alloc::request& rqst)
 {
     size_t size = gc_box::box_size(rqst.alloc_size());
     assert(size <= LARGE_CELL_SIZE);
-//    auto it = std::lower_bound(m_buckets.begin(), m_buckets.end(), size,
-//                               [] (const bucket_t& a, size_t sz) { return a.first < sz; });
-//    return it->second.allocate(rqst, it->first);
     size_t bucket_idx = m_sztbl[size - 1];
     return m_buckets[bucket_idx].allocate(rqst, SZ_CLS[bucket_idx]);
 }

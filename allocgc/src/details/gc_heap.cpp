@@ -1,4 +1,4 @@
-#include "liballocgc/details/collectors/gc_heap.hpp"
+#include <liballocgc/details/collectors/gc_heap.hpp>
 
 #include <cassert>
 #include <utility>
@@ -6,8 +6,8 @@
 #include <liballocgc/details/compacting/fix_ptrs.hpp>
 #include <liballocgc/details/compacting/two_finger_compactor.hpp>
 #include <liballocgc/details/threads/gc_thread_manager.hpp>
+#include <liballocgc/details/threads/world_snapshot.hpp>
 #include <liballocgc/details/utils/static_thread_pool.hpp>
-#include <liballocgc/details/utils/math.hpp>
 #include <liballocgc/details/logging.hpp>
 
 namespace allocgc { namespace details {
@@ -19,12 +19,18 @@ gc_heap::gc_heap(gc_launcher* launcher)
 
 gc_alloc::response gc_heap::allocate(const gc_alloc::request& rqst)
 {
-    assert(rqst.alloc_size() > 0);
-    if (rqst.alloc_size() <= LARGE_CELL_SIZE) {
-        return allocate_on_tlab(rqst);
-    } else {
-        return m_loa.allocate(rqst);
-    }
+    assert(rqst.alloc_size() > LARGE_CELL_SIZE);
+    return m_loa.allocate(rqst);
+}
+
+gc_heap::tlab* gc_heap::allocate_tlab(std::thread::id thrd_id)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return &m_tlab_map.emplace(
+            std::piecewise_construct,
+            std::make_tuple(std::this_thread::get_id()),
+            std::make_tuple(&m_core_alloc)
+    ).first->second;
 }
 
 gc_heap_stat gc_heap::collect(
@@ -61,22 +67,6 @@ gc_heap_stat gc_heap::collect(
     m_loa.finalize();
 
     return stat;
-}
-
-gc_alloc::response gc_heap::allocate_on_tlab(const gc_alloc::request& rqst)
-{
-    static thread_local so_alloc_t& tlab = get_tlab();
-    return tlab.allocate(rqst);
-}
-
-gc_heap::so_alloc_t& gc_heap::get_tlab()
-{
-    std::lock_guard<std::mutex> lock(m_tlab_map_mutex);
-    return m_tlab_map.emplace(
-            std::piecewise_construct,
-            std::make_tuple(std::this_thread::get_id()),
-            std::make_tuple(&m_core_alloc)
-    ).first->second;
 }
 
 void gc_heap::shrink()

@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include <liballocgc/details/threads/gc_thread_manager.hpp>
+#include <liballocgc/details/threads/gc_thread_descriptor.hpp>
 #include <liballocgc/details/threads/stw_manager.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/logging.hpp>

@@ -4,51 +4,51 @@
       "name": "boehm",
       "alias": "gcbench top-down",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["gc_ptr serial", "gc_ptr concurrent-mark"],
       "params": ["top-down"]
     },
     {
       "name": "boehm",
       "alias": "gcbench bottom-up",
       "runnable": "benchmark/boehm/boehm",
-      "suites": ["gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["gc_ptr serial", "gc_ptr concurrent-mark"],
       "params": ["bottom-up"]
     },
     {
       "name": "parallel_merge_sort",
       "alias": "parallel merge sort",
       "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-      "suites": ["gc_ptr", "gc_ptr concurrent-mark"]
+      "suites": ["gc_ptr serial", "gc_ptr concurrent-mark"]
     },
     {
       "name": "cord",
       "alias": "cord-build",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["gc_ptr serial", "gc_ptr concurrent-mark"],
       "params": ["build", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-substr",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["gc_ptr serial", "gc_ptr concurrent-mark"],
       "params": ["substr", {"len": [6]}]
     },
     {
       "name": "cord",
       "alias": "cord-flatten",
       "runnable": "benchmark/cord/cord",
-      "suites": ["gc_ptr", "gc_ptr concurrent-mark"],
+      "suites": ["gc_ptr serial", "gc_ptr concurrent-mark"],
       "params": ["flatten", {"len": [5]}]
     }
   ],
   "suites": [
-    {"name": "gc_ptr conservative", "builder": "gc_ptr", "args": ["--conservative"]},
-    {"name": "gc_ptr", "builder": "gc_ptr"},
-    {"name": "gc_ptr concurrent-mark", "builder": "gc_ptr", "args": ["--incremental"]}
+    {"name": "gc_ptr serial", "builder": "gc_ptr_serial"},
+    {"name": "gc_ptr concurrent-mark", "builder": "gc_ptr_cms"}
   ],
   "builders": [
-    {"name": "gc_ptr", "type": "cmake", "options": ["PRECISE_GC"]}
+    {"name": "gc_ptr_serial", "type": "cmake", "options": ["PRECISE_GC_SERIAL"]},
+    {"name": "gc_ptr_cms", "type": "cmake", "options": ["PRECISE_GC_CMS"]}
   ],
   "printers": [
     {"name": "json", "params": {"outfn": "benchmark.json"}},

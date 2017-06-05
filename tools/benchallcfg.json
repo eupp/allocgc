@@ -57,10 +57,11 @@
     {"name": "gc_ptr_serial", "type": "cmake", "options": ["PRECISE_GC_SERIAL"]},
     {"name": "gc_ptr_cms", "type": "cmake", "options": ["PRECISE_GC_CMS"]}
   ],
-  "printers": [
-    {"name": "json", "params": {"outfn": "benchmark-all.json"}},
-    {"name": "time-bar-plot", "params": {"outfn": "total-time-plot"}},
-    {"name": "total-time-text", "params": {"outfn": "total-time"}}
+  "parsers": [
+    {"name": "gc-time"}
   ],
-  "nruns" : 20
+  "printers": [
+    {"name": "json", "params": {"outfn": "benchmark-all.json"}}
+  ],
+  "nruns" : 10
 }

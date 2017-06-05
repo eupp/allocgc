@@ -1,5 +1,6 @@
 import re
 import math
+import json
 import collections
 
 from functools import partial
@@ -47,6 +48,21 @@ class Scanner:
                     action(match)
 
 
+class JSONParser:
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self._context = {}
+
+    def parse(self, content):
+        self._context.update(json.loads(content))
+
+    def result(self):
+        return self._context
+
+
 class GCTimeParser:
 
     def __init__(self):
@@ -67,8 +83,8 @@ class GCTimeParser:
     def reset(self):
         self._context = collections.defaultdict(list)
 
-    def parse(self, test_output):
-        self._scanner.scan(test_output)
+    def parse(self, content):
+        self._scanner.scan(content)
 
     def result(self):
         return {
@@ -110,6 +126,9 @@ class GCHeapParser:
         }
 
         self._scanner = Scanner(token_spec)
+        self.reset()
+
+    def reset(self):
         self._context = collections.defaultdict(list)
 
     def parse(self, test_output):

@@ -88,11 +88,15 @@ class MakeBuilder:
 def create_parser(name, *args, **kwargs):
     if name == "gc-time":
         return parsers.GCTimeParser(*args, **kwargs)
+    if name == "json":
+        return parsers.JSONParser(*args, **kwargs)
 
 
 def create_printer(name, *args, **kwargs):
     if name == "json":
         return printers.JSONPrinter(*args, **kwargs)
+    if name == "gc-time-plot":
+        return printers.GCTimePlotPrinter(*args, **kwargs)
     # if name == "tex-table":
     #     return TexTablePrinter(*args, **kwargs)
     # if name == "time-bar-plot":
@@ -156,6 +160,15 @@ class Report:
     def add_stats(self, target, suite, data):
         self.suites[suite][target]  = data
         self.targets[target][suite] = data
+
+    @staticmethod
+    def from_targets(targets):
+        rep = Report()
+        rep.targets = targets
+        for target, suites in targets.items():
+            for suite, data in suites.items():
+                rep.suites[suite][target] = data
+        return rep
 
 
 class Target:
@@ -244,10 +257,11 @@ if __name__ == '__main__':
 
     opts, args = getopt.getopt(
         sys.argv[1:], "",
-        ["cfg=", "cmake-dir=", "use-saved-data"]
+        ["cfg=", "cmake-dir=", "input=", "output=", "parser=", "printer=", "use-saved-data"]
     )
 
     cmake_dir = None
+    inputfn = None
     use_saved = False
     for opt, arg in opts:
         if opt == "--cfg":
@@ -256,24 +270,36 @@ if __name__ == '__main__':
             cmake_dir = arg
         elif opt == "--use-saved-data":
             use_saved = True
+        elif opt == "--input":
+            inputfn = arg
+        elif opt == "--output":
+            outfn = arg
+        elif opt == "--parser":
+            parser_name = arg
+        elif opt == "--printer":
+            printer_name = arg
 
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    if inputfn is not None:
+        parser = create_parser(parser_name)
+        printer = create_printer(printer_name)
+        with open(inputfn, "r") as infd:
+            parser.parse(infd.read().replace('\n', ''))
+        rep = Report.from_targets(parser.result())
+        printer.print_report(rep, outfn)
 
-    with open(config) as fd:
-        cfg = json.load(fd)
+    else:
+        logger = logging.getLogger()
+        logger.setLevel(logging.INFO)
 
-    parsers_tbl = {}
-    for parser in cfg.get("parsers", []):
-        name = parser["name"]
-        parsers_tbl[name] = create_parser(name, **parser.get("params", {}))
+        with open(config) as fd:
+            cfg = json.load(fd)
 
-    printers_tbl = {}
-    for printer in cfg.get("printers", []):
-        name = printer["name"]
-        printers_tbl[name] = create_printer(name, **printer.get("params", {}))
+        parsers_tbl = {}
+        for parser in cfg.get("parsers", []):
+            name = parser["name"]
+            parsers_tbl[name] = create_parser(name, **parser.get("params", {}))
 
-    if not use_saved:
+
         nruns       = cfg.get("nruns")
         failquick   = cfg.get("failquick", False)
 
@@ -312,13 +338,11 @@ if __name__ == '__main__':
 
             trgt.run(trgt_params, report, parsers_tbl.values(), checker)
             print(checker.results())
-    else:
-        saved_fn = printers_tbl["json"].outfn()
-        with open(saved_fn) as saved:
-            report = Report(json.load(saved))
 
-    logging.info("Produce reports")
-    for printer in printers_tbl.values():
-        printer.print_report(report)
+        logging.info("Produce reports")
+        for printer in cfg.get("printers", []):
+            name, outfn = printer["name"], printer["outfn"]
+            printer = create_printer(name)
+            printer.print_report(report, outfn)
 
 

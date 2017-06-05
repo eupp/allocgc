@@ -61,7 +61,7 @@
     {"name": "gc-time"}
   ],
   "printers": [
-    {"name": "json", "params": {"outfn": "benchmark-all.json"}}
+    {"name": "json", "params": {"outfn": "benchmark-all"}}
   ],
   "nruns" : 10
 }

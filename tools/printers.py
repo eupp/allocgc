@@ -1,57 +1,70 @@
 import json
 
+
 class JSONPrinter:
 
-    def __init__(self, outfn):
-        self._outfn = outfn
+    def __init__(self):
+        pass
 
-    def print_report(self, report):
-        with open(self._outfn, "w") as outfile:
+    def print_report(self, report, outfn):
+        with open(outfn + ".json", "w") as outfile:
             json.dump(report.targets, outfile, indent=4)
-
-    def outfn(self):
-        return self._outfn
 
 
 class GCTimePlotPrinter:
 
-    def __init__(self, outfn):
-        self._outfn = outfn
+    def __init__(self):
         with open('gc-time-plot.tex', 'r') as fd:
-            self._tpl = fd.read()
+            self._tpl = self.escape_tex(fd.read())
 
-    def print_report(self, report):
-        tpl = """
-            \addplot+[
-                {color}, draw={color}, pattern color = {color}, pattern = {pattern},
+    def print_plot(self, targets, suites, report, outfn):
+        tpl = self.escape_tex("""
+            \\addplot+[
+                [[color]], draw=[[color]], pattern color = [[color]], pattern = [[pattern]],
                 error bars/.cd, y dir=both,y explicit,
             ]
-            coordinates { {coordinates} };
-        """
+            coordinates{
+                [[coordinates]]
+            };
+        """)
 
-        colors   = []
-        patterns = []
+        colors = ["brown", "blue", "red", "orange", "violet", "green"]
+        patterns = ["horizontal lines", "north west lines", "vertical lines", "dots", "crosshatch", "grid"]
 
         i = 0
-        suites = []
         content = ""
-        for suite, tbl in report.suites.items():
-            suites.append(suite)
+        for suite in suites:
             coordinates = ""
-            coordinate  = "({n}, {mean}) += (0, {std}) [{time} ms]"
+            coordinate  = "({n}, {mean}) +- (0, {std}) [{time} ms]\n"
 
             n = 1
-            for target, data in tbl.items():
+            for target in targets:
+                data = report.suites[suite][target]
                 baseline = report.suites["shared_ptr"][target]
                 time = data["full_time"]["mean"]
-                mean = 100 * float(data["full_time"]["mean"]) / float(baseline["full_time"]["mean"])
-                mean = 100 * float(data["full_time"]["std"]) / float(baseline["full_time"]["std"])
-                coordinates += coordinate.format(n=n, time=time, mean=mean, std=std)
+                mean = float(data["full_time"]["mean"]) / float(baseline["full_time"]["mean"])
+                std  = float(data["full_time"]["std"]) / float(baseline["full_time"]["mean"])
+                coordinates += coordinate.format(n=n, time=int(time), mean=round(mean, 2), std=round(std, 2))
                 n += 1
 
             content += tpl.format(color=colors[i], pattern=patterns[i], coordinates=coordinates)
             i += 1
 
-        legend = "{}".format()
+        xtick = ", ".join(str(i) for i in range(1, len(targets)+1))
+        legend = ", ".join(suite.replace("_", "\\_") for suite in suites)
+        xticklabels = ", ".join(targets)
 
-        self._outfn.write(self._tpl.format(content=content))
+        with open(outfn, "w") as outfd:
+            outfd.write(self._tpl.format(content=content, legend=legend, xtick=xtick, xticklabels=xticklabels))
+
+    def print_report(self, report, outfn):
+        suites1 = ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"]
+        suites2 = ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"]
+        targets1 = ["gcbench top-down", "gcbench bottom-up", "parallel merge sort"]
+        targets2 = ["cord-build", "cord-substr", "cord-flatten"]
+        self.print_plot(targets1, suites1, report, outfn + "-1.tex")
+        self.print_plot(targets2, suites2, report, outfn + "-2.tex")
+
+    @staticmethod
+    def escape_tex(tex):
+        return tex.replace("{", "{{").replace("}", "}}").replace("[[", "{").replace("]]", "}")

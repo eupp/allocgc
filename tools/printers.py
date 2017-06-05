@@ -11,14 +11,18 @@ class JSONPrinter:
             json.dump(report.targets, outfile, indent=4)
 
 
+def escape_tex(content):
+    return content.replace("{", "{{").replace("}", "}}").replace("[[", "{").replace("]]", "}")
+
+
 class GCTimePlotPrinter:
 
     def __init__(self):
         with open('gc-time-plot.tex', 'r') as fd:
-            self._tpl = self.escape_tex(fd.read())
+            self._tpl = escape_tex(fd.read())
 
     def print_plot(self, targets, suites, report, outfn):
-        tpl = self.escape_tex("""
+        tpl = escape_tex("""
             \\addplot+[
                 [[color]], draw=[[color]], pattern color = [[color]], pattern = [[pattern]],
                 error bars/.cd, y dir=both,y explicit,
@@ -65,6 +69,20 @@ class GCTimePlotPrinter:
         self.print_plot(targets1, suites1, report, outfn + "-1.tex")
         self.print_plot(targets2, suites2, report, outfn + "-2.tex")
 
-    @staticmethod
-    def escape_tex(tex):
-        return tex.replace("{", "{{").replace("}", "}}").replace("[[", "{").replace("]]", "}")
+
+class GCHeapPlotPrinter:
+
+    def __init__(self):
+        with open('gc-heap-plot.tex', 'r') as fd:
+            self._tpl = escape_tex(fd.read())
+
+    def print_report(self, data, outfn):
+
+        def iter(data):
+            return zip(range(1, len(data)+1), data)
+
+        sizes = "\n".join("({}, {})".format(i, sz) for i, sz in iter(data["heapsize"]))
+        extras = "\n".join("({}, {})".format(i, sz) for i, sz in iter(data["heapextra"]))
+        with open(outfn + ".tex", "w") as outfd:
+            outfd.write(self._tpl.format(size=sizes, extra=extras))
+

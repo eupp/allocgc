@@ -86,10 +86,12 @@ class MakeBuilder:
 
 
 def create_parser(name, *args, **kwargs):
-    if name == "gc-time":
-        return parsers.GCTimeParser(*args, **kwargs)
     if name == "json":
         return parsers.JSONParser(*args, **kwargs)
+    if name == "gc-time":
+        return parsers.GCTimeParser(*args, **kwargs)
+    if name == "massif":
+        return parsers.MassifParser(*args, **kwargs)
 
 
 def create_printer(name, *args, **kwargs):
@@ -97,6 +99,8 @@ def create_printer(name, *args, **kwargs):
         return printers.JSONPrinter(*args, **kwargs)
     if name == "gc-time-plot":
         return printers.GCTimePlotPrinter(*args, **kwargs)
+    if name == "gc-heap-plot":
+        return printers.GCHeapPlotPrinter(*args, **kwargs)
     # if name == "tex-table":
     #     return TexTablePrinter(*args, **kwargs)
     # if name == "time-bar-plot":
@@ -283,8 +287,8 @@ if __name__ == '__main__':
         parser = create_parser(parser_name)
         printer = create_printer(printer_name)
         with open(inputfn, "r") as infd:
-            parser.parse(infd.read().replace('\n', ''))
-        rep = Report.from_targets(parser.result())
+            parser.parse(infd.read())
+        rep = parser.result()
         printer.print_report(rep, outfn)
 
     else:

@@ -5,6 +5,8 @@ import collections
 
 from functools import partial
 
+from runner import Report
+
 def mean(xs):
     s = 0.0
     for x in xs:
@@ -60,7 +62,7 @@ class JSONParser:
         self._context.update(json.loads(content))
 
     def result(self):
-        return self._context
+        return Report.from_targets(self._context)
 
 
 class GCTimeParser:
@@ -133,6 +135,30 @@ class GCHeapParser:
 
     def parse(self, test_output):
         self._scanner.scan(test_output)
+
+    def result(self):
+        return self._context
+
+
+class MassifParser:
+
+    def __init__(self):
+        def parse_int(key, match):
+            self._context[key] += [int(match.group(key))]
+
+        token_spec = {
+            "HEAP_SIZE" : {"cmd": partial(parse_int, "heapsize") , "re": "mem_heap_B=(?P<heapsize>\d*)"},
+            "HEAP_EXTRA": {"cmd": partial(parse_int, "heapextra"), "re": "mem_heap_extra_B=(?P<heapextra>\d*)"}
+        }
+
+        self._scanner = Scanner(token_spec)
+        self.reset()
+
+    def reset(self):
+        self._context = collections.defaultdict(list)
+
+    def parse(self, content):
+        self._scanner.scan(content)
 
     def result(self):
         return self._context

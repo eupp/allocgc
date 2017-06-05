@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage{pgfplots}
+\usetikzlibrary{patterns}
+\pgfplotsset{compat=newest}
+\pagestyle{empty}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+	xlabel=Time,
+	ylabel=Heap,
+	width=300,
+    smooth,
+    stack plots=y,
+    area style,
+    enlarge x limits=false,
+    xticklabels={,,}
+]
+\addplot coordinates {
+[[used]]
+}\closedcycle;
+
+\addplot coordinates {
+[[all]]
+}\closedcycle;
+
+\legend{Used, All}
+\end{axis}
+\end{tikzpicture}
+\end{document}

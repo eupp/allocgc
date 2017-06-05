@@ -78,11 +78,17 @@ class GCHeapPlotPrinter:
 
     def print_report(self, data, outfn):
 
+        def to_Mb(sz):
+            return round(float(sz) / (1024 * 1024), 3)
+
         def iter(data):
             return zip(range(1, len(data)+1), data)
 
-        sizes = "\n".join("({}, {})".format(i, sz) for i, sz in iter(data["heapsize"]))
-        extras = "\n".join("({}, {})".format(i, sz) for i, sz in iter(data["heapextra"]))
+        used = data["heapsize"]
+        all  = data["heapextra"]
+
+        used = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(used))
+        all  = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(all))
         with open(outfn + ".tex", "w") as outfd:
-            outfd.write(self._tpl.format(size=sizes, extra=extras))
+            outfd.write(self._tpl.format(used=used, all=all))
 

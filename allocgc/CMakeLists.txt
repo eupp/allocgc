@@ -117,7 +117,7 @@ set(precisegc_LIB_SRCS
         src/details/allocators/gc_so_allocator.cpp
         src/details/allocators/gc_pool_allocator.cpp
         src/details/allocators/gc_lo_allocator.cpp
-        src/details/collectors/marker.cpp)
+        src/details/collectors/marker.cpp src/details/allocators/default_allocator.cpp)
 
 
 find_package(Threads REQUIRED)

@@ -32,9 +32,11 @@ public:
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    gc_heap_stat collect(compacting::forwarding& frwd, thread_pool_t& thread_pool);
+    gc_collect_stat collect(compacting::forwarding& frwd, thread_pool_t& thread_pool);
     void fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool);
     void finalize();
+
+    gc_memstat stats();
 private:
     // we have buckets for each 2^k size
     // i.g. [32, 64, 128, 256, ...]

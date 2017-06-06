@@ -98,10 +98,8 @@ struct gc_info
 };
 
 enum class gc_kind {
-      MARK_COLLECT
-    , CONCURRENT_MARK
+      LAUNCH_CONCURRENT_MARK
     , COLLECT
-    , SKIP
 };
 
 typedef int gc_gen;
@@ -112,67 +110,65 @@ struct gc_options
     gc_gen      gen;
 };
 
+struct gc_memstat
+{
+    size_t mem_live  = 0;
+    size_t mem_used  = 0;
+    size_t mem_extra = 0;
+
+    gc_memstat() = default;
+    gc_memstat(const gc_memstat&) = default;
+    gc_memstat& operator=(const gc_memstat&) = default;
+
+    gc_memstat& operator+=(const gc_memstat& other)
+    {
+        mem_live  += other.mem_live;
+        mem_used  += other.mem_used;
+        mem_extra += other.mem_extra;
+        return *this;
+    }
+
+    friend inline gc_memstat operator+(const gc_memstat& a, const gc_memstat& b)
+    {
+        return gc_memstat(a) += b;
+    }
+};
+
 struct gc_stat
 {
     size_t              gc_count;
     gc_clock::duration  gc_time;
+    gc_memstat          gc_mem;
 };
 
-enum class gc_pause_type {
-      MARK_COLLECT
-    , TRACE_ROOTS
-    , COLLECT
-    , SKIP
-};
-
-struct gc_pause_stat
+struct gc_collect_stat
 {
-    gc_pause_type       type      = gc_pause_type::SKIP;
-    gc_clock::duration  duration  = gc_clock::duration(0);
-};
+    size_t mem_freed   = 0;
+    size_t mem_moved   = 0;
+    size_t pinned_cnt  = 0;
 
-struct gc_heap_stat
-{
-    gc_heap_stat() = default;
+    gc_collect_stat() = default;
+    gc_collect_stat(const gc_collect_stat&) = default;
+    gc_collect_stat& operator=(const gc_collect_stat&) = default;
 
-    gc_heap_stat(const gc_heap_stat&) = default;
-
-    gc_heap_stat& operator=(const gc_heap_stat&) = default;
-
-    gc_heap_stat& operator+=(const gc_heap_stat& other)
+    gc_collect_stat& operator+=(const gc_collect_stat& other)
     {
-        mem_before_gc   += other.mem_before_gc;
-        mem_occupied    += other.mem_occupied;
-        mem_live        += other.mem_live;
-        mem_freed       += other.mem_freed;
-        mem_copied      += other.mem_copied;
-        pinned_cnt      += other.pinned_cnt;
-
+        mem_freed  += other.mem_freed;
+        mem_moved  += other.mem_moved;
+        pinned_cnt += other.pinned_cnt;
         return *this;
     }
 
-    friend inline gc_heap_stat operator+(const gc_heap_stat& a, const gc_heap_stat& b)
+    friend inline gc_collect_stat operator+(const gc_collect_stat& a, const gc_collect_stat& b)
     {
-        return gc_heap_stat(a) += b;
+        return gc_collect_stat(a) += b;
     }
-
-    double residency() const
-    {
-        return mem_live / (double) mem_occupied;
-    }
-
-    size_t mem_before_gc = 0;
-    size_t mem_occupied  = 0;
-    size_t mem_live      = 0;
-    size_t mem_freed     = 0;
-    size_t mem_copied    = 0;
-    size_t pinned_cnt    = 0;
 };
 
-struct gc_run_stat
+struct gc_runstat
 {
-    gc_heap_stat    heap_stat;
-    gc_pause_stat   pause_stat;
+    gc_clock::duration  pause = gc_clock::duration(0);
+    gc_collect_stat     collection;
 };
 
 enum class gc_loglevel {
@@ -181,18 +177,6 @@ enum class gc_loglevel {
     , WARNING
     , ERROR
     , SILENT
-};
-
-struct gc_params
-{
-    size_t      heapsize            = std::numeric_limits<size_t>::max();
-    size_t      threads_available   = std::thread::hardware_concurrency();
-    gc_loglevel loglevel            = gc_loglevel::SILENT;
-    bool        conservative        = false;
-    bool        compacting          = false;
-    bool        incremental         = false;
-    bool        manual_init         = false;
-    bool        print_stat          = false;
 };
 
 }

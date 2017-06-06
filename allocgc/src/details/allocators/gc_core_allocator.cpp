@@ -17,6 +17,7 @@ gc_core_allocator::gc_core_allocator()
     , m_heap_size(0)
     , m_heap_limit(HEAP_START_LIMIT)
     , m_heap_maxlimit(HEAP_START_LIMIT)
+    , m_mark_threshold(false)
 { }
 
 gc_core_allocator::gc_core_allocator(gc_launcher* gc)
@@ -81,11 +82,12 @@ bool gc_core_allocator::increase_heap_size(size_t alloc_size, std::unique_lock<m
     if (size > COLLECT_THRESHOLD * m_heap_limit) {
         return false;
     }
-    else if (size > MARK_THRESHOLD * m_heap_limit) {
-        assert(m_gc_launcher);
+    else if (!m_mark_threshold && m_gc_launcher && m_gc_launcher->info().incremental_flag
+             && size > MARK_THRESHOLD * m_heap_limit) {
+        m_mark_threshold = true;
 
         gc_options opt;
-        opt.kind = gc_kind::CONCURRENT_MARK;
+        opt.kind = gc_kind::LAUNCH_CONCURRENT_MARK;
         opt.gen  = 0;
 
         lock->unlock();
@@ -112,9 +114,16 @@ void gc_core_allocator::expand_heap()
     std::lock_guard<std::mutex> lock(m_mutex);
     size_t increased_size = INCREASE_FACTOR * m_heap_limit;
     m_heap_limit = std::min(increased_size, m_heap_maxlimit);
+    m_mark_threshold = false;
 }
 
-gc_run_stat gc_core_allocator::gc(const gc_options& options)
+void gc_core_allocator::notify_gc()
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_mark_threshold = false;
+}
+
+gc_runstat gc_core_allocator::gc(const gc_options& options)
 {
     assert(m_gc_launcher);
     return m_gc_launcher->gc(options);

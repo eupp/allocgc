@@ -113,9 +113,11 @@ public:
 
     gc_alloc::response allocate(const gc_alloc::request& rqst);
 
-    gc_heap_stat collect(compacting::forwarding& frwd);
+    gc_collect_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
     void finalize();
+
+    gc_memstat stats();
 private:
     static constexpr size_t get_blk_size(size_t alloc_size)
     {

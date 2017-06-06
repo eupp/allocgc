@@ -58,7 +58,9 @@ public:
     void set_heap_limit(size_t limit);
     void expand_heap();
 
-    gc_run_stat gc(const gc_options& options);
+    void notify_gc();
+
+    gc_runstat gc(const gc_options& options);
 private:
     typedef freelist_allocator<sys_allocator> freelist_alloc_t;
     typedef freelist_allocator<sys_allocator> fixsize_page_alloc_t;
@@ -82,6 +84,7 @@ private:
     bucket_alloc_t m_bucket_alloc;
     freelist_alloc_t m_freelist;
     mutex_t m_mutex;
+    bool m_mark_threshold;
 };
 
 }}}

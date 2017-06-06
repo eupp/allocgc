@@ -10,7 +10,7 @@ namespace allocgc { namespace details { namespace compacting {
 struct two_finger_compactor
 {
     template <typename Range, typename Forwarding>
-    void operator()(Range& rng, Forwarding& frwd, gc_heap_stat& stat) const
+    void operator()(Range& rng, Forwarding& frwd, gc_collect_stat& stat) const
     {
         typedef typename Range::iterator iterator_t;
         typedef typename iterator_t::value_type value_t;
@@ -55,7 +55,7 @@ struct two_finger_compactor
                 frwd.create(from->get(), to->get());
 
 //                stat.mem_freed  += cell_size;
-                stat.mem_copied += cell_size;
+                stat.mem_moved += cell_size;
             }
         }
     }

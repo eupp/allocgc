@@ -18,7 +18,7 @@ namespace serial {
 void gc()
 {
     gc_options opt;
-    opt.kind = gc_kind::MARK_COLLECT;
+    opt.kind = gc_kind::COLLECT;
     opt.gen  = -1;
     gc_facade<gc_serial>::initiation_point(details::initiation_point_type::USER_REQUEST, opt);
 }
@@ -64,7 +64,7 @@ namespace cms {
 void gc()
 {
     gc_options opt;
-    opt.kind = gc_kind::MARK_COLLECT;
+    opt.kind = gc_kind::COLLECT;
     opt.gen  = -1;
     gc_facade<gc_cms>::initiation_point(details::initiation_point_type::USER_REQUEST, opt);
 }

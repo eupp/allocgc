@@ -13,7 +13,9 @@ namespace {
 static const size_t OBJ_SIZE = 64;
 
 struct test_type
-{ };
+{
+    byte data[OBJ_SIZE];
+};
 
 const gc_type_meta* type_meta = gc_type_meta_factory<test_type>::create();
 }
@@ -67,14 +69,13 @@ TEST_F(gc_lo_allocator_test, test_collect)
     commit(rsp3, type_meta);
     set_mark(rsp3, true);
 
+    ASSERT_EQ(3 * OBJ_SIZE, alloc.stats().mem_live);
 
     compacting::forwarding frwd;
-    gc_heap_stat stat = alloc.collect(frwd);
+    gc_collect_stat stat = alloc.collect(frwd);
 
-    ASSERT_EQ(3 * OBJ_SIZE, stat.mem_before_gc);
-    ASSERT_EQ(2 * OBJ_SIZE, stat.mem_occupied);
-    ASSERT_EQ(2 * OBJ_SIZE, stat.mem_live);
+    ASSERT_EQ(2 * OBJ_SIZE, alloc.stats().mem_live);
     ASSERT_EQ(OBJ_SIZE, stat.mem_freed);
-    ASSERT_EQ(0, stat.mem_copied);
+    ASSERT_EQ(0, stat.mem_moved);
     ASSERT_EQ(1, stat.pinned_cnt);
 }

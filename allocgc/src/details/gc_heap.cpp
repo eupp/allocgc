@@ -28,12 +28,12 @@ gc_heap::tlab* gc_heap::allocate_tlab(std::thread::id thrd_id)
     std::lock_guard<std::mutex> lock(m_mutex);
     return &m_tlab_map.emplace(
             std::piecewise_construct,
-            std::make_tuple(std::this_thread::get_id()),
+            std::make_tuple(thrd_id),
             std::make_tuple(&m_core_alloc)
     ).first->second;
 }
 
-gc_heap_stat gc_heap::collect(
+gc_collect_stat gc_heap::collect(
         const threads::world_snapshot& snapshot,
         size_t threads_available,
         collectors::static_root_set* static_roots
@@ -41,13 +41,13 @@ gc_heap_stat gc_heap::collect(
     compacting::forwarding frwd;
     utils::static_thread_pool thread_pool(threads_available);
 
-    gc_heap_stat stat;
+    gc_collect_stat stat;
     for (auto& kv: m_tlab_map) {
         stat += kv.second.collect(frwd, thread_pool);
     }
     stat += m_loa.collect(frwd);
 
-    if (stat.mem_copied > 0) {
+    if (stat.mem_moved > 0) {
         for (auto& kv: m_tlab_map) {
             kv.second.fix(frwd, thread_pool);
         }
@@ -66,6 +66,19 @@ gc_heap_stat gc_heap::collect(
     }
     m_loa.finalize();
 
+    m_core_alloc.notify_gc();
+
+    return stat;
+}
+
+gc_memstat gc_heap::stats()
+{
+    gc_memstat stat;
+    for (auto& kv: m_tlab_map) {
+        stat += kv.second.stats();
+    }
+    stat += m_loa.stats();
+    stat.mem_extra = allocators::default_allocator::memory_allocated();
     return stat;
 }
 

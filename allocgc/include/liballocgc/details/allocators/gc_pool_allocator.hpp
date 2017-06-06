@@ -46,9 +46,11 @@ public:
 
     gc_alloc::response allocate(const gc_alloc::request& rqst, size_t aligned_size);
 
-    gc_heap_stat collect(compacting::forwarding& frwd);
+    gc_collect_stat collect(compacting::forwarding& frwd);
     void fix(const compacting::forwarding& frwd);
     void finalize();
+
+    gc_memstat stats();
 
     bool empty() const;
 
@@ -71,12 +73,12 @@ private:
 
     bool contains(byte* ptr) const;
 
-    bool is_compaction_required(const gc_heap_stat& stat) const;
+    bool is_compaction_required(double residency) const;
 
     // remove unused chunks and calculate some statistic
-    void shrink(gc_heap_stat& stat);
-    void sweep(gc_heap_stat& stat);
-    void compact(compacting::forwarding& frwd, gc_heap_stat& stat);
+    double shrink(gc_collect_stat& stat);
+    void sweep(gc_collect_stat& stat);
+    void compact(compacting::forwarding& frwd, gc_collect_stat& stat);
 
     size_t sweep(descriptor_t& descr, bool add_to_freelist);
 

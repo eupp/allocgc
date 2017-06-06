@@ -95,13 +95,13 @@ TYPED_TEST(compactor_test, test_compact_1)
     byte* exp_to = rsps[1].cell_start();
     byte* exp_from = rsps[4].cell_start();
 
-    gc_heap_stat stat;
+    gc_collect_stat stat;
     test_forwarding frwd;
     auto rng = this->alloc.memory_range();
     this->compactor(rng, frwd, stat);
 
 //    ASSERT_EQ(ALLOC_SIZE, stat.mem_freed);
-    ASSERT_EQ(ALLOC_SIZE, stat.mem_copied);
+    ASSERT_EQ(ALLOC_SIZE, stat.mem_moved);
 
     auto frwd_list = frwd.get_forwarding_list();
     ASSERT_EQ(1, frwd_list.size());
@@ -150,11 +150,11 @@ TYPED_TEST(compactor_test, test_compact_2)
         set_mark(*rsp, true);
     }
 
-    gc_heap_stat stat;
+    gc_collect_stat stat;
     test_forwarding frwd;
     this->compactor(rng, frwd, stat);
 
-    ASSERT_GE(ALLOC_SIZE * LIVE_CNT, stat.mem_copied);
+    ASSERT_GE(ALLOC_SIZE * LIVE_CNT, stat.mem_moved);
 
     auto live_begin = rng.begin();
     auto live_end = std::next(live_begin, LIVE_CNT);
@@ -198,11 +198,11 @@ TYPED_TEST(compactor_test, test_compact_3)
 
     auto rng = this->alloc.memory_range();
 
-    gc_heap_stat stat;
+    gc_collect_stat stat;
     test_forwarding frwd;
     this->compactor(rng, frwd, stat);
 
-    EXPECT_GE(exp_mark_cnt * ALLOC_SIZE, stat.mem_copied);
+    EXPECT_GE(exp_mark_cnt * ALLOC_SIZE, stat.mem_moved);
 
     size_t pin_cnt = 0;
     size_t mark_cnt = 0;

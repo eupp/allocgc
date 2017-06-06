@@ -157,47 +157,50 @@ bool gc_pool_allocator::contains(byte* ptr) const
     return false;
 }
 
-gc_heap_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
+gc_collect_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 {
     if (m_descrs.begin() == m_descrs.end()) {
-        return gc_heap_stat();
+        return gc_collect_stat();
     }
 
-    gc_heap_stat stat;
-    shrink(stat);
+    gc_collect_stat stat;
+
+    double residency = shrink(stat);
 
     m_top = nullptr;
-    m_end = m_top;
+    m_end = nullptr;
     m_freelist = nullptr;
 
-    if (is_compaction_required(stat)) {
+    if (is_compaction_required(residency)) {
         compact(frwd, stat);
         m_prev_residency = 1.0;
     } else {
         sweep(stat);
-        m_prev_residency = stat.residency();
+        m_prev_residency = residency;
     }
 
     return stat;
 }
 
-void gc_pool_allocator::shrink(gc_heap_stat& stat)
+double gc_pool_allocator::shrink(gc_collect_stat& stat)
 {
+    size_t mem_live = 0;
+    size_t mem_occupied = 0;
     for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
-        stat.mem_before_gc += it->size();
         if (it->unused()) {
             stat.mem_freed += it->size();
             it = destroy_descriptor(it);
         } else {
-            stat.mem_occupied    += it->size();
-            stat.mem_live   += it->cell_size() * it->count_lived();
+            mem_live     += it->cell_size() * it->count_lived();
+            mem_occupied += it->size();
             stat.pinned_cnt += it->count_pinned();
             ++it;
         }
     }
+    return static_cast<double>(mem_live) / mem_occupied;
 }
 
-void gc_pool_allocator::sweep(gc_heap_stat& stat)
+void gc_pool_allocator::sweep(gc_collect_stat& stat)
 {
     for (auto& descr: m_descrs) {
         stat.mem_freed += sweep(descr, true);
@@ -236,7 +239,7 @@ void gc_pool_allocator::insert_into_freelist(byte* ptr)
     m_freelist  = next;
 }
 
-void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_heap_stat& stat)
+void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_collect_stat& stat)
 {
     compacting::two_finger_compactor compactor;
     auto rng = memory_range();
@@ -256,20 +259,30 @@ void gc_pool_allocator::finalize()
     }
 }
 
+gc_memstat gc_pool_allocator::stats()
+{
+    gc_memstat stat;
+    for (auto it = m_descrs.begin(), end = m_descrs.end(); it != end; ++it) {
+        stat.mem_live += it->mem_used();
+        stat.mem_used += it->size();
+    }
+    return stat;
+}
+
 bool gc_pool_allocator::empty() const
 {
     return m_descrs.empty();
 }
 
-bool gc_pool_allocator::is_compaction_required(const gc_heap_stat& stat) const
+bool gc_pool_allocator::is_compaction_required(double residency) const
 {
-    if (stat.residency() < RESIDENCY_COMPACTING_THRESHOLD) {
+    if (residency < RESIDENCY_COMPACTING_THRESHOLD) {
         return true;
     }
-    if (stat.residency() > RESIDENCY_NON_COMPACTING_THRESHOLD) {
+    if (residency > RESIDENCY_NON_COMPACTING_THRESHOLD) {
         return false;
     }
-    if ((m_prev_residency > 0) && std::abs(stat.residency() - m_prev_residency) < RESIDENCY_EPS) {
+    if ((m_prev_residency > 0) && std::abs(residency - m_prev_residency) < RESIDENCY_EPS) {
         return true;
     }
     return false;

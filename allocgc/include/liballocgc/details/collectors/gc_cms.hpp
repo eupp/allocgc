@@ -11,9 +11,7 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-struct gc_cms_tag {};
-
-class gc_cms : public gc_core<gc_cms_tag>, public gc_launcher, private utils::noncopyable, private utils::nonmovable
+class gc_cms : public gc_core<gc_cms>, private utils::noncopyable, private utils::nonmovable
 {
 public:
     gc_cms();
@@ -25,12 +23,12 @@ public:
 
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 
-    gc_run_stat gc(const gc_options& options) override;
+    gc_runstat gc_impl(const gc_options& options);
 
-    gc_info info() const;
+    gc_info info() const override;
 private:
-    gc_run_stat start_marking_phase();
-    gc_run_stat sweep();
+    gc_runstat start_marking_phase();
+    gc_runstat sweep();
 
     remset m_remset;
     std::mutex m_mutex;

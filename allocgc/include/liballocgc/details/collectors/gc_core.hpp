@@ -14,20 +14,18 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-template <typename Tag>
-class gc_core : private utils::noncopyable, private utils::nonmovable
+template <typename Derived>
+class gc_core : public gc_launcher, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    gc_core(gc_launcher* launcher, remset* rset)
+    gc_core(remset* rset)
         : m_marker(&m_packet_manager, rset)
-        , m_heap(launcher)
+        , m_heap(this)
         , m_threads_available(std::thread::hardware_concurrency())
         , m_gc_cnt(0)
         , m_gc_time(0)
     {
         allocators::memory_index::init();
-
-        m_conservative_mode = false;
     }
 
     ~gc_core()
@@ -180,6 +178,20 @@ public:
         m_thread_manager.deregister_thread(id);
     }
 
+    gc_runstat gc(const gc_options& options) override
+    {
+        gc_safe_scope safe_scope;
+        std::lock_guard<std::mutex> lock(m_mutex);
+
+        before_gc(options);
+
+        gc_runstat stat = static_cast<Derived*>(this)->gc_impl(options);
+
+        after_gc(options, stat);
+
+        return stat;
+    }
+
     gc_stat stats()
     {
         gc_stat stats = {
@@ -211,11 +223,7 @@ protected:
 
     void trace_roots(const threads::world_snapshot& snapshot)
     {
-        if (m_conservative_mode) {
-            snapshot.trace_roots([this] (gc_handle* root) { conservative_root_trace_cb(root); });
-        } else {
-            snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
-        }
+        snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
         m_static_roots.trace([this] (gc_handle* root) { root_trace_cb(root); });
     }
 
@@ -243,7 +251,7 @@ protected:
         m_marker.mark();
     }
 
-    gc_heap_stat collect(const threads::world_snapshot& snapshot, size_t threads_available)
+    gc_collect_stat collect(const threads::world_snapshot& snapshot, size_t threads_available)
     {
         return m_heap.collect(snapshot, threads_available, &m_static_roots);
     }
@@ -252,20 +260,24 @@ protected:
     {
         m_heap.shrink();
     }
-
-    void register_gc_run(const gc_run_stat& stats)
+private:
+    void before_gc(const gc_options& options)
     {
-        if (stats.pause_stat.type == gc_pause_type::SKIP) {
-            return;
-        }
+        print_gc_mem_stats(stats().gc_mem);
+    }
 
-        logging::info() << "GC pause (" << gc_pause_type_to_str(stats.pause_stat.type)
-                        << ") duration "<< duration_to_str(stats.pause_stat.duration);
+    void after_gc(const gc_options& options, const gc_runstat& runstats)
+    {
+        logging::info() << "GC kind (" << gc_kind_to_str(options.kind)
+        << ") pause "<< duration_to_str(runstats.pause);
+
+        print_gc_mem_stats(stats().gc_mem);
+        print_gc_run_stats(options, runstats);
 
         ++m_gc_cnt;
-        m_gc_time += stats.pause_stat.duration;
+        m_gc_time += runstats.pause;
     }
-private:
+
     void root_trace_cb(gc_handle* root)
     {
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
@@ -287,21 +299,6 @@ private:
             m_marker.add_root(cell);
 
             logging::debug() << "pin: " << (void*) ptr;
-        }
-    }
-
-    void conservative_root_trace_cb(gc_handle* root)
-    {
-        byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
-        if (ptr) {
-            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
-            if (!cell.get_mark() && cell.is_init()) {
-                cell.set_mark(true);
-                cell.set_pin(true);
-                m_marker.add_root(cell);
-
-                logging::debug() << "root: " << (void*) root << "; point to: " << (void*) ptr;
-            }
         }
     }
 
@@ -329,6 +326,27 @@ private:
         }
     }
 
+    void print_gc_mem_stats(const gc_memstat& stats)
+    {
+        std::cerr << "****************************************************************************" << std::endl;
+        std::cerr << "   GC HEAP SUMMARY                                                          " << std::endl;
+        std::cerr << "mem live:  " << heapsize_to_str(stats.mem_live, 0) << std::endl;
+        std::cerr << "mem used:  " << heapsize_to_str(stats.mem_used, 0) << std::endl;
+        std::cerr << "mem extra: " << heapsize_to_str(stats.mem_extra, 0) << std::endl;
+        std::cerr << "****************************************************************************" << std::endl;
+    }
+
+    void print_gc_run_stats(const gc_options& options, const gc_runstat& stats)
+    {
+        std::cerr << "****************************************************************************" << std::endl;
+        std::cerr << "   GC RUN SUMMARY                                                           " << std::endl;
+        std::cerr << "gc kind:     " << gc_kind_to_str(options.kind) << std::endl;
+        std::cerr << "pause time:  " << duration_to_str(stats.pause, 0) << std::endl;
+        std::cerr << "freed:       " << heapsize_to_str(stats.collection.mem_freed, 0) << std::endl;
+        std::cerr << "moved:       " << heapsize_to_str(stats.collection.mem_moved, 0) << std::endl;
+        std::cerr << "****************************************************************************" << std::endl;
+    }
+
     static thread_local threads::gc_thread_descriptor* this_thread;
 
     threads::gc_thread_manager m_thread_manager;
@@ -339,11 +357,11 @@ private:
     size_t m_threads_available;
     size_t m_gc_cnt;
     gc_clock::duration m_gc_time;
-    bool m_conservative_mode;
+    std::mutex m_mutex;
 };
 
-template <typename Tag>
-thread_local threads::gc_thread_descriptor* gc_core<Tag>::this_thread = nullptr;
+template <typename Derived>
+thread_local threads::gc_thread_descriptor* gc_core<Derived>::this_thread = nullptr;
 
 }}}
 

@@ -29,10 +29,10 @@ gc_alloc::response gc_so_allocator::allocate(const gc_alloc::request& rqst)
     return m_buckets[bucket_idx].allocate(rqst, SZ_CLS[bucket_idx]);
 }
 
-gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
+gc_collect_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
     std::vector<std::function<void()>> tasks;
-    std::array<gc_heap_stat, BUCKET_COUNT> part_stats;
+    std::array<gc_collect_stat, BUCKET_COUNT> part_stats;
     for (size_t i = 0; i < BUCKET_COUNT; ++i) {
         if (m_buckets[i].empty()) {
             continue;
@@ -43,7 +43,7 @@ gc_heap_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_
     }
     thread_pool.run(tasks.begin(), tasks.end());
 
-    gc_heap_stat stat;
+    gc_collect_stat stat;
     for (auto& part_stat: part_stats) {
         stat += part_stat;
     }
@@ -70,6 +70,15 @@ void gc_so_allocator::finalize()
     for (size_t i = 0; i < BUCKET_COUNT; ++i) {
         m_buckets[i].finalize();
     }
+}
+
+gc_memstat gc_so_allocator::stats()
+{
+    gc_memstat stat;
+    for (auto& bucket: m_buckets) {
+        stat += bucket.stats();
+    }
+    return stat;
 }
 
 }}}

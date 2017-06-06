@@ -23,22 +23,29 @@ public:
     default_allocator(const default_allocator&) = default;
     default_allocator(default_allocator&&) = default;
 
-    byte* allocate(size_t size, size_t alignment = 0)
+    static byte* allocate(size_t size, size_t alignment = 0)
     {
+        mem_allocated += size;
         return reinterpret_cast<byte*>(malloc(size));
     }
 
-    void deallocate(byte* ptr, size_t size, size_t alignment = 0)
+    static void deallocate(byte* ptr, size_t size, size_t alignment = 0)
     {
+        mem_allocated -= size;
         free(ptr);
     }
 
-    size_t shrink()
+    static size_t shrink()
     {
         return 0;
     }
 
-    memory_range_type memory_range()
+    static size_t memory_allocated()
+    {
+        return mem_allocated;
+    }
+
+    static memory_range_type memory_range()
     {
         return memory_range_type(nullptr, nullptr);
     }
@@ -52,6 +59,9 @@ public:
     {
         return false;
     }
+private:
+    // rough approximation of memory allocated to the needs of gc outside from the gc-heap.
+    static size_t mem_allocated;
 };
 
 }}}

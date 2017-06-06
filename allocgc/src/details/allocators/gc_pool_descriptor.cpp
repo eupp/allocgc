@@ -191,4 +191,15 @@ size_t gc_pool_descriptor::calc_cell_ind(byte* ptr) const
     return (ptr - memory()) >> m_cell_size_log2;
 }
 
+size_t gc_pool_descriptor::mem_used()
+{
+    size_t used = 0;
+    for (auto it = begin(); it != end(); ++it) {
+        if (it->is_init()) {
+            used += it->object_count() * it->get_type_meta()->type_size();
+        }
+    }
+    return used;
+}
+
 }}}

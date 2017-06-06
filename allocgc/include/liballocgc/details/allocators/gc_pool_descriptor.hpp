@@ -196,6 +196,8 @@ public:
     }
 
     bool contains(byte* ptr) const;
+
+    size_t mem_used();
 private:
     void set_init(byte* ptr, bool init);
 

@@ -7,7 +7,7 @@
 namespace allocgc { namespace details { namespace collectors {
 
 gc_serial::gc_serial()
-    : gc_core(this, nullptr)
+    : gc_core(nullptr)
 {}
 
 void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
@@ -17,22 +17,18 @@ void gc_serial::wbarrier(gc_handle& dst, const gc_handle& src)
     gc_handle_access::set<std::memory_order_relaxed>(dst, ptr);
 }
 
-gc_run_stat gc_serial::gc(const gc_options& options)
+gc_runstat gc_serial::gc_impl(const gc_options& options)
 {
-    if ((options.kind != gc_kind::MARK_COLLECT) && (options.kind != gc_kind::COLLECT)) {
-        return gc_run_stat();
+    if (options.kind != gc_kind::COLLECT) {
+        return gc_runstat();
     }
 
-    gc_safe_scope safe_scope;
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    gc_run_stat stats = sweep();
+    gc_runstat stats = sweep();
     shrink();
-    register_gc_run(stats);
     return stats;
 }
 
-gc_run_stat gc_serial::sweep()
+gc_runstat gc_serial::sweep()
 {
     auto snapshot = stop_the_world();
 
@@ -43,11 +39,9 @@ gc_run_stat gc_serial::sweep()
     start_concurrent_marking(threads_available());
     start_marking();
 
-    gc_run_stat stats;
-    stats.heap_stat = collect(snapshot, threads_available());
-
-    stats.pause_stat.type       = gc_pause_type::MARK_COLLECT;
-    stats.pause_stat.duration   = snapshot.time_since_stop_the_world();
+    gc_runstat stats;
+    stats.collection = collect(snapshot, threads_available());
+    stats.pause   = snapshot.time_since_stop_the_world();
 
     return stats;
 }

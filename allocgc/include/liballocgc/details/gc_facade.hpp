@@ -133,7 +133,7 @@ private:
 
     static bool check_gc_kind(gc_kind kind)
     {
-        if (kind == gc_kind::CONCURRENT_MARK && !strategy.info().incremental_flag) {
+        if (kind == gc_kind::LAUNCH_CONCURRENT_MARK && !strategy.info().incremental_flag) {
             return false;
         }
         return true;

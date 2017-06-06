@@ -44,28 +44,16 @@ typedef std::function<void(byte*, size_t)> gc_trace_obj_callback;
 class gc_launcher
 {
 public:
-    virtual gc_run_stat gc(const gc_options& opt) = 0;
-};
+    virtual ~gc_launcher() {}
 
-inline const char* gc_pause_type_to_str(gc_pause_type pause_type)
-{
-    if (pause_type == gc_pause_type::MARK_COLLECT) {
-        return "full gc";
-    } else if (pause_type == gc_pause_type::TRACE_ROOTS) {
-        return "trace roots";
-    } else if (pause_type == gc_pause_type::COLLECT) {
-        return "collect";
-    } else {
-        return "undefined";
-    }
-}
+    virtual gc_runstat gc(const gc_options& opt) = 0;
+    virtual gc_info info() const = 0;
+};
 
 inline const char* gc_kind_to_str(gc_kind type)
 {
-    if (type == gc_kind::MARK_COLLECT) {
-        return "mark collect";
-    } else if (type == gc_kind::CONCURRENT_MARK) {
-        return "concurrent mark";
+    if (type == gc_kind::LAUNCH_CONCURRENT_MARK) {
+        return "starting concurrent mark";
     } else if (type == gc_kind::COLLECT) {
         return "collect";
     } else {

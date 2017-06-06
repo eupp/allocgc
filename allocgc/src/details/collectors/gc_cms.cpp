@@ -10,7 +10,7 @@
 namespace allocgc { namespace details { namespace collectors {
 
 gc_cms::gc_cms()
-    : gc_core(this, &m_remset)
+    : gc_core(&m_remset)
     , m_phase(gc_phase::IDLE)
 {}
 
@@ -54,25 +54,20 @@ void gc_cms::wbarrier(gc_handle& dst, const gc_handle& src)
     }
 }
 
-gc_run_stat gc_cms::gc(const gc_options& options)
+gc_runstat gc_cms::gc_impl(const gc_options& options)
 {
-    gc_safe_scope safe_scope;
-    std::lock_guard<std::mutex> lock(m_mutex);
-
-    if (options.kind == gc_kind::CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
-        gc_run_stat stats = start_marking_phase();
-        register_gc_run(stats);
+    if (options.kind == gc_kind::LAUNCH_CONCURRENT_MARK && m_phase == gc_phase::IDLE) {
+        gc_runstat stats = start_marking_phase();
         return stats;
     } else if (options.kind == gc_kind::COLLECT) {
-        gc_run_stat stats = sweep();
+        gc_runstat stats = sweep();
         shrink();
-        register_gc_run(stats);
         return stats;
     }
-    return gc_run_stat();
+    return gc_runstat();
 }
 
-gc_run_stat gc_cms::start_marking_phase()
+gc_runstat gc_cms::start_marking_phase()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE);
@@ -83,21 +78,18 @@ gc_run_stat gc_cms::start_marking_phase()
     m_phase = gc_phase::MARK;
     start_concurrent_marking(std::max((size_t) 1, threads_available() - 1));
 
-    gc_run_stat stats;
-    stats.pause_stat.type     = gc_pause_type::TRACE_ROOTS;
-    stats.pause_stat.duration = snapshot.time_since_stop_the_world();
+    gc_runstat stats;
+    stats.pause = snapshot.time_since_stop_the_world();
     return stats;
 }
 
-gc_run_stat gc_cms::sweep()
+gc_runstat gc_cms::sweep()
 {
     using namespace threads;
     assert(m_phase == gc_phase::IDLE || m_phase == gc_phase::MARK);
 
-    gc_pause_type type;
     world_snapshot snapshot = stop_the_world();
     if (m_phase == gc_phase::IDLE) {
-        type = gc_pause_type::MARK_COLLECT;
         trace_uninit(snapshot);
         trace_roots(snapshot);
         trace_pins(snapshot);
@@ -106,7 +98,6 @@ gc_run_stat gc_cms::sweep()
         start_concurrent_marking(threads_available() - 1);
         start_marking();
     } else if (m_phase == gc_phase::MARK) {
-        type = gc_pause_type::COLLECT;
         trace_uninit(snapshot);
         trace_pins(snapshot);
         trace_remset();
@@ -114,11 +105,10 @@ gc_run_stat gc_cms::sweep()
     }
     m_phase = gc_phase::COLLECT;
 
-    gc_run_stat stats;
+    gc_runstat stats;
 
-    stats.heap_stat           = collect(snapshot, threads_available());
-    stats.pause_stat.type     = type;
-    stats.pause_stat.duration = snapshot.time_since_stop_the_world();
+    stats.collection = collect(snapshot, threads_available());
+    stats.pause = snapshot.time_since_stop_the_world();
 
     m_phase = gc_phase::IDLE;
 

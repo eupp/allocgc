@@ -11,22 +11,18 @@
 
 namespace allocgc { namespace details { namespace collectors {
 
-struct gc_serial_tag {};
-
-class gc_serial : public gc_core<gc_serial_tag>, public gc_launcher, private utils::noncopyable, private utils::nonmovable
+class gc_serial : public gc_core<gc_serial>, private utils::noncopyable, private utils::nonmovable
 {
 public:
     gc_serial();
 
     void  wbarrier(gc_handle& dst, const gc_handle& src);
 
-    gc_run_stat gc(const gc_options& options) override;
+    gc_runstat gc_impl(const gc_options& options);
 
-    gc_info info() const;
+    gc_info info() const override;
 private:
-    gc_run_stat sweep();
-
-    std::mutex m_mutex;
+    gc_runstat sweep();
 };
 
 }}}

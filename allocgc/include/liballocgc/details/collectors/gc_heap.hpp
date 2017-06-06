@@ -46,11 +46,13 @@ public:
 
     tlab* allocate_tlab(std::thread::id thrd_id);
 
-    gc_heap_stat collect(
+    gc_collect_stat collect(
             const threads::world_snapshot& snapshot,
             size_t threads_available,
             collectors::static_root_set* static_roots
     );
+
+    gc_memstat stats();
 
     void shrink();
 

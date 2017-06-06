@@ -63,20 +63,17 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
     return gc_alloc::response(obj_start, cell_start, cell_size, rqst.buffer());
 }
 
-gc_heap_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
+gc_collect_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
 {
-    gc_heap_stat stat;
+    gc_collect_stat stat;
     size_t freed = 0;
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
         auto next = std::next(it);
-        stat.mem_before_gc += it->cell_size();
         if (!it->get_mark()) {
             stat.mem_freed += it->cell_size();
             freed += get_cell_size(it->cell_size());
             destroy(it);
         } else {
-            stat.mem_occupied  += it->cell_size();
-            stat.mem_live += it->cell_size();
             if (it->get_pin()) {
                 ++stat.pinned_cnt;
             }
@@ -98,6 +95,18 @@ void gc_lo_allocator::finalize()
         it->set_mark(false);
         it->set_pin(false);
     }
+}
+
+gc_memstat gc_lo_allocator::stats()
+{
+    gc_memstat stat;
+    for (auto it = memory_begin(); it != memory_end(); ++it) {
+        if (it->is_init()) {
+            stat.mem_live += it->object_count() * it->get_type_meta()->type_size();
+        }
+        stat.mem_used += get_blk_size(it->cell_size());
+    }
+    return stat;
 }
 
 void gc_lo_allocator::destroy(const descriptor_iterator& it)

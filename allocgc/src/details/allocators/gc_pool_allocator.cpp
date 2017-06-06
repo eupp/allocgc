@@ -55,7 +55,6 @@ gc_alloc::response gc_pool_allocator::try_expand_and_allocate(
 
     byte*  blk;
     size_t blk_size;
-    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
     std::tie(blk, blk_size) = allocate_block(size);
     if (blk) {
         create_descriptor(blk, blk_size, size);
@@ -263,8 +262,9 @@ gc_memstat gc_pool_allocator::stats()
 {
     gc_memstat stat;
     for (auto it = m_descrs.begin(), end = m_descrs.end(); it != end; ++it) {
-        stat.mem_live += it->mem_used();
-        stat.mem_used += it->size();
+        stat.mem_live  += it->mem_used();
+        stat.mem_used  += it->size();
+        stat.mem_extra += sizeof(descriptor_t);
     }
     return stat;
 }

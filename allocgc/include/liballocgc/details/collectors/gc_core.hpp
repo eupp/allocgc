@@ -196,7 +196,8 @@ public:
     {
         gc_stat stats = {
                 .gc_count   = m_gc_cnt,
-                .gc_time    = m_gc_time
+                .gc_time    = m_gc_time,
+                .gc_mem     = m_heap.stats()
         };
         return stats;
     }

@@ -45,6 +45,11 @@ public:
     {
         return gc_cell::from_internal_ptr(ptr, get_descriptor(ptr).to_gc_descriptor());
     }
+
+    static inline size_t size()
+    {
+        return indexer.size();
+    }
 private:
     static index_tree indexer;
 };

@@ -2,15 +2,12 @@
 #define ALLOCGC_INDEX_TREE_H
 
 #include <cstddef>
-#include <cstring>
 #include <cassert>
 #include <array>
 #include <atomic>
 #include <type_traits>
-#include <vector>
 #include <iterator>
 #include <memory>
-#include <mutex>
 #include <limits>
 
 #include <boost/integer/static_min_max.hpp>
@@ -119,6 +116,11 @@ public:
         return index_page(mem);
     }
 
+    size_t size()
+    {
+        return m_first_level.size();
+    }
+
     friend struct internals::index_tree_access;
 private:
     typedef internals::splitter::idx_t  idx_t;
@@ -221,6 +223,18 @@ private:
             }
         }
 
+        size_t size() const
+        {
+            size_t sz = 0;
+            for (auto& handle: m_data) {
+                Level* level = handle.m_ptr.load(std::memory_order_acquire);
+                if (level != null()) {
+                    sz += level->size();
+                }
+            }
+            return sz + sizeof(internal_level);
+        }
+
         static Level* null()
         {
             static Level null;
@@ -295,6 +309,11 @@ private:
         void clear()
         {
             return;
+        }
+
+        size_t size() const
+        {
+            return sizeof(last_level);
         }
 
         static const size_t LEVEL_SIZE = internals::splitter::LAST_LEVEL_SIZE;

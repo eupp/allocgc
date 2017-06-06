@@ -78,7 +78,7 @@ gc_memstat gc_heap::stats()
         stat += kv.second.stats();
     }
     stat += m_loa.stats();
-    stat.mem_extra = allocators::default_allocator::memory_allocated();
+    stat.mem_extra += allocators::memory_index::size();
     return stat;
 }
 

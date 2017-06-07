@@ -90,6 +90,8 @@ def create_parser(name, *args, **kwargs):
         return parsers.JSONParser(*args, **kwargs)
     if name == "gc-time":
         return parsers.GCTimeParser(*args, **kwargs)
+    if name == "gc-pause-time":
+        return parsers.GCPauseTimeParser(*args, **kwargs)
     if name == "boehm-stats":
         return parsers.BoehmStatsParser(*args, **kwargs)
     if name == "massif":
@@ -103,6 +105,8 @@ def create_printer(name, *args, **kwargs):
         return printers.GCTimePlotPrinter(*args, **kwargs)
     if name == "gc-heap-plot":
         return printers.GCHeapPlotPrinter(*args, **kwargs)
+    if name == "gc-pause-plot":
+        return printers.GCPauseTimePlotPrinter(*args, **kwargs)
     # if name == "tex-table":
     #     return TexTablePrinter(*args, **kwargs)
     # if name == "time-bar-plot":

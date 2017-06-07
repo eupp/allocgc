@@ -120,11 +120,37 @@ class GCHeapParser:
             self._context[key] += [int(match.group(key))]
 
         token_spec = {
-            "HEAP_SIZE" : {"cmd": partial(parse_int, "heapsize"), "re": "heap size: \s*(?P<heapsize>\d*) b "},
-            "OCCUPIED"  : {"cmd": partial(parse_int, "occupied"), "re": "occupied: \s*(?P<occupied>\d*) b "},
-            "LIVE"      : {"cmd": partial(parse_int, "live"), "re": "live: \s*(?P<live>\d*) b "},
-            "SWEPT"     : {"cmd": partial(parse_int, "swept"), "re": "swept: \s*(?P<swept>\d*) b "},
-            "COPIED"    : {"cmd": partial(parse_int, "copied"), "re": "copied: \s*(?P<copied>\d*) b "}
+            "HEAP_SIZE" : {"cmd": partial(parse_int, "heapsize"), "re": "heap size: \s*(?P<heapsize>\d*)"},
+            "OCCUPIED"  : {"cmd": partial(parse_int, "occupied"), "re": "occupied: \s*(?P<occupied>\d*)"},
+            "LIVE"      : {"cmd": partial(parse_int, "live"), "re": "live: \s*(?P<live>\d*)"},
+            "SWEPT"     : {"cmd": partial(parse_int, "swept"), "re": "swept: \s*(?P<swept>\d*)"},
+            "COPIED"    : {"cmd": partial(parse_int, "copied"), "re": "copied: \s*(?P<copied>\d*)"}
+        }
+
+        self._scanner = Scanner(token_spec)
+        self.reset()
+
+    def reset(self):
+        self._context = collections.defaultdict(list)
+
+    def parse(self, test_output):
+        self._scanner.scan(test_output)
+
+    def result(self):
+        return self._context
+
+
+class GCPauseTimeParser:
+
+    def __init__(self):
+
+        def parse_pause(match):
+            pause = int(match.group("pause"))
+            pause = round(pause / 1000, 1)
+            self._context["pause"] += [pause]
+
+        token_spec = {
+            "PAUSE": {"cmd": parse_pause, "re": "pause time: \s*(?P<pause>\d*)"}
         }
 
         self._scanner = Scanner(token_spec)
@@ -144,8 +170,11 @@ class BoehmStatsParser:
 
     def __init__(self):
 
-        def parse_int(key, match):
-            self._context[key] += [int(match.group(key))]
+        def parse_pause(match):
+            pause = int(match.group("pause"))
+            if pause == 0:
+                pause = 0.5
+            self._context["pause"] += [pause]
 
         def parse_heap(match):
             before_gc = int(match.group("size")) * 1024
@@ -153,8 +182,8 @@ class BoehmStatsParser:
             self._context["heapsize"] += [before_gc, after_gc]
 
         token_spec = {
-            "HEAP" : {"cmd": parse_heap, "re": "GC #\d* freed (?P<freed>\d*) bytes, heap (?P<size>\d*) KiB"},
-            "PAUSE": {"cmd": partial(parse_int, "pause"), "re": "Complete collection took (?P<pause>\d*) msecs"},
+            "HEAP" : {"cmd": parse_heap,  "re": "GC #\d* freed (?P<freed>\d*) bytes, heap (?P<size>\d*) KiB"},
+            "PAUSE": {"cmd": parse_pause, "re": "Complete collection took (?P<pause>\d*) msecs"},
         }
 
         self._scanner = Scanner(token_spec)

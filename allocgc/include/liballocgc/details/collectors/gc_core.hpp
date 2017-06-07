@@ -264,7 +264,7 @@ protected:
 private:
     void before_gc(const gc_options& options)
     {
-        print_gc_mem_stats(stats().gc_mem);
+//        print_gc_mem_stats(stats().gc_mem);
     }
 
     void after_gc(const gc_options& options, const gc_runstat& runstats)
@@ -272,7 +272,7 @@ private:
         logging::info() << "GC kind (" << gc_kind_to_str(options.kind)
         << ") pause "<< duration_to_str(runstats.pause);
 
-        print_gc_mem_stats(stats().gc_mem);
+//        print_gc_mem_stats(stats().gc_mem);
         print_gc_run_stats(options, runstats);
 
         ++m_gc_cnt;

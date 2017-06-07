@@ -70,6 +70,23 @@ class GCTimePlotPrinter:
         self.print_plot(targets2, suites2, report, outfn + "-2.tex")
 
 
+class GCPauseTimePlotPrinter:
+
+    def __init__(self):
+        with open('gc-pause-plot.tex', 'r') as fd:
+            self._tpl = escape_tex(fd.read())
+
+    def print_report(self, data, outfn):
+
+        def iter(data):
+            return zip(range(1, len(data)+1), data)
+
+        pauses = "\n".join("({}, {})".format(i, t) for i, t in iter(data["pause"]))
+
+        with open(outfn + ".tex", "w") as outfd:
+            outfd.write(self._tpl.format(data=pauses))
+
+
 class GCHeapPlotPrinter:
 
     def __init__(self):

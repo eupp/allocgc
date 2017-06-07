@@ -1,0 +1,16 @@
+\documentclass{article}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\pagestyle{empty}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[
+    xlabel=\#GC,
+    ylabel=Pause Time (ms),
+    xticklabels={,,}
+]
+\addplot+[ycomb] plot coordinates
+	{[[data]]};
+\end{axis}
+\end{tikzpicture}
+\end{document}

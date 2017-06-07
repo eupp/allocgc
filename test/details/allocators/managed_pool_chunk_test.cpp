@@ -8,6 +8,7 @@
 #include <liballocgc/details/allocators/gc_core_allocator.hpp>
 #include <liballocgc/details/allocators/debug_layer.hpp>
 #include <liballocgc/details/allocators/gc_box.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 
 #include "rand_util.h"
 
@@ -18,7 +19,7 @@ using namespace allocgc::details::allocators;
 namespace {
 const size_t CELL_SIZE  = 64;
 const size_t CELL_COUNT = 64;
-const size_t CHUNK_SIZE = gc_pool_descriptor::chunk_size(CELL_COUNT * CELL_SIZE);
+const size_t CHUNK_SIZE = gc_bucket_policy::chunk_size(CELL_COUNT * CELL_SIZE);
 }
 
 class managed_pool_chunk_test : public ::testing::Test
@@ -27,7 +28,7 @@ public:
     typedef debug_layer<gc_core_allocator> allocator_t;
 
     managed_pool_chunk_test()
-        : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
+        : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE, bucket_policy.offsets_table(bucket_policy.bucket_id(CELL_SIZE)))
         , m_rand(0, CELL_COUNT)
     {}
 
@@ -38,6 +39,7 @@ public:
         }
     }
 
+    gc_bucket_policy bucket_policy;
     allocator_t m_alloc;
     gc_pool_descriptor m_chunk;
     uniform_rand_generator<size_t> m_rand;

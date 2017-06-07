@@ -44,6 +44,9 @@ public:
     gc_core_allocator* get_core_allocator() const;
     void set_core_allocator(gc_core_allocator* core_alloc);
 
+    const byte* get_offset_table() const;
+    void set_offset_table(const byte* offset_tbl);
+
     gc_alloc::response allocate(const gc_alloc::request& rqst, size_t aligned_size);
 
     gc_collect_stat collect(compacting::forwarding& frwd);
@@ -90,6 +93,7 @@ private:
     byte*  m_top;
     byte*  m_end;
     double m_prev_residency;
+    const byte* m_offset_tbl;
 };
 
 }}}

@@ -22,7 +22,7 @@ namespace allocgc { namespace details { namespace allocators {
 class gc_pool_descriptor : public gc_memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
+    static const size_t CHUNK_MAXSIZE = GC_POOL_CHUNK_OBJECTS_COUNT;
 private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
@@ -81,12 +81,7 @@ public:
     typedef memory_iterator iterator;
     typedef boost::iterator_range<memory_iterator> memory_range_type;
 
-    static constexpr size_t chunk_size(size_t cell_size)
-    {
-        return cell_size * CHUNK_MAXSIZE;
-    }
-
-    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size);
+    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const byte* offset_tbl);
     ~gc_pool_descriptor();
 
     gc_memory_descriptor* descriptor()
@@ -140,11 +135,6 @@ public:
     gc_lifetime_tag get_lifetime_tag(size_t idx) const;
     gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
 
-    inline size_t cell_size() const
-    {
-        return 1ull << m_cell_size_log2;
-    }
-
     size_t cell_size(byte* ptr) const override;
     byte*  cell_start(byte* ptr) const override;
 
@@ -159,6 +149,11 @@ public:
 
     void finalize(size_t i);
     void finalize(byte* ptr) override;
+
+    inline size_t cell_size() const
+    {
+        return m_cell_size;
+    }
 
     inline bool get_mark(size_t idx) const
     {
@@ -210,10 +205,11 @@ private:
 
     byte*         m_memory;
     size_t        m_size;
-    size_t        m_cell_size_log2;
+    size_t        m_cell_size;
     bitset_t      m_pin_bits;
     bitset_t      m_init_bits;
     sync_bitset_t m_mark_bits;
+    const byte*   m_offset_tbl;
 };
 
 }}}

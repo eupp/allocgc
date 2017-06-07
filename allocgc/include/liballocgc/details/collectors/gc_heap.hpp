@@ -64,6 +64,7 @@ private:
     lo_alloc_t      m_loa;
     tlab_map_t      m_tlab_map;
     std::mutex      m_mutex;
+
 };
 
 }}

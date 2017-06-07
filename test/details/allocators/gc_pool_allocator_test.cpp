@@ -2,6 +2,7 @@
 
 #include <liballocgc/details/allocators/gc_pool_allocator.hpp>
 #include <liballocgc/gc_type_meta.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 
 #include "utils.hpp"
 
@@ -12,7 +13,7 @@ using namespace allocgc::details::allocators;
 namespace {
 static const size_t OBJ_SIZE = 16;
 static const size_t ALLOC_SIZE = gc_box::box_size(OBJ_SIZE);
-static const size_t CHUNK_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * ALLOC_SIZE;
+static const size_t CHUNK_SIZE = GC_POOL_CHUNK_OBJECTS_COUNT * ALLOC_SIZE;
 
 struct test_type
 {
@@ -28,8 +29,10 @@ struct gc_pool_allocator_test : public ::testing::Test
         : rqst(OBJ_SIZE, 1, type_meta, &buf)
     {
         alloc.set_core_allocator(&core_alloc);
+        alloc.set_offset_table(bucket_policy.offsets_table(bucket_policy.bucket_id(ALLOC_SIZE)));
     }
 
+    gc_bucket_policy bucket_policy;
     gc_core_allocator core_alloc;
     gc_pool_allocator alloc;
     gc_buf buf;

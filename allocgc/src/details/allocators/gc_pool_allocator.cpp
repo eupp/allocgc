@@ -10,6 +10,7 @@
 #include <liballocgc/details/compacting/fix_ptrs.hpp>
 #include <liballocgc/details/compacting/two_finger_compactor.hpp>
 #include <liballocgc/details/collectors/gc_new_stack_entry.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 
 namespace allocgc { namespace details { namespace allocators {
 
@@ -19,6 +20,7 @@ gc_pool_allocator::gc_pool_allocator()
     , m_top(nullptr)
     , m_end(nullptr)
     , m_prev_residency(0)
+    , m_offset_tbl(0)
 {}
 
 gc_pool_allocator::~gc_pool_allocator()
@@ -36,6 +38,16 @@ gc_core_allocator* gc_pool_allocator::get_core_allocator() const
 void gc_pool_allocator::set_core_allocator(gc_core_allocator* core_alloc)
 {
     m_core_alloc = core_alloc;
+}
+
+const byte* gc_pool_allocator::get_offset_table() const
+{
+    return m_offset_tbl;
+}
+
+void gc_pool_allocator::set_offset_table(const byte* offset_tbl)
+{
+    m_offset_tbl = offset_tbl;
 }
 
 gc_alloc::response gc_pool_allocator::allocate(const gc_alloc::request& rqst, size_t aligned_size)
@@ -99,7 +111,6 @@ gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_
 
     assert(contains(ptr));
 
-    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
     memset(ptr, 0, size);
     descriptor_t* descr = static_cast<descriptor_t*>(memory_index::get_descriptor(ptr).to_gc_descriptor());
     return init_cell(ptr, rqst, descr);
@@ -119,7 +130,7 @@ gc_alloc::response gc_pool_allocator::init_cell(byte* cell_start, const gc_alloc
 
 gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
 {
-    m_descrs.emplace_back(blk, blk_size, cell_size);
+    m_descrs.emplace_back(blk, blk_size, cell_size, m_offset_tbl);
     auto last = std::prev(m_descrs.end());
     memory_index::index_gc_heap_memory(blk, blk_size, &(*last));
     return last;
@@ -136,7 +147,7 @@ gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t i
 std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size)
 {
     assert(m_core_alloc);
-    size_t chunk_size = descriptor_t::chunk_size(cell_size);
+    size_t chunk_size = gc_bucket_policy::chunk_size(cell_size);
     return std::make_pair(m_core_alloc->allocate(chunk_size), chunk_size);
 }
 

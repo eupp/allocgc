@@ -17,7 +17,6 @@ set(allocgc_TESTS
         details/collectors/index_tree_test.cpp
         details/allocators/pool_chunk_test.cpp
         details/allocators/bucket_allocator_test.cpp
-        details/allocators/pow2_bucket_policy_test.cpp
         include/page_ptr.h
         details/allocators/managed_pool_chunk_test.cpp
         include/rand_util.h

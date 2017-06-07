@@ -6,18 +6,11 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-size_t gc_so_allocator::SZ_CLS[] = {32, 64, 128, 256, 512, 1024, 2048, 4096};
-
 gc_so_allocator::gc_so_allocator(gc_core_allocator* core_alloc)
 {
-    size_t j = 0;
-    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-        m_buckets[i].set_core_allocator(core_alloc);
-
-        size_t sz_cls = SZ_CLS[i];
-        while (j < sz_cls) {
-            m_sztbl[j++] = i;
-        }
+    for (size_t i = 0; i < gc_bucket_policy::BUCKET_COUNT; ++i) {
+        m_allocs[i].set_core_allocator(core_alloc);
+        m_allocs[i].set_offset_table(m_bucket_policy.offsets_table(i));
     }
 }
 
@@ -25,20 +18,20 @@ gc_alloc::response gc_so_allocator::allocate(const gc_alloc::request& rqst)
 {
     size_t size = gc_box::box_size(rqst.alloc_size());
     assert(size <= LARGE_CELL_SIZE);
-    size_t bucket_idx = m_sztbl[size - 1];
-    return m_buckets[bucket_idx].allocate(rqst, SZ_CLS[bucket_idx]);
+    size_t bucket_idx = m_bucket_policy.bucket_id(size);
+    return m_allocs[bucket_idx].allocate(rqst, m_bucket_policy.sz_cls(bucket_idx));
 }
 
 gc_collect_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
     std::vector<std::function<void()>> tasks;
-    std::array<gc_collect_stat, BUCKET_COUNT> part_stats;
-    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-        if (m_buckets[i].empty()) {
+    std::array<gc_collect_stat, gc_bucket_policy::BUCKET_COUNT> part_stats;
+    for (size_t i = 0; i < gc_bucket_policy::BUCKET_COUNT; ++i) {
+        if (m_allocs[i].empty()) {
             continue;
         }
         tasks.emplace_back([this, i, &frwd, &part_stats] {
-            part_stats[i] = m_buckets[i].collect(frwd);
+            part_stats[i] = m_allocs[i].collect(frwd);
         });
     }
     thread_pool.run(tasks.begin(), tasks.end());
@@ -54,12 +47,12 @@ gc_collect_stat gc_so_allocator::collect(compacting::forwarding& frwd, thread_po
 void gc_so_allocator::fix(const compacting::forwarding& frwd, thread_pool_t& thread_pool)
 {
     std::vector<std::function<void()>> tasks;
-    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-        if (m_buckets[i].empty()) {
+    for (size_t i = 0; i < gc_bucket_policy::BUCKET_COUNT; ++i) {
+        if (m_allocs[i].empty()) {
             continue;
         }
         tasks.emplace_back([this, i, &frwd] {
-            m_buckets[i].fix(frwd);
+            m_allocs[i].fix(frwd);
         });
     }
     thread_pool.run(tasks.begin(), tasks.end());
@@ -67,15 +60,15 @@ void gc_so_allocator::fix(const compacting::forwarding& frwd, thread_pool_t& thr
 
 void gc_so_allocator::finalize()
 {
-    for (size_t i = 0; i < BUCKET_COUNT; ++i) {
-        m_buckets[i].finalize();
+    for (size_t i = 0; i < gc_bucket_policy::BUCKET_COUNT; ++i) {
+        m_allocs[i].finalize();
     }
 }
 
 gc_memstat gc_so_allocator::stats()
 {
     gc_memstat stat;
-    for (auto& bucket: m_buckets) {
+    for (auto& bucket: m_allocs) {
         stat += bucket.stats();
     }
     return stat;

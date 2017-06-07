@@ -4,10 +4,11 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size)
+gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const byte* offset_tbl)
     : m_memory(chunk)
     , m_size(size)
-    , m_cell_size_log2(log2(cell_size))
+    , m_cell_size(cell_size)
+    , m_offset_tbl(offset_tbl)
 {}
 
 gc_pool_descriptor::~gc_pool_descriptor()
@@ -110,10 +111,7 @@ size_t gc_pool_descriptor::cell_size(byte* ptr) const
 byte* gc_pool_descriptor::cell_start(byte* ptr) const
 {
     assert(contains(ptr));
-    std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
-    uintptr &= ~((1ull << m_cell_size_log2) - 1);
-    assert(uintptr % cell_size(ptr) == 0);
-    return reinterpret_cast<byte*>(uintptr);
+    return m_memory + m_cell_size * calc_cell_ind(ptr);
 }
 
 size_t gc_pool_descriptor::object_count(byte* ptr) const
@@ -187,8 +185,8 @@ void gc_pool_descriptor::finalize(byte* ptr)
 size_t gc_pool_descriptor::calc_cell_ind(byte* ptr) const
 {
     assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    return (ptr - memory()) >> m_cell_size_log2;
+//    assert(ptr == cell_start(ptr));
+    return m_offset_tbl[ptr - memory()];
 }
 
 size_t gc_pool_descriptor::mem_used()

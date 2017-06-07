@@ -2,6 +2,7 @@
 
 #include <liballocgc/gc_type_meta.hpp>
 #include <liballocgc/details/compacting/fix_ptrs.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 #include <liballocgc/details/allocators/gc_pool_allocator.hpp>
 
 #include "test_forwarding.hpp"
@@ -13,6 +14,7 @@ using namespace allocgc::details::allocators;
 using namespace allocgc::details::compacting;
 
 namespace {
+static const size_t CELL_SIZE = 32;
 static const size_t OBJ_SIZE = gc_box::obj_size(32);
 
 struct test_type
@@ -29,8 +31,10 @@ struct fix_ptrs_test : public ::testing::Test
     fix_ptrs_test()
     {
         alloc.set_core_allocator(&core_alloc);
+        alloc.set_offset_table(bucket_policy.offsets_table(bucket_policy.bucket_id(CELL_SIZE)));
     }
 
+    gc_bucket_policy bucket_policy;
     gc_core_allocator core_alloc;
     gc_pool_allocator alloc;
 };
@@ -38,7 +42,7 @@ struct fix_ptrs_test : public ::testing::Test
 TEST_F(fix_ptrs_test, test_fix_ptrs)
 {
     gc_buf buf;
-    gc_alloc::response rsp = alloc.allocate(gc_alloc::request(OBJ_SIZE, 1, type_meta, &buf), gc_box::box_size(OBJ_SIZE));
+    gc_alloc::response rsp = alloc.allocate(gc_alloc::request(OBJ_SIZE, 1, type_meta, &buf), CELL_SIZE);
 
     commit(rsp, type_meta);
     set_mark(rsp, true);

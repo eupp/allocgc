@@ -106,6 +106,7 @@ void gc_core_allocator::decrease_heap_size(size_t size)
 void gc_core_allocator::set_heap_limit(size_t limit)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
+    m_heap_limit = limit;
     m_heap_maxlimit = limit;
 }
 

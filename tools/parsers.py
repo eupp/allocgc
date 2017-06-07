@@ -120,11 +120,9 @@ class GCHeapParser:
             self._context[key] += [int(match.group(key))]
 
         token_spec = {
-            "HEAP_SIZE" : {"cmd": partial(parse_int, "heapsize"), "re": "heap size: \s*(?P<heapsize>\d*)"},
-            "OCCUPIED"  : {"cmd": partial(parse_int, "occupied"), "re": "occupied: \s*(?P<occupied>\d*)"},
-            "LIVE"      : {"cmd": partial(parse_int, "live"), "re": "live: \s*(?P<live>\d*)"},
-            "SWEPT"     : {"cmd": partial(parse_int, "swept"), "re": "swept: \s*(?P<swept>\d*)"},
-            "COPIED"    : {"cmd": partial(parse_int, "copied"), "re": "copied: \s*(?P<copied>\d*)"}
+            "USED" : {"cmd": partial(parse_int, "used"), "re": "mem used: \s*(?P<used>\d*)"},
+            "LIVE" : {"cmd": partial(parse_int, "live"), "re": "mem live: \s*(?P<live>\d*)"},
+            "EXTRA": {"cmd": partial(parse_int, "extra"), "re": "mem extra: \s*(?P<extra>\d*)"},
         }
 
         self._scanner = Scanner(token_spec)
@@ -137,7 +135,10 @@ class GCHeapParser:
         self._scanner.scan(test_output)
 
     def result(self):
-        return self._context
+        return {
+            "heapsize" : self._context["live"],
+            "heapextra": [(used + extra - live) for used, live, extra in zip(self._context["used"], self._context["live"], self._context["extra"])]
+        }
 
 
 class GCPauseTimeParser:

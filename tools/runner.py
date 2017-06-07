@@ -92,6 +92,8 @@ def create_parser(name, *args, **kwargs):
         return parsers.GCTimeParser(*args, **kwargs)
     if name == "gc-pause-time":
         return parsers.GCPauseTimeParser(*args, **kwargs)
+    if name == "gc-heap":
+        return parsers.GCHeapParser(*args, **kwargs)
     if name == "boehm-stats":
         return parsers.BoehmStatsParser(*args, **kwargs)
     if name == "massif":

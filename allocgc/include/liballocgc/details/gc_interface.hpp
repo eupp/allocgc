@@ -96,7 +96,7 @@ inline std::string heapsize_to_str(size_t size, int padding = 0)
 //    } else {
 //        snprintf(str, 8, "%*lu b ", padding, size);
 //    }
-    snprintf(str, 13, "%*lu b ", padding, size);
+    snprintf(str, 13, "%*lu", padding, size);
     return std::string(str);
 }
 

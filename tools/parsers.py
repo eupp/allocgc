@@ -140,6 +140,35 @@ class GCHeapParser:
         return self._context
 
 
+class BoehmStatsParser:
+
+    def __init__(self):
+
+        def parse_int(key, match):
+            self._context[key] += [int(match.group(key))]
+
+        def parse_heap(match):
+            before_gc = int(match.group("size")) * 1024
+            after_gc  = before_gc - int(match.group("freed"))
+            self._context["heapsize"] += [before_gc, after_gc]
+
+        token_spec = {
+            "HEAP" : {"cmd": parse_heap, "re": "GC #\d* freed (?P<freed>\d*) bytes, heap (?P<size>\d*) KiB"},
+            "PAUSE": {"cmd": partial(parse_int, "pause"), "re": "Complete collection took (?P<pause>\d*) msecs"},
+        }
+
+        self._scanner = Scanner(token_spec)
+        self.reset()
+
+    def reset(self):
+        self._context = collections.defaultdict(list)
+
+    def parse(self, content):
+        self._scanner.scan(content)
+
+    def result(self):
+        return self._context
+
 class MassifParser:
 
     def __init__(self):

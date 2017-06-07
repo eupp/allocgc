@@ -84,11 +84,18 @@ class GCHeapPlotPrinter:
         def iter(data):
             return zip(range(1, len(data)+1), data)
 
-        used = data["heapsize"]
-        all  = data["heapextra"]
+        content = ""
 
+        used = data["heapsize"]
         used = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(used))
-        all  = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(all))
+
+        content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(used)
+
+        if data["heapextra"]:
+            all = data["heapextra"]
+            all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(all))
+            content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(all)
+
         with open(outfn + ".tex", "w") as outfd:
-            outfd.write(self._tpl.format(used=used, all=all))
+            outfd.write(self._tpl.format(content=content))
 

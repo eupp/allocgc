@@ -90,6 +90,8 @@ def create_parser(name, *args, **kwargs):
         return parsers.JSONParser(*args, **kwargs)
     if name == "gc-time":
         return parsers.GCTimeParser(*args, **kwargs)
+    if name == "boehm-stats":
+        return parsers.BoehmStatsParser(*args, **kwargs)
     if name == "massif":
         return parsers.MassifParser(*args, **kwargs)
 

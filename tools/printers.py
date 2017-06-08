@@ -77,20 +77,18 @@ class GCPauseTimePlotPrinter:
         with open('gc-pause-plot.tex', 'r') as fd:
             self._tpl = escape_tex(fd.read())
 
+    def print_plot(self, data, outfn):
+        import matplotlib.pyplot as plt
+
+        labels = [suite for suite, _ in data.items()]
+        pauses = [stats["pause"] for _, stats in data.items()]
+
+        plt.boxplot(pauses, labels=labels)
+        plt.savefig(outfn)
+
     def print_report(self, data, outfn):
-
-        def iter(data):
-            return zip(range(1, len(data)+1), data)
-
-        pauses = "\n".join("({}, {})".format(i, t) for i, t in iter(data["pause"]))
-
-        outfn_tex = outfn + ".tex"
-        with open(outfn_tex, "w") as outfd:
-            outfd.write(self._tpl.format(data=pauses))
-
-        proc = subprocess.Popen("pdflatex {fn}".format(fn=outfn_tex), shell=True)
-        proc.wait()
-        assert proc.returncode == 0
+        for name, target in data.items():
+            self.print_plot(target, "{}-{}.png".format(outfn, name))
 
 
 class GCHeapPlotPrinter:

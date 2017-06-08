@@ -1,5 +1,6 @@
 import os
 import subprocess
+import collections
 
 import runner
 import parsers
@@ -48,8 +49,8 @@ if __name__ == '__main__':
         # "gcbench bottom-up": {
         #     "name": "boehm",
         #     "runnable": "benchmark/boehm/boehm",
-        #     "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-        #     "params": ["bottom-up"]
+        #     "suites": ["BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
+        #     "params": ["--bottom-up"]
         # },
         # "parallel merge sort": {
         #     "name": "parallel_merge_sort",
@@ -78,6 +79,8 @@ if __name__ == '__main__':
 
     printer = printers.GCPauseTimePlotPrinter()
 
+    results = collections.defaultdict(dict)
+
     for name, target in targets.items():
         for suite_name in target["suites"]:
             suite = suites[suite_name]
@@ -92,7 +95,12 @@ if __name__ == '__main__':
             else:
                 cmd = "{} {}".format(target["runnable"], " ".join(args))
 
-            rc, out = call(cmd, build.dirname())
-            assert rc == 0
+            rc = 1
+            while rc != 0:
+                rc, out = call(cmd, build.dirname())
+            # assert rc == 0
             parser.parse(out)
-            printer.print_report(parser.result(), "{}-{}".format(name, suite_name))
+
+            results[name][suite_name] = parser.result()
+
+    printer.print_report(results, "pauses")

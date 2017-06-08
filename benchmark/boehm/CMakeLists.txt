@@ -28,7 +28,7 @@ option(PRECISE_GC_SERIAL OFF)
 option(PRECISE_GC_CMS OFF)
 
 #set(NO_GC ON)
-#set(BDW_GC ON)
+set(BDW_GC ON)
 #set(UNIQUE_PTR ON)
 #set(SHARED_PTR ON)
 #set(PRECISE_GC_SERIAL ON)

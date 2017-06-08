@@ -181,9 +181,14 @@ class BoehmStatsParser:
             after_gc  = before_gc - int(match.group("freed"))
             self._context["heapsize"] += [before_gc, after_gc]
 
+        def parse_time(match):
+            self._context["gctime"] += [int(match.group("time"))]
+
         token_spec = {
             "HEAP" : {"cmd": parse_heap,  "re": "GC #\d* freed (?P<freed>\d*) bytes, heap (?P<size>\d*) KiB"},
             "PAUSE": {"cmd": parse_pause, "re": "Complete collection took (?P<pause>\d*) msecs"},
+            "GC_START": {"cmd": parse_time, "re": "GC start time: (?P<time>\d*)"},
+            "GC_FINISH": {"cmd": parse_time, "re": "GC finish time: (?P<time>\d*)"}
         }
 
         self._scanner = Scanner(token_spec)

@@ -104,19 +104,15 @@ class GCHeapPlotPrinter:
         def to_Mb(sz):
             return round(float(sz) / (1024 * 1024), 3)
 
-        def iter(data):
-            return zip(range(1, len(data)+1), data)
-
         content = ""
-
+        time = data["gctime"]
         used = data["heapsize"]
-        used = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(used))
-
+        used = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, used))
         content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(used)
 
         if data["heapextra"]:
             all = data["heapextra"]
-            all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(all))
+            all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, all))
             content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(all)
 
         outfn_tex = outfn + ".tex"

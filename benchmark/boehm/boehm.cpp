@@ -59,6 +59,15 @@
 
 #ifdef BDW_GC
     #include <gc/gc.h>
+
+    void GC_event_callback(GC_EventType event) {
+        static timer tm;
+        if (event == GC_EVENT_START) {
+            std::cerr << "GC start time: " << tm.elapsed<std::chrono::milliseconds>() << std::endl;
+        } else if (event == GC_EVENT_END) {
+            std::cerr << "GC finish time: " << tm.elapsed<std::chrono::milliseconds>() << std::endl;
+        }
+    }
 #endif
 
 using namespace std;
@@ -74,7 +83,7 @@ struct Node
     ptr_t(Node) left;
     ptr_t(Node) right;
 
-    int i, j;
+    char data[32];
 
     Node(ptr_in(Node) l, ptr_in(Node) r)
         : left(l)
@@ -262,6 +271,7 @@ int main (int argc, const char* argv[])
         if (incremental_flag) {
             GC_enable_incremental();
         }
+        GC_set_on_collection_event(GC_event_callback);
     #endif
     GCBench x;
     x.main(ttype);

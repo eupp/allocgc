@@ -84,8 +84,13 @@ class GCPauseTimePlotPrinter:
 
         pauses = "\n".join("({}, {})".format(i, t) for i, t in iter(data["pause"]))
 
-        with open(outfn + ".tex", "w") as outfd:
+        outfn_tex = outfn + ".tex"
+        with open(outfn_tex, "w") as outfd:
             outfd.write(self._tpl.format(data=pauses))
+
+        proc = subprocess.Popen("pdflatex {fn}".format(fn=outfn_tex), shell=True)
+        proc.wait()
+        assert proc.returncode == 0
 
 
 class GCHeapPlotPrinter:

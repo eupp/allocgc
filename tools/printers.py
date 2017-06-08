@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 
 class JSONPrinter:
@@ -113,6 +114,11 @@ class GCHeapPlotPrinter:
             all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in iter(all))
             content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(all)
 
-        with open(outfn + ".tex", "w") as outfd:
+        outfn_tex = outfn + ".tex"
+        with open(outfn_tex, "w") as outfd:
             outfd.write(self._tpl.format(content=content))
+
+        proc = subprocess.Popen("pdflatex {fn}".format(fn=outfn_tex), shell=True)
+        proc.wait()
+        assert proc.returncode == 0
 

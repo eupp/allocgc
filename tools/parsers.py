@@ -122,6 +122,8 @@ class GCHeapParser:
             "USED" : {"cmd": partial(parse_int, "used"), "re": "mem used: \s*(?P<used>\d*)"},
             "LIVE" : {"cmd": partial(parse_int, "live"), "re": "mem live: \s*(?P<live>\d*)"},
             "EXTRA": {"cmd": partial(parse_int, "extra"), "re": "mem extra: \s*(?P<extra>\d*)"},
+            "GC_START": {"cmd": partial(parse_int, "gctime"), "re": "GC start time: (?P<gctime>\d*)"},
+            "GC_FINISH": {"cmd": partial(parse_int, "gctime"), "re": "GC finish time: (?P<gctime>\d*)"}
         }
 
         self._scanner = Scanner(token_spec)
@@ -136,7 +138,8 @@ class GCHeapParser:
     def result(self):
         return {
             "heapsize" : self._context["live"],
-            "heapextra": [(used + extra - live) for used, live, extra in zip(self._context["used"], self._context["live"], self._context["extra"])]
+            "heapextra": [(used + extra - live) for used, live, extra in zip(self._context["used"], self._context["live"], self._context["extra"])],
+            "gctime": self._context["gctime"]
         }
 
 
@@ -179,16 +182,17 @@ class BoehmStatsParser:
         def parse_heap(match):
             before_gc = int(match.group("size")) * 1024
             after_gc  = before_gc - int(match.group("freed"))
-            self._context["heapsize"] += [before_gc, after_gc]
+            self._context["heapsize"] += [0, 0]
+            self._context["heapextra"] += [before_gc, after_gc]
 
         def parse_time(match):
-            self._context["gctime"] += [int(match.group("time"))]
+            self._context["gctime"] += [int(match.group("gctime"))]
 
         token_spec = {
             "HEAP" : {"cmd": parse_heap,  "re": "GC #\d* freed (?P<freed>\d*) bytes, heap (?P<size>\d*) KiB"},
             "PAUSE": {"cmd": parse_pause, "re": "Complete collection took (?P<pause>\d*) msecs"},
-            "GC_START": {"cmd": parse_time, "re": "GC start time: (?P<time>\d*)"},
-            "GC_FINISH": {"cmd": parse_time, "re": "GC finish time: (?P<time>\d*)"}
+            "GC_START": {"cmd": parse_time, "re": "GC start time: (?P<gctime>\d*)"},
+            "GC_FINISH": {"cmd": parse_time, "re": "GC finish time: (?P<gctime>\d*)"}
         }
 
         self._scanner = Scanner(token_spec)
@@ -203,6 +207,7 @@ class BoehmStatsParser:
     def result(self):
         return self._context
 
+
 class MassifParser:
 
     def __init__(self):
@@ -211,7 +216,8 @@ class MassifParser:
 
         token_spec = {
             "HEAP_SIZE" : {"cmd": partial(parse_int, "heapsize") , "re": "mem_heap_B=(?P<heapsize>\d*)"},
-            "HEAP_EXTRA": {"cmd": partial(parse_int, "heapextra"), "re": "mem_heap_extra_B=(?P<heapextra>\d*)"}
+            "HEAP_EXTRA": {"cmd": partial(parse_int, "heapextra"), "re": "mem_heap_extra_B=(?P<heapextra>\d*)"},
+            "GC_TIME": {"cmd": partial(parse_int, "gctime"), "re": "time=(?P<gctime>\d*)"}
         }
 
         self._scanner = Scanner(token_spec)

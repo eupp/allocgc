@@ -47,7 +47,7 @@ if __name__ == '__main__':
         "gcbench-top-down": {
             "name": "boehm",
             "runnable": "benchmark/boehm/boehm",
-            "suites": ["manual", "shared-ptr", "BDWGC", "BDWGC-incremental", "gc-ptr-serial", "gc-ptr-cms"],
+            "suites": ["manual", "shared-ptr", "BDWGC", "gc-ptr-serial"],
             "params": ["--top-down"]
         }
         # "gcbench bottom-up": {

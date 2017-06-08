@@ -24,6 +24,7 @@ public:
         , m_threads_available(std::thread::hardware_concurrency())
         , m_gc_cnt(0)
         , m_gc_time(0)
+        , m_tm(clock_t::now())
     {
         allocators::memory_index::init();
     }
@@ -264,19 +265,27 @@ protected:
 private:
     void before_gc(const gc_options& options)
     {
+        std::cerr << "GC start time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - m_tm).count()
+                  << std::endl;
+
         print_gc_mem_stats(stats().gc_mem);
     }
 
     void after_gc(const gc_options& options, const gc_runstat& runstats)
     {
         logging::info() << "GC kind (" << gc_kind_to_str(options.kind)
-                        << ") pause "<< duration_to_str(runstats.pause);
+                        << ") pause "  << duration_to_str(runstats.pause);
 
         print_gc_mem_stats(stats().gc_mem);
         print_gc_run_stats(options, runstats);
 
         ++m_gc_cnt;
         m_gc_time += runstats.pause;
+
+        std::cerr << "GC finish time: "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - m_tm).count()
+                  << std::endl;
     }
 
     void root_trace_cb(gc_handle* root)
@@ -350,6 +359,8 @@ private:
 
     static thread_local threads::gc_thread_descriptor* this_thread;
 
+    typedef std::chrono::steady_clock clock_t;
+
     threads::gc_thread_manager m_thread_manager;
     static_root_set m_static_roots;
     packet_manager m_packet_manager;
@@ -359,6 +370,7 @@ private:
     size_t m_gc_cnt;
     gc_clock::duration m_gc_time;
     std::mutex m_mutex;
+    clock_t::time_point m_tm;
 };
 
 template <typename Derived>

@@ -13,8 +13,17 @@
     smooth,
     stack plots=y,
     area style,
-    enlarge x limits=false
-%    xticklabels={,,}
+    enlarge x limits=false,
+    xticklabels={,,},
+    yticklabels={, 0, 10, 20, 30, 40},
+    scaled ticks=false,
+    tick label style={/pgf/number format/fixed},
+    ymin=0, ymax=45,
+    legend columns = 2,
+    legend style={
+        at={(1,1.1)},
+%        /tikz/column 2/.style={column sep=5pt,},
+    }
 ]
 
 [[content]]

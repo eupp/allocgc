@@ -1,0 +1,1674 @@
+desc: --massif-out-file=massif.manual.out
+cmd: ./boehm --top-down
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=21886379
+mem_heap_B=6780512
+mem_heap_extra_B=4471880
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=39635042
+mem_heap_B=12655592
+mem_heap_extra_B=8388600
+mem_stacks_B=0
+heap_tree=peak
+n3: 12655592 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n2: 6291456 0x401DB9: GCBench::MakeTree(int) (boehm.cpp:136)
+  n2: 3145728 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+   n2: 1572864 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n2: 786432 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+    n2: 786432 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+   n2: 1572864 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n2: 786432 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+    n2: 786432 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+  n2: 3145728 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+   n2: 1572864 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n2: 786432 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+    n2: 786432 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+   n2: 1572864 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n2: 786432 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+    n2: 786432 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393216 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+     n1: 393216 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393216 in 2 places, all below massif's threshold (01.00%)
+ n3: 6291432 0x401DF3: GCBench::MakeTree(int) (boehm.cpp:138)
+  n3: 3145704 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+   n3: 1572840 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n3: 786408 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n3: 786408 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n0: 24 in 1 place, below massif's threshold (01.00%)
+   n3: 1572840 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n3: 786408 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n3: 786408 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n0: 24 in 1 place, below massif's threshold (01.00%)
+   n0: 24 in 1 place, below massif's threshold (01.00%)
+  n3: 3145704 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+   n3: 1572840 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n3: 786408 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n3: 786408 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n0: 24 in 1 place, below massif's threshold (01.00%)
+   n3: 1572840 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+    n3: 786408 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n3: 786408 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+     n1: 393192 0x401DD6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n1: 393192 0x401DE6: GCBench::MakeTree(int) (boehm.cpp:138)
+      n0: 393192 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 1 place, below massif's threshold (01.00%)
+    n0: 24 in 1 place, below massif's threshold (01.00%)
+   n0: 24 in 1 place, below massif's threshold (01.00%)
+  n0: 24 in 1 place, below massif's threshold (01.00%)
+ n0: 72704 in 2 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=3
+#-----------
+time=61768968
+mem_heap_B=2818280
+mem_heap_extra_B=1830392
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=76524891
+mem_heap_B=3013592
+mem_heap_extra_B=1960600
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=97585183
+mem_heap_B=7218696
+mem_heap_extra_B=2097344
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7218696 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1572984 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 786480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393240 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393192 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786456 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393240 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393192 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1572960 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 786480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393240 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393192 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786432 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393216 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 393192 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 3 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=6
+#-----------
+time=115424449
+mem_heap_B=7218960
+mem_heap_extra_B=2097520
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=7
+#-----------
+time=133593830
+mem_heap_B=7218960
+mem_heap_extra_B=2097520
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=151763211
+mem_heap_B=7218960
+mem_heap_extra_B=2097520
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=171254354
+mem_heap_B=7218480
+mem_heap_extra_B=2097200
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=10
+#-----------
+time=188213135
+mem_heap_B=7218816
+mem_heap_extra_B=2097424
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=203630359
+mem_heap_B=7218624
+mem_heap_extra_B=2097296
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=228297896
+mem_heap_B=7218912
+mem_heap_extra_B=2097488
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7218912 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1573128 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 786576 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393288 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196656 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98328 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393240 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196632 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98328 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786504 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393264 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196656 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98328 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 393216 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1573032 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 786528 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393288 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196656 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98328 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393216 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n3: 786480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393240 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196632 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98328 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 393216 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98280 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 24 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=13
+#-----------
+time=245123676
+mem_heap_B=7219368
+mem_heap_extra_B=2097792
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7219368 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1573320 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 786672 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393336 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196656 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196632 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393288 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196656 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786600 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393312 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196656 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393264 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1573296 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 786648 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393312 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196656 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393288 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196656 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786600 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393312 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196656 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393264 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196608 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n1: 98280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98280 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=14
+#-----------
+time=271677325
+mem_heap_B=7218480
+mem_heap_extra_B=2097200
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=286429529
+mem_heap_B=7221264
+mem_heap_extra_B=2099056
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=16
+#-----------
+time=301181602
+mem_heap_B=7219416
+mem_heap_extra_B=2097824
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=318884096
+mem_heap_B=7218864
+mem_heap_extra_B=2097456
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=333636183
+mem_heap_B=7220856
+mem_heap_extra_B=2098784
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7220856 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1574088 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 787056 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393528 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196728 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196728 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196704 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786984 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393480 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196728 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196704 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196728 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196680 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1574016 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 787008 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393504 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196704 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196728 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196680 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 786960 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393480 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196728 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196704 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393432 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196728 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98328 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98328 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196680 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n1: 98304 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98304 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=19
+#-----------
+time=360189903
+mem_heap_B=7219632
+mem_heap_extra_B=2097968
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=377892453
+mem_heap_B=7227552
+mem_heap_extra_B=2103248
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=403459369
+mem_heap_B=7221480
+mem_heap_extra_B=2099200
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=421812901
+mem_heap_B=7229976
+mem_heap_extra_B=2104864
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=440166404
+mem_heap_B=7222152
+mem_heap_extra_B=2099648
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7222152 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1574712 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 787392 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393720 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196872 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196800 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98424 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98424 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393624 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196848 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 787272 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393672 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196872 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393576 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196800 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98424 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98424 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1574688 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 787368 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393696 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196872 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196776 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98400 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98400 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393624 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196848 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 787272 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393672 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196872 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393576 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196800 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98424 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98424 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=24
+#-----------
+time=453931641
+mem_heap_B=7227144
+mem_heap_extra_B=2102976
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=472285249
+mem_heap_B=7248096
+mem_heap_extra_B=2116944
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=486050358
+mem_heap_B=7222224
+mem_heap_extra_B=2099696
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7222224 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1574808 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 787440 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393768 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196920 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98496 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98496 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196800 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98424 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98424 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 393624 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196848 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98472 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98472 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 787320 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393696 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196896 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98496 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98496 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196776 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98400 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98400 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 393600 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196824 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98448 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1574664 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 787368 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 393744 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196920 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98496 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98496 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 196800 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98424 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98424 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 393600 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196824 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98448 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98448 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n3: 787272 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 393672 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 196872 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98472 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98472 in 4 places, all below massif's threshold (01.00%)
+     n1: 98376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196776 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98400 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98400 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 393576 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 196800 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 98424 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98424 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 196752 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 98376 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 98376 in 4 places, all below massif's threshold (01.00%)
+     n1: 98352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 98352 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 24 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=27
+#-----------
+time=504403839
+mem_heap_B=7242192
+mem_heap_extra_B=2113008
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=527345747
+mem_heap_B=7257360
+mem_heap_extra_B=2123120
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=541110891
+mem_heap_B=7231464
+mem_heap_extra_B=2105856
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=559464521
+mem_heap_B=7235112
+mem_heap_extra_B=2108288
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=582406531
+mem_heap_B=7266480
+mem_heap_extra_B=2129200
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=32
+#-----------
+time=605348419
+mem_heap_B=7387032
+mem_heap_extra_B=2209568
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=633428753
+mem_heap_B=7263984
+mem_heap_extra_B=2127536
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=654901603
+mem_heap_B=7313160
+mem_heap_extra_B=2160320
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=683532200
+mem_heap_B=7378776
+mem_heap_extra_B=2204064
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=705005083
+mem_heap_B=7398360
+mem_heap_extra_B=2217120
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=733635550
+mem_heap_B=7766568
+mem_heap_extra_B=2462592
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=38
+#-----------
+time=762266111
+mem_heap_B=7682664
+mem_heap_extra_B=2406656
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=783738958
+mem_heap_B=7257216
+mem_heap_extra_B=2123024
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=40
+#-----------
+time=805211850
+mem_heap_B=7654008
+mem_heap_extra_B=2387552
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=826684737
+mem_heap_B=7945392
+mem_heap_extra_B=2581808
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=841000049
+mem_heap_B=7386648
+mem_heap_extra_B=2209312
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7386648 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1656960 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 828528 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 414312 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 207192 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 207072 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103608 in 4 places, all below massif's threshold (01.00%)
+     n1: 103440 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103440 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 414168 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 207168 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 206976 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103560 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103560 in 4 places, all below massif's threshold (01.00%)
+     n1: 103392 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103392 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 828384 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 414288 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 207192 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 207072 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103608 in 4 places, all below massif's threshold (01.00%)
+     n1: 103440 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103440 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 414072 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 207120 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103464 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103464 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 206928 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103512 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n1: 103392 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103392 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1656936 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 828528 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 414312 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 207192 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 207072 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103608 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103608 in 4 places, all below massif's threshold (01.00%)
+     n1: 103440 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103440 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 414168 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 207168 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 206976 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103560 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103560 in 4 places, all below massif's threshold (01.00%)
+     n1: 103392 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103392 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 828360 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 414264 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 207192 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 207048 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103584 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103584 in 4 places, all below massif's threshold (01.00%)
+     n1: 103440 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103440 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 414072 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 207120 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 103632 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103632 in 4 places, all below massif's threshold (01.00%)
+     n1: 103464 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103464 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 206928 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 103512 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 103512 in 4 places, all below massif's threshold (01.00%)
+     n1: 103392 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 103392 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=43
+#-----------
+time=862473003
+mem_heap_B=7782240
+mem_heap_extra_B=2473040
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=883945967
+mem_heap_B=9572016
+mem_heap_extra_B=3666224
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=898261207
+mem_heap_B=8907720
+mem_heap_extra_B=3223360
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=912576573
+mem_heap_B=8243448
+mem_heap_extra_B=2780512
+mem_stacks_B=0
+heap_tree=detailed
+n4: 8243448 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 2085360 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 1042752 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 521448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 260784 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130440 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130440 in 4 places, all below massif's threshold (01.00%)
+     n1: 130296 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130296 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 260616 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130392 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130392 in 4 places, all below massif's threshold (01.00%)
+     n1: 130200 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130200 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 521256 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 260712 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130416 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130416 in 4 places, all below massif's threshold (01.00%)
+     n1: 130248 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130248 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 260520 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130344 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130344 in 4 places, all below massif's threshold (01.00%)
+     n1: 130152 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130152 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 1042560 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 521376 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 260760 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130440 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130440 in 4 places, all below massif's threshold (01.00%)
+     n1: 130272 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130272 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 260568 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130368 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130368 in 4 places, all below massif's threshold (01.00%)
+     n1: 130176 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130176 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 521160 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 260664 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130416 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130416 in 4 places, all below massif's threshold (01.00%)
+     n1: 130224 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130224 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 260472 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130296 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130296 in 4 places, all below massif's threshold (01.00%)
+     n1: 130152 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130152 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 2085336 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 1042752 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 521448 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 260784 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130440 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130440 in 4 places, all below massif's threshold (01.00%)
+     n1: 130296 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130296 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 260616 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130392 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130392 in 4 places, all below massif's threshold (01.00%)
+     n1: 130200 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130200 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 521256 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 260712 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130416 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130416 in 4 places, all below massif's threshold (01.00%)
+     n1: 130248 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130248 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 260520 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130344 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130344 in 4 places, all below massif's threshold (01.00%)
+     n1: 130152 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130152 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 1042536 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 521352 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 260736 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130416 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130416 in 4 places, all below massif's threshold (01.00%)
+     n1: 130272 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130272 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 260568 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130368 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130368 in 4 places, all below massif's threshold (01.00%)
+     n1: 130176 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130176 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 521160 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 260664 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 130416 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130416 in 4 places, all below massif's threshold (01.00%)
+     n1: 130224 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130224 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 260472 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 130296 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 130296 in 4 places, all below massif's threshold (01.00%)
+     n1: 130152 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 130152 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)
+#-----------
+snapshot=47
+#-----------
+time=941207110
+mem_heap_B=7612152
+mem_heap_extra_B=2359648
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=962680035
+mem_heap_B=8704584
+mem_heap_extra_B=3087936
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=976995321
+mem_heap_B=8040312
+mem_heap_extra_B=2645088
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=50
+#-----------
+time=990760453
+mem_heap_B=7258848
+mem_heap_extra_B=2124112
+mem_stacks_B=0
+heap_tree=detailed
+n4: 7258848 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 4000000 0x4021FE: GCBench::main(int) (boehm.cpp:208)
+  n0: 4000000 0x401AF0: main (boehm.cpp:267)
+ n3: 1593192 0x401D56: GCBench::Populate(int, Node*) (boehm.cpp:126)
+  n3: 796704 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 398448 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 199320 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99744 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99744 in 4 places, all below massif's threshold (01.00%)
+     n1: 99528 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99528 in 4 places, all below massif's threshold (01.00%)
+     n0: 48 in 2 places, all below massif's threshold (01.00%)
+    n3: 199080 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99576 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99576 in 4 places, all below massif's threshold (01.00%)
+     n1: 99480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99480 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 48 in 2 places, all below massif's threshold (01.00%)
+   n3: 398208 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 199152 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99624 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99624 in 4 places, all below massif's threshold (01.00%)
+     n1: 99504 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99504 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199032 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99552 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99552 in 4 places, all below massif's threshold (01.00%)
+     n1: 99456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99456 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 48 in 2 places, all below massif's threshold (01.00%)
+  n3: 796440 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 398280 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 199200 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99672 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99672 in 4 places, all below massif's threshold (01.00%)
+     n1: 99504 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99504 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199056 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99552 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99552 in 4 places, all below massif's threshold (01.00%)
+     n1: 99480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99480 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 398136 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 199104 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99600 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99600 in 4 places, all below massif's threshold (01.00%)
+     n1: 99480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99480 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199008 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99528 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99528 in 4 places, all below massif's threshold (01.00%)
+     n1: 99456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99456 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 48 in 2 places, all below massif's threshold (01.00%)
+ n3: 1592904 0x401D3A: GCBench::Populate(int, Node*) (boehm.cpp:125)
+  n3: 796512 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+   n3: 398328 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 199248 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99696 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99696 in 4 places, all below massif's threshold (01.00%)
+     n1: 99528 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99528 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199056 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99552 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99552 in 4 places, all below massif's threshold (01.00%)
+     n1: 99480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99480 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 398160 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 199104 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99600 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99600 in 4 places, all below massif's threshold (01.00%)
+     n1: 99480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99480 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199032 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99552 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99552 in 4 places, all below massif's threshold (01.00%)
+     n1: 99456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99456 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n3: 796368 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+   n3: 398232 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+    n3: 199176 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99648 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99648 in 4 places, all below massif's threshold (01.00%)
+     n1: 99504 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99504 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199032 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99552 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99552 in 4 places, all below massif's threshold (01.00%)
+     n1: 99456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99456 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n3: 398112 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+    n3: 199080 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+     n1: 99576 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99576 in 4 places, all below massif's threshold (01.00%)
+     n1: 99480 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99480 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n3: 199008 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+     n1: 99528 0x401D92: GCBench::Populate(int, Node*) (boehm.cpp:128)
+      n0: 99528 in 4 places, all below massif's threshold (01.00%)
+     n1: 99456 0x401D7D: GCBench::Populate(int, Node*) (boehm.cpp:127)
+      n0: 99456 in 4 places, all below massif's threshold (01.00%)
+     n0: 24 in 2 places, all below massif's threshold (01.00%)
+    n0: 24 in 2 places, all below massif's threshold (01.00%)
+   n0: 24 in 2 places, all below massif's threshold (01.00%)
+  n0: 24 in 2 places, all below massif's threshold (01.00%)
+ n0: 72752 in 6 places, all below massif's threshold (01.00%)

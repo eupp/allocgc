@@ -16,7 +16,7 @@ gc_core_allocator::gc_core_allocator()
     : m_gc_launcher(nullptr)
     , m_heap_size(0)
     , m_heap_limit(HEAP_START_LIMIT)
-    , m_heap_maxlimit(HEAP_START_LIMIT)
+    , m_heap_maxlimit(std::numeric_limits<size_t>::max())
     , m_mark_threshold(false)
 { }
 
@@ -24,7 +24,7 @@ gc_core_allocator::gc_core_allocator(gc_launcher* gc)
     : m_gc_launcher(gc)
     , m_heap_size(0)
     , m_heap_limit(HEAP_START_LIMIT)
-    , m_heap_maxlimit(HEAP_START_LIMIT)
+    , m_heap_maxlimit(std::numeric_limits<size_t>::max())
 { }
 
 byte* gc_core_allocator::allocate(size_t size)
@@ -107,7 +107,7 @@ void gc_core_allocator::set_heap_limit(size_t limit)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_heap_limit = limit;
-    m_heap_maxlimit = limit;
+//    m_heap_maxlimit = limit;
 }
 
 void gc_core_allocator::expand_heap()

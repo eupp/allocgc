@@ -116,10 +116,11 @@ class GCHeapPlotPrinter:
             content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(all)
 
         outfn_tex = outfn + ".tex"
+        outfn_pdf = outfn + ".pdf"
         with open(outfn_tex, "w") as outfd:
             outfd.write(self._tpl.format(content=content))
 
-        proc = subprocess.Popen("pdflatex {fn}".format(fn=outfn_tex), shell=True)
+        proc = subprocess.Popen("pdflatex {fn_tex} && pdfcrop {fn_pdf}".format(fn_tex=outfn_tex, fn_pdf=outfn_pdf), shell=True)
         proc.wait()
         assert proc.returncode == 0
 

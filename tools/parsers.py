@@ -5,8 +5,6 @@ import collections
 
 from functools import partial
 
-from runner import Report
-
 def mean(xs):
     s = 0.0
     for x in xs:
@@ -62,6 +60,7 @@ class JSONParser:
         self._context.update(json.loads(content))
 
     def result(self):
+        from runner import Report
         return Report.from_targets(self._context)
 
 

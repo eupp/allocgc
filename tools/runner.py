@@ -31,9 +31,10 @@ def call_output(args, cwd=None, timeout=None):
 
 class CMakeBuilder:
 
-    def __init__(self, src_dir, *args):
+    def __init__(self, src_dir, *args, **kwargs):
         self._tmpdir = tempfile.TemporaryDirectory()
-        build_cmd  = ["cmake", "-DCMAKE_BUILD_TYPE=Release", src_dir]
+        build_type = kwargs.get("build_type", "Release")
+        build_cmd  = ["cmake", "-DCMAKE_BUILD_TYPE={}".format(build_type), src_dir]
         build_cmd += self._parse_cmake_options(args)
         call_with_cwd(build_cmd, self._tmpdir.name)
         self._make_builder = MakeBuilder(self._tmpdir.name)

@@ -265,20 +265,28 @@ protected:
 private:
     void before_gc(const gc_options& options)
     {
+        if (options.kind == gc_kind::LAUNCH_CONCURRENT_MARK) {
+            return;
+        }
+
 //        std::cerr << "GC start time: "
 //                  << std::chrono::duration_cast<std::chrono::milliseconds>(clock_t::now() - m_tm).count()
 //                  << std::endl;
-
+//
 //        print_gc_mem_stats(stats().gc_mem);
     }
 
     void after_gc(const gc_options& options, const gc_runstat& runstats)
     {
+        if (options.kind == gc_kind::LAUNCH_CONCURRENT_MARK) {
+            return;
+        }
+
         logging::info() << "GC kind (" << gc_kind_to_str(options.kind)
                         << ") pause "  << duration_to_str(runstats.pause);
 
 //        print_gc_mem_stats(stats().gc_mem);
-//        print_gc_run_stats(options, runstats);
+        print_gc_run_stats(options, runstats);
 
         ++m_gc_cnt;
         m_gc_time += runstats.pause;

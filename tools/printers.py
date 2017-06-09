@@ -9,7 +9,7 @@ class JSONPrinter:
 
     def print_report(self, report, outfn):
         with open(outfn + ".json", "w") as outfile:
-            json.dump(report.targets, outfile, indent=4)
+            json.dump(report, outfile, indent=4)
 
 
 def escape_tex(content):
@@ -89,7 +89,11 @@ class GCPauseTimePlotPrinter:
         pauses = [stats["pause"] for _, stats in data]
 
         plt.title(name)
-        plt.ylabel("Pause time")
+        plt.ylabel("Pause time (ms)")
+
+        axes = plt.gca()
+        # axes.set_xlim([xmin,xmax])
+        axes.set_ylim([0, 20])
 
         plt.boxplot(pauses, sym='o', labels=labels)
         plt.savefig(outfn)
@@ -106,8 +110,7 @@ class GCHeapPlotPrinter:
         with open('gc-heap-plot.tex', 'r') as fd:
             self._tpl = escape_tex(fd.read())
 
-    def print_report(self, data, outfn):
-
+    def print_plot(self, data, title, outfn):
         def to_Mb(sz):
             return round(float(sz) / (1024 * 1024), 3)
 
@@ -115,19 +118,22 @@ class GCHeapPlotPrinter:
         time = data["gctime"]
         used = data["heapsize"]
         used = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, used))
-        content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(used)
+        content += "\\addplot[color=pink, fill] coordinates {{\n {} \n}} \closedcycle;".format(used)
 
         if data["heapextra"]:
             all = data["heapextra"]
             all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, all))
-            content += "\\addplot coordinates {{\n {} \n}} \closedcycle;".format(all)
+            content += "\\addplot[color=red] coordinates {{\n {} \n}} \closedcycle;".format(all)
 
         outfn_tex = outfn + ".tex"
         outfn_pdf = outfn + ".pdf"
         with open(outfn_tex, "w") as outfd:
-            outfd.write(self._tpl.format(content=content))
+            outfd.write(self._tpl.format(content=content, title=title))
 
         proc = subprocess.Popen("pdflatex {fn_tex} && pdfcrop {fn_pdf}".format(fn_tex=outfn_tex, fn_pdf=outfn_pdf), shell=True)
         proc.wait()
         assert proc.returncode == 0
 
+    def print_report(self, report, name):
+        for suite, data in report.items():
+            self.print_plot(data, suite, "{}-{}".format(name, suite.replace(' ', '-')))

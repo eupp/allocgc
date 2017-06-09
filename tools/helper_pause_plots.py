@@ -77,31 +77,40 @@ if __name__ == '__main__':
         }
     }
 
+    # printer = printers.JSONPrinter()
+    #
+    # results = collections.defaultdict(list)
+    #
+    # for name, target in targets.items():
+    #     for suite_name in target["suites"]:
+    #         suite = suites[suite_name]
+    #         build = suite["builder"].build(target["name"])
+    #         parser = suite["parser"]
+    #         parser.reset()
+    #
+    #         args = suite.get("args", []) + target.get("params", [])
+    #
+    #         cmd = suite.get("cmd")
+    #         if cmd:
+    #             cmd = cmd.format(runnable=target["runnable"], args=" ".join(args))
+    #         else:
+    #             cmd = "{} {}".format(target["runnable"], " ".join(args))
+    #
+    #         rc = 1
+    #         while rc != 0:
+    #             rc, out = call(cmd, build.dirname())
+    #         # assert rc == 0
+    #         parser.parse(out)
+    #
+    #         results[name] += [(suite_name, parser.result())]
+    #
+    # printer.print_report(results, "pauses")
+
+    parser = parsers.JSONParser()
+    with open("pauses.json") as fd:
+        parser.parse(fd.read())
+
+    results = parser.result()
+
     printer = printers.GCPauseTimePlotPrinter()
-
-    results = collections.defaultdict(list)
-
-    for name, target in targets.items():
-        for suite_name in target["suites"]:
-            suite = suites[suite_name]
-            build = suite["builder"].build(target["name"])
-            parser = suite["parser"]
-            parser.reset()
-
-            args = suite.get("args", []) + target.get("params", [])
-
-            cmd = suite.get("cmd")
-            if cmd:
-                cmd = cmd.format(runnable=target["runnable"], args=" ".join(args))
-            else:
-                cmd = "{} {}".format(target["runnable"], " ".join(args))
-
-            rc = 1
-            while rc != 0:
-                rc, out = call(cmd, build.dirname())
-            # assert rc == 0
-            parser.parse(out)
-
-            results[name] += [(suite_name, parser.result())]
-
-    printer.print_report(results, "pauses")
+    printer.print_report(parser.result(), "pauses")

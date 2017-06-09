@@ -37,17 +37,17 @@ if __name__ == '__main__':
     suites = {
         "manual": {"builder": builders["manual"], "cmd": massif_cmd, "parser": parsers.MassifParser()},
         "shared-ptr": {"builder": builders["shared_ptr"], "cmd": massif_cmd, "parser": parsers.MassifParser()},
-        "BDWGC": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "parser": parsers.BoehmStatsParser()},
-        "BDWGC-incremental": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "args": ["--incremental"], "parser": parsers.BoehmStatsParser()},
-        "gc-ptr-serial": {"builder": builders["gc_ptr_serial"], "parser": parsers.GCHeapParser()},
-        "gc-ptr-cms": {"builder": builders["gc_ptr_cms"], "parser": parsers.GCHeapParser()}
+        "BoehmGC": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "parser": parsers.BoehmStatsParser()},
+        "BoehmGC incremental": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "args": ["--incremental"], "parser": parsers.BoehmStatsParser()},
+        "gc-ptr serial": {"builder": builders["gc_ptr_serial"], "parser": parsers.GCHeapParser()},
+        "gc-ptr cms": {"builder": builders["gc_ptr_cms"], "parser": parsers.GCHeapParser()}
     }
 
     targets = {
         "gcbench-top-down": {
             "name": "boehm",
             "runnable": "benchmark/boehm/boehm",
-            "suites": ["manual", "shared-ptr", "BDWGC", "gc-ptr-serial"],
+            "suites": ["manual", "shared-ptr", "BoehmGC", "BoehmGC incremental", "gc-ptr serial", "gc-ptr cms"],
             "params": ["--top-down"]
         }
         # "gcbench bottom-up": {
@@ -81,23 +81,37 @@ if __name__ == '__main__':
         # }
     }
 
+    # printer = printers.JSONPrinter()
+
+    # for name, target in targets.items():
+    #
+    #     results = {}
+    #
+    #     for suite_name in target["suites"]:
+    #         suite = suites[suite_name]
+    #         build = suite["builder"].build(target["name"])
+    #         parser = suite["parser"]
+    #
+    #         args = suite.get("args", []) + target["params"]
+    #
+    #         cmd = suite.get("cmd")
+    #         if cmd:
+    #             cmd = cmd.format(runnable=target["runnable"], args=" ".join(args))
+    #         else:
+    #             cmd = "{} {}".format(target["runnable"], " ".join(args))
+    #
+    #         rc, out = call(cmd, build.dirname())
+    #         assert rc == 0
+    #         parser.parse(out)
+    #         results[suite_name] = parser.result()
+    #
+    #     printer.print_report(results, "gcbench-top-down-heap")
+
+    parser = parsers.JSONParser()
+    with open("gcbench-top-down-heap.json") as fd:
+        parser.parse(fd.read())
+
+    results = parser.result()
+
     printer = printers.GCHeapPlotPrinter()
-
-    for name, target in targets.items():
-        for suite_name in target["suites"]:
-            suite = suites[suite_name]
-            build = suite["builder"].build(target["name"])
-            parser = suite["parser"]
-
-            args = suite.get("args", []) + target["params"]
-
-            cmd = suite.get("cmd")
-            if cmd:
-                cmd = cmd.format(runnable=target["runnable"], args=" ".join(args))
-            else:
-                cmd = "{} {}".format(target["runnable"], " ".join(args))
-
-            rc, out = call(cmd, build.dirname())
-            assert rc == 0
-            parser.parse(out)
-            printer.print_report(parser.result(), "{}-{}".format(name, suite_name))
+    printer.print_report(parser.result(), "gcbench-top-down-heap")

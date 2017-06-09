@@ -6,8 +6,9 @@
 \begin{document}
 \begin{tikzpicture}
 \begin{axis}[
+    title={[[title]]},
 	xlabel=Time,
-	ylabel=Heap,
+	ylabel=Heap (Mb),
 	width=400,
 	height=150,
     smooth,
@@ -15,15 +16,17 @@
     area style,
     enlarge x limits=false,
     xticklabels={,,},
-    yticklabels={, 0, 10, 20, 30, 40},
+    ymin=0, ymax=65,
+    ytick={0, 10, 20, 30, 40, 50, 60},
+%    yticklabels={0, 0, 10, 20, 30, 40, 50, 60},
     scaled ticks=false,
     tick label style={/pgf/number format/fixed},
-    ymin=0, ymax=45,
     legend columns = 2,
     legend style={
         at={(1,1.1)},
 %        /tikz/column 2/.style={column sep=5pt,},
     }
+%    cycle list={black!30,black!60}
 ]
 
 [[content]]

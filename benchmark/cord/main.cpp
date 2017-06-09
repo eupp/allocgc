@@ -215,7 +215,7 @@ int main(int argc, const char* argv[])
 
     size_t total_len = std::pow(10, len);
     if (ttype == test_type::BUILD_ROPE) {
-        const size_t REPEAT_CNT = 100;
+        const size_t REPEAT_CNT = 10;
 
         std::cout << "Building " << REPEAT_CNT << " ropes with length = 10^" << len << std::endl;
 
@@ -224,7 +224,7 @@ int main(int argc, const char* argv[])
             build_rope(total_len);
         }
     } else if (ttype == test_type::SUBSTR) {
-        const size_t REPEAT_CNT = 10000;
+        const size_t REPEAT_CNT = 200000;
 
         std::cout << "Requesting " << REPEAT_CNT << " substrings from rope with length = 10^" << len << std::endl;
 
@@ -235,7 +235,7 @@ int main(int argc, const char* argv[])
             substr(cord, total_len);
         }
     } else if (ttype == test_type::FLATTENING) {
-        const size_t REPEAT_CNT = 1000;
+        const size_t REPEAT_CNT = 100;
 
         std::cout << "Flattening " << REPEAT_CNT << " ropes with length = 10^" << len << std::endl;
 

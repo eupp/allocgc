@@ -33,61 +33,62 @@ if __name__ == '__main__':
     boehm_cmd = "GC_PRINT_STATS=1 {runnable} {args}"
 
     suites = {
-        "BDWGC": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "parser": parsers.BoehmStatsParser()},
+        "BoehmGC": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "parser": parsers.BoehmStatsParser()},
         "BDWGC-incremental": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "args": ["--incremental"], "parser": parsers.BoehmStatsParser()},
-        "gc-ptr-serial": {"builder": builders["gc_ptr_serial"], "parser": parsers.GCPauseTimeParser()},
-        "gc-ptr-cms": {"builder": builders["gc_ptr_cms"], "parser": parsers.GCPauseTimeParser()}
+        "gc-ptr serial": {"builder": builders["gc_ptr_serial"], "parser": parsers.GCPauseTimeParser()},
+        "gc-ptr cms": {"builder": builders["gc_ptr_cms"], "parser": parsers.GCPauseTimeParser()}
     }
 
     targets = {
-        "gcbench-top-down": {
+        "gcbench top-down": {
             "name": "boehm",
             "runnable": "benchmark/boehm/boehm",
-            "suites": ["BDWGC", "BDWGC-incremental", "gc-ptr-serial", "gc-ptr-cms"],
+            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
             "params": ["--top-down"]
+        },
+        "gcbench bottom-up": {
+            "name": "boehm",
+            "runnable": "benchmark/boehm/boehm",
+            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+            "params": ["--bottom-up"]
+        },
+        "parallel merge sort": {
+            "name": "parallel_merge_sort",
+            "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
+            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"]
+        },
+        "cord-build": {
+            "name": "cord",
+            "runnable": "benchmark/cord/cord",
+            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+            "params": ["--build", "--len 6"]
+        },
+        "cord-substr": {
+            "name": "cord",
+            "runnable": "benchmark/cord/cord",
+            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+            "params": ["--substr", "--len 6"]
+        },
+        "cord-flatten": {
+            "name": "cord",
+            "runnable": "benchmark/cord/cord",
+            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+            "params": ["--flatten", "--len 5"]
         }
-        # "gcbench bottom-up": {
-        #     "name": "boehm",
-        #     "runnable": "benchmark/boehm/boehm",
-        #     "suites": ["BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-        #     "params": ["--bottom-up"]
-        # },
-        # "parallel merge sort": {
-        #     "name": "parallel_merge_sort",
-        #     "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-        #     "suites": ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"]
-        # },
-        # "cord-build": {
-        #     "name": "cord",
-        #     "runnable": "benchmark/cord/cord",
-        #     "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-        #     "params": ["build", {"len": [6]}]
-        # },
-        # "cord-substr": {
-        #     "name": "cord",
-        #     "runnable": "benchmark/cord/cord",
-        #     "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-        #     "params": ["substr", {"len": [6]}]
-        # },
-        # "cord-flatten": {
-        #     "name": "cord",
-        #     "runnable": "benchmark/cord/cord",
-        #     "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-        #     "params": ["flatten", {"len": [5]}]
-        # }
     }
 
     printer = printers.GCPauseTimePlotPrinter()
 
-    results = collections.defaultdict(dict)
+    results = collections.defaultdict(list)
 
     for name, target in targets.items():
         for suite_name in target["suites"]:
             suite = suites[suite_name]
             build = suite["builder"].build(target["name"])
             parser = suite["parser"]
+            parser.reset()
 
-            args = suite.get("args", []) + target["params"]
+            args = suite.get("args", []) + target.get("params", [])
 
             cmd = suite.get("cmd")
             if cmd:
@@ -101,6 +102,6 @@ if __name__ == '__main__':
             # assert rc == 0
             parser.parse(out)
 
-            results[name][suite_name] = parser.result()
+            results[name] += [(suite_name, parser.result())]
 
     printer.print_report(results, "pauses")

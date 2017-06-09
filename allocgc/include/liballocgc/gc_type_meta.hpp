@@ -2,6 +2,7 @@
 #define ALLOCGC_GC_TYPE_META_HPP
 
 #include <vector>
+#include <type_traits>
 
 #include <boost/range/iterator_range.hpp>
 
@@ -50,6 +51,7 @@ public:
         return m_is_movable;
     }
 
+    virtual bool is_trivially_destructible() const = 0;
     virtual void destroy(byte* ptr) const = 0;
     virtual void move(byte* from, byte* to) const = 0;
 protected:
@@ -77,6 +79,11 @@ template <typename T>
 class gc_type_meta_instance : public gc_type_meta
 {
 public:
+    bool is_trivially_destructible() const override
+    {
+        return std::is_trivially_destructible<T>::value;
+    }
+
     void destroy(byte* ptr) const override
     {
         reinterpret_cast<T*>(ptr)->~T();

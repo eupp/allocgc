@@ -60,8 +60,7 @@ class JSONParser:
         self._context.update(json.loads(content))
 
     def result(self):
-        from runner import Report
-        return Report.from_targets(self._context)
+        return self._context
 
 
 class GCTimeParser:

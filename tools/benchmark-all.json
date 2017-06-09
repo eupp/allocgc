@@ -1,574 +1,574 @@
 {
     "gcbench bottom-up": {
-        "BDW GC": {
-            "gc_count": 20.0,
-            "full_time": {
-                "mean": 124.0,
-                "std": 9.562
-            },
+        "BoehmGC": {
+            "gc_count": 31.0,
             "gc_time": {
                 "mean": NaN,
                 "std": NaN
             },
+            "full_time": {
+                "mean": 197.0,
+                "std": 19.661
+            },
             "stw_time": {
-                "min": NaN,
                 "mean": NaN,
+                "std": NaN,
                 "max": NaN,
+                "min": NaN
+            }
+        },
+        "BoehmGC incremental": {
+            "gc_count": 87.0,
+            "gc_time": {
+                "mean": NaN,
                 "std": NaN
+            },
+            "full_time": {
+                "mean": 298.0,
+                "std": 15.147
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
             }
         },
         "shared_ptr": {
             "gc_count": 0,
-            "full_time": {
-                "mean": 252.0,
-                "std": 24.212
-            },
             "gc_time": {
                 "mean": NaN,
                 "std": NaN
             },
+            "full_time": {
+                "mean": 262.0,
+                "std": 13.506
+            },
             "stw_time": {
-                "min": NaN,
                 "mean": NaN,
+                "std": NaN,
                 "max": NaN,
-                "std": NaN
+                "min": NaN
             }
         },
         "gc_ptr serial": {
             "gc_count": 26.0,
-            "full_time": {
-                "mean": 594.0,
-                "std": 18.381
-            },
             "gc_time": {
-                "mean": 171.0,
-                "std": 7.687
+                "mean": 192.0,
+                "std": 6.708
+            },
+            "full_time": {
+                "mean": 673.0,
+                "std": 34.627
             },
             "stw_time": {
-                "min": 6.182,
-                "mean": 6.593,
-                "max": 7.209,
-                "std": 0.296
-            }
-        },
-        "BDW GC incremental": {
-            "gc_count": 139.0,
-            "full_time": {
-                "mean": 188.0,
-                "std": 10.892
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
+                "mean": 7.4,
+                "std": 0.259,
+                "max": 7.905,
+                "min": 6.824
             }
         },
         "manual": {
             "gc_count": 0,
-            "full_time": {
-                "mean": 187.0,
-                "std": 3.376
-            },
             "gc_time": {
                 "mean": NaN,
                 "std": NaN
             },
+            "full_time": {
+                "mean": 220.0,
+                "std": 14.403
+            },
             "stw_time": {
-                "min": NaN,
                 "mean": NaN,
+                "std": NaN,
                 "max": NaN,
-                "std": NaN
+                "min": NaN
             }
         },
         "gc_ptr cms": {
-            "gc_count": 83.0,
-            "full_time": {
-                "mean": 744.0,
-                "std": 25.659
-            },
+            "gc_count": 43.0,
             "gc_time": {
-                "mean": 147.0,
-                "std": 5.224
+                "mean": 140.0,
+                "std": 3.3
+            },
+            "full_time": {
+                "mean": 741.0,
+                "std": 16.461
             },
             "stw_time": {
-                "min": 1.687,
-                "mean": 1.774,
-                "max": 1.896,
-                "std": 0.064
-            }
-        }
-    },
-    "cord-build": {
-        "BDW GC": {
-            "gc_count": 101.0,
-            "full_time": {
-                "mean": 92.0,
-                "std": 5.122
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "shared_ptr": {
-            "gc_count": 0,
-            "full_time": {
-                "mean": 234.0,
-                "std": 1.735
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr cms": {
-            "gc_count": 362.0,
-            "full_time": {
-                "mean": 1569.0,
-                "std": 85.86
-            },
-            "gc_time": {
-                "mean": 428.0,
-                "std": 20.592
-            },
-            "stw_time": {
-                "min": 1.078,
-                "mean": 1.185,
-                "max": 1.256,
-                "std": 0.057
-            }
-        },
-        "gc_ptr serial": {
-            "gc_count": 99.0,
-            "full_time": {
-                "mean": 1416.0,
-                "std": 34.185
-            },
-            "gc_time": {
-                "mean": 353.0,
-                "std": 10.394
-            },
-            "stw_time": {
-                "min": 3.436,
-                "mean": 3.573,
-                "max": 3.77,
-                "std": 0.106
-            }
-        },
-        "BDW GC incremental": {
-            "gc_count": 1157.0,
-            "full_time": {
-                "mean": 423.0,
-                "std": 20.65
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        }
-    },
-    "cord-flatten": {
-        "BDW GC": {
-            "gc_count": 253.0,
-            "full_time": {
-                "mean": 102.0,
-                "std": 8.203
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "shared_ptr": {
-            "gc_count": 0,
-            "full_time": {
-                "mean": 58.0,
-                "std": 2.377
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr cms": {
-            "gc_count": 93.0,
-            "full_time": {
-                "mean": 268.0,
-                "std": 5.394
-            },
-            "gc_time": {
-                "mean": 129.0,
-                "std": 2.01
-            },
-            "stw_time": {
-                "min": 1.358,
-                "mean": 1.386,
-                "max": 1.428,
-                "std": 0.023
-            }
-        },
-        "gc_ptr serial": {
-            "gc_count": 26.0,
-            "full_time": {
-                "mean": 285.0,
-                "std": 6.779
-            },
-            "gc_time": {
-                "mean": 133.0,
-                "std": 1.972
-            },
-            "stw_time": {
-                "min": 5.075,
-                "mean": 5.139,
-                "max": 5.278,
-                "std": 0.072
-            }
-        },
-        "BDW GC incremental": {
-            "gc_count": 1002.0,
-            "full_time": {
-                "mean": 208.0,
-                "std": 21.341
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        }
-    },
-    "gcbench top-down": {
-        "BDW GC": {
-            "gc_count": 20.0,
-            "full_time": {
-                "mean": 122.0,
-                "std": 2.871
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "shared_ptr": {
-            "gc_count": 0,
-            "full_time": {
-                "mean": 218.0,
-                "std": 3.412
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr serial": {
-            "gc_count": 26.0,
-            "full_time": {
-                "mean": 656.0,
-                "std": 18.456
-            },
-            "gc_time": {
-                "mean": 170.0,
-                "std": 5.783
-            },
-            "stw_time": {
-                "min": 6.158,
-                "mean": 6.54,
-                "max": 6.899,
-                "std": 0.222
-            }
-        },
-        "BDW GC incremental": {
-            "gc_count": 140.0,
-            "full_time": {
-                "mean": 188.0,
-                "std": 15.7
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "manual": {
-            "gc_count": 0,
-            "full_time": {
-                "mean": 191.0,
-                "std": 3.747
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr cms": {
-            "gc_count": 83.0,
-            "full_time": {
-                "mean": 819.0,
-                "std": 20.367
-            },
-            "gc_time": {
-                "mean": 146.0,
-                "std": 7.27
-            },
-            "stw_time": {
-                "min": 1.646,
-                "mean": 1.757,
-                "max": 1.929,
-                "std": 0.086
-            }
-        }
-    },
-    "parallel merge sort": {
-        "BDW GC": {
-            "gc_count": 252.0,
-            "full_time": {
-                "mean": 193.0,
-                "std": 15.48
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "shared_ptr": {
-            "gc_count": 0,
-            "full_time": {
-                "mean": 1204.0,
-                "std": 39.869
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr serial": {
-            "gc_count": 40.0,
-            "full_time": {
-                "mean": 1571.0,
-                "std": 63.404
-            },
-            "gc_time": {
-                "mean": 129.0,
-                "std": 8.58
-            },
-            "stw_time": {
-                "min": 2.895,
-                "mean": 3.215,
-                "max": 3.518,
-                "std": 0.182
-            }
-        },
-        "BDW GC incremental": {
-            "gc_count": 361.0,
-            "full_time": {
-                "mean": 536.0,
-                "std": 64.398
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "manual": {
-            "gc_count": 0,
-            "full_time": {
-                "mean": 228.0,
-                "std": 15.092
-            },
-            "gc_time": {
-                "mean": NaN,
-                "std": NaN
-            },
-            "stw_time": {
-                "min": NaN,
-                "mean": NaN,
-                "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr cms": {
-            "gc_count": 113.0,
-            "full_time": {
-                "mean": 1907.0,
-                "std": 52.576
-            },
-            "gc_time": {
-                "mean": 81.0,
-                "std": 5.951
-            },
-            "stw_time": {
-                "min": 0.656,
-                "mean": 0.715,
-                "max": 0.803,
-                "std": 0.037
+                "mean": 3.27,
+                "std": 0.078,
+                "max": 3.423,
+                "min": 3.187
             }
         }
     },
     "cord-substr": {
-        "BDW GC": {
-            "gc_count": 13.0,
-            "full_time": {
-                "mean": 7.0,
-                "std": 1.02
-            },
+        "BoehmGC": {
+            "gc_count": 36.0,
             "gc_time": {
                 "mean": NaN,
                 "std": NaN
             },
+            "full_time": {
+                "mean": 230.0,
+                "std": 4.386
+            },
             "stw_time": {
-                "min": NaN,
                 "mean": NaN,
+                "std": NaN,
                 "max": NaN,
+                "min": NaN
+            }
+        },
+        "BoehmGC incremental": {
+            "gc_count": 102.0,
+            "gc_time": {
+                "mean": NaN,
                 "std": NaN
+            },
+            "full_time": {
+                "mean": 332.0,
+                "std": 6.72
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
             }
         },
         "shared_ptr": {
             "gc_count": 0,
-            "full_time": {
-                "mean": 10.0,
-                "std": 1.345
-            },
             "gc_time": {
                 "mean": NaN,
                 "std": NaN
             },
+            "full_time": {
+                "mean": 414.0,
+                "std": 33.254
+            },
             "stw_time": {
-                "min": NaN,
                 "mean": NaN,
+                "std": NaN,
                 "max": NaN,
-                "std": NaN
-            }
-        },
-        "gc_ptr cms": {
-            "gc_count": 15.0,
-            "full_time": {
-                "mean": 76.0,
-                "std": 3.2
-            },
-            "gc_time": {
-                "mean": 5.0,
-                "std": 0.663
-            },
-            "stw_time": {
-                "min": 0.293,
-                "mean": 0.342,
-                "max": 0.43,
-                "std": 0.035
+                "min": NaN
             }
         },
         "gc_ptr serial": {
-            "gc_count": 3.0,
-            "full_time": {
-                "mean": 74.0,
-                "std": 3.176
-            },
+            "gc_count": 24.0,
             "gc_time": {
-                "mean": 6.0,
-                "std": 0.663
+                "mean": 296.0,
+                "std": 10.515
+            },
+            "full_time": {
+                "mean": 1154.0,
+                "std": 48.833
             },
             "stw_time": {
-                "min": 1.641,
-                "mean": 1.99,
-                "max": 2.163,
-                "std": 0.155
+                "mean": 12.348,
+                "std": 0.441,
+                "max": 13.153,
+                "min": 11.697
             }
         },
-        "BDW GC incremental": {
-            "gc_count": 30.0,
-            "full_time": {
-                "mean": 10.0,
-                "std": 1.96
+        "gc_ptr cms": {
+            "gc_count": 110.0,
+            "gc_time": {
+                "mean": 700.0,
+                "std": 12.01
             },
+            "full_time": {
+                "mean": 1671.0,
+                "std": 51.307
+            },
+            "stw_time": {
+                "mean": 6.364,
+                "std": 0.111,
+                "max": 6.536,
+                "min": 6.185
+            }
+        }
+    },
+    "cord-build": {
+        "BoehmGC": {
+            "gc_count": 25.0,
             "gc_time": {
                 "mean": NaN,
                 "std": NaN
             },
+            "full_time": {
+                "mean": 110.0,
+                "std": 4.005
+            },
             "stw_time": {
-                "min": NaN,
                 "mean": NaN,
+                "std": NaN,
                 "max": NaN,
+                "min": NaN
+            }
+        },
+        "BoehmGC incremental": {
+            "gc_count": 240.0,
+            "gc_time": {
+                "mean": NaN,
                 "std": NaN
+            },
+            "full_time": {
+                "mean": 343.0,
+                "std": 26.912
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "shared_ptr": {
+            "gc_count": 0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 295.0,
+                "std": 9.126
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "gc_ptr serial": {
+            "gc_count": 14.0,
+            "gc_time": {
+                "mean": 84.0,
+                "std": 3.378
+            },
+            "full_time": {
+                "mean": 935.0,
+                "std": 28.617
+            },
+            "stw_time": {
+                "mean": 6.011,
+                "std": 0.233,
+                "max": 6.573,
+                "min": 5.723
+            }
+        },
+        "gc_ptr cms": {
+            "gc_count": 30.0,
+            "gc_time": {
+                "mean": 169.0,
+                "std": 7.3
+            },
+            "full_time": {
+                "mean": 1114.0,
+                "std": 23.383
+            },
+            "stw_time": {
+                "mean": 5.642,
+                "std": 0.246,
+                "max": 6.259,
+                "min": 5.385
+            }
+        }
+    },
+    "gcbench top-down": {
+        "BoehmGC": {
+            "gc_count": 30.0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 188.0,
+                "std": 8.447
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "BoehmGC incremental": {
+            "gc_count": 88.0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 294.0,
+                "std": 6.531
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "shared_ptr": {
+            "gc_count": 0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 241.0,
+                "std": 2.844
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "gc_ptr serial": {
+            "gc_count": 26.0,
+            "gc_time": {
+                "mean": 187.0,
+                "std": 4.584
+            },
+            "full_time": {
+                "mean": 692.0,
+                "std": 21.676
+            },
+            "stw_time": {
+                "mean": 7.201,
+                "std": 0.169,
+                "max": 7.469,
+                "min": 6.954
+            }
+        },
+        "manual": {
+            "gc_count": 0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 212.0,
+                "std": 3.995
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "gc_ptr cms": {
+            "gc_count": 43.0,
+            "gc_time": {
+                "mean": 140.0,
+                "std": 3.323
+            },
+            "full_time": {
+                "mean": 775.0,
+                "std": 14.414
+            },
+            "stw_time": {
+                "mean": 3.275,
+                "std": 0.077,
+                "max": 3.457,
+                "min": 3.185
+            }
+        }
+    },
+    "parallel-merge-sort": {
+        "BoehmGC": {
+            "gc_count": 18.0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 46.0,
+                "std": 4.099
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "BoehmGC incremental": {
+            "gc_count": 31.0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 101.0,
+                "std": 8.109
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "shared_ptr": {
+            "gc_count": 0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 256.0,
+                "std": 7.902
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "gc_ptr serial": {
+            "gc_count": 12.0,
+            "gc_time": {
+                "mean": 156.0,
+                "std": 11.99
+            },
+            "full_time": {
+                "mean": 438.0,
+                "std": 15.245
+            },
+            "stw_time": {
+                "mean": 13.134,
+                "std": 0.283,
+                "max": 13.612,
+                "min": 12.808
+            }
+        },
+        "manual": {
+            "gc_count": 0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 60.0,
+                "std": 2.193
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "gc_ptr cms": {
+            "gc_count": 30.0,
+            "gc_time": {
+                "mean": 37.0,
+                "std": 12.72
+            },
+            "full_time": {
+                "mean": 511.0,
+                "std": 39.48
+            },
+            "stw_time": {
+                "mean": 1.353,
+                "std": 0.551,
+                "max": 2.26,
+                "min": 0.587
+            }
+        }
+    },
+    "cord-flatten": {
+        "BoehmGC": {
+            "gc_count": 82.0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 830.0,
+                "std": 49.968
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "BoehmGC incremental": {
+            "gc_count": 139.0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 802.0,
+                "std": 32.472
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "shared_ptr": {
+            "gc_count": 0,
+            "gc_time": {
+                "mean": NaN,
+                "std": NaN
+            },
+            "full_time": {
+                "mean": 833.0,
+                "std": 47.185
+            },
+            "stw_time": {
+                "mean": NaN,
+                "std": NaN,
+                "max": NaN,
+                "min": NaN
+            }
+        },
+        "gc_ptr serial": {
+            "gc_count": 31.0,
+            "gc_time": {
+                "mean": 203.0,
+                "std": 6.357
+            },
+            "full_time": {
+                "mean": 1684.0,
+                "std": 32.031
+            },
+            "stw_time": {
+                "mean": 6.571,
+                "std": 0.203,
+                "max": 6.905,
+                "min": 6.356
+            }
+        },
+        "gc_ptr cms": {
+            "gc_count": 110.0,
+            "gc_time": {
+                "mean": 69.0,
+                "std": 3.77
+            },
+            "full_time": {
+                "mean": 1611.0,
+                "std": 45.855
+            },
+            "stw_time": {
+                "mean": 0.633,
+                "std": 0.034,
+                "max": 0.701,
+                "min": 0.596
             }
         }
     }

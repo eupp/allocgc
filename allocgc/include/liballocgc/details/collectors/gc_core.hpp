@@ -278,7 +278,7 @@ private:
                         << ") pause "  << duration_to_str(runstats.pause);
 
 //        print_gc_mem_stats(stats().gc_mem);
-        print_gc_run_stats(options, runstats);
+//        print_gc_run_stats(options, runstats);
 
         ++m_gc_cnt;
         m_gc_time += runstats.pause;
@@ -348,6 +348,10 @@ private:
 
     void print_gc_run_stats(const gc_options& options, const gc_runstat& stats)
     {
+        if (options.kind == gc_kind::LAUNCH_CONCURRENT_MARK) {
+            return;
+        }
+
         std::cerr << "****************************************************************************" << std::endl;
         std::cerr << "   GC RUN SUMMARY                                                           " << std::endl;
         std::cerr << "gc kind:     " << gc_kind_to_str(options.kind) << std::endl;

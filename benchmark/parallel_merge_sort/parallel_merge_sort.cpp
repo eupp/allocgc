@@ -36,16 +36,17 @@
 #include "../../common/timer.hpp"
 
 static const int threads_cnt        = 8; // std::thread::hardware_concurrency();
-static const int nodes_per_thread   = 256;
+static const int nodes_per_thread   = 2048;
 
 static const int node_size    = 64;
-static const int lists_count  = 1024;
+static const int lists_count  = 30;
 static const int lists_length = threads_cnt * nodes_per_thread;
 
 struct Node
 {
-    int data;
+    size_t x;
     ptr_t(Node) next;
+//    char data[32];
 };
 
 struct List
@@ -134,7 +135,7 @@ List merge(const List& fst, const List& snd)
     size_t l2 = snd.length;
     size_t length = l1 + l2;
 
-    if (it1->data < it2->data) {
+    if (it1->x < it2->x) {
         res = it1;
         it1 = it1->next;
         l1--;
@@ -150,7 +151,7 @@ List merge(const List& fst, const List& snd)
         pin_t(Node) pIt1 = pin(it1);
         pin_t(Node) pIt2 = pin(it2);
         pin_t(Node) pDst = pin(dst);
-        if (pIt1->data < pIt2->data) {
+        if (pIt1->x < pIt2->x) {
             pDst->next = it1;
             dst = pDst->next;
             prev1 = it1;
@@ -181,7 +182,7 @@ List merge_sort(const List& list)
         return List();
     } else if (list.length == 1) {
         ptr_t(Node) node = new_(Node);
-        node->data = list.head->data;
+        node->x = list.head->x;
         set_null(node->next);
         return List(node, 1);
     }
@@ -229,12 +230,12 @@ List create_list(size_t n, int mod)
     size_t length = n;
     ptr_t(Node) head = new_(Node);
     ptr_t(Node) it = head;
-    head->data = rand() % mod;
+    head->x = rand() % mod;
     --n;
     while (n > 0) {
         it->next = new_(Node);
         it = it->next;
-        it->data = i++ % mod;
+        it->x = i++ % mod;
         --n;
     }
     return List(head, length);
@@ -263,7 +264,7 @@ void routine(List* input, List* output)
     ptr_t(Node) it = sorted.head;
     assert(sorted.length == lists_length);
     for (size_t i = 0; i < sorted.length - 1; ++i, it = it->next) {
-        assert(it->data <= it->next->data);
+        assert(it->x <= it->next->x);
     }
 
     clear_list(list);

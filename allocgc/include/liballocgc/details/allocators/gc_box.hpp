@@ -149,6 +149,11 @@ public:
 
         assert(type_meta);
         assert(meta->object_count() > 0);
+
+        if (type_meta->is_trivially_destructible()) {
+            return;
+        }
+
         byte*  obj      = get_obj_start(cell_start);
         size_t obj_cnt  = meta->object_count();
         size_t obj_size = type_meta->type_size();

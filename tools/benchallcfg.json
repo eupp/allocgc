@@ -25,21 +25,21 @@
       "alias": "cord-build",
       "runnable": "benchmark/cord/cord",
       "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-      "params": ["build", {"len": [6]}]
+      "params": ["build", {"len": [7]}]
     },
     {
       "name": "cord",
       "alias": "cord-substr",
       "runnable": "benchmark/cord/cord",
       "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-      "params": ["substr", {"len": [6]}]
+      "params": ["substr", {"len": [7]}]
     },
     {
       "name": "cord",
       "alias": "cord-flatten",
       "runnable": "benchmark/cord/cord",
       "suites": ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"],
-      "params": ["flatten", {"len": [5]}]
+      "params": ["flatten", {"len": [7]}]
     }
   ],
   "suites": [
@@ -61,7 +61,7 @@
     {"name": "gc-time"}
   ],
   "printers": [
-    {"name": "json", "params": {"outfn": "benchmark-all"}}
+    {"name": "json", "outfn": "benchmark-all"}
   ],
   "nruns" : 10
 }

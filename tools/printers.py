@@ -22,7 +22,7 @@ class GCTimePlotPrinter:
         with open('gc-time-plot.tex', 'r') as fd:
             self._tpl = escape_tex(fd.read())
 
-    def print_plot(self, targets, suites, report, outfn):
+    def print_plot(self, targets, suites, report, outfn, k):
         tpl = escape_tex("""
             \\addplot+[
                 [[color]], draw=[[color]], pattern color = [[color]], pattern = [[pattern]],
@@ -36,20 +36,19 @@ class GCTimePlotPrinter:
         colors = ["brown", "blue", "red", "orange", "violet", "green"]
         patterns = ["horizontal lines", "north west lines", "vertical lines", "dots", "crosshatch", "grid"]
 
-        i = 0
+        i = k
         content = ""
         for suite in suites:
             coordinates = ""
-            coordinate  = "({n}, {mean}) +- (0, {std}) [{time} ms]\n"
+            coordinate  = "({n}, {mean}) +- (0, {std})\n"
 
             n = 1
             for target in targets:
-                data = report.suites[suite][target]
-                baseline = report.suites["shared_ptr"][target]
-                time = data["full_time"]["mean"]
-                mean = float(data["full_time"]["mean"]) / float(baseline["full_time"]["mean"])
-                std  = float(data["full_time"]["std"]) / float(baseline["full_time"]["mean"])
-                coordinates += coordinate.format(n=n, time=int(time), mean=round(mean, 2), std=round(std, 2))
+                data = report[target][suite]
+                # time = data["full_time"]["mean"]
+                mean = float(data["full_time"]["mean"])
+                std  = float(data["full_time"]["std"])
+                coordinates += coordinate.format(n=n, mean=round(mean, 2), std=round(std, 2))
                 n += 1
 
             content += tpl.format(color=colors[i], pattern=patterns[i], coordinates=coordinates)
@@ -57,18 +56,24 @@ class GCTimePlotPrinter:
 
         xtick = ", ".join(str(i) for i in range(1, len(targets)+1))
         legend = ", ".join(suite.replace("_", "\\_") for suite in suites)
-        xticklabels = ", ".join(targets)
+        xticklabels = ", ".join(target.replace(" ", "\\\\") for target in targets)
 
-        with open(outfn, "w") as outfd:
+        outfn_tex = outfn + ".tex"
+        outfn_pdf = outfn + ".pdf"
+        with open(outfn_tex, "w") as outfd:
             outfd.write(self._tpl.format(content=content, legend=legend, xtick=xtick, xticklabels=xticklabels))
 
+        proc = subprocess.Popen("pdflatex {fn_tex} && pdfcrop {fn_pdf}".format(fn_tex=outfn_tex, fn_pdf=outfn_pdf), shell=True)
+        proc.wait()
+        assert proc.returncode == 0
+
     def print_report(self, report, outfn):
-        suites1 = ["manual", "shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"]
-        suites2 = ["shared_ptr", "BDW GC", "BDW GC incremental", "gc_ptr serial", "gc_ptr cms"]
-        targets1 = ["gcbench top-down", "gcbench bottom-up", "parallel merge sort"]
+        suites1 = ["manual", "shared_ptr", "BoehmGC", "BoehmGC incremental", "gc_ptr serial", "gc_ptr cms"]
+        suites2 = ["shared_ptr", "BoehmGC", "BoehmGC incremental", "gc_ptr serial", "gc_ptr cms"]
+        targets1 = ["gcbench top-down", "gcbench bottom-up", "parallel-merge-sort"]
         targets2 = ["cord-build", "cord-substr", "cord-flatten"]
-        self.print_plot(targets1, suites1, report, outfn + "-1.tex")
-        self.print_plot(targets2, suites2, report, outfn + "-2.tex")
+        self.print_plot(targets1, suites1, report, outfn + "-1", 0)
+        self.print_plot(targets2, suites2, report, outfn + "-2", 1)
 
 
 class GCPauseTimePlotPrinter:
@@ -77,18 +82,22 @@ class GCPauseTimePlotPrinter:
         with open('gc-pause-plot.tex', 'r') as fd:
             self._tpl = escape_tex(fd.read())
 
-    def print_plot(self, data, outfn):
+    def print_plot(self, name, data, outfn):
         import matplotlib.pyplot as plt
 
-        labels = [suite for suite, _ in data.items()]
-        pauses = [stats["pause"] for _, stats in data.items()]
+        labels = [suite for suite, _ in data]
+        pauses = [stats["pause"] for _, stats in data]
 
-        plt.boxplot(pauses, labels=labels)
+        plt.title(name)
+        plt.ylabel("Pause time")
+
+        plt.boxplot(pauses, sym='o', labels=labels)
         plt.savefig(outfn)
+        plt.clf()
 
     def print_report(self, data, outfn):
         for name, target in data.items():
-            self.print_plot(target, "{}-{}.png".format(outfn, name))
+            self.print_plot(name, target, "{}-{}.png".format(outfn, name))
 
 
 class GCHeapPlotPrinter:

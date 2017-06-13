@@ -103,11 +103,12 @@ ptr_t(Node) random_walk(size_t walk_n, ptr_t(Node) node)
 {
     std::discrete_distribution<> d({25, 25, 25, 25});
     for (size_t i = 0; i < walk_n; ++i) {
+        pin_t(Node) node_pin = pin(node);
         switch (d(rndeng)) {
-            case 0: if (node->top)      node = node->top;       break;
-            case 1: if (node->right)    node = node->right;     break;
-            case 2: if (node->bottom)   node = node->bottom;    break;
-            case 3: if (node->left)     node = node->left;      break;
+            case 0: if (node_pin->top)      node = node_pin->top;       break;
+            case 1: if (node_pin->right)    node = node_pin->right;     break;
+            case 2: if (node_pin->bottom)   node = node_pin->bottom;    break;
+            case 3: if (node_pin->left)     node = node_pin->left;      break;
         }
     }
     return node;
@@ -134,8 +135,8 @@ ptr_t(Node) replace_node(ptr_in(Node) node)
 
 void gridtest(size_t n)
 {
-    const size_t iter_num = 4 * n * n;
-    size_t walk_n = std::min(n, (size_t) 100);
+    const size_t iter_num = 8 * n * n;
+    size_t walk_n = std::min(n, (size_t) 10);
 
     ptr_t(Node) grid = create_grid(n);
     ptr_t(Node) node = grid;
@@ -165,6 +166,7 @@ int main(int argc, const char* argv[])
 
 #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
     register_main_thread();
+//    set_heap_limit(20 * 1024 * 1024);
 //        enable_logging(gc_loglevel::DEBUG);
 #elif defined(BDW_GC)
     GC_INIT();
@@ -174,7 +176,20 @@ int main(int argc, const char* argv[])
 //    GC_set_on_collection_event(GC_event_callback);
 #endif
 
+    timer tm;
+
     gridtest(n);
+
+    std::cout << "Completed in " << tm.elapsed<std::chrono::milliseconds>() << " ms" << std::endl;
+#if defined(BDW_GC)
+    std::cout << "Completed " << GC_get_gc_no() << " collections" << std::endl;
+    std::cout << "Heap size is " << GC_get_heap_size() << std::endl;
+#elif defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
+    gc_stat stat = stats();
+    std::cout << "Completed " << stat.gc_count << " collections" << std::endl;
+    std::cout << "Time spent in gc " << std::chrono::duration_cast<std::chrono::milliseconds>(stat.gc_time).count() << " ms" << std::endl;
+    std::cout << "Average pause time " << std::chrono::duration_cast<std::chrono::microseconds>(stat.gc_time / stat.gc_count).count() << " us" << std::endl;
+#endif
 
     return 0;
 }

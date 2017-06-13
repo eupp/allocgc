@@ -56,7 +56,7 @@ public:
     memory_range_type memory_range();
 
     void set_heap_limit(size_t limit);
-    void expand_heap();
+    void expand_heap(double increase_factor = INCREASE_FACTOR);
 
     void notify_gc();
 

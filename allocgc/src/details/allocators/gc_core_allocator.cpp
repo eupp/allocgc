@@ -110,10 +110,10 @@ void gc_core_allocator::set_heap_limit(size_t limit)
 //    m_heap_maxlimit = limit;
 }
 
-void gc_core_allocator::expand_heap()
+void gc_core_allocator::expand_heap(double increase_factor)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    size_t increased_size = INCREASE_FACTOR * m_heap_limit;
+    size_t increased_size = increase_factor * m_heap_limit;
     m_heap_limit = std::min(increased_size, m_heap_maxlimit);
     m_mark_threshold = false;
 }

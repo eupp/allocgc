@@ -50,8 +50,8 @@ class gc_box
             m_type_meta |= FORWARD_BIT;
         }
     private:
-        std::uintptr_t m_type_meta;
         size_t         m_count;
+        std::uintptr_t m_type_meta;
     };
 
     static constexpr box_meta* get_box_meta(byte* cell_start)
@@ -145,7 +145,7 @@ public:
         assert(cell_start);
         assert(get_type_meta(cell_start));
         box_meta* meta = get_box_meta(cell_start);
-        const gc_type_meta* type_meta = get_type_meta(cell_start);
+        const gc_type_meta* type_meta = meta->type_meta();
 
         assert(type_meta);
         assert(meta->object_count() > 0);

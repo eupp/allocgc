@@ -68,6 +68,7 @@ gc_collect_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
     gc_collect_stat stat;
     size_t freed = 0;
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
+        stat.mem_used += it->cell_size();
         auto next = std::next(it);
         if (!it->get_mark()) {
             stat.mem_freed += it->cell_size();
@@ -80,7 +81,6 @@ gc_collect_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
         }
         it = next;
     }
-
     return stat;
 }
 

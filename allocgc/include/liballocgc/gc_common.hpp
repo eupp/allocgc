@@ -143,6 +143,7 @@ struct gc_stat
 
 struct gc_collect_stat
 {
+    size_t mem_used    = 0;
     size_t mem_freed   = 0;
     size_t mem_moved   = 0;
     size_t pinned_cnt  = 0;
@@ -153,6 +154,7 @@ struct gc_collect_stat
 
     gc_collect_stat& operator+=(const gc_collect_stat& other)
     {
+        mem_used   += other.mem_used;
         mem_freed  += other.mem_freed;
         mem_moved  += other.mem_moved;
         pinned_cnt += other.pinned_cnt;

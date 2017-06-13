@@ -34,7 +34,7 @@ option(PRECISE_GC_CMS OFF)
 #set(BDW_GC ON)
 #set(SHARED_PTR ON)
 #set(PRECISE_GC_SERIAL ON)
-#set(PRECISE_GC_CMS ON)
+set(PRECISE_GC_CMS ON)
 
 if(NO_GC)
     add_definitions(-DNO_GC)

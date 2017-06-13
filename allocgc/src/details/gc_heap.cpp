@@ -66,6 +66,11 @@ gc_collect_stat gc_heap::collect(
     }
     m_loa.finalize();
 
+    if (stat.mem_freed < stat.mem_used / 100) {
+        m_core_alloc.expand_heap(2);
+    } else if (stat.mem_freed < stat.mem_used / 10) {
+        m_core_alloc.expand_heap(1.4);
+    }
     m_core_alloc.notify_gc();
 
     return stat;

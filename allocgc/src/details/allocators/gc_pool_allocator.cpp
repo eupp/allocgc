@@ -186,6 +186,7 @@ double gc_pool_allocator::shrink(gc_collect_stat& stat)
     size_t mem_live = 0;
     size_t mem_occupied = 0;
     for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
+        stat.mem_used += it->size();
         if (it->unused()) {
             stat.mem_freed += it->size();
             it = destroy_descriptor(it);
@@ -196,7 +197,9 @@ double gc_pool_allocator::shrink(gc_collect_stat& stat)
             ++it;
         }
     }
-    return static_cast<double>(mem_live) / mem_occupied;
+    double residency = static_cast<double>(mem_live) / mem_occupied;
+//    std::cerr << "prev_residency=" << m_prev_residency << "; residency=" << residency << std::endl;
+    return residency;
 }
 
 void gc_pool_allocator::sweep(gc_collect_stat& stat)
@@ -240,9 +243,53 @@ void gc_pool_allocator::insert_into_freelist(byte* ptr)
 
 void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_collect_stat& stat)
 {
-    compacting::two_finger_compactor compactor;
+    typedef typename memory_range_type::iterator::value_type value_t;
+    typedef std::reverse_iterator<typename memory_range_type::iterator> reverse_iterator;
+
     auto rng = memory_range();
-    compactor(rng, frwd, stat);
+
+    if (rng.begin() == rng.end()) {
+        return;
+    }
+
+    assert(std::all_of(rng.begin(), rng.end(),
+                       [&rng] (const value_t& p) { return p.cell_size() == rng.begin()->cell_size(); }
+    ));
+
+    auto to = rng.begin();
+    auto from = rng.end();
+    size_t cell_size = to->cell_size();
+    size_t copied_cnt = 0;
+    while (from != to) {
+        to = std::find_if(to, from, [](value_t cell) {
+            return cell.get_lifetime_tag() == gc_lifetime_tag::FREE ||
+                   cell.get_lifetime_tag() == gc_lifetime_tag::GARBAGE;
+        });
+
+        if (to->get_lifetime_tag() == gc_lifetime_tag::GARBAGE) {
+            stat.mem_freed += cell_size;
+            to->finalize();
+        }
+
+        auto rev_from = std::find_if(reverse_iterator(from),
+                                     reverse_iterator(to),
+                                     [] (value_t cell) {
+                                         return  cell.get_lifetime_tag() == gc_lifetime_tag::LIVE &&
+                                                 !cell.get_pin();
+                                     });
+
+        from = rev_from.base();
+        if (from != to) {
+            --from;
+
+            from->move(*to);
+            from->finalize();
+            frwd.create(from->get(), to->get());
+            insert_into_freelist(from->get());
+
+            stat.mem_moved += cell_size;
+        }
+    }
 }
 
 void gc_pool_allocator::fix(const compacting::forwarding& frwd)
@@ -276,6 +323,7 @@ bool gc_pool_allocator::empty() const
 
 bool gc_pool_allocator::is_compaction_required(double residency) const
 {
+    return false;
     if (residency < RESIDENCY_COMPACTING_THRESHOLD) {
         return true;
     }

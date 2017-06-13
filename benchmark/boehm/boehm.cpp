@@ -90,7 +90,7 @@ struct Node
         , right(r)
     {}
 
-    #ifndef PRECISE_GC
+    #if defined(NO_GC) || defined(BDW_GC)
         Node()
             : left(nullptr)
             , right(nullptr)
@@ -99,11 +99,13 @@ struct Node
         Node() {}
     #endif
 
+    #if defined(NO_GC)
     ~Node()
     {
         delete_(left);
         delete_(right);
     }
+    #endif
 };
 
 enum test_type {

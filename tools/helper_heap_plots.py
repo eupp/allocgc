@@ -114,4 +114,4 @@ if __name__ == '__main__':
     results = parser.result()
 
     printer = printers.GCHeapPlotPrinter()
-    printer.print_report(parser.result(), "gcbench-top-down-heap")
+    printer.print_report(parser.result(), "heap")

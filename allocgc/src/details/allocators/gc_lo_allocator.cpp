@@ -115,7 +115,9 @@ void gc_lo_allocator::destroy(const descriptor_iterator& it)
     size_t blk_size = get_blk_size(it->cell_size());
 
     byte* memblk = get_memblk(blk);
-    it->finalize(memblk);
+    #ifdef WITH_DESTRUCTORS
+        it->finalize(memblk);
+    #endif
     memory_index::deindex(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
     deallocate_blk(blk, blk_size);

@@ -93,7 +93,7 @@ class GCPauseTimePlotPrinter:
 
         axes = plt.gca()
         # axes.set_xlim([xmin,xmax])
-        axes.set_ylim([0, 20])
+        axes.set_ylim([0, 15])
 
         plt.boxplot(pauses, sym='o', labels=labels)
         plt.savefig(outfn)
@@ -101,7 +101,7 @@ class GCPauseTimePlotPrinter:
 
     def print_report(self, data, outfn):
         for name, target in data.items():
-            self.print_plot(name, target, "{}-{}.png".format(outfn, name))
+            self.print_plot(name, target, "{}-{}.eps".format(outfn, name))
 
 
 class GCHeapPlotPrinter:

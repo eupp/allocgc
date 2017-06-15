@@ -25,56 +25,65 @@ if __name__ == '__main__':
     print(os.getcwd())
 
     builders = {
-        "BDW GC": runner.CMakeBuilder(PROJECT_DIR, "BDW_GC", build_type="Release"),
-        "gc_ptr_serial": runner.CMakeBuilder(PROJECT_DIR, "PRECISE_GC_SERIAL", build_type="Release"),
-        "gc_ptr_cms": runner.CMakeBuilder(PROJECT_DIR, "PRECISE_GC_CMS", build_type="Release")
+        "BDW GC": runner.CMakeBuilder(PROJECT_DIR, "BDW_GC", CMAKE_BUILD_TYPE="Release"),
+        "gc_ptr_serial-no-destrc": runner.CMakeBuilder(PROJECT_DIR, "PRECISE_GC_SERIAL", WITH_DESTRUCTORS="OFF", CMAKE_BUILD_TYPE="Release"),
+        "gc_ptr_cms-no-destrc": runner.CMakeBuilder(PROJECT_DIR, "PRECISE_GC_CMS", WITH_DESTRUCTORS="OFF", CMAKE_BUILD_TYPE="Release"),
+        "gc_ptr_serial": runner.CMakeBuilder(PROJECT_DIR, "PRECISE_GC_SERIAL", WITH_DESTRUCTORS="ON", CMAKE_BUILD_TYPE="Release"),
+        "gc_ptr_cms": runner.CMakeBuilder(PROJECT_DIR, "PRECISE_GC_CMS", WITH_DESTRUCTORS="ON", CMAKE_BUILD_TYPE="Release")
     }
 
     boehm_cmd = "GC_PRINT_STATS=1 {runnable} {args}"
 
     suites = {
         "BoehmGC": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "parser": parsers.BoehmStatsParser()},
-        "BDWGC-incremental": {"builder": builders["BDW GC"], "cmd": boehm_cmd, "args": ["--incremental"], "parser": parsers.BoehmStatsParser()},
-        "gc-ptr serial": {"builder": builders["gc_ptr_serial"], "parser": parsers.GCPauseTimeParser()},
-        "gc-ptr cms": {"builder": builders["gc_ptr_cms"], "parser": parsers.GCPauseTimeParser()}
+        "gc_ptr serial without destructors": {"builder": builders["gc_ptr_serial-no-destrc"], "parser": parsers.GCPauseTimeParser()},
+        "gc_ptr cms without destructors": {"builder": builders["gc_ptr_cms-no-destrc"], "parser": parsers.GCPauseTimeParser()},
+        "gc-ptr serial with destructors": {"builder": builders["gc_ptr_serial"], "parser": parsers.GCPauseTimeParser()},
+        "gc-ptr cms with destructors": {"builder": builders["gc_ptr_cms"], "parser": parsers.GCPauseTimeParser()}
     }
 
     targets = {
         "gcbench top-down": {
             "name": "boehm",
             "runnable": "benchmark/boehm/boehm",
-            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+            "suites": [
+                "BoehmGC",
+                "gc_ptr serial without destructors",
+                "gc-ptr serial with destructors",
+                "gc_ptr cms without destructors",
+                "gc-ptr cms with destructors"
+            ],
             "params": ["--top-down"]
-        },
-        "gcbench bottom-up": {
-            "name": "boehm",
-            "runnable": "benchmark/boehm/boehm",
-            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
-            "params": ["--bottom-up"]
-        },
-        "parallel merge sort": {
-            "name": "parallel_merge_sort",
-            "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
-            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"]
-        },
-        "cord-build": {
-            "name": "cord",
-            "runnable": "benchmark/cord/cord",
-            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
-            "params": ["--build", "--len 6"]
-        },
-        "cord-substr": {
-            "name": "cord",
-            "runnable": "benchmark/cord/cord",
-            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
-            "params": ["--substr", "--len 6"]
-        },
-        "cord-flatten": {
-            "name": "cord",
-            "runnable": "benchmark/cord/cord",
-            "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
-            "params": ["--flatten", "--len 5"]
         }
+        # "gcbench bottom-up": {
+        #     "name": "boehm",
+        #     "runnable": "benchmark/boehm/boehm",
+        #     "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+        #     "params": ["--bottom-up"]
+        # },
+        # "parallel merge sort": {
+        #     "name": "parallel_merge_sort",
+        #     "runnable": "benchmark/parallel_merge_sort/parallel_merge_sort",
+        #     "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"]
+        # },
+        # "cord-build": {
+        #     "name": "cord",
+        #     "runnable": "benchmark/cord/cord",
+        #     "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+        #     "params": ["--build", "--len 6"]
+        # },
+        # "cord-substr": {
+        #     "name": "cord",
+        #     "runnable": "benchmark/cord/cord",
+        #     "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+        #     "params": ["--substr", "--len 6"]
+        # },
+        # "cord-flatten": {
+        #     "name": "cord",
+        #     "runnable": "benchmark/cord/cord",
+        #     "suites": ["BoehmGC", "gc-ptr serial", "gc-ptr cms"],
+        #     "params": ["--flatten", "--len 5"]
+        # }
     }
 
     # printer = printers.JSONPrinter()

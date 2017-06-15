@@ -33,9 +33,9 @@ class CMakeBuilder:
 
     def __init__(self, src_dir, *args, **kwargs):
         self._tmpdir = tempfile.TemporaryDirectory()
-        build_type = kwargs.get("build_type", "Release")
-        build_cmd  = ["cmake", "-DCMAKE_BUILD_TYPE={}".format(build_type), src_dir]
+        build_cmd  = ["cmake", src_dir]
         build_cmd += self._parse_cmake_options(args)
+        build_cmd += self._parse_cmake_options(kwargs)
         call_with_cwd(build_cmd, self._tmpdir.name)
         self._make_builder = MakeBuilder(self._tmpdir.name)
 
@@ -48,15 +48,16 @@ class CMakeBuilder:
     @staticmethod
     def _parse_cmake_options(flags):
         res = []
-        for flag in flags:
-            if isinstance(flag, str):
-                res.append("-D{}=ON".format(flag))
-            elif isinstance(flag, dict):
-                for k, v in flag.items():
-                    if v is None:
-                        res.append("-D{}=ON".format(k))
-                    else:
-                        res.append("-D{}={}".format(k, v))
+        if isinstance(flags, tuple):
+            for flag in flags:
+                if isinstance(flag, str):
+                    res.append("-D{}=ON".format(flag))
+        elif isinstance(flags, dict):
+            for k, v in flags.items():
+                if v is None:
+                    res.append("-D{}=ON".format(k))
+                else:
+                    res.append("-D{}={}".format(k, v))
         return res
 
 

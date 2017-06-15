@@ -120,6 +120,14 @@ set(precisegc_LIB_SRCS
         src/details/collectors/marker.cpp src/details/allocators/default_allocator.cpp)
 
 
+option(WITH_DESTRUCTORS ON)
+
+#set(WITH_DESTRUCTORS ON)
+
+if(WITH_DESTRUCTORS)
+    add_definitions(-DWITH_DESTRUCTORS)
+endif()
+
 find_package(Threads REQUIRED)
 find_package(Boost 1.54)
 

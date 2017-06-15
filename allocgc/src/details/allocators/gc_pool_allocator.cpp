@@ -219,7 +219,9 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
     for (size_t i = 0; it < end; it += size, ++i) {
         if (!descr.get_mark(i)) {
             if (descr.is_init(i)) {
-                descr.finalize(i);
+                #ifdef WITH_DESTRUCTORS
+                    descr.finalize(i);
+                #endif
                 freed += size;
                 if (add_to_freelist) {
                     insert_into_freelist(it);
@@ -268,7 +270,9 @@ void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_collect_stat& s
 
         if (to->get_lifetime_tag() == gc_lifetime_tag::GARBAGE) {
             stat.mem_freed += cell_size;
-            to->finalize();
+            #ifdef WITH_DESTRUCTORS
+                to->finalize();
+            #endif
         }
 
         auto rev_from = std::find_if(reverse_iterator(from),
@@ -283,7 +287,9 @@ void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_collect_stat& s
             --from;
 
             from->move(*to);
-            from->finalize();
+            #ifdef WITH_DESTRUCTORS
+                from->finalize();
+            #endif
             frwd.create(from->get(), to->get());
             insert_into_freelist(from->get());
 

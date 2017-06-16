@@ -122,7 +122,7 @@ set(precisegc_LIB_SRCS
 
 option(WITH_DESTRUCTORS ON)
 
-#set(WITH_DESTRUCTORS ON)
+set(WITH_DESTRUCTORS ON)
 
 if(WITH_DESTRUCTORS)
     add_definitions(-DWITH_DESTRUCTORS)

@@ -286,7 +286,7 @@ private:
                         << ") pause "  << duration_to_str(runstats.pause);
 
 //        print_gc_mem_stats(stats().gc_mem);
-        print_gc_run_stats(options, runstats);
+//        print_gc_run_stats(options, runstats);
 
         ++m_gc_cnt;
         m_gc_time += runstats.pause;

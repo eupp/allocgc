@@ -116,14 +116,14 @@ class GCHeapPlotPrinter:
 
         content = ""
         time = data["gctime"]
-        used = data["heapsize"]
+        used = [sz + extra for sz, extra in zip(data["heapsize"], data["heapextra"])]
         used = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, used))
         content += "\\addplot[color=pink, fill] coordinates {{\n {} \n}} \closedcycle;".format(used)
 
-        if data["heapextra"]:
-            all = data["heapextra"]
-            all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, all))
-            content += "\\addplot[color=red] coordinates {{\n {} \n}} \closedcycle;".format(all)
+        # if data["heapextra"]:
+        #     all = data["heapextra"]
+        #     all = "\n".join("({}, {})".format(i, to_Mb(sz)) for i, sz in zip(time, all))
+        #     content += "\\addplot[color=red] coordinates {{\n {} \n}} \closedcycle;".format(all)
 
         outfn_tex = outfn + ".tex"
         outfn_pdf = outfn + ".pdf"

@@ -56,7 +56,8 @@ struct thread_descriptor
 {
     std::thread::id id;
     std::thread::native_handle_type native_handle;
-    byte* stack_start_addr;
+    byte* stack_addr;
+    size_t stack_size;
 };
 
 struct gc_buf

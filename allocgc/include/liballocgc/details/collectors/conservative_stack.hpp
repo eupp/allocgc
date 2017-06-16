@@ -41,18 +41,18 @@ public:
 //        logging::info() << "stack start: " << (void*) m_stack_start;
 //        logging::info() << "stack end: " << (void*) stack_end;
 
-        for (gc_handle* it = m_stack_start; it != stack_end; STACK_DIRECTION == stack_growth_direction::UP
-                                                              ? ++it : --it) {
-//            if (reinterpret_cast<std::uintptr_t>(it) % PAGE_SIZE == 0) {
-//                logging::info() << "trace page: " << (void*) it;
+//        for (gc_handle* it = m_stack_start; it != stack_end; STACK_DIRECTION == stack_growth_direction::UP
+//                                                              ? ++it : --it) {
+////            if (reinterpret_cast<std::uintptr_t>(it) % PAGE_SIZE == 0) {
+////                logging::info() << "trace page: " << (void*) it;
+////            }
+//
+//            byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
+//            memory_descriptor descr = memory_index::get_descriptor(ptr);
+//            if (descr.is_gc_heap_descriptor()) {
+//                cb(it);
 //            }
-
-            byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
-            memory_descriptor descr = memory_index::get_descriptor(ptr);
-            if (descr.is_gc_heap_descriptor()) {
-                cb(it);
-            }
-        }
+//        }
 
 //        logging::info() << "FINISH!!!";
     }

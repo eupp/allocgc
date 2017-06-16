@@ -25,78 +25,51 @@ class gc_thread_descriptor : private utils::noncopyable, private utils::nonmovab
 {
     class stack_descriptor
     {
-        inline byte* stack_start_addr_approx(byte* stack_addr)
-        {
-            byte* aligned_addr = reinterpret_cast<byte*>(
-                    reinterpret_cast<std::uintptr_t>(stack_addr) & ~((1ull << PAGE_SIZE_LOG2) - 1)
-            );
-            return STACK_DIRECTION == stack_growth_direction::UP ? aligned_addr : aligned_addr + PAGE_SIZE;
-        }
     public:
-        inline stack_descriptor(byte* stack_start_addr)
-            : m_stack_start(stack_start_addr_approx(stack_start_addr))
-            , m_stack_end(m_stack_start + STACK_DIRECTION * (threads::stack_maxsize() - PAGE_SIZE))
+        inline stack_descriptor(byte* stack_addr, size_t stack_size)
+            : m_stack_addr(stack_addr)
+            , m_stack_size(stack_size)
         {
-            logging::info() << "stack start addr=" << (void*) m_stack_start
-                            << "; stack end addr=" << (void*) m_stack_end;
+            logging::info() << "stack addr=" << (void*) m_stack_addr
+                            << "; stack size=" << (void*) m_stack_size;
         }
 
         inline bool is_stack_ptr(const gc_handle* ptr) const
         {
             const byte* p = reinterpret_cast<const byte*>(ptr);
-            return STACK_DIRECTION == stack_growth_direction::UP
-                   ? (m_stack_start <= p) && (p < m_stack_end)
-                   : (m_stack_start >= p) && (p > m_stack_end);
+            return (m_stack_addr <= p) && (p < m_stack_addr + m_stack_size);
         }
 
-        inline byte* stack_start_addr() const
+        inline byte* stack_addr() const
         {
-            return m_stack_start;
-        }
-
-        inline byte* stack_end_addr() const
-        {
-            return m_stack_end;
-        }
-
-        inline byte* stack_min_addr() const
-        {
-            return STACK_DIRECTION == stack_growth_direction::UP ? m_stack_start : m_stack_end;
-        }
-
-        inline byte* stack_max_addr() const
-        {
-            return STACK_DIRECTION == stack_growth_direction::UP ? m_stack_end : m_stack_start;
+            return m_stack_addr;
         }
 
         inline size_t stack_size() const
         {
-            return STACK_DIRECTION == stack_growth_direction::UP
-                   ? (m_stack_end - m_stack_start)
-                   : (m_stack_start - m_stack_end);
+            return m_stack_size;
         }
     private:
-        byte* m_stack_start;
-        byte* m_stack_end;
+        byte* m_stack_addr;
+        size_t m_stack_size;
     };
 public:
     gc_thread_descriptor(const thread_descriptor& descr, gc_heap::tlab* tlab)
-        : m_stack_descr(descr.stack_start_addr)
-        , m_stack_roots(descr.id, descr.stack_start_addr,
-                        m_stack_descr.stack_start_addr(), m_stack_descr.stack_end_addr())
+        : m_stack_descr(descr.stack_addr, descr.stack_size)
+        , m_stack_roots(descr.id, descr.stack_addr, descr.stack_size)
         , m_id(descr.id)
         , m_native_handle(descr.native_handle)
         , m_tlab(tlab)
     {
         assert(m_stack_descr.stack_size() % PAGE_SIZE == 0);
-        allocators::memory_index::index_stack_memory(m_stack_descr.stack_min_addr(),
+        allocators::memory_index::index_stack_memory(m_stack_descr.stack_addr(),
                                                      m_stack_descr.stack_size(),
-                                                     m_stack_descr.stack_start_addr());
+                                                     m_stack_descr.stack_addr());
     }
 
     ~gc_thread_descriptor()
     {
-        allocators::memory_index::deindex(m_stack_descr.stack_min_addr(),
+        allocators::memory_index::deindex(m_stack_descr.stack_addr(),
                                           m_stack_descr.stack_size());
     }
 

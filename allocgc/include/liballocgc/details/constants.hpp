@@ -20,16 +20,6 @@ const size_t LARGE_CELL_SIZE      = 1 << LARGE_CELL_SIZE_LOG2;
 
 const size_t MANAGED_CHUNK_OBJECTS_COUNT = PAGE_SIZE / MIN_CELL_SIZE;
 
-
-namespace stack_growth_direction{
-enum stack_growth_direction_enum {
-      UP = 1
-    , DOWN = -1
-};
-}
-
-const int STACK_DIRECTION = stack_growth_direction::DOWN;
-
 }}
 
 #endif //ALLOCGC_ALLOCATORS_CONSTANTS_H

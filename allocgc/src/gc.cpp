@@ -43,7 +43,13 @@ void register_main_thread()
     thread_descriptor main_thrd_descr;
     main_thrd_descr.id = std::this_thread::get_id();
     main_thrd_descr.native_handle = threads::this_thread_native_handle();
-    main_thrd_descr.stack_start_addr = threads::frame_address();
+    main_thrd_descr.stack_addr = threads::get_stack_addr(threads::this_thread_native_handle());
+    main_thrd_descr.stack_size = threads::get_stack_size(threads::this_thread_native_handle());
+
+//    std::cout << "stack_start: " << (void*) main_thrd_descr.stack_start_addr << std::endl;
+//    std::cout << "return address: " << (void*) threads::return_address() << std::endl;
+//    std::cout << "frame address: " << (void*) threads::frame_address() << std::endl;
+
     register_thread(main_thrd_descr);
 }
 
@@ -89,7 +95,8 @@ void register_main_thread()
     thread_descriptor main_thrd_descr;
     main_thrd_descr.id = std::this_thread::get_id();
     main_thrd_descr.native_handle = threads::this_thread_native_handle();
-    main_thrd_descr.stack_start_addr = threads::frame_address();
+    main_thrd_descr.stack_addr = threads::get_stack_addr(threads::this_thread_native_handle());
+    main_thrd_descr.stack_size = threads::get_stack_size(threads::this_thread_native_handle());
     register_thread(main_thrd_descr);
 }
 

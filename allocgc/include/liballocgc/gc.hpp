@@ -57,6 +57,8 @@ void deregister_thread(std::thread::id id);
 template <typename F, typename... Args>
 std::thread create_thread(F&& f, Args&&... args)
 {
+    using namespace details::threads;
+
     typedef decltype(std::bind(std::forward<F>(f), std::forward<Args>(args)...)) functor_type;
 
     return std::thread([] (std::unique_ptr<functor_type> bf) {
@@ -64,7 +66,8 @@ std::thread create_thread(F&& f, Args&&... args)
         thread_descriptor thrd_descr;
         thrd_descr.id = std::this_thread::get_id();
         thrd_descr.native_handle = details::threads::this_thread_native_handle();
-        thrd_descr.stack_start_addr = details::threads::frame_address();
+        thrd_descr.stack_addr = get_stack_addr(this_thread_native_handle());
+        thrd_descr.stack_size = get_stack_size(this_thread_native_handle());
 
         register_thread(thrd_descr);
         (*bf)();
@@ -113,6 +116,8 @@ void deregister_thread(std::thread::id id);
 template <typename F, typename... Args>
 std::thread create_thread(F&& f, Args&&... args)
 {
+    using namespace details::threads;
+
     typedef decltype(std::bind(std::forward<F>(f), std::forward<Args>(args)...)) functor_type;
 
     return std::thread([] (std::unique_ptr<functor_type> bf) {
@@ -120,7 +125,8 @@ std::thread create_thread(F&& f, Args&&... args)
         thread_descriptor thrd_descr;
         thrd_descr.id = std::this_thread::get_id();
         thrd_descr.native_handle = details::threads::this_thread_native_handle();
-        thrd_descr.stack_start_addr = details::threads::frame_address();
+        thrd_descr.stack_addr = get_stack_addr(this_thread_native_handle());
+        thrd_descr.stack_size = get_stack_size(this_thread_native_handle());
 
         register_thread(thrd_descr);
         (*bf)();

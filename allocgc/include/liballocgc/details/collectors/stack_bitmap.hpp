@@ -18,7 +18,7 @@ namespace allocgc { namespace details { namespace collectors {
 class stack_bitmap : private utils::noncopyable, private utils::nonmovable
 {
 public:
-    stack_bitmap(std::thread::id id, byte* stack_start_addr, byte* stack_start_addr_approx, byte* stack_end_addr_approx);
+    stack_bitmap(std::thread::id id, byte* stack_addr, size_t stack_size);
 
     void register_root(gc_handle* root);
     void deregister_root(gc_handle* root);
@@ -42,8 +42,8 @@ private:
 
     typedef std::bitset<STACK_FRAME_SIZE> bitmap_frame_t;
 
-    gc_handle* m_stack_start;
-    gc_handle* m_stack_end;
+    gc_handle* m_stack_addr;
+    size_t m_stack_size;
     std::vector<bitmap_frame_t> m_bitmap;
 };
 

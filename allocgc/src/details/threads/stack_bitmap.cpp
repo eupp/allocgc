@@ -11,7 +11,11 @@ stack_bitmap::stack_bitmap(std::thread::id id, byte* stack_addr, size_t stack_si
     : m_stack_addr(reinterpret_cast<gc_handle*>(stack_addr))
     , m_stack_size(stack_size / sizeof(gc_handle))
     , m_bitmap(m_stack_size / STACK_FRAME_SIZE)
-{}
+{
+    for (auto& bitmap_frame: m_bitmap) {
+        bitmap_frame.reset();
+    }
+}
 
 void stack_bitmap::register_root(gc_handle* root)
 {
@@ -31,6 +35,10 @@ void stack_bitmap::trace(const gc_trace_callback& cb) const
 {
     gc_handle* it = m_stack_addr;
     for (auto& bitmap_frame: m_bitmap) {
+        if (bitmap_frame.none()) {
+            it += STACK_FRAME_SIZE;
+            continue;
+        }
         for (size_t i = 0; i < bitmap_frame.size(); ++i, ++it) {
             if (bitmap_frame.test(i)) {
                 cb(it);

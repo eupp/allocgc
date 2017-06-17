@@ -226,6 +226,7 @@ protected:
     void trace_roots(const threads::world_snapshot& snapshot)
     {
         snapshot.trace_roots([this] (gc_handle* root) { root_trace_cb(root); });
+        logging::info() << "Trace static roots";
         m_static_roots.trace([this] (gc_handle* root) { root_trace_cb(root); });
     }
 

@@ -70,13 +70,8 @@ public:
     class response
     {
     public:
-        inline response(byte* obj_start,
-                        byte* cell_start,
-                        size_t cell_size,
-                        gc_buf* buf)
+        inline response(byte* obj_start, gc_buf* buf)
             : m_obj_start(obj_start)
-            , m_cell_start(cell_start)
-            , m_cell_size(cell_size)
             , m_buf(buf)
         {}
 
@@ -93,24 +88,12 @@ public:
             return m_obj_start;
         }
 
-        inline byte* cell_start() const noexcept
-        {
-            return m_cell_start;
-        }
-
-        inline size_t cell_size() const noexcept
-        {
-            return m_cell_size;
-        }
-
         inline gc_buf* buffer() const noexcept
         {
             return m_buf;
         }
     private:
         byte*       m_obj_start;
-        byte*       m_cell_start;
-        size_t      m_cell_size;
         gc_buf*     m_buf;
     };
 };

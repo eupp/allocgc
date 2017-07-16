@@ -7,7 +7,7 @@
 
 #include <liballocgc/gc_alloc.hpp>
 #include <liballocgc/details/gc_interface.hpp>
-#include <liballocgc/details/gc_cell.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 
 #include <liballocgc/details/allocators/gc_box.hpp>
 #include <liballocgc/details/allocators/allocator_tag.hpp>
@@ -59,52 +59,52 @@ class gc_lo_allocator : private utils::noncopyable, private utils::nonmovable
         }
     };
 
-    class memory_iterator : public boost::iterator_adaptor<
-              memory_iterator
-            , typename list_alloc_t::iterator
-            , gc_cell
-            , boost::bidirectional_traversal_tag
-            , gc_cell
-        >
-    {
-    public:
-        memory_iterator(const memory_iterator&) noexcept = default;
-        memory_iterator& operator=(const memory_iterator&) noexcept = default;
-    private:
-        friend class gc_lo_allocator;
-        friend class boost::iterator_core_access;
+//    class memory_iterator : public boost::iterator_adaptor<
+//              memory_iterator
+//            , typename list_alloc_t::iterator
+//            , gc_box_handle
+//            , boost::bidirectional_traversal_tag
+//            , gc_box_handle
+//        >
+//    {
+//    public:
+//        memory_iterator(const memory_iterator&) noexcept = default;
+//        memory_iterator& operator=(const memory_iterator&) noexcept = default;
+//    private:
+//        friend class gc_lo_allocator;
+//        friend class boost::iterator_core_access;
+//
+//        memory_iterator(const typename list_alloc_t::iterator& it)
+//            : memory_iterator::iterator_adaptor_(it)
+//            , m_cell(gc_box_handle::from_cell_start(get_memblk(*it), get_descr(*it)))
+//        {}
+//
+//        gc_box_handle dereference() const
+//        {
+//            return m_cell;
+//        }
+//
+//        void increment() noexcept
+//        {
+//            ++this->base_reference();
+//            update_cell(this->base());
+//        }
+//
+//        void decrement() noexcept
+//        {
+//            --this->base_reference();
+//            update_cell(this->base());
+//        }
+//
+//        void update_cell(const typename list_alloc_t::iterator& it) noexcept
+//        {
+//            m_cell = gc_box_handle::gc_box_handle(get_memblk(*it), get_descr(*it));
+//        }
+//
+//        gc_box_handle m_cell;
+//    };
 
-        memory_iterator(const typename list_alloc_t::iterator& it)
-            : memory_iterator::iterator_adaptor_(it)
-            , m_cell(gc_cell::from_cell_start(get_memblk(*it), get_descr(*it)))
-        {}
-
-        gc_cell dereference() const
-        {
-            return m_cell;
-        }
-
-        void increment() noexcept
-        {
-            ++this->base_reference();
-            update_cell(this->base());
-        }
-
-        void decrement() noexcept
-        {
-            --this->base_reference();
-            update_cell(this->base());
-        }
-
-        void update_cell(const typename list_alloc_t::iterator& it) noexcept
-        {
-            m_cell = gc_cell::from_cell_start(get_memblk(*it), get_descr(*it));
-        }
-
-        gc_cell m_cell;
-    };
-
-    typedef boost::iterator_range<memory_iterator> memory_range_type;
+//    typedef boost::iterator_range<memory_iterator> memory_range_type;
 public:
     typedef stateful_alloc_tag alloc_tag;
 
@@ -159,8 +159,8 @@ private:
     descriptor_iterator descriptors_begin();
     descriptor_iterator descriptors_end();
 
-    memory_iterator memory_begin();
-    memory_iterator memory_end();
+//    memory_iterator memory_begin();
+//    memory_iterator memory_end();
 
     byte* allocate_blk(size_t size);
     void  deallocate_blk(byte* ptr, size_t size);

@@ -73,7 +73,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
 void check_nodes_marked(const gc_ptr<node>& ptr, size_t depth, size_t mark_depth, size_t max_depth)
 {
     if (depth <= max_depth) {
-        ASSERT_TRUE(ptr);
+        ASSERT_TRUE((bool) ptr);
     } else {
         return;
     };
@@ -92,7 +92,7 @@ void check_nodes_marked(const gc_ptr<node>& ptr, size_t depth, size_t mark_depth
 void check_nodes_pinned(const gc_ptr<node>& ptr, size_t depth, size_t pin_depth, size_t max_depth)
 {
     if (depth <= max_depth) {
-        ASSERT_TRUE(ptr);
+        ASSERT_TRUE((bool) ptr);
     } else {
         return;
     };
@@ -159,7 +159,7 @@ TEST_F(marker_test, test_unmarked)
 
     for (gc_handle* root: root_set.roots) {
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
-        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        allocators::gc_box_handle cell = allocators::memory_index::get_gc_cell(ptr);
         cell.set_mark(true);
         marker.add_root(cell);
     }
@@ -191,7 +191,7 @@ TEST_F(marker_test, test_roots)
 
     for (gc_handle* root: root_set.roots) {
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
-        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        allocators::gc_box_handle cell = allocators::memory_index::get_gc_cell(ptr);
         cell.set_mark(true);
         marker.add_root(cell);
     }
@@ -221,7 +221,7 @@ TEST_F(marker_test, test_pins)
 
     pin_set.pins.push_back((byte*) allocgc::pointers::internals::gc_ptr_access::get(root));
     for (byte* pin: pin_set.pins) {
-        gc_cell cell = allocators::memory_index::get_gc_cell(pin);
+        allocators::gc_box_handle cell = allocators::memory_index::get_gc_cell(pin);
         cell.set_mark(true);
         cell.set_pin(true);
         marker.add_root(cell);

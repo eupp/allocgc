@@ -18,38 +18,40 @@ public:
 
     byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta);
 
+    box_id get_id(byte* ptr) const override;
+
     bool get_mark() const noexcept;
     bool get_pin() const noexcept;
 
-    bool get_mark(byte* ptr) const override;
-    bool get_pin(byte* ptr) const override;
+    bool get_mark(box_id id) const override;
+    bool get_pin(box_id id) const override;
 
     bool set_mark(bool mark) noexcept;
     bool set_pin(bool pin) noexcept;
 
-    void set_mark(byte* ptr, bool mark) override;
-    void set_pin(byte* ptr, bool pin) override;
+    void set_mark(box_id id, bool mark) override;
+    void set_pin(box_id id, bool pin) override;
 
-    bool is_init(byte* ptr) const override;
+    bool is_init(box_id id) const override;
 
-    gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
+    gc_lifetime_tag get_lifetime_tag(box_id id) const override;
 
-    size_t cell_size() const;
-    size_t cell_size(byte* ptr) const override;
+    byte* box_addr() const;
+    byte* box_addr(box_id id) const override;
 
-    byte* cell_start() const;
-    byte* cell_start(byte* ptr) const override;
+    size_t box_size() const;
+    size_t box_size(box_id id) const override;
 
-    size_t object_count(byte* ptr) const override;
+    size_t object_count(box_id id) const override;
 
-    const gc_type_meta* get_type_meta(byte* ptr) const override;
+    const gc_type_meta* get_type_meta(box_id id) const override;
 
-    void commit(byte* ptr) override;
-    void commit(byte* ptr, const gc_type_meta* type_meta) override;
+    void commit(box_id id) override;
+    void commit(box_id id, const gc_type_meta* type_meta) override;
 
-    void trace(byte* ptr, const gc_trace_callback& cb) const override;
-    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
-    void finalize(byte* ptr) override;
+    void trace(box_id id, const gc_trace_callback& cb) const override;
+    void finalize(box_id id) override;
+//    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
 private:
     bool check_ptr(byte* ptr) const;
 

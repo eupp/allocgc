@@ -59,21 +59,15 @@ public:
     void commit(const gc_alloc::response& rsp)
     {
         gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
-
         this_thread->deregister_stack_entry(stack_entry);
-
-        assert(stack_entry->descriptor);
-        stack_entry->descriptor->commit(rsp.cell_start());
+        stack_entry->box_handle.commit();
     }
 
     void commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta)
     {
         gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
-
         this_thread->deregister_stack_entry(stack_entry);
-
-        assert(stack_entry->descriptor);
-        stack_entry->descriptor->commit(rsp.cell_start(), type_meta);
+        stack_entry->box_handle.commit(type_meta);
     }
 
     gc_offsets make_offsets(const gc_alloc::response& rsp)
@@ -299,9 +293,10 @@ private:
 
     void root_trace_cb(gc_handle* root)
     {
+        using namespace allocators;
         byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*root);
         if (ptr) {
-            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+            gc_box_handle cell = memory_index::get_gc_cell(ptr);
             cell.set_mark(true);
             m_marker.add_root(cell);
 
@@ -311,8 +306,9 @@ private:
 
     void pin_trace_cb(byte* ptr)
     {
+        using namespace allocators;
         if (ptr) {
-            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+            gc_box_handle cell = memory_index::get_gc_cell(ptr);
             cell.set_mark(true);
             cell.set_pin(true);
             m_marker.add_root(cell);
@@ -323,8 +319,9 @@ private:
 
     void conservative_obj_trace_cb(byte* obj_start, size_t obj_size)
     {
+        using namespace allocators;
         assert(obj_start && obj_size > 0);
-        gc_cell cell = allocators::memory_index::get_gc_cell(obj_start);
+        gc_box_handle cell = memory_index::get_gc_cell(obj_start);
         cell.set_mark(true);
         cell.set_pin(true);
 
@@ -334,7 +331,7 @@ private:
         gc_handle* end   = reinterpret_cast<gc_handle*>(obj_start + obj_size);
         for (gc_handle* it = begin; it < end; ++it) {
             byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(*it);
-            cell = allocators::memory_index::get_gc_cell(ptr);
+            cell = memory_index::get_gc_cell(ptr);
             if (!cell.get_mark() && cell.is_init()) {
                 cell.set_mark(true);
                 cell.set_pin(true);

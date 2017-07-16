@@ -145,8 +145,9 @@ private:
 
         byte* ptr = rbarrier(handle);
         gc_memory_descriptor* descr = memory_index::get_descriptor(ptr).to_gc_descriptor();
-        byte* cell_begin = descr->cell_start(ptr);
-        byte* cell_end   = cell_begin + descr->cell_size(ptr);
+        gc_memory_descriptor::box_id id = descr->get_id(ptr);
+        byte* cell_begin = descr->box_addr(id);
+        byte* cell_end   = cell_begin + descr->box_size(id);
         return (cell_begin <= iptr) && (iptr < cell_end);
     }
 

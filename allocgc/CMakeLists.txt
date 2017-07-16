@@ -80,7 +80,7 @@ set(precisegc_LIB_HDRS
         include/liballocgc/gc_alloc.hpp
         include/liballocgc/details/allocators/list_allocator.hpp
         include/liballocgc/details/allocators/pool_allocator.hpp
-        include/liballocgc/details/gc_cell.hpp
+        include/liballocgc/details/allocators/gc_box_handle.hpp
         include/liballocgc/details/allocators/gc_box.hpp
         include/liballocgc/gc_cast.hpp
         include/liballocgc/gc_common.hpp

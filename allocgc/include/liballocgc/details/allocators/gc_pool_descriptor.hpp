@@ -11,7 +11,7 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <liballocgc/gc_alloc.hpp>
-#include <liballocgc/details/gc_cell.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/utils/bitset.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
@@ -27,59 +27,59 @@ private:
     typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
     typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 
-    class memory_iterator: public boost::iterator_facade<
-              memory_iterator
-            , gc_cell
-            , boost::random_access_traversal_tag
-            , gc_cell
-        >
-    {
-    public:
-        memory_iterator()
-            : m_cell_size(0)
-        {}
-
-        memory_iterator(const memory_iterator&) = default;
-        memory_iterator& operator=(const memory_iterator&) = default;
-    private:
-        friend class gc_pool_descriptor;
-        friend class boost::iterator_core_access;
-
-        memory_iterator(byte* ptr, gc_pool_descriptor* descr, size_t cell_size)
-            : m_cell(gc_cell::from_cell_start(ptr, descr))
-            , m_cell_size(cell_size)
-        {
-            assert(ptr);
-            assert(descr);
-            assert(cell_size > 0);
-        }
-
-        gc_cell dereference() const
-        {
-            return m_cell;
-        }
-
-        void increment()
-        {
-            m_cell.reset(m_cell.get() + m_cell_size);
-        }
-
-        void decrement()
-        {
-            m_cell.reset(m_cell.get() - m_cell_size);
-        }
-
-        bool equal(const memory_iterator& other) const
-        {
-            return m_cell.get() == other.m_cell.get();
-        }
-
-        gc_cell m_cell;
-        size_t  m_cell_size;
-    };
+//    class memory_iterator: public boost::iterator_facade<
+//              memory_iterator
+//            , gc_box_handle
+//            , boost::random_access_traversal_tag
+//            , gc_box_handle
+//        >
+//    {
+//    public:
+//        memory_iterator()
+//            : m_cell_size(0)
+//        {}
+//
+//        memory_iterator(const memory_iterator&) = default;
+//        memory_iterator& operator=(const memory_iterator&) = default;
+//    private:
+//        friend class gc_pool_descriptor;
+//        friend class boost::iterator_core_access;
+//
+//        memory_iterator(byte* ptr, gc_pool_descriptor* descr, size_t box_size)
+//            : m_cell(gc_box_handle::from_internal_ptr(ptr, descr))
+//            , m_cell_size(box_size)
+//        {
+//            assert(ptr);
+//            assert(descr);
+//            assert(box_size > 0);
+//        }
+//
+//        gc_box_handle dereference() const
+//        {
+//            return m_cell;
+//        }
+//
+//        void increment()
+//        {
+//            m_cell.reset(m_cell.get() + m_cell_size);
+//        }
+//
+//        void decrement()
+//        {
+//            m_cell.reset(m_cell.get() - m_cell_size);
+//        }
+//
+//        bool equal(const memory_iterator& other) const
+//        {
+//            return m_cell.get() == other.m_cell.get();
+//        }
+//
+//        gc_box_handle m_cell;
+//        size_t  m_cell_size;
+//    };
 public:
-    typedef memory_iterator iterator;
-    typedef boost::iterator_range<memory_iterator> memory_range_type;
+//    typedef memory_iterator iterator;
+//    typedef boost::iterator_range<memory_iterator> memory_range_type;
 
     static constexpr size_t chunk_size(size_t cell_size)
     {
@@ -97,7 +97,7 @@ public:
     byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
     {
         assert(contains(ptr));
-        assert(ptr == cell_start(ptr));
+//        assert(ptr == box_addr(ptr));
         return gc_box::create(ptr, obj_count, type_meta);
     }
 
@@ -124,66 +124,41 @@ public:
 
     double residency() const;
 
-    memory_range_type memory_range();
+//    memory_range_type memory_range();
 
-    iterator begin();
-    iterator end();
+//    iterator begin();
+//    iterator end();
 
-    bool get_mark(byte* ptr) const override;
-    bool get_pin(byte* ptr) const override;
+    box_id get_id(byte* ptr) const override;
 
-    void set_mark(byte* ptr, bool mark) override;
-    void set_pin(byte* ptr, bool pin) override;
+    bool get_mark(box_id id) const override;
+    bool get_pin(box_id id) const override;
 
-    bool is_init(byte* ptr) const override;
+    void set_mark(box_id id, bool mark) override;
+    void set_pin(box_id id, bool pin) override;
 
-    gc_lifetime_tag get_lifetime_tag(size_t idx) const;
-    gc_lifetime_tag get_lifetime_tag(byte* ptr) const override;
+    bool is_init(box_id id) const override;
+
+    gc_lifetime_tag get_lifetime_tag(box_id id) const;
 
     inline size_t cell_size() const
     {
         return 1ull << m_cell_size_log2;
     }
 
-    size_t cell_size(byte* ptr) const override;
-    byte*  cell_start(byte* ptr) const override;
+    byte*  box_addr(box_id id) const override;
+    size_t box_size(box_id id) const override;
 
-    size_t object_count(byte* ptr) const override;
-    const gc_type_meta* get_type_meta(byte* ptr) const override;
+    size_t object_count(box_id id) const override;
+    const gc_type_meta* get_type_meta(box_id id) const override;
 
-    void commit(byte* ptr) override;
-    void commit(byte* ptr, const gc_type_meta* type_meta) override;
+    void commit(box_id id) override;
+    void commit(box_id id, const gc_type_meta* type_meta) override;
 
-    void trace(byte* ptr, const gc_trace_callback& cb) const override;
-    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
+    void trace(box_id id, const gc_trace_callback& cb) const override;
+    void finalize(box_id id) override;
 
-    void finalize(size_t i);
-    void finalize(byte* ptr) override;
-
-    inline bool get_mark(size_t idx) const
-    {
-        return m_mark_bits.get(idx);
-    }
-
-    inline bool get_pin(size_t idx) const
-    {
-        return m_pin_bits.get(idx);
-    }
-
-    inline bool is_init(size_t idx) const
-    {
-        return m_init_bits.get(idx);
-    }
-
-    inline void set_mark(size_t idx, bool mark)
-    {
-        m_mark_bits.set(idx, mark);
-    }
-
-    inline void set_pin(size_t idx, bool pin)
-    {
-        m_pin_bits.set(idx, pin);
-    }
+//    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
 
     inline byte* memory() const
     {
@@ -199,14 +174,17 @@ public:
 
     size_t mem_used();
 private:
-    void set_init(byte* ptr, bool init);
+    inline byte* calc_box_addr(box_id id) const
+    {
+        return m_memory + (id << m_cell_size_log2);
+    }
 
     inline void set_init(size_t idx, bool init)
     {
         m_init_bits.set(idx, init);
     }
 
-    size_t calc_cell_ind(byte* ptr) const;
+//    size_t calc_cell_ind(byte* ptr) const;
 
     byte*         m_memory;
     size_t        m_size;

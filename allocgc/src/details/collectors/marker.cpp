@@ -17,20 +17,21 @@ marker::~marker()
     m_done.store(true, std::memory_order_release);
 }
 
-void marker::add_root(const gc_cell& cell)
+void marker::add_root(const allocators::gc_box_handle& cell)
 {
     push_root_to_packet(cell, m_roots_packet);
 }
 
 void marker::trace_remset()
 {
+    using namespace allocators;
     assert(m_remset);
     m_remset->flush_buffers();
     auto output_packet = m_packet_manager->pop_output_packet();
     for (auto it = m_remset->begin(); it != m_remset->end(); ++it) {
         byte* ptr = *it;
         if (ptr) {
-            gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+            gc_box_handle cell = memory_index::get_gc_cell(ptr);
             cell.set_mark(true);
             push_root_to_packet(cell, output_packet);
 
@@ -113,7 +114,7 @@ void marker::worker_routine()
             trace(handle, output_packet);
         };
         while (!input_packet->is_empty()) {
-            gc_cell cell = input_packet->pop();
+            allocators::gc_box_handle cell = input_packet->pop();
             cell.trace(gc_trace_callback{std::ref(trace_cb)});
         }
 
@@ -123,7 +124,7 @@ void marker::worker_routine()
     }
 }
 
-void marker::push_root_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet)
+void marker::push_root_to_packet(const allocators::gc_box_handle& cell, packet_manager::mark_packet_handle& output_packet)
 {
     if (!output_packet) {
         output_packet = m_packet_manager->pop_output_packet();
@@ -134,7 +135,7 @@ void marker::push_root_to_packet(const gc_cell& cell, packet_manager::mark_packe
     output_packet->push(cell);
 }
 
-void marker::push_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet)
+void marker::push_to_packet(const allocators::gc_box_handle& cell, packet_manager::mark_packet_handle& output_packet)
 {
     if (output_packet->is_full()) {
         size_t attempts = 0;
@@ -153,9 +154,10 @@ void marker::push_to_packet(const gc_cell& cell, packet_manager::mark_packet_han
 
 void marker::trace(gc_handle* handle, packet_manager::mark_packet_handle& output_packet)
 {
+    using namespace allocators;
     byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
     if (ptr) {
-        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        gc_box_handle cell = memory_index::get_gc_cell(ptr);
         if (!cell.get_mark()) {
             cell.set_mark(true);
             push_to_packet(cell, output_packet);

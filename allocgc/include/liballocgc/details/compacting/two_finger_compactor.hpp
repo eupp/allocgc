@@ -54,7 +54,7 @@ struct two_finger_compactor
                 from->finalize();
                 frwd.create(from->get(), to->get());
 
-//                stat.mem_freed  += cell_size;
+//                stat.mem_freed  += box_size;
                 stat.mem_moved += cell_size;
             }
         }

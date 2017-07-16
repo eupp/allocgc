@@ -28,7 +28,7 @@ void gc_cms::commit(const gc_alloc::response& rsp)
     gc_core::commit(rsp);
     if (m_phase == gc_phase::MARK) {
         gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
-        stack_entry->descriptor->set_mark(rsp.cell_start(), true);
+        stack_entry->box_handle.set_mark(true);
     }
 }
 
@@ -37,17 +37,18 @@ void gc_cms::commit(const gc_alloc::response& rsp, const gc_type_meta* type_meta
     gc_core::commit(rsp, type_meta);
     if (m_phase == gc_phase::MARK) {
         gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rsp.buffer());
-        stack_entry->descriptor->set_mark(rsp.cell_start(), true);
+        stack_entry->box_handle.set_mark(true);
     }
 }
 
 void gc_cms::wbarrier(gc_handle& dst, const gc_handle& src)
 {
+    using namespace allocators;
     gc_unsafe_scope unsafe_scope;
     byte* ptr = gc_handle_access::get<std::memory_order_relaxed>(src);
     gc_handle_access::set<std::memory_order_release>(dst, ptr);
     if (m_phase == gc_phase::MARK && ptr) {
-        gc_cell cell = allocators::memory_index::get_gc_cell(ptr);
+        gc_box_handle cell = memory_index::get_gc_cell(ptr);
         if (!cell.get_mark()) {
             m_remset.add(ptr);
         }

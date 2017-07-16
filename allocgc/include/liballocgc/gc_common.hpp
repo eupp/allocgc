@@ -63,7 +63,7 @@ struct thread_descriptor
 struct gc_buf
 {
 private:
-    static const size_t SIZE = 8 * sizeof(size_t);
+    static const size_t SIZE = 9 * sizeof(size_t);
 public:
     static constexpr size_t size()
     {

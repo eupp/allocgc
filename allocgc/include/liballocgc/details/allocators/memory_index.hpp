@@ -4,7 +4,7 @@
 #include <liballocgc/details/allocators/index_tree.hpp>
 #include <liballocgc/details/allocators/memory_descriptor.hpp>
 #include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
-#include <liballocgc/details/gc_cell.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 
 namespace allocgc { namespace details { namespace allocators {
 
@@ -41,9 +41,9 @@ public:
         return indexer.get_descriptor(mem);
     }
 
-    static inline gc_cell get_gc_cell(byte* ptr)
+    static inline gc_box_handle get_gc_cell(byte* ptr)
     {
-        return gc_cell::from_internal_ptr(ptr, get_descriptor(ptr).to_gc_descriptor());
+        return gc_box_handle::from_internal_ptr(ptr, get_descriptor(ptr).to_gc_descriptor());
     }
 
     static inline size_t size()

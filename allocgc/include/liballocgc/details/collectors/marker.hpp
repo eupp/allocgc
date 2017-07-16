@@ -7,7 +7,7 @@
 #include <atomic>
 #include <condition_variable>
 
-#include <liballocgc/details/gc_cell.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/collectors/remset.hpp>
 #include <liballocgc/details/collectors/packet_manager.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>
@@ -32,7 +32,7 @@ public:
 
     ~marker();
 
-    void add_root(const gc_cell& cell);
+    void add_root(const allocators::gc_box_handle& cell);
 
     void trace_remset();
 
@@ -44,8 +44,8 @@ private:
 
     void worker_routine();
 
-    void push_root_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet);
-    void push_to_packet(const gc_cell& cell, packet_manager::mark_packet_handle& output_packet);
+    void push_root_to_packet(const allocators::gc_box_handle& cell, packet_manager::mark_packet_handle& output_packet);
+    void push_to_packet(const allocators::gc_box_handle& cell, packet_manager::mark_packet_handle& output_packet);
 
     void trace(gc_handle* handle, packet_manager::mark_packet_handle& output_packet);
 

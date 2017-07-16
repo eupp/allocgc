@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <liballocgc/gc_common.hpp>
-#include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 
 namespace allocgc { namespace details { namespace collectors {
 
@@ -14,14 +14,14 @@ struct gc_new_stack_entry
 {
 public:
     typedef std::vector<size_t> offsets_storage_t;
-    typedef allocators::gc_memory_descriptor gc_memory_descriptor;
+    typedef allocators::gc_box_handle gc_box_handle;
 
-    byte*                   obj_start;
-    size_t                  obj_size;
-    gc_memory_descriptor*   descriptor;
-    offsets_storage_t       offsets;
-    gc_new_stack_entry*     prev;
-    bool                    meta_requested;
+    byte*               obj_start;
+    size_t              obj_size;
+    gc_box_handle       box_handle;
+    offsets_storage_t   offsets;
+    gc_new_stack_entry* prev;
+    bool                meta_requested;
 };
 
 static_assert(sizeof(gc_new_stack_entry) <= gc_buf::size(), "gc_new_stack_entry is too large");

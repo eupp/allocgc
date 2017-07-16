@@ -35,7 +35,7 @@ class gc_pool_allocator : private utils::noncopyable, private utils::nonmovable
     typedef std::list<descriptor_t, stl_adapter<descriptor_t, chunk_pool_t>> descriptor_list_t;
     typedef typename descriptor_list_t::iterator iterator_t;
 public:
-    typedef utils::flattened_range<iterator_t> memory_range_type;
+//    typedef utils::flattened_range<iterator_t> memory_range_type;
     typedef stateful_alloc_tag alloc_tag;
 
     gc_pool_allocator();
@@ -54,7 +54,7 @@ public:
 
     bool empty() const;
 
-    memory_range_type memory_range();
+//    memory_range_type memory_range();
 private:
     static constexpr double RESIDENCY_COMPACTING_THRESHOLD = 0.5;
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;
@@ -63,7 +63,8 @@ private:
     gc_alloc::response try_expand_and_allocate(size_t size, const gc_alloc::request& rqst, size_t attempt_num);
     gc_alloc::response stack_allocation(size_t size, const gc_alloc::request& rqst);
     gc_alloc::response freelist_allocation(size_t size, const gc_alloc::request& rqst);
-    gc_alloc::response init_cell(byte* cell_start, const gc_alloc::request& rqst, descriptor_t* descr);
+    gc_alloc::response init_cell(byte *cell_start, const gc_alloc::request &rqst, descriptor_t *descr,
+                                     gc_memory_descriptor::box_id box_id);
 
     gc_pool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
     iterator_t destroy_descriptor(iterator_t it);
@@ -89,6 +90,7 @@ private:
     byte** m_freelist;
     byte*  m_top;
     byte*  m_end;
+    gc_memory_descriptor::box_id m_top_id;
     double m_prev_residency;
 };
 

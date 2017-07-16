@@ -39,7 +39,7 @@ TEST(gc_new_test, test_meta)
 {
     gc_ptr<node0> ptr = gc_new<node0>();
     gc_pin<node0> pin = ptr.pin();
-    gc_cell cell = allocators::memory_index::get_gc_cell((byte*) pin.get());
+    allocators::gc_box_handle cell = allocators::memory_index::get_gc_cell((byte*) pin.get());
     const gc_type_meta* type_meta = cell.get_type_meta();
 
     ASSERT_EQ(1, cell.object_count());
@@ -79,7 +79,7 @@ int node1::depth = 0;
 TEST(gc_new_test, test_nested_1)
 {
     gc_ptr<node1> ptr = gc_new<node1>();
-    gc_cell cell = allocators::memory_index::get_gc_cell((byte*) ptr.pin().get());
+    allocators::gc_box_handle cell = allocators::memory_index::get_gc_cell((byte*) ptr.pin().get());
     const gc_type_meta* type_meta = cell.get_type_meta();
 
     ASSERT_NE(nullptr, type_meta);

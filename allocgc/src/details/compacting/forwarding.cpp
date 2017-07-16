@@ -4,7 +4,7 @@
 
 #include <liballocgc/details/allocators/gc_box.hpp>
 #include <liballocgc/details/logging.hpp>
-#include <liballocgc/details/gc_cell.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/allocators/memory_index.hpp>
 
 namespace allocgc { namespace details { namespace compacting {
@@ -26,8 +26,8 @@ void forwarding::forward(gc_handle* handle) const
     if (!from) {
         return;
     }
-    gc_cell from_cell       = allocators::memory_index::get_gc_cell(from);
-    byte* from_cell_start   = from_cell.cell_start();
+    gc_box_handle from_cell       = allocators::memory_index::get_gc_cell(from);
+    byte* from_cell_start   = from_cell.box_addr();
     byte* from_obj_start    = gc_box::get_obj_start(from_cell_start);
 
     if (!gc_box::is_forwarded(from_cell_start)) {

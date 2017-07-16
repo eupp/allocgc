@@ -35,29 +35,29 @@ struct fix_ptrs_test : public ::testing::Test
     gc_pool_allocator alloc;
 };
 
-TEST_F(fix_ptrs_test, test_fix_ptrs)
-{
-    gc_buf buf;
-    gc_alloc::response rsp = alloc.allocate(gc_alloc::request(OBJ_SIZE, 1, type_meta, &buf), gc_box::box_size(OBJ_SIZE));
-
-    commit(rsp, type_meta);
-    set_mark(rsp, true);
-    set_pin(rsp, false);
-    byte* ptr = rsp.obj_start();
-
-    test_type val1;
-    byte* to = reinterpret_cast<byte*>(&val1);
-
-    test_type val2;
-    byte*& from = * (byte**) ptr;
-    from = reinterpret_cast<byte*>(&val2);
-
-    test_forwarding forwarding;
-    forwarding.create(from, to);
-
-    auto rng = alloc.memory_range();
-    fix_ptrs(rng.begin(), rng.end(), forwarding);
-
-    ASSERT_EQ(to, from);
-}
+//TEST_F(fix_ptrs_test, test_fix_ptrs)
+//{
+//    gc_buf buf;
+//    gc_alloc::response rsp = alloc.allocate(gc_alloc::request(OBJ_SIZE, 1, type_meta, &buf), gc_box::box_size(OBJ_SIZE));
+//
+//    commit(rsp, type_meta);
+//    set_mark(rsp, true);
+//    set_pin(rsp, false);
+//    byte* ptr = rsp.obj_start();
+//
+//    test_type val1;
+//    byte* to = reinterpret_cast<byte*>(&val1);
+//
+//    test_type val2;
+//    byte*& from = * (byte**) ptr;
+//    from = reinterpret_cast<byte*>(&val2);
+//
+//    test_forwarding forwarding;
+//    forwarding.create(from, to);
+//
+//    auto rng = alloc.memory_range();
+//    fix_ptrs(rng.begin(), rng.end(), forwarding);
+//
+//    ASSERT_EQ(to, from);
+//}
 

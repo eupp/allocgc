@@ -50,17 +50,16 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
     new (descr) descriptor_t(rqst.alloc_size());
 
     byte*  cell_start = get_memblk(blk.get());
-    size_t cell_size  = get_cell_size(rqst.alloc_size());
     byte*  obj_start  = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
 
     memory_index::index_gc_heap_memory(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
-    stack_entry->descriptor = descr;
+    stack_entry->box_handle = gc_box_handle(0, descr);
 
     blk.release();
 
-    return gc_alloc::response(obj_start, cell_start, cell_size, rqst.buffer());
+    return gc_alloc::response(obj_start, rqst.buffer());
 }
 
 gc_collect_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
@@ -68,11 +67,11 @@ gc_collect_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
     gc_collect_stat stat;
     size_t freed = 0;
     for (auto it = descriptors_begin(); it != descriptors_end(); ) {
-        stat.mem_used += it->cell_size();
+        stat.mem_used += it->box_size();
         auto next = std::next(it);
         if (!it->get_mark()) {
-            stat.mem_freed += it->cell_size();
-            freed += get_cell_size(it->cell_size());
+            stat.mem_freed += it->box_size();
+            freed += get_cell_size(it->box_size());
             destroy(it);
         } else {
             if (it->get_pin()) {
@@ -86,7 +85,7 @@ gc_collect_stat gc_lo_allocator::collect(compacting::forwarding& frwd)
 
 void gc_lo_allocator::fix(const compacting::forwarding& frwd)
 {
-    compacting::fix_ptrs(memory_begin(), memory_end(), frwd);
+//    compacting::fix_ptrs(memory_begin(), memory_end(), frwd);
 }
 
 void gc_lo_allocator::finalize()
@@ -100,23 +99,23 @@ void gc_lo_allocator::finalize()
 gc_memstat gc_lo_allocator::stats()
 {
     gc_memstat stat;
-    for (auto it = memory_begin(); it != memory_end(); ++it) {
-        if (it->is_init()) {
-            stat.mem_live += it->object_count() * it->get_type_meta()->type_size();
-        }
-        stat.mem_used += get_blk_size(it->cell_size());
-    }
+//    for (auto it = memory_begin(); it != memory_end(); ++it) {
+//        if (it->is_init()) {
+//            stat.mem_live += it->object_count() * it->get_type_meta()->type_size();
+//        }
+//        stat.mem_used += get_blk_size(it->box_size());
+//    }
     return stat;
 }
 
 void gc_lo_allocator::destroy(const descriptor_iterator& it)
 {
     byte*  blk      = get_blk_by_descr(&(*it));
-    size_t blk_size = get_blk_size(it->cell_size());
+    size_t blk_size = get_blk_size(it->box_size());
 
     byte* memblk = get_memblk(blk);
     #ifdef WITH_DESTRUCTORS
-        it->finalize(memblk);
+        it->finalize(0);
     #endif
     memory_index::deindex(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();
@@ -144,14 +143,14 @@ gc_lo_allocator::descriptor_iterator gc_lo_allocator::descriptors_end()
     return descriptor_iterator(m_alloc.end());
 }
 
-gc_lo_allocator::memory_iterator gc_lo_allocator::memory_begin()
-{
-    return memory_iterator(m_alloc.begin());
-}
-
-gc_lo_allocator::memory_iterator gc_lo_allocator::memory_end()
-{
-    return memory_iterator(m_alloc.end());
-}
+//gc_lo_allocator::memory_iterator gc_lo_allocator::memory_begin()
+//{
+//    return memory_iterator(m_alloc.begin());
+//}
+//
+//gc_lo_allocator::memory_iterator gc_lo_allocator::memory_end()
+//{
+//    return memory_iterator(m_alloc.end());
+//}
 
 }}}

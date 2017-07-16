@@ -12,8 +12,7 @@ inline bool get_mark(const allocgc::gc_alloc::response& rsp)
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    return descr->get_mark(rsp.cell_start());
+    return stack_entry->box_handle.get_mark();
 }
 
 inline void set_mark(const allocgc::gc_alloc::response& rsp, bool mark)
@@ -23,8 +22,7 @@ inline void set_mark(const allocgc::gc_alloc::response& rsp, bool mark)
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    descr->set_mark(rsp.cell_start(), mark);
+    stack_entry->box_handle.set_mark(mark);
 }
 
 inline bool get_pin(const allocgc::gc_alloc::response& rsp)
@@ -34,8 +32,7 @@ inline bool get_pin(const allocgc::gc_alloc::response& rsp)
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    return descr->get_pin(rsp.cell_start());
+    return stack_entry->box_handle.get_pin();
 }
 
 inline void set_pin(const allocgc::gc_alloc::response& rsp, bool pin)
@@ -45,8 +42,7 @@ inline void set_pin(const allocgc::gc_alloc::response& rsp, bool pin)
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    descr->set_pin(rsp.cell_start(), pin);
+    stack_entry->box_handle.set_pin(pin);
 }
 
 inline allocgc::details::gc_lifetime_tag get_lifetime_tag(const allocgc::gc_alloc::response& rsp)
@@ -56,8 +52,7 @@ inline allocgc::details::gc_lifetime_tag get_lifetime_tag(const allocgc::gc_allo
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    return descr->get_lifetime_tag(rsp.cell_start());
+    return stack_entry->box_handle.get_lifetime_tag();
 }
 
 inline void commit(const allocgc::gc_alloc::response& rsp)
@@ -67,8 +62,7 @@ inline void commit(const allocgc::gc_alloc::response& rsp)
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    descr->commit(rsp.cell_start());
+    stack_entry->box_handle.commit();
 }
 
 inline void commit(const allocgc::gc_alloc::response& rsp, const allocgc::gc_type_meta* type_meta)
@@ -78,8 +72,7 @@ inline void commit(const allocgc::gc_alloc::response& rsp, const allocgc::gc_typ
     using namespace allocgc::details::allocators;
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rsp.buffer());
-    gc_memory_descriptor* descr = stack_entry->descriptor;
-    descr->commit(rsp.cell_start(), type_meta);
+    stack_entry->box_handle.commit(type_meta);
 }
 
 #endif //ALLOCGC_UTILS_HPP

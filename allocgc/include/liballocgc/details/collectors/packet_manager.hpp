@@ -6,7 +6,7 @@
 #include <memory>
 #include <mutex>
 
-#include <liballocgc/details/gc_cell.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/gc_common.hpp>
 
@@ -19,8 +19,8 @@ class mark_packet : private utils::noncopyable, private utils::nonmovable
 public:
     mark_packet();
 
-    void    push(const gc_cell& cell);
-    gc_cell pop();
+    void push(const allocators::gc_box_handle& cell);
+    allocators::gc_box_handle pop();
 
     bool is_full() const;
     bool is_almost_full() const;
@@ -31,7 +31,7 @@ public:
 private:
     static const size_t SIZE = 512;
 
-    gc_cell      m_data[SIZE];
+    allocators::gc_box_handle m_data[SIZE];
     size_t       m_size;
     mark_packet* m_next;
 };

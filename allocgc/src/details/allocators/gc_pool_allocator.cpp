@@ -18,6 +18,7 @@ gc_pool_allocator::gc_pool_allocator()
     , m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
+    , m_top_id(0)
     , m_prev_residency(0)
 {}
 
@@ -60,6 +61,7 @@ gc_alloc::response gc_pool_allocator::try_expand_and_allocate(
         create_descriptor(blk, blk_size, size);
         m_top = blk;
         m_end = blk + blk_size;
+        m_top_id = 0;
         return stack_allocation(size, rqst);
     } else if (m_freelist) {
         return freelist_allocation(size, rqst);
@@ -85,7 +87,7 @@ gc_alloc::response gc_pool_allocator::stack_allocation(size_t size, const gc_all
     descriptor_t* descr = &m_descrs.back();
     byte* ptr = m_top;
     m_top += size;
-    return init_cell(ptr, rqst, descr);
+    return init_cell(ptr, rqst, descr, m_top_id++);
 }
 
 gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_alloc::request& rqst)
@@ -99,22 +101,25 @@ gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_
 
     assert(contains(ptr));
 
-    gc_new_stack_entry* stack_entry = reinterpret_cast<gc_new_stack_entry*>(rqst.buffer());
     memset(ptr, 0, size);
     descriptor_t* descr = static_cast<descriptor_t*>(memory_index::get_descriptor(ptr).to_gc_descriptor());
-    return init_cell(ptr, rqst, descr);
+    return init_cell(ptr, rqst, descr, descr->get_id(ptr));
 }
 
-gc_alloc::response gc_pool_allocator::init_cell(byte* cell_start, const gc_alloc::request& rqst, descriptor_t* descr)
-{
+gc_alloc::response gc_pool_allocator::init_cell(
+        byte* cell_start,
+        const gc_alloc::request& rqst,
+        descriptor_t* descr,
+        gc_memory_descriptor::box_id box_id
+) {
     assert(descr);
     assert(cell_start);
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
-    stack_entry->descriptor = descr;
+    stack_entry->box_handle = gc_box_handle(box_id, descr);
 
     byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
-    return gc_alloc::response(obj_start, cell_start, descr->cell_size(), rqst.buffer());
+    return gc_alloc::response(obj_start, rqst.buffer());
 }
 
 gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
@@ -168,6 +173,7 @@ gc_collect_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 
     m_top = nullptr;
     m_end = nullptr;
+    m_top_id = 0;
     m_freelist = nullptr;
 
     if (is_compaction_required(residency)) {
@@ -245,63 +251,63 @@ void gc_pool_allocator::insert_into_freelist(byte* ptr)
 
 void gc_pool_allocator::compact(compacting::forwarding& frwd, gc_collect_stat& stat)
 {
-    typedef typename memory_range_type::iterator::value_type value_t;
-    typedef std::reverse_iterator<typename memory_range_type::iterator> reverse_iterator;
-
-    auto rng = memory_range();
-
-    if (rng.begin() == rng.end()) {
-        return;
-    }
-
-    assert(std::all_of(rng.begin(), rng.end(),
-                       [&rng] (const value_t& p) { return p.cell_size() == rng.begin()->cell_size(); }
-    ));
-
-    auto to = rng.begin();
-    auto from = rng.end();
-    size_t cell_size = to->cell_size();
-    size_t copied_cnt = 0;
-    while (from != to) {
-        to = std::find_if(to, from, [](value_t cell) {
-            return cell.get_lifetime_tag() == gc_lifetime_tag::FREE ||
-                   cell.get_lifetime_tag() == gc_lifetime_tag::GARBAGE;
-        });
-
-        if (to->get_lifetime_tag() == gc_lifetime_tag::GARBAGE) {
-            stat.mem_freed += cell_size;
-            #ifdef WITH_DESTRUCTORS
-                to->finalize();
-            #endif
-        }
-
-        auto rev_from = std::find_if(reverse_iterator(from),
-                                     reverse_iterator(to),
-                                     [] (value_t cell) {
-                                         return  cell.get_lifetime_tag() == gc_lifetime_tag::LIVE &&
-                                                 !cell.get_pin();
-                                     });
-
-        from = rev_from.base();
-        if (from != to) {
-            --from;
-
-            from->move(*to);
-            #ifdef WITH_DESTRUCTORS
-                from->finalize();
-            #endif
-            frwd.create(from->get(), to->get());
-            insert_into_freelist(from->get());
-
-            stat.mem_moved += cell_size;
-        }
-    }
+//    typedef typename memory_range_type::iterator::value_type value_t;
+//    typedef std::reverse_iterator<typename memory_range_type::iterator> reverse_iterator;
+//
+//    auto rng = memory_range();
+//
+//    if (rng.begin() == rng.end()) {
+//        return;
+//    }
+//
+//    assert(std::all_of(rng.begin(), rng.end(),
+//                       [&rng] (const value_t& p) { return p.cell_size() == rng.begin()->cell_size(); }
+//    ));
+//
+//    auto to = rng.begin();
+//    auto from = rng.end();
+//    size_t cell_size = to->cell_size();
+//    size_t copied_cnt = 0;
+//    while (from != to) {
+//        to = std::find_if(to, from, [](value_t cell) {
+//            return cell.get_lifetime_tag() == gc_lifetime_tag::FREE ||
+//                   cell.get_lifetime_tag() == gc_lifetime_tag::GARBAGE;
+//        });
+//
+//        if (to->get_lifetime_tag() == gc_lifetime_tag::GARBAGE) {
+//            stat.mem_freed += cell_size;
+//            #ifdef WITH_DESTRUCTORS
+//                to->finalize();
+//            #endif
+//        }
+//
+//        auto rev_from = std::find_if(reverse_iterator(from),
+//                                     reverse_iterator(to),
+//                                     [] (value_t cell) {
+//                                         return  cell.get_lifetime_tag() == gc_lifetime_tag::LIVE &&
+//                                                 !cell.get_pin();
+//                                     });
+//
+//        from = rev_from.base();
+//        if (from != to) {
+//            --from;
+//
+//            from->move(*to);
+//            #ifdef WITH_DESTRUCTORS
+//                from->finalize();
+//            #endif
+//            frwd.create(from->get(), to->get());
+//            insert_into_freelist(from->get());
+//
+//            stat.mem_moved += cell_size;
+//        }
+//    }
 }
 
 void gc_pool_allocator::fix(const compacting::forwarding& frwd)
 {
-    auto rng = memory_range();
-    compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
+//    auto rng = memory_range();
+//    compacting::fix_ptrs(rng.begin(), rng.end(), frwd);
 }
 
 void gc_pool_allocator::finalize()
@@ -342,9 +348,9 @@ bool gc_pool_allocator::is_compaction_required(double residency) const
     return false;
 }
 
-gc_pool_allocator::memory_range_type gc_pool_allocator::memory_range()
-{
-    return utils::flatten_range(m_descrs.begin(), m_descrs.end());
-}
+//gc_pool_allocator::memory_range_type gc_pool_allocator::memory_range()
+//{
+//    return utils::flatten_range(m_descrs.begin(), m_descrs.end());
+//}
 
 }}}

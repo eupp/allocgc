@@ -25,180 +25,130 @@ double gc_pool_descriptor::residency() const
     return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
 }
 
-gc_pool_descriptor::memory_range_type gc_pool_descriptor::memory_range()
+//gc_pool_descriptor::memory_range_type gc_pool_descriptor::memory_range()
+//{
+//    return boost::make_iterator_range(begin(), end());
+//}
+//
+//gc_pool_descriptor::iterator gc_pool_descriptor::begin()
+//{
+//    return iterator(memory(), this, box_size());
+//}
+//
+//gc_pool_descriptor::iterator gc_pool_descriptor::end()
+//{
+//    return iterator(memory() + size(), this, box_size());
+//}
+
+bool gc_pool_descriptor::is_init(box_id id) const
 {
-    return boost::make_iterator_range(begin(), end());
+    return m_init_bits.get(id);
 }
 
-gc_pool_descriptor::iterator gc_pool_descriptor::begin()
-{
-    return iterator(memory(), this, cell_size());
-}
-
-gc_pool_descriptor::iterator gc_pool_descriptor::end()
-{
-    return iterator(memory() + size(), this, cell_size());
-}
-
-bool gc_pool_descriptor::is_init(byte* ptr) const
+gc_memory_descriptor::box_id gc_pool_descriptor::get_id(byte* ptr) const
 {
     assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    return is_init(idx);
+//    return (ptr - m_memory) / cell_size();
+    return (ptr - m_memory) >> m_cell_size_log2;
 }
 
-void gc_pool_descriptor::set_init(byte* ptr, bool init)
+bool gc_pool_descriptor::get_mark(box_id id) const
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    set_init(idx, init);
+    return m_mark_bits.get(id);;
 }
 
-bool gc_pool_descriptor::get_mark(byte* ptr) const
+bool gc_pool_descriptor::get_pin(box_id id) const
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    return get_mark(idx);
+    return m_pin_bits.get(id);
 }
 
-bool gc_pool_descriptor::get_pin(byte* ptr) const
+void gc_pool_descriptor::set_mark(box_id id, bool mark)
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    return get_pin(idx);
+    m_mark_bits.set(id, mark);
 }
 
-void gc_pool_descriptor::set_mark(byte* ptr, bool mark)
+void gc_pool_descriptor::set_pin(box_id id, bool pin)
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    set_mark(idx, mark);
+    m_pin_bits.set(id, pin);
 }
 
-void gc_pool_descriptor::set_pin(byte* ptr, bool pin)
+gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(box_id id) const
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(cell_start(ptr));
-    set_pin(idx, pin);
+    return get_lifetime_tag_by_bits(get_mark(id), is_init(id));
 }
 
-gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(size_t idx) const
+size_t gc_pool_descriptor::box_size(box_id id) const
 {
-    return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
-}
-
-gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(byte* ptr) const
-{
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    size_t idx = calc_cell_ind(ptr);
-    return get_lifetime_tag(idx);
-}
-
-size_t gc_pool_descriptor::cell_size(byte* ptr) const
-{
-    assert(contains(ptr));
     return cell_size();
 }
 
-byte* gc_pool_descriptor::cell_start(byte* ptr) const
+byte* gc_pool_descriptor::box_addr(box_id id) const
 {
-    assert(contains(ptr));
-    std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
-    uintptr &= ~((1ull << m_cell_size_log2) - 1);
-    assert(uintptr % cell_size(ptr) == 0);
-    return reinterpret_cast<byte*>(uintptr);
+    return calc_box_addr(id);
 }
 
-size_t gc_pool_descriptor::object_count(byte* ptr) const
+size_t gc_pool_descriptor::object_count(box_id id) const
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    return gc_box::get_obj_count(cell_start(ptr));
+    return gc_box::get_obj_count(calc_box_addr(id));
 }
 
-const gc_type_meta* gc_pool_descriptor::get_type_meta(byte* ptr) const
+const gc_type_meta* gc_pool_descriptor::get_type_meta(box_id id) const
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    return gc_box::get_type_meta(cell_start(ptr));
+    return gc_box::get_type_meta(calc_box_addr(id));
 }
 
-void gc_pool_descriptor::commit(byte* ptr)
+void gc_pool_descriptor::commit(box_id id)
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    assert(gc_box::get_type_meta(ptr));
-    set_init(ptr, true);
+    set_init(id, true);
 }
 
-void gc_pool_descriptor::commit(byte* ptr, const gc_type_meta* type_meta)
+void gc_pool_descriptor::commit(box_id id, const gc_type_meta* type_meta)
 {
     assert(type_meta);
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    gc_box::set_type_meta(ptr, type_meta);
-    set_init(ptr, true);
+    gc_box::set_type_meta(box_addr(id), type_meta);
+    set_init(id, true);
 }
 
-void gc_pool_descriptor::trace(byte* ptr, const gc_trace_callback& cb) const
+void gc_pool_descriptor::trace(box_id id, const gc_trace_callback& cb) const
 {
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    assert(is_init(ptr));
-    gc_box::trace(ptr, cb);
+    gc_box::trace(calc_box_addr(id), cb);
 }
 
-void gc_pool_descriptor::move(byte* to, byte* from, gc_memory_descriptor* from_descr)
-{
-    assert(contains(to));
-    assert(to == cell_start(to));
-    assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
-    assert(from_descr->get_lifetime_tag(from) == gc_lifetime_tag::LIVE);
-    gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
-    from_descr->set_mark(from, false);
-    size_t idx = calc_cell_ind(to);
-    set_mark(idx, true);
-    set_init(idx, true);
-}
+//void gc_pool_descriptor::move(byte* to, byte* from, gc_memory_descriptor* from_descr)
+//{
+//    assert(contains(to));
+//    assert(to == box_addr(to));
+//    assert(get_lifetime_tag(to) == gc_lifetime_tag::FREE);
+//    assert(from_descr->get_lifetime_tag(from) == gc_lifetime_tag::LIVE);
+//    gc_box::move(to, from, from_descr->object_count(from), from_descr->get_type_meta(from));
+//    from_descr->set_mark(from, false);
+//    size_t idx = calc_cell_ind(to);
+//    set_mark(idx, true);
+//    set_init(idx, true);
+//}
 
 void gc_pool_descriptor::finalize(size_t i)
 {
     assert(get_lifetime_tag(i) == gc_lifetime_tag::GARBAGE);
-    gc_box::destroy(m_memory + i * cell_size());
+    gc_box::destroy(calc_box_addr(i));
     set_init(i, false);
 }
 
-void gc_pool_descriptor::finalize(byte* ptr)
-{
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    assert(get_lifetime_tag(ptr) == gc_lifetime_tag::GARBAGE);
-    gc_box::destroy(ptr);
-    set_init(ptr, false);
-}
-
-size_t gc_pool_descriptor::calc_cell_ind(byte* ptr) const
-{
-    assert(contains(ptr));
-    assert(ptr == cell_start(ptr));
-    return (ptr - memory()) >> m_cell_size_log2;
-}
+//size_t gc_pool_descriptor::calc_cell_ind(byte* ptr) const
+//{
+//    assert(contains(ptr));
+//    assert(ptr == box_addr(ptr));
+//    return (ptr - memory()) >> m_cell_size_log2;
+//}
 
 size_t gc_pool_descriptor::mem_used()
 {
     size_t used = 0;
-    for (auto it = begin(); it != end(); ++it) {
-        if (it->is_init()) {
-            used += it->object_count() * it->get_type_meta()->type_size();
-        }
-    }
+//    for (auto it = begin(); it != end(); ++it) {
+//        if (it->is_init()) {
+//            used += it->object_count() * it->get_type_meta()->type_size();
+//        }
+//    }
     return used;
 }
 

@@ -73,7 +73,7 @@ void mark_tree(gc_ptr<node>& ptr, size_t depth, size_t mark_depth, test_root_set
 void check_nodes_marked(const gc_ptr<node>& ptr, size_t depth, size_t mark_depth, size_t max_depth)
 {
     if (depth <= max_depth) {
-        ASSERT_TRUE(ptr);
+        ASSERT_TRUE((bool) ptr);
     } else {
         return;
     };
@@ -92,7 +92,7 @@ void check_nodes_marked(const gc_ptr<node>& ptr, size_t depth, size_t mark_depth
 void check_nodes_pinned(const gc_ptr<node>& ptr, size_t depth, size_t pin_depth, size_t max_depth)
 {
     if (depth <= max_depth) {
-        ASSERT_TRUE(ptr);
+        ASSERT_TRUE((bool) ptr);
     } else {
         return;
     };

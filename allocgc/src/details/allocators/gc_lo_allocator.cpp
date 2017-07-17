@@ -49,13 +49,13 @@ gc_alloc::response gc_lo_allocator::allocate(const gc_alloc::request& rqst)
     descriptor_t* descr = get_descr(blk.get());
     new (descr) descriptor_t(rqst.alloc_size());
 
-    byte*  cell_start = get_memblk(blk.get());
-    byte*  obj_start  = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
+    byte*  box_addr  = get_memblk(blk.get());
+    byte*  obj_start = descr->init_cell(box_addr, rqst.obj_count(), rqst.type_meta());
 
     memory_index::index_gc_heap_memory(align_by_page(blk.get()), m_alloc.get_blk_size(blk_size), descr);
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
-    stack_entry->box_handle = gc_box_handle(0, descr);
+    stack_entry->box_handle = gc_box_handle::from_box_addr(box_addr, descr);
 
     blk.release();
 
@@ -115,7 +115,7 @@ void gc_lo_allocator::destroy(const descriptor_iterator& it)
 
     byte* memblk = get_memblk(blk);
     #ifdef WITH_DESTRUCTORS
-        it->finalize(0);
+        it->finalize(memblk);
     #endif
     memory_index::deindex(align_by_page(blk), m_alloc.get_blk_size(blk_size));
     it->~descriptor_t();

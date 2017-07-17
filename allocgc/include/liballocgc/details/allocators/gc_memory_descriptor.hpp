@@ -10,7 +10,7 @@ namespace allocgc { namespace details { namespace allocators {
 class gc_memory_descriptor
 {
 public:
-    typedef size_t box_id;
+    typedef byte* box_id;
 
     virtual ~gc_memory_descriptor() {}
 

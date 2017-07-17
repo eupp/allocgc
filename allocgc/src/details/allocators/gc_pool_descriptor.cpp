@@ -13,13 +13,6 @@ gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_siz
 gc_pool_descriptor::~gc_pool_descriptor()
 {}
 
-bool gc_pool_descriptor::contains(byte* ptr) const
-{
-    byte* mem_begin = memory();
-    byte* mem_end   = memory() + size();
-    return (mem_begin <= ptr) && (ptr < mem_end);
-}
-
 double gc_pool_descriptor::residency() const
 {
     return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
@@ -40,77 +33,102 @@ double gc_pool_descriptor::residency() const
 //    return iterator(memory() + size(), this, box_size());
 //}
 
-bool gc_pool_descriptor::is_init(box_id id) const
-{
-    return m_init_bits.get(id);
-}
-
 gc_memory_descriptor::box_id gc_pool_descriptor::get_id(byte* ptr) const
 {
     assert(contains(ptr));
-//    return (ptr - m_memory) / cell_size();
-    return (ptr - m_memory) >> m_cell_size_log2;
+    std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
+    uintptr &= ~((1ull << m_cell_size_log2) - 1);
+    assert(uintptr % cell_size() == 0);
+    return reinterpret_cast<byte*>(uintptr);
+}
+
+bool gc_pool_descriptor::is_init(box_id id) const
+{
+    return m_init_bits.get(calc_box_idx(id));
 }
 
 bool gc_pool_descriptor::get_mark(box_id id) const
 {
-    return m_mark_bits.get(id);;
+    assert(contains(id));
+    assert(is_correct_id(id));
+    return m_mark_bits.get(calc_box_idx(id));
 }
 
 bool gc_pool_descriptor::get_pin(box_id id) const
 {
-    return m_pin_bits.get(id);
+    assert(contains(id));
+    assert(is_correct_id(id));
+    return m_pin_bits.get(calc_box_idx(id));
 }
 
 void gc_pool_descriptor::set_mark(box_id id, bool mark)
 {
-    m_mark_bits.set(id, mark);
+    assert(contains(id));
+    assert(is_correct_id(id));
+    m_mark_bits.set(calc_box_idx(id), mark);
 }
 
 void gc_pool_descriptor::set_pin(box_id id, bool pin)
 {
-    m_pin_bits.set(id, pin);
+    assert(contains(id));
+    assert(is_correct_id(id));
+    m_pin_bits.set(calc_box_idx(id), pin);
 }
 
 gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(box_id id) const
 {
-    return get_lifetime_tag_by_bits(get_mark(id), is_init(id));
+    assert(contains(id));
+    assert(is_correct_id(id));
+    size_t idx = calc_box_idx(id);
+    return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
 }
 
 size_t gc_pool_descriptor::box_size(box_id id) const
 {
+    assert(contains(id));
+    assert(is_correct_id(id));
     return cell_size();
 }
 
 byte* gc_pool_descriptor::box_addr(box_id id) const
 {
+    assert(contains(id));
+    assert(is_correct_id(id));
     return calc_box_addr(id);
 }
 
 size_t gc_pool_descriptor::object_count(box_id id) const
 {
+    assert(contains(id));
+    assert(is_correct_id(id));
     return gc_box::get_obj_count(calc_box_addr(id));
 }
 
 const gc_type_meta* gc_pool_descriptor::get_type_meta(box_id id) const
 {
+    assert(contains(id));
+    assert(is_correct_id(id));
     return gc_box::get_type_meta(calc_box_addr(id));
 }
 
 void gc_pool_descriptor::commit(box_id id)
 {
-    set_init(id, true);
+    assert(contains(id));
+    assert(is_correct_id(id));
+    set_init(calc_box_idx(id), true);
 }
 
 void gc_pool_descriptor::commit(box_id id, const gc_type_meta* type_meta)
 {
     assert(type_meta);
+    assert(is_correct_id(id));
     gc_box::set_type_meta(box_addr(id), type_meta);
-    set_init(id, true);
+    set_init(calc_box_idx(id), true);
 }
 
 void gc_pool_descriptor::trace(box_id id, const gc_trace_callback& cb) const
 {
+    assert(is_correct_id(id));
     gc_box::trace(calc_box_addr(id), cb);
 }
 
@@ -127,11 +145,20 @@ void gc_pool_descriptor::trace(box_id id, const gc_trace_callback& cb) const
 //    set_init(idx, true);
 //}
 
-void gc_pool_descriptor::finalize(size_t i)
+void gc_pool_descriptor::finalize(size_t idx)
 {
-    assert(get_lifetime_tag(i) == gc_lifetime_tag::GARBAGE);
-    gc_box::destroy(calc_box_addr(i));
-    set_init(i, false);
+    byte* box_addr = m_memory + idx * cell_size();
+    assert(get_lifetime_tag(box_addr) == gc_lifetime_tag::GARBAGE);
+    gc_box::destroy(box_addr);
+    set_init(idx, false);
+}
+
+void gc_pool_descriptor::finalize(box_id id)
+{
+    assert(is_correct_id(id));
+    assert(get_lifetime_tag(id) == gc_lifetime_tag::GARBAGE);
+    gc_box::destroy(calc_box_addr(id));
+    set_init(calc_box_idx(id), false);
 }
 
 //size_t gc_pool_descriptor::calc_cell_ind(byte* ptr) const
@@ -150,6 +177,18 @@ size_t gc_pool_descriptor::mem_used()
 //        }
 //    }
     return used;
+}
+
+bool gc_pool_descriptor::contains(byte* ptr) const
+{
+    byte* mem_begin = memory();
+    byte* mem_end   = memory() + size();
+    return (mem_begin <= ptr) && (ptr < mem_end);
+}
+
+bool gc_pool_descriptor::is_correct_id(box_id id) const
+{
+    return id == get_id(id);
 }
 
 }}}

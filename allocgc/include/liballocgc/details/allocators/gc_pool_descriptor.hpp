@@ -97,7 +97,7 @@ public:
     byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
     {
         assert(contains(ptr));
-//        assert(ptr == box_addr(ptr));
+        assert(ptr == box_addr(ptr));
         return gc_box::create(ptr, obj_count, type_meta);
     }
 
@@ -156,6 +156,8 @@ public:
     void commit(box_id id, const gc_type_meta* type_meta) override;
 
     void trace(box_id id, const gc_trace_callback& cb) const override;
+
+    void finalize(size_t idx);
     void finalize(box_id id) override;
 
 //    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
@@ -170,13 +172,45 @@ public:
         return m_size;
     }
 
+    inline bool get_mark(size_t idx) const
+    {
+        return m_mark_bits.get(idx);
+    }
+
+    inline bool get_pin(size_t idx) const
+    {
+        return m_pin_bits.get(idx);
+    }
+
+    inline bool is_init(size_t idx) const
+    {
+        return m_init_bits.get(idx);
+    }
+
+    inline void set_mark(size_t idx, bool mark)
+    {
+        m_mark_bits.set(idx, mark);
+    }
+
+    inline void set_pin(size_t idx, bool pin)
+    {
+        m_pin_bits.set(idx, pin);
+    }
+
     bool contains(byte* ptr) const;
 
     size_t mem_used();
 private:
     inline byte* calc_box_addr(box_id id) const
     {
-        return m_memory + (id << m_cell_size_log2);
+        return id;
+    }
+
+    inline size_t calc_box_idx(box_id id) const
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return (id - memory()) >> m_cell_size_log2;
     }
 
     inline void set_init(size_t idx, bool init)
@@ -184,7 +218,7 @@ private:
         m_init_bits.set(idx, init);
     }
 
-//    size_t calc_cell_ind(byte* ptr) const;
+    bool is_correct_id(box_id id) const;
 
     byte*         m_memory;
     size_t        m_size;

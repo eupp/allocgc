@@ -9,22 +9,20 @@ namespace allocgc { namespace details { namespace allocators {
 class gc_box_handle
 {
 public:
-    static gc_box_handle from_internal_ptr(byte* ptr, allocators::gc_memory_descriptor* descr)
+    static gc_box_handle from_box_addr(byte* box_addr, gc_memory_descriptor* descr)
+    {
+        return gc_box_handle(box_addr, descr);
+    }
+
+    static gc_box_handle from_internal_ptr(byte* ptr, gc_memory_descriptor* descr)
     {
         return gc_box_handle(descr->get_id(ptr), descr);
     }
 
     gc_box_handle()
-        : m_id(0)
+        : m_id(nullptr)
         , m_descr(nullptr)
     {}
-
-    gc_box_handle(gc_memory_descriptor::box_id id, allocators::gc_memory_descriptor* descr)
-            : m_id(id)
-            , m_descr(descr)
-    {
-        assert(is_initialized());
-    }
 
     gc_box_handle(const gc_box_handle&) = default;
     gc_box_handle& operator=(const gc_box_handle&) = default;
@@ -134,9 +132,16 @@ public:
         m_descr->finalize(m_id);
     }
 private:
+    gc_box_handle(gc_memory_descriptor::box_id id, allocators::gc_memory_descriptor* descr)
+            : m_id(id)
+            , m_descr(descr)
+    {
+        assert(is_initialized());
+    }
+
     bool is_initialized() const
     {
-        return m_descr != nullptr;
+        return (m_id != nullptr) && (m_descr != nullptr);
     }
 
     gc_memory_descriptor::box_id    m_id;

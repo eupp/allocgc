@@ -18,7 +18,6 @@ gc_pool_allocator::gc_pool_allocator()
     , m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
-    , m_top_id(0)
     , m_prev_residency(0)
 {}
 
@@ -61,7 +60,6 @@ gc_alloc::response gc_pool_allocator::try_expand_and_allocate(
         create_descriptor(blk, blk_size, size);
         m_top = blk;
         m_end = blk + blk_size;
-        m_top_id = 0;
         return stack_allocation(size, rqst);
     } else if (m_freelist) {
         return freelist_allocation(size, rqst);
@@ -87,7 +85,7 @@ gc_alloc::response gc_pool_allocator::stack_allocation(size_t size, const gc_all
     descriptor_t* descr = &m_descrs.back();
     byte* ptr = m_top;
     m_top += size;
-    return init_cell(ptr, rqst, descr, m_top_id++);
+    return init_cell(ptr, rqst, descr);
 }
 
 gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_alloc::request& rqst)
@@ -103,22 +101,17 @@ gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_
 
     memset(ptr, 0, size);
     descriptor_t* descr = static_cast<descriptor_t*>(memory_index::get_descriptor(ptr).to_gc_descriptor());
-    return init_cell(ptr, rqst, descr, descr->get_id(ptr));
+    return init_cell(ptr, rqst, descr);
 }
 
-gc_alloc::response gc_pool_allocator::init_cell(
-        byte* cell_start,
-        const gc_alloc::request& rqst,
-        descriptor_t* descr,
-        gc_memory_descriptor::box_id box_id
-) {
+gc_alloc::response gc_pool_allocator::init_cell(byte* box_addr, const gc_alloc::request &rqst, descriptor_t* descr) {
     assert(descr);
-    assert(cell_start);
+    assert(box_addr);
 
     collectors::gc_new_stack_entry* stack_entry = reinterpret_cast<collectors::gc_new_stack_entry*>(rqst.buffer());
-    stack_entry->box_handle = gc_box_handle(box_id, descr);
+    stack_entry->box_handle = gc_box_handle::from_box_addr(box_addr, descr);
 
-    byte* obj_start = descr->init_cell(cell_start, rqst.obj_count(), rqst.type_meta());
+    byte* obj_start = descr->init_cell(box_addr, rqst.obj_count(), rqst.type_meta());
     return gc_alloc::response(obj_start, rqst.buffer());
 }
 
@@ -173,7 +166,6 @@ gc_collect_stat gc_pool_allocator::collect(compacting::forwarding& frwd)
 
     m_top = nullptr;
     m_end = nullptr;
-    m_top_id = 0;
     m_freelist = nullptr;
 
     if (is_compaction_required(residency)) {

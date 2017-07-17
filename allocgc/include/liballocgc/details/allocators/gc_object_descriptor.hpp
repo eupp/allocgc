@@ -53,7 +53,8 @@ public:
     void finalize(box_id id) override;
 //    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
 private:
-    bool check_ptr(byte* ptr) const;
+    bool contains(byte *ptr) const;
+    bool is_correct_id(box_id id) const;
 
     size_t m_size;
     bool   m_mark_bit;

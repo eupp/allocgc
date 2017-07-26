@@ -12,7 +12,7 @@
 
 #include <liballocgc/gc_alloc.hpp>
 #include <liballocgc/details/allocators/gc_box_handle.hpp>
-#include <liballocgc/details/utils/bitset.hpp>
+#include <liballocgc/details/utils/bitmap.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
 #include <liballocgc/details/constants.hpp>
@@ -23,10 +23,10 @@ class gc_pool_descriptor : public gc_memory_descriptor, private utils::noncopyab
 {
 public:
     static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
-private:
-    typedef utils::bitset<CHUNK_MAXSIZE> bitset_t;
-    typedef utils::sync_bitset<CHUNK_MAXSIZE> sync_bitset_t;
 
+    typedef utils::bitmap bitmap;
+    typedef utils::atomic_bitmap atomic_bitmap;
+private:
 //    class memory_iterator: public boost::iterator_facade<
 //              memory_iterator
 //            , gc_box_handle
@@ -223,9 +223,9 @@ private:
     byte*         m_memory;
     size_t        m_size;
     size_t        m_cell_size_log2;
-    bitset_t      m_pin_bits;
-    bitset_t      m_init_bits;
-    sync_bitset_t m_mark_bits;
+    bitmap        m_init_bits;
+    bitmap        m_pin_bits;
+    atomic_bitmap m_mark_bits;
 };
 
 }}}

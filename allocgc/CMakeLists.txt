@@ -18,7 +18,6 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/allocators/index_tree.hpp
         include/liballocgc/details/allocators/debug_layer.hpp
         include/liballocgc/details/allocators/bucket_allocator.hpp
-        include/liballocgc/details/allocators/bitmap_pool_chunk.hpp
         include/liballocgc/details/allocators/stl_adapter.hpp
         include/liballocgc/details/allocators/pow2_bucket_policy.hpp
         include/liballocgc/details/allocators/gc_pool_descriptor.hpp
@@ -41,7 +40,7 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/utils/to_string.hpp
         include/liballocgc/details/utils/make_reverse_iterator.hpp
         include/liballocgc/details/allocators/allocator_tag.hpp
-        include/liballocgc/details/utils/bitset.hpp
+        include/liballocgc/details/utils/bitmap.hpp
         include/liballocgc/details/collectors/gc_serial.hpp
         include/liballocgc/details/threads/world_snapshot.hpp
         include/liballocgc/details/utils/make_unique.hpp
@@ -96,7 +95,6 @@ set(precisegc_LIB_HDRS
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
         src/details/logging.cpp
-        src/details/allocators/bitmap_pool_chunk.cpp
         src/details/allocators/gc_pool_descriptor.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp

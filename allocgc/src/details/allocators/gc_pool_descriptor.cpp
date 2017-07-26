@@ -8,6 +8,9 @@ gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_siz
     : m_memory(chunk)
     , m_size(size)
     , m_cell_size_log2(log2(cell_size))
+    , m_init_bits(CHUNK_MAXSIZE)
+    , m_pin_bits(CHUNK_MAXSIZE)
+    , m_mark_bits(CHUNK_MAXSIZE)
 {}
 
 gc_pool_descriptor::~gc_pool_descriptor()

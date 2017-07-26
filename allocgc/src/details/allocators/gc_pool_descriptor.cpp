@@ -78,6 +78,13 @@ void gc_pool_descriptor::set_pin(box_id id, bool pin)
     m_pin_bits.set(calc_box_idx(id), pin);
 }
 
+bool gc_pool_descriptor::mark(box_id id)
+{
+    assert(contains(id));
+    assert(is_correct_id(id));
+    return m_mark_bits.test_and_set(calc_box_idx(id));
+}
+
 gc_lifetime_tag gc_pool_descriptor::get_lifetime_tag(box_id id) const
 {
     assert(contains(id));

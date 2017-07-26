@@ -158,8 +158,8 @@ void marker::trace(gc_handle* handle, packet_manager::mark_packet_handle& output
     byte* ptr = gc_handle_access::get<std::memory_order_acquire>(*handle);
     if (ptr) {
         gc_box_handle cell = memory_index::get_gc_cell(ptr);
-        if (!cell.get_mark()) {
-            cell.set_mark(true);
+        if (!cell.mark()) {
+//            cell.set_mark(true);
             push_to_packet(cell, output_packet);
         }
     }

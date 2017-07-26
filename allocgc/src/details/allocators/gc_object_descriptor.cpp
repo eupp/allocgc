@@ -65,6 +65,14 @@ void gc_object_descriptor::set_pin(box_id id, bool pin)
     m_pin_bit = pin;
 }
 
+bool gc_object_descriptor::mark(box_id id)
+{
+    assert(is_correct_id(id));
+    bool marked = m_mark_bit;
+    m_mark_bit = true;
+    return marked;
+}
+
 bool gc_object_descriptor::is_init(box_id id) const
 {
     assert(is_correct_id(id));

@@ -32,6 +32,8 @@ public:
     void set_mark(box_id id, bool mark) override;
     void set_pin(box_id id, bool pin) override;
 
+    bool mark(box_id id) override;
+
     bool is_init(box_id id) const override;
 
     gc_lifetime_tag get_lifetime_tag(box_id id) const override;

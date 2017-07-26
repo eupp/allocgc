@@ -22,6 +22,8 @@ public:
     virtual void set_mark(box_id id, bool mark) = 0;
     virtual void set_pin(box_id id, bool pin) = 0;
 
+    virtual bool mark(box_id id) = 0;
+
     virtual bool is_init(box_id id) const = 0;
 
     virtual gc_lifetime_tag get_lifetime_tag(box_id id) const = 0;

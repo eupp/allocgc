@@ -66,6 +66,12 @@ public:
         m_descr->set_pin(m_id, pin);
     }
 
+    bool mark() const
+    {
+        assert(is_initialized());
+        return m_descr->mark(m_id);
+    }
+
     bool is_init() const
     {
         assert(is_initialized());

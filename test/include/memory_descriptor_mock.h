@@ -22,6 +22,8 @@ public:
     MOCK_METHOD2(set_mark, void(box_id, bool mark));
     MOCK_METHOD2(set_pin, void(box_id, bool pin));
 
+    MOCK_METHOD1(mark, bool(box_id));
+
     MOCK_CONST_METHOD1(is_init, bool(box_id));
 
     MOCK_CONST_METHOD1(get_lifetime_tag, gc_lifetime_tag(box_id));

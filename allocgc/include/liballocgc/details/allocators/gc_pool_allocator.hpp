@@ -36,7 +36,6 @@ class gc_pool_allocator : private utils::noncopyable, private utils::nonmovable
     typedef std::list<descriptor_t, stl_adapter<descriptor_t, chunk_pool_t>> descriptor_list_t;
     typedef typename descriptor_list_t::iterator iterator_t;
 public:
-//    typedef utils::flattened_range<iterator_t> memory_range_type;
     typedef stateful_alloc_tag alloc_tag;
 
     gc_pool_allocator();
@@ -53,8 +52,6 @@ public:
     gc_memstat stats();
 
     bool empty() const;
-
-//    memory_range_type memory_range();
 private:
     static constexpr double RESIDENCY_COMPACTING_THRESHOLD = 0.5;
     static constexpr double RESIDENCY_NON_COMPACTING_THRESHOLD = 0.9;

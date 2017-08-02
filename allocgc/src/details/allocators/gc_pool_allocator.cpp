@@ -101,7 +101,7 @@ gc_alloc::response gc_pool_allocator::freelist_allocation(size_t size, const gc_
     return init_cell(ptr, rqst, descr);
 }
 
-gc_alloc::response gc_pool_allocator::init_cell(byte* box_addr, const gc_alloc::request &rqst, descriptor_t* descr) {
+gc_alloc::response gc_pool_allocator::init_cell(byte* box_addr, const gc_alloc::request& rqst, descriptor_t* descr) {
     assert(descr);
     assert(box_addr);
 
@@ -182,7 +182,7 @@ double gc_pool_allocator::shrink(gc_collect_stat& stat)
     size_t mem_occupied = 0;
     for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
         stat.mem_used += it->size();
-        if (it->unused()) {
+        if (it->is_unmarked()) {
             stat.mem_freed += it->size();
             it = destroy_descriptor(it);
         } else {

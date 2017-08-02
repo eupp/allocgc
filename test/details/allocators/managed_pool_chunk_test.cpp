@@ -62,7 +62,7 @@ public:
 
 TEST_F(managed_pool_chunk_test, test_cell_start)
 {
-    gc_memory_descriptor* descr = m_chunk.descriptor();
+    gc_memory_descriptor* descr = &m_chunk;
     byte* mem = m_chunk.memory();
     size_t mem_size = m_chunk.size();
 
@@ -88,7 +88,7 @@ struct test_type
 
 TEST_F(managed_pool_chunk_test, test_get_mark_pin)
 {
-    gc_memory_descriptor* descr = m_chunk.descriptor();
+    gc_memory_descriptor* descr = &m_chunk;
     byte* mem = m_chunk.memory();
     size_t mem_size = m_chunk.size();
 
@@ -100,7 +100,7 @@ TEST_F(managed_pool_chunk_test, test_get_mark_pin)
 
 TEST_F(managed_pool_chunk_test, test_set_mark)
 {
-    gc_memory_descriptor* descr = m_chunk.descriptor();
+    gc_memory_descriptor* descr = &m_chunk;
     byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand();
 
     descr->set_mark(descr->get_id(ptr), true);
@@ -109,7 +109,7 @@ TEST_F(managed_pool_chunk_test, test_set_mark)
 
 TEST_F(managed_pool_chunk_test, test_set_pin)
 {
-    gc_memory_descriptor* descr = m_chunk.descriptor();
+    gc_memory_descriptor* descr = &m_chunk;
     byte* ptr = m_chunk.memory() + CELL_SIZE * m_rand();
 
     descr->set_pin(descr->get_id(ptr), true);

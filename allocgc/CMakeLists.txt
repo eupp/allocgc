@@ -91,7 +91,6 @@ set(precisegc_LIB_HDRS
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp
         src/details/logging.cpp
-        src/details/allocators/gc_pool_descriptor.cpp
         src/details/threads/pending_call.cpp
         src/details/threads/posix_signal.cpp
         src/details/threads/ass_sync.cpp

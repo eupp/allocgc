@@ -11,10 +11,10 @@
 #include <boost/range/iterator_range.hpp>
 
 #include <liballocgc/gc_alloc.hpp>
-#include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/utils/bitmap.hpp>
 #include <liballocgc/details/utils/utility.hpp>
 #include <liballocgc/details/constants.hpp>
+#include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 #include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
 
@@ -22,91 +22,37 @@ namespace allocgc { namespace details { namespace allocators {
 
 class gc_pool_descriptor : public gc_memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
-public:
     static const size_t CHUNK_MAXSIZE = GC_POOL_CHUNK_OBJECTS_COUNT;
 
     typedef utils::bitmap bitmap;
     typedef utils::atomic_bitmap atomic_bitmap;
     typedef gc_bucket_policy::offset_table offset_table;
-private:
-//    class memory_iterator: public boost::iterator_facade<
-//              memory_iterator
-//            , gc_box_handle
-//            , boost::random_access_traversal_tag
-//            , gc_box_handle
-//        >
-//    {
-//    public:
-//        memory_iterator()
-//            : m_cell_size(0)
-//        {}
-//
-//        memory_iterator(const memory_iterator&) = default;
-//        memory_iterator& operator=(const memory_iterator&) = default;
-//    private:
-//        friend class gc_pool_descriptor;
-//        friend class boost::iterator_core_access;
-//
-//        memory_iterator(byte* ptr, gc_pool_descriptor* descr, size_t box_size)
-//            : m_cell(gc_box_handle::from_internal_ptr(ptr, descr))
-//            , m_cell_size(box_size)
-//        {
-//            assert(ptr);
-//            assert(descr);
-//            assert(box_size > 0);
-//        }
-//
-//        gc_box_handle dereference() const
-//        {
-//            return m_cell;
-//        }
-//
-//        void increment()
-//        {
-//            m_cell.reset(m_cell.get() + m_cell_size);
-//        }
-//
-//        void decrement()
-//        {
-//            m_cell.reset(m_cell.get() - m_cell_size);
-//        }
-//
-//        bool equal(const memory_iterator& other) const
-//        {
-//            return m_cell.get() == other.m_cell.get();
-//        }
-//
-//        gc_box_handle m_cell;
-//        size_t  m_cell_size;
-//    };
 public:
-//    typedef memory_iterator iterator;
-//    typedef boost::iterator_range<memory_iterator> memory_range_type;
+    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy)
+        : m_memory(chunk)
+        , m_size(size)
+        , m_cell_size(cell_size)
+        , m_offset_tbl(bucket_policy.offsets_table(cell_size))
+        , m_init_bits(CHUNK_MAXSIZE)
+        , m_pin_bits(CHUNK_MAXSIZE)
+        , m_mark_bits(CHUNK_MAXSIZE)
+    {}
 
-    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy);
-    ~gc_pool_descriptor();
+    ~gc_pool_descriptor() {}
 
-    gc_memory_descriptor* descriptor()
+    inline byte* memory() const
     {
-        return this;
+        return m_memory;
     }
 
-    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
+    inline size_t size() const
     {
-        assert(contains(ptr));
-        assert(ptr == box_addr(ptr));
-        return gc_box::create(ptr, obj_count, type_meta);
+        return m_size;
     }
 
-    inline bool unused() const
+    inline size_t cell_size() const
     {
-        return m_mark_bits.none();
-    }
-
-    inline void unmark()
-    {
-        m_mark_bits.reset_all();
-        m_pin_bits.reset_all();
+        return m_cell_size;
     }
 
     size_t count_lived() const
@@ -119,56 +65,34 @@ public:
         return m_pin_bits.count();
     }
 
-    double residency() const;
-
-//    memory_range_type memory_range();
-
-//    iterator begin();
-//    iterator end();
-
-    box_id get_id(byte* ptr) const override;
-
-    bool get_mark(box_id id) const override;
-    bool get_pin(box_id id) const override;
-
-    void set_mark(box_id id, bool mark) override;
-    void set_pin(box_id id, bool pin) override;
-
-    bool mark(box_id id) override;
-
-    bool is_init(box_id id) const override;
-
-    gc_lifetime_tag get_lifetime_tag(box_id id) const;
-
-    inline size_t cell_size() const
+    double residency() const
     {
-        return m_cell_size;
+        return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
     }
 
-    byte*  box_addr(box_id id) const override;
-    size_t box_size(box_id id) const override;
-
-    size_t object_count(box_id id) const override;
-    const gc_type_meta* get_type_meta(box_id id) const override;
-
-    void commit(box_id id) override;
-    void commit(box_id id, const gc_type_meta* type_meta) override;
-
-    void trace(box_id id, const gc_trace_callback& cb) const override;
-
-    void finalize(size_t idx);
-    void finalize(box_id id) override;
-
-//    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
-
-    inline byte* memory() const
+    bool contains(byte* ptr) const
     {
-        return m_memory;
+        byte* mem_begin = memory();
+        byte* mem_end   = memory() + size();
+        return (mem_begin <= ptr) && (ptr < mem_end);
     }
 
-    inline size_t size() const
+    inline bool is_unmarked() const
     {
-        return m_size;
+        return m_mark_bits.none();
+    }
+
+    inline void unmark()
+    {
+        m_mark_bits.reset_all();
+        m_pin_bits.reset_all();
+    }
+
+    byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta)
+    {
+        assert(contains(ptr));
+        assert(ptr == box_addr(ptr));
+        return gc_box::create(ptr, obj_count, type_meta);
     }
 
     inline bool get_mark(size_t idx) const
@@ -196,9 +120,129 @@ public:
         m_pin_bits.set(idx, pin);
     }
 
-    bool contains(byte* ptr) const;
+    box_id get_id(byte* ptr) const override
+    {
+        assert(contains(ptr));
+        return ptr;
+    }
 
-    size_t mem_used();
+    bool is_init(box_id id) const override
+    {
+        return m_init_bits.get(calc_box_idx(id));
+    }
+
+    bool get_mark(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return m_mark_bits.get(calc_box_idx(id));
+    }
+
+    bool get_pin(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return m_pin_bits.get(calc_box_idx(id));
+    }
+
+    void set_mark(box_id id, bool mark) override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        m_mark_bits.set(calc_box_idx(id), mark);
+    }
+
+    void set_pin(box_id id, bool pin) override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        m_pin_bits.set(calc_box_idx(id), pin);
+    }
+
+    bool mark(box_id id) override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return m_mark_bits.test_and_set(calc_box_idx(id));
+    }
+
+    gc_lifetime_tag get_lifetime_tag(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        size_t idx = calc_box_idx(id);
+        return get_lifetime_tag_by_bits(get_mark(idx), is_init(idx));
+    }
+
+    size_t box_size(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return cell_size();
+    }
+
+    byte* box_addr(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return calc_box_addr(id);
+    }
+
+    size_t object_count(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return gc_box::get_obj_count(calc_box_addr(id));
+    }
+
+    const gc_type_meta* get_type_meta(box_id id) const override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return gc_box::get_type_meta(calc_box_addr(id));
+    }
+
+    void commit(box_id id) override
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        set_init(calc_box_idx(id), true);
+    }
+
+    void commit(box_id id, const gc_type_meta* type_meta) override
+    {
+        assert(type_meta);
+        assert(is_correct_id(id));
+        gc_box::set_type_meta(box_addr(id), type_meta);
+        set_init(calc_box_idx(id), true);
+    }
+
+    void trace(box_id id, const gc_trace_callback& cb) const override
+    {
+        assert(is_correct_id(id));
+        gc_box::trace(calc_box_addr(id), cb);
+    }
+
+    void finalize(size_t idx)
+    {
+        byte* box_addr = m_memory + idx * cell_size();
+        assert(get_lifetime_tag(box_addr) == gc_lifetime_tag::GARBAGE);
+        gc_box::destroy(box_addr);
+        set_init(idx, false);
+    }
+
+    void finalize(box_id id) override
+    {
+        assert(is_correct_id(id));
+        assert(get_lifetime_tag(id) == gc_lifetime_tag::GARBAGE);
+        gc_box::destroy(calc_box_addr(id));
+        set_init(calc_box_idx(id), false);
+    }
+
+    size_t mem_used()
+    {
+        return 0;
+    }
 private:
     inline byte* calc_box_addr(box_id id) const
     {
@@ -217,7 +261,10 @@ private:
         m_init_bits.set(idx, init);
     }
 
-    bool is_correct_id(box_id id) const;
+    bool is_correct_id(box_id id) const
+    {
+        return id == get_id(id);
+    }
 
     byte*         m_memory;
     size_t        m_size;

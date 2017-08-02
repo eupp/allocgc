@@ -7,7 +7,6 @@
 #include <mutex>
 
 #include <liballocgc/details/utils/utility.hpp>
-#include <liballocgc/details/utils/block_ptr.hpp>
 #include <liballocgc/gc_common.hpp>
 
 namespace allocgc { namespace details { namespace allocators {

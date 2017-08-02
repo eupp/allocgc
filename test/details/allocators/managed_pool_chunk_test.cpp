@@ -18,7 +18,7 @@ using namespace allocgc::details::allocators;
 namespace {
 const size_t CELL_SIZE  = 64;
 const size_t CELL_COUNT = 64;
-const size_t CHUNK_SIZE = gc_pool_descriptor::chunk_size(CELL_COUNT * CELL_SIZE);
+const size_t CHUNK_SIZE = gc_bucket_policy::chunk_size(CELL_COUNT * CELL_SIZE);
 }
 
 class managed_pool_chunk_test : public ::testing::Test

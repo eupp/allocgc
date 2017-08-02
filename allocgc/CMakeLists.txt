@@ -19,7 +19,6 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/allocators/debug_layer.hpp
         include/liballocgc/details/allocators/bucket_allocator.hpp
         include/liballocgc/details/allocators/stl_adapter.hpp
-        include/liballocgc/details/allocators/pow2_bucket_policy.hpp
         include/liballocgc/details/allocators/gc_pool_descriptor.hpp
         include/liballocgc/details/allocators/gc_memory_descriptor.hpp
         include/liballocgc/details/utils/flatten_range.hpp
@@ -57,13 +56,10 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/collectors/packet_manager.hpp
         include/liballocgc/details/utils/safepoint_lock.hpp
         include/liballocgc/details/allocators/gc_object_descriptor.hpp
-        include/liballocgc/details/utils/block_ptr.hpp
         include/liballocgc/details/allocators/sys_allocator.hpp
         include/liballocgc/details/allocators/freelist_allocator.hpp
-        include/liballocgc/details/utils/get_ptr.hpp
         include/liballocgc/details/allocators/pool.hpp
         include/liballocgc/details/allocators/sys_allocator.hpp
-        include/liballocgc/details/allocators/null_allocator.hpp
         include/liballocgc/details/collectors/pin_stack.hpp
         include/liballocgc/details/collectors/stack_bitmap.hpp
         include/liballocgc/details/threads/return_address.hpp

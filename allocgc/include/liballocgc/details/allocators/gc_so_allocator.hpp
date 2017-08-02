@@ -8,6 +8,7 @@
 #include <liballocgc/gc_common.hpp>
 
 #include <liballocgc/details/allocators/gc_pool_allocator.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 #include <liballocgc/details/allocators/allocator_tag.hpp>
 #include <liballocgc/details/allocators/stl_adapter.hpp>
 
@@ -38,17 +39,8 @@ public:
 
     gc_memstat stats();
 private:
-    // we have buckets for each 2^k size
-    // i.g. [32, 64, 128, 256, ...]
-    static const size_t BUCKET_COUNT = LARGE_CELL_SIZE_LOG2 - MIN_CELL_SIZE_LOG2 + 1;
-    static const size_t MAX_SIZE = LARGE_CELL_SIZE;
-
-    static size_t SZ_CLS[BUCKET_COUNT];
-
-    static_assert(BUCKET_COUNT <= std::numeric_limits<byte>::max(), "Too many buckets");
-
-    std::array<byte, MAX_SIZE> m_sztbl;
-    std::array<gc_pool_allocator, BUCKET_COUNT> m_buckets;
+    std::array<gc_pool_allocator, gc_bucket_policy::BUCKET_COUNT> m_buckets;
+    gc_bucket_policy m_bucket_policy;
 };
 
 }}}

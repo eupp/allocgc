@@ -4,10 +4,11 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size)
+gc_pool_descriptor::gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy)
     : m_memory(chunk)
     , m_size(size)
-    , m_cell_size_log2(log2(cell_size))
+    , m_cell_size(cell_size)
+    , m_offset_tbl(bucket_policy.offsets_table(cell_size))
     , m_init_bits(CHUNK_MAXSIZE)
     , m_pin_bits(CHUNK_MAXSIZE)
     , m_mark_bits(CHUNK_MAXSIZE)
@@ -39,10 +40,11 @@ double gc_pool_descriptor::residency() const
 gc_memory_descriptor::box_id gc_pool_descriptor::get_id(byte* ptr) const
 {
     assert(contains(ptr));
-    std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
-    uintptr &= ~((1ull << m_cell_size_log2) - 1);
-    assert(uintptr % cell_size() == 0);
-    return reinterpret_cast<byte*>(uintptr);
+//    std::uintptr_t uintptr = reinterpret_cast<std::uintptr_t>(ptr);
+//    uintptr &= ~((1ull << m_cell_size) - 1);
+//    assert(uintptr % cell_size() == 0);
+//    return reinterpret_cast<byte*>(uintptr);
+    return ptr;
 }
 
 bool gc_pool_descriptor::is_init(box_id id) const
@@ -175,7 +177,7 @@ void gc_pool_descriptor::finalize(box_id id)
 //{
 //    assert(contains(ptr));
 //    assert(ptr == box_addr(ptr));
-//    return (ptr - memory()) >> m_cell_size_log2;
+//    return (ptr - memory()) >> m_cell_size;
 //}
 
 size_t gc_pool_descriptor::mem_used()

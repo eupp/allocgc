@@ -83,7 +83,7 @@ struct Node
     ptr_t(Node) left;
     ptr_t(Node) right;
 
-    char x[32];
+//    char x[32];
 
     Node(ptr_in(Node) l, ptr_in(Node) r)
         : left(l)

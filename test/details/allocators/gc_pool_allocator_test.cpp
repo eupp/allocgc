@@ -12,7 +12,7 @@ using namespace allocgc::details::allocators;
 namespace {
 static const size_t OBJ_SIZE = 16;
 static const size_t ALLOC_SIZE = gc_box::box_size(OBJ_SIZE);
-static const size_t CHUNK_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * ALLOC_SIZE;
+static const size_t CHUNK_SIZE = GC_POOL_CHUNK_OBJECTS_COUNT * ALLOC_SIZE;
 
 struct test_type
 {
@@ -27,9 +27,10 @@ struct gc_pool_allocator_test : public ::testing::Test
     gc_pool_allocator_test()
         : rqst(OBJ_SIZE, 1, type_meta, &buf)
     {
-        alloc.set_core_allocator(&core_alloc);
+        alloc.init(&bucket_policy, &core_alloc);
     }
 
+    gc_bucket_policy bucket_policy;
     gc_core_allocator core_alloc;
     gc_pool_allocator alloc;
     gc_buf buf;

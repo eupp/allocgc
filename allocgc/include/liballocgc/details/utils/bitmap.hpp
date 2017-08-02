@@ -129,6 +129,12 @@ public:
         }
     }
 
+    template <typename Block_>
+    bitmap(bitmap&& other)
+        : m_size(other.m_size)
+        , m_blocks(std::move(other.m_blocks))
+    {}
+
     bool get(size_t i) const
     {
         ull mask = ONE << bit_offset(i);

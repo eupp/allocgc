@@ -38,9 +38,10 @@ struct compactor_test : public ::testing::Test
     compactor_test()
         : rqst(OBJ_SIZE, 1, type_meta, &buf)
     {
-        alloc.set_core_allocator(&core_alloc);
+        alloc.init(&bucket_policy, &core_alloc);
     }
 
+    gc_bucket_policy bucket_policy;
     gc_core_allocator core_alloc;
     gc_pool_allocator alloc;
     Compactor compactor;

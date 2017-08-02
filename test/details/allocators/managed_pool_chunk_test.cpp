@@ -27,7 +27,7 @@ public:
     typedef debug_layer<gc_core_allocator> allocator_t;
 
     managed_pool_chunk_test()
-        : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE)
+        : m_chunk(m_alloc.allocate(CHUNK_SIZE), CELL_COUNT * CELL_SIZE, CELL_SIZE, m_bucket_policy)
         , m_rand(0, CELL_COUNT)
     {}
 
@@ -39,6 +39,7 @@ public:
     }
 
     allocator_t m_alloc;
+    gc_bucket_policy m_bucket_policy;
     gc_pool_descriptor m_chunk;
     uniform_rand_generator<size_t> m_rand;
 };

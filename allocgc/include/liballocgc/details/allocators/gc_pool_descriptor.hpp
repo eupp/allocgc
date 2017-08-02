@@ -14,18 +14,20 @@
 #include <liballocgc/details/allocators/gc_box_handle.hpp>
 #include <liballocgc/details/utils/bitmap.hpp>
 #include <liballocgc/details/utils/utility.hpp>
-#include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
 #include <liballocgc/details/constants.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
+#include <liballocgc/details/allocators/gc_memory_descriptor.hpp>
 
 namespace allocgc { namespace details { namespace allocators {
 
 class gc_pool_descriptor : public gc_memory_descriptor, private utils::noncopyable, private utils::nonmovable
 {
 public:
-    static const size_t CHUNK_MAXSIZE = MANAGED_CHUNK_OBJECTS_COUNT;
+    static const size_t CHUNK_MAXSIZE = GC_POOL_CHUNK_OBJECTS_COUNT;
 
     typedef utils::bitmap bitmap;
     typedef utils::atomic_bitmap atomic_bitmap;
+    typedef gc_bucket_policy::offset_table offset_table;
 private:
 //    class memory_iterator: public boost::iterator_facade<
 //              memory_iterator
@@ -81,12 +83,7 @@ public:
 //    typedef memory_iterator iterator;
 //    typedef boost::iterator_range<memory_iterator> memory_range_type;
 
-    static constexpr size_t chunk_size(size_t cell_size)
-    {
-        return cell_size * CHUNK_MAXSIZE;
-    }
-
-    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size);
+    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy);
     ~gc_pool_descriptor();
 
     gc_memory_descriptor* descriptor()
@@ -145,7 +142,7 @@ public:
 
     inline size_t cell_size() const
     {
-        return 1ull << m_cell_size_log2;
+        return m_cell_size;
     }
 
     byte*  box_addr(box_id id) const override;
@@ -205,14 +202,14 @@ public:
 private:
     inline byte* calc_box_addr(box_id id) const
     {
-        return id;
+        return m_memory + m_cell_size * calc_box_idx(id);
     }
 
     inline size_t calc_box_idx(box_id id) const
     {
         assert(contains(id));
         assert(is_correct_id(id));
-        return (id - memory()) >> m_cell_size_log2;
+        return m_offset_tbl.obj_idx(id - memory());
     }
 
     inline void set_init(size_t idx, bool init)
@@ -224,7 +221,8 @@ private:
 
     byte*         m_memory;
     size_t        m_size;
-    size_t        m_cell_size_log2;
+    size_t        m_cell_size;
+    offset_table  m_offset_tbl;
     bitmap        m_init_bits;
     bitmap        m_pin_bits;
     atomic_bitmap m_mark_bits;

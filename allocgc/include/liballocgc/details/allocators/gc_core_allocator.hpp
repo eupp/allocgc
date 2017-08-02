@@ -22,7 +22,7 @@ namespace allocgc { namespace details { namespace allocators {
 
 class gc_core_allocator
 {
-    static const size_t MAX_BUCKETIZE_SIZE = MANAGED_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
+    static const size_t MAX_BUCKETIZE_SIZE = GC_POOL_CHUNK_OBJECTS_COUNT * LARGE_CELL_SIZE;
 
     class page_bucket_policy
     {

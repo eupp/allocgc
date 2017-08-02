@@ -4,7 +4,6 @@
 #include <algorithm>
 
 #include <liballocgc/gc_common.hpp>
-#include <liballocgc/details/allocators/bitmap_pool_chunk.hpp>
 #include <liballocgc/details/allocators/freelist_pool_chunk.hpp>
 
 #include <boost/integer/static_min_max.hpp>

@@ -14,7 +14,8 @@
 namespace allocgc { namespace details { namespace allocators {
 
 gc_pool_allocator::gc_pool_allocator()
-    : m_core_alloc(nullptr)
+    : m_bucket_policy(nullptr)
+    , m_core_alloc(nullptr)
     , m_freelist(nullptr)
     , m_top(nullptr)
     , m_end(nullptr)
@@ -28,13 +29,9 @@ gc_pool_allocator::~gc_pool_allocator()
     }
 }
 
-gc_core_allocator* gc_pool_allocator::get_core_allocator() const
+void gc_pool_allocator::init(const gc_bucket_policy* bucket_policy, gc_core_allocator* core_alloc)
 {
-    return m_core_alloc;
-}
-
-void gc_pool_allocator::set_core_allocator(gc_core_allocator* core_alloc)
-{
+    m_bucket_policy = bucket_policy;
     m_core_alloc = core_alloc;
 }
 
@@ -117,7 +114,7 @@ gc_alloc::response gc_pool_allocator::init_cell(byte* box_addr, const gc_alloc::
 
 gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
 {
-    m_descrs.emplace_back(blk, blk_size, cell_size);
+    m_descrs.emplace_back(blk, blk_size, cell_size, *m_bucket_policy);
     auto last = std::prev(m_descrs.end());
     memory_index::index_gc_heap_memory(blk, blk_size, &(*last));
     return last;
@@ -134,7 +131,7 @@ gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t i
 std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size)
 {
     assert(m_core_alloc);
-    size_t chunk_size = descriptor_t::chunk_size(cell_size);
+    size_t chunk_size = m_bucket_policy->chunk_size(cell_size);
     return std::make_pair(m_core_alloc->allocate(chunk_size), chunk_size);
 }
 

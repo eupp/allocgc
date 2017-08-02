@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <liballocgc/details/allocators/pool_allocator.hpp>
+#include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 #include <liballocgc/details/allocators/gc_pool_descriptor.hpp>
 #include <liballocgc/details/allocators/default_allocator.hpp>
 #include <liballocgc/details/allocators/gc_core_allocator.hpp>
@@ -41,8 +42,7 @@ public:
     gc_pool_allocator();
     ~gc_pool_allocator();
 
-    gc_core_allocator* get_core_allocator() const;
-    void set_core_allocator(gc_core_allocator* core_alloc);
+    void init(const gc_bucket_policy* bucket_policy, gc_core_allocator* core_alloc);
 
     gc_alloc::response allocate(const gc_alloc::request& rqst, size_t aligned_size);
 
@@ -84,12 +84,12 @@ private:
 
     void insert_into_freelist(byte* ptr);
 
+    const gc_bucket_policy* m_bucket_policy;
     gc_core_allocator* m_core_alloc;
     descriptor_list_t m_descrs;
     byte** m_freelist;
     byte*  m_top;
     byte*  m_end;
-    gc_memory_descriptor::box_id m_top_id;
     double m_prev_residency;
 };
 

@@ -24,8 +24,11 @@ gc_pool_allocator::gc_pool_allocator()
 
 gc_pool_allocator::~gc_pool_allocator()
 {
-    for (auto it = m_descrs.begin(); it != m_descrs.end(); ) {
-        it = destroy_descriptor(it);
+    auto prev = m_descrs.before_begin();
+    auto curr = m_descrs.begin();
+    auto end  = m_descrs.end();
+    while (curr != end) {
+        curr = destroy_descriptor(curr, prev);
     }
 }
 
@@ -79,7 +82,7 @@ gc_alloc::response gc_pool_allocator::stack_allocation(size_t size, const gc_all
 {
     assert(m_top <= m_end - size);
 
-    descriptor_t* descr = &m_descrs.back();
+    descriptor_t* descr = &m_descrs.front();
     byte* ptr = m_top;
     m_top += size;
     return init_cell(ptr, rqst, descr);
@@ -112,20 +115,28 @@ gc_alloc::response gc_pool_allocator::init_cell(byte* box_addr, const gc_alloc::
     return gc_alloc::response(obj_start, rqst.buffer());
 }
 
-gc_pool_allocator::iterator_t gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
+void gc_pool_allocator::create_descriptor(byte* blk, size_t blk_size, size_t cell_size)
 {
-    m_descrs.emplace_back(blk, blk_size, cell_size, *m_bucket_policy);
-    auto last = std::prev(m_descrs.end());
-    memory_index::index_gc_heap_memory(blk, blk_size, &(*last));
-    return last;
+    gc_pool_descriptor* descr = new gc_pool_descriptor(blk, blk_size, cell_size, *m_bucket_policy);
+    m_descrs.push_front(*descr);
+    memory_index::index_gc_heap_memory(blk, blk_size, descr);
 }
 
-gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it)
+void gc_pool_allocator::destroy_descriptor(descriptor_t& descr)
 {
-    sweep(*it, false);
-    memory_index::deindex(it->memory(), it->size());
-    deallocate_block(it->memory(), it->size());
-    return m_descrs.erase(it);
+    sweep(descr, false);
+    memory_index::deindex(descr.memory(), descr.size());
+    deallocate_block(descr.memory(), descr.size());
+}
+
+gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it, iterator_t prev)
+{
+    assert(it == ++prev);
+    descriptor_t* descr = &(*it);
+    destroy_descriptor(*descr);
+    auto next = m_descrs.erase_after(prev);
+    delete descr;
+    return next;
 }
 
 std::pair<byte*, size_t> gc_pool_allocator::allocate_block(size_t cell_size)
@@ -180,21 +191,26 @@ double gc_pool_allocator::shrink(gc_collect_stat& stat)
 {
     size_t mem_live = 0;
     size_t mem_occupied = 0;
-    for (iterator_t it = m_descrs.begin(), end = m_descrs.end(); it != end; ) {
-        stat.mem_used += it->size();
-        if (it->is_unmarked()) {
-            stat.mem_freed += it->size();
-            it = destroy_descriptor(it);
+    auto prev = m_descrs.before_begin();
+    auto curr = m_descrs.begin();
+    auto end  = m_descrs.end();
+    while (curr != end) {
+        stat.mem_used += curr->size();
+        if (curr->is_unmarked()) {
+            stat.mem_freed += curr->size();
+            curr = destroy_descriptor(curr, prev);
         } else {
-            mem_live     += it->cell_size() * it->count_lived();
-            mem_occupied += it->size();
-            stat.pinned_cnt += it->count_pinned();
-            ++it;
+//            mem_live     += it->cell_size() * it->count_lived();
+//            mem_occupied += it->size();
+//            stat.pinned_cnt += it->count_pinned();
+            prev = curr;
+            ++curr;
         }
     }
-    double residency = static_cast<double>(mem_live) / mem_occupied;
+//    double residency = static_cast<double>(mem_live) / mem_occupied;
 //    std::cerr << "prev_residency=" << m_prev_residency << "; residency=" << residency << std::endl;
-    return residency;
+//    return residency;
+    return 0;
 }
 
 void gc_pool_allocator::sweep(gc_collect_stat& stat)
@@ -211,21 +227,21 @@ size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
     size_t size = descr.cell_size();
 
     size_t freed = 0;
-    for (size_t i = 0; it < end; it += size, ++i) {
-        if (!descr.get_mark(i)) {
-            if (descr.is_init(i)) {
-                #ifdef WITH_DESTRUCTORS
-                    descr.finalize(i);
-                #endif
-                freed += size;
-                if (add_to_freelist) {
-                    insert_into_freelist(it);
-                }
-            } else if (add_to_freelist) {
-                insert_into_freelist(it);
-            }
-        }
-    }
+//    for (size_t i = 0; it < end; it += size, ++i) {
+//        if (!descr.get_mark(i)) {
+//            if (descr.is_init(i)) {
+//                #ifdef WITH_DESTRUCTORS
+//                    descr.finalize(i);
+//                #endif
+//                freed += size;
+//                if (add_to_freelist) {
+//                    insert_into_freelist(it);
+//                }
+//            } else if (add_to_freelist) {
+//                insert_into_freelist(it);
+//            }
+//        }
+//    }
     return freed;
 }
 

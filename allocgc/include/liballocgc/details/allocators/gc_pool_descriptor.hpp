@@ -7,8 +7,7 @@
 #include <memory>
 #include <mutex>
 
-#include <boost/iterator/iterator_facade.hpp>
-#include <boost/range/iterator_range.hpp>
+#include <boost/intrusive/slist_hook.hpp>
 
 #include <liballocgc/gc_alloc.hpp>
 #include <liballocgc/details/utils/bitmap.hpp>
@@ -20,25 +19,15 @@
 
 namespace allocgc { namespace details { namespace allocators {
 
-class gc_pool_descriptor : public gc_memory_descriptor, private utils::noncopyable, private utils::nonmovable
+class gc_pool_descriptor_base : public gc_memory_descriptor, public boost::intrusive::slist_base_hook<>
 {
-    static const size_t CHUNK_MAXSIZE = GC_POOL_CHUNK_OBJECTS_COUNT;
-
-    typedef utils::bitmap bitmap;
-    typedef utils::atomic_bitmap atomic_bitmap;
-    typedef gc_bucket_policy::offset_table offset_table;
 public:
-    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy)
+    gc_pool_descriptor_base(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy)
         : m_memory(chunk)
         , m_size(size)
         , m_cell_size(cell_size)
         , m_offset_tbl(bucket_policy.offsets_table(cell_size))
-        , m_init_bits(CHUNK_MAXSIZE)
-        , m_pin_bits(CHUNK_MAXSIZE)
-        , m_mark_bits(CHUNK_MAXSIZE)
     {}
-
-    ~gc_pool_descriptor() {}
 
     inline byte* memory() const
     {
@@ -55,6 +44,60 @@ public:
         return m_cell_size;
     }
 
+    bool contains(byte* ptr) const
+    {
+        byte* mem_begin = memory();
+        byte* mem_end   = memory() + size();
+        return (mem_begin <= ptr) && (ptr < mem_end);
+    }
+
+    size_t mem_used()
+    {
+        return 0;
+    }
+
+    virtual bool is_unmarked() const = 0;
+    virtual void unmark() = 0;
+
+    virtual byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta) = 0;
+protected:
+    inline byte* calc_box_addr(box_id id) const
+    {
+        return m_memory + m_cell_size * calc_box_idx(id);
+    }
+
+    inline size_t calc_box_idx(box_id id) const
+    {
+        assert(contains(id));
+        assert(is_correct_id(id));
+        return m_offset_tbl.obj_idx(id - memory());
+    }
+
+private:
+    typedef gc_bucket_policy::offset_table offset_table;
+
+    byte*         m_memory;
+    size_t        m_size;
+    size_t        m_cell_size;
+    offset_table  m_offset_tbl;
+};
+
+class gc_pool_descriptor : public gc_pool_descriptor_base, private utils::noncopyable, private utils::nonmovable
+{
+    static const size_t CHUNK_MAXSIZE = GC_POOL_CHUNK_OBJECTS_COUNT;
+
+    typedef utils::bitmap bitmap;
+    typedef utils::atomic_bitmap atomic_bitmap;
+public:
+    gc_pool_descriptor(byte* chunk, size_t size, size_t cell_size, const gc_bucket_policy& bucket_policy)
+        : gc_pool_descriptor_base(chunk, size, cell_size, bucket_policy)
+        , m_init_bits(CHUNK_MAXSIZE)
+        , m_pin_bits(CHUNK_MAXSIZE)
+        , m_mark_bits(CHUNK_MAXSIZE)
+    {}
+
+    ~gc_pool_descriptor() {}
+
     size_t count_lived() const
     {
         return m_mark_bits.count();
@@ -68,13 +111,6 @@ public:
     double residency() const
     {
         return static_cast<double>(m_mark_bits.count()) / m_mark_bits.size();
-    }
-
-    bool contains(byte* ptr) const
-    {
-        byte* mem_begin = memory();
-        byte* mem_end   = memory() + size();
-        return (mem_begin <= ptr) && (ptr < mem_end);
     }
 
     inline bool is_unmarked() const
@@ -225,7 +261,7 @@ public:
 
     void finalize(size_t idx)
     {
-        byte* box_addr = m_memory + idx * cell_size();
+        byte* box_addr = memory() + idx * cell_size();
         assert(get_lifetime_tag(box_addr) == gc_lifetime_tag::GARBAGE);
         gc_box::destroy(box_addr);
         set_init(idx, false);
@@ -238,24 +274,7 @@ public:
         gc_box::destroy(calc_box_addr(id));
         set_init(calc_box_idx(id), false);
     }
-
-    size_t mem_used()
-    {
-        return 0;
-    }
 private:
-    inline byte* calc_box_addr(box_id id) const
-    {
-        return m_memory + m_cell_size * calc_box_idx(id);
-    }
-
-    inline size_t calc_box_idx(box_id id) const
-    {
-        assert(contains(id));
-        assert(is_correct_id(id));
-        return m_offset_tbl.obj_idx(id - memory());
-    }
-
     inline void set_init(size_t idx, bool init)
     {
         m_init_bits.set(idx, init);
@@ -266,10 +285,7 @@ private:
         return id == get_id(id);
     }
 
-    byte*         m_memory;
-    size_t        m_size;
-    size_t        m_cell_size;
-    offset_table  m_offset_tbl;
+
     bitmap        m_init_bits;
     bitmap        m_pin_bits;
     atomic_bitmap m_mark_bits;

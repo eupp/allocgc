@@ -5,6 +5,8 @@
 #include <cstring>
 #include <utility>
 
+#include <boost/intrusive/slist.hpp>
+
 #include <liballocgc/details/allocators/pool_allocator.hpp>
 #include <liballocgc/details/allocators/gc_bucket_policy.hpp>
 #include <liballocgc/details/allocators/gc_pool_descriptor.hpp>
@@ -26,14 +28,9 @@ namespace allocgc { namespace details { namespace allocators {
 
 class gc_pool_allocator : private utils::noncopyable, private utils::nonmovable
 {
-    typedef gc_pool_descriptor descriptor_t;
+    typedef gc_pool_descriptor_base descriptor_t;
 
-    typedef allocators::pool_allocator<
-              allocators::default_allocator
-            , utils::dummy_mutex
-        > chunk_pool_t;
-
-    typedef std::list<descriptor_t, stl_adapter<descriptor_t, chunk_pool_t>> descriptor_list_t;
+    typedef boost::intrusive::slist<descriptor_t> descriptor_list_t;
     typedef typename descriptor_list_t::iterator iterator_t;
 public:
     typedef stateful_alloc_tag alloc_tag;
@@ -62,8 +59,10 @@ private:
     gc_alloc::response freelist_allocation(size_t size, const gc_alloc::request& rqst);
     gc_alloc::response init_cell(byte* box_addr, const gc_alloc::request& rqst, descriptor_t* descr);
 
-    gc_pool_allocator::iterator_t create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
-    iterator_t destroy_descriptor(iterator_t it);
+    void create_descriptor(byte* blk, size_t blk_size, size_t cell_size);
+
+    void destroy_descriptor(descriptor_t& descr);
+    gc_pool_allocator::iterator_t destroy_descriptor(iterator_t it, iterator_t prev);
 
     std::pair<byte*, size_t> allocate_block(size_t cell_size);
     void deallocate_block(byte* ptr, size_t size);

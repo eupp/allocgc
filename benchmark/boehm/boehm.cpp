@@ -266,7 +266,7 @@ int main (int argc, const char* argv[])
 
     #if defined(PRECISE_GC_SERIAL) || defined(PRECISE_GC_CMS)
         register_main_thread();
-//        set_heap_limit(36 * 1024 * 1024);
+//        set_heap_limit(32 * 1024 * 1024);
 //        enable_logging(gc_loglevel::DEBUG);
     #elif defined(BDW_GC)
         GC_INIT();

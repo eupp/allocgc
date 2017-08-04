@@ -39,6 +39,8 @@ public:
 
     MOCK_CONST_METHOD2(trace, void(box_id, const gc_trace_callback&));
 //    MOCK_METHOD3(move, void(byte*, byte*, memory_descriptor*));
+
+    MOCK_METHOD0(finalize, void());
     MOCK_METHOD1(finalize, void(box_id));
 };
 

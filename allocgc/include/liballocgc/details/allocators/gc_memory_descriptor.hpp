@@ -39,6 +39,8 @@ public:
     virtual void commit(box_id id, const gc_type_meta* type_meta) = 0;
 
     virtual void trace(box_id id, const gc_trace_callback& cb) const = 0;
+
+    virtual void finalize() = 0;
     virtual void finalize(box_id id) = 0;
 //    virtual void move(byte* to, byte* from, gc_memory_descriptor* from_descr) = 0;
 };

@@ -7,6 +7,7 @@
 
 #include <liballocgc/gc_exception.hpp>
 #include <liballocgc/gc_common.hpp>
+#include <liballocgc/gc_type_meta.hpp>
 
 namespace allocgc { namespace details {
 

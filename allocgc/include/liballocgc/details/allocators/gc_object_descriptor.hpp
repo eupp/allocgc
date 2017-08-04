@@ -52,7 +52,10 @@ public:
     void commit(box_id id, const gc_type_meta* type_meta) override;
 
     void trace(box_id id, const gc_trace_callback& cb) const override;
+
+    void finalize() override;
     void finalize(box_id id) override;
+
 //    void move(byte* to, byte* from, gc_memory_descriptor* from_descr) override;
 private:
     bool contains(byte *ptr) const;

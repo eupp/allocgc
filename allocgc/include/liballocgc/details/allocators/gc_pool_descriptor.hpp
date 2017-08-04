@@ -59,8 +59,15 @@ public:
     virtual bool is_unmarked() const = 0;
     virtual void unmark() = 0;
 
+    virtual size_t count_pinned() const = 0;
+
     virtual byte* init_cell(byte* ptr, size_t obj_count, const gc_type_meta* type_meta) = 0;
 protected:
+    bool is_correct_id(box_id id) const
+    {
+        return id == get_id(id);
+    }
+
     inline byte* calc_box_addr(box_id id) const
     {
         return m_memory + m_cell_size * calc_box_idx(id);
@@ -267,6 +274,16 @@ public:
         set_init(idx, false);
     }
 
+    void finalize() override
+    {
+        size_t sz = size() / cell_size();
+        for (size_t i = 0; i < sz; ++i) {
+            if (!get_mark(i) && is_init(i)) {
+                finalize(i);
+            };
+        }
+    }
+
     void finalize(box_id id) override
     {
         assert(is_correct_id(id));
@@ -279,12 +296,6 @@ private:
     {
         m_init_bits.set(idx, init);
     }
-
-    bool is_correct_id(box_id id) const
-    {
-        return id == get_id(id);
-    }
-
 
     bitmap        m_init_bits;
     bitmap        m_pin_bits;

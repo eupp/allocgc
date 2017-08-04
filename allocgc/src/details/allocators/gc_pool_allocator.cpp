@@ -131,7 +131,7 @@ void gc_pool_allocator::destroy_descriptor(descriptor_t& descr)
 
 gc_pool_allocator::iterator_t gc_pool_allocator::destroy_descriptor(iterator_t it, iterator_t prev)
 {
-    assert(it == ++prev);
+    assert(it == ++iterator_t(prev));
     descriptor_t* descr = &(*it);
     destroy_descriptor(*descr);
     auto next = m_descrs.erase_after(prev);
@@ -202,7 +202,7 @@ double gc_pool_allocator::shrink(gc_collect_stat& stat)
         } else {
 //            mem_live     += it->cell_size() * it->count_lived();
 //            mem_occupied += it->size();
-//            stat.pinned_cnt += it->count_pinned();
+            stat.pinned_cnt += curr->count_pinned();
             prev = curr;
             ++curr;
         }
@@ -222,26 +222,18 @@ void gc_pool_allocator::sweep(gc_collect_stat& stat)
 
 size_t gc_pool_allocator::sweep(descriptor_t& descr, bool add_to_freelist)
 {
-    byte*  it   = descr.memory();
-    byte*  end  = descr.memory() + descr.size();
-    size_t size = descr.cell_size();
-
     size_t freed = 0;
-//    for (size_t i = 0; it < end; it += size, ++i) {
-//        if (!descr.get_mark(i)) {
-//            if (descr.is_init(i)) {
-//                #ifdef WITH_DESTRUCTORS
-//                    descr.finalize(i);
-//                #endif
-//                freed += size;
-//                if (add_to_freelist) {
-//                    insert_into_freelist(it);
-//                }
-//            } else if (add_to_freelist) {
-//                insert_into_freelist(it);
-//            }
-//        }
-//    }
+    descr.finalize();
+    if (add_to_freelist) {
+        byte* begin = descr.memory();
+        byte* end   = descr.memory() + descr.size();
+        size_t sz   = descr.cell_size();
+        for (byte* it = begin; it < end; it += sz) {
+            if (!descr.get_mark(it)) {
+                insert_into_freelist(it);
+            }
+        }
+    }
     return freed;
 }
 

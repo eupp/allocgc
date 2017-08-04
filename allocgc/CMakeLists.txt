@@ -86,7 +86,8 @@ set(precisegc_LIB_HDRS
         include/liballocgc/details/collectors/conservative_stack.hpp
         include/liballocgc/details/collectors/conservative_pin_set.hpp
         include/liballocgc/details/gc_untyped_ptr.hpp
-        include/liballocgc/details/allocators/redirection_allocator.hpp include/liballocgc/details/allocators/gc_bucket_policy.hpp)
+        include/liballocgc/details/allocators/redirection_allocator.hpp
+        include/liballocgc/details/allocators/gc_bucket_policy.hpp)
 
 set(precisegc_LIB_SRCS
         src/details/gc_heap.cpp

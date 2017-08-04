@@ -159,12 +159,17 @@ void gc_object_descriptor::trace(box_id id, const gc_trace_callback& cb) const
 //    m_init_bit = true;
 //}
 
-void gc_object_descriptor::finalize(box_id id)
+void gc_object_descriptor::finalize()
 {
-    assert(is_correct_id(id));
     assert(m_init_bit);
     gc_box::destroy(box_addr());
     m_init_bit = false;
+}
+
+void gc_object_descriptor::finalize(box_id id)
+{
+    assert(is_correct_id(id));
+    finalize();
 }
 
 gc_memory_descriptor* gc_object_descriptor::descriptor()

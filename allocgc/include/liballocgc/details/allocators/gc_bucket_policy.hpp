@@ -1,6 +1,7 @@
 #ifndef ALLOCGC_GC_SO_BUCKET_POLICY_HPP
 #define ALLOCGC_GC_SO_BUCKET_POLICY_HPP
 
+#include <array>
 #include <cstddef>
 
 #include <boost/math/common_factor_rt.hpp>
@@ -32,7 +33,7 @@ public:
 
     static size_t chunk_size(size_t cell_size)
     {
-        static_assert(GC_POOL_CHUNK_OBJECTS_COUNT <= std::numeric_limits<byte>::max(), "chunk size too large");
+        static_assert(GC_POOL_CHUNK_OBJECTS_COUNT <= std::numeric_limits<byte>::max() + 1ull, "chunk size too large");
         size_t sz = boost::math::lcm(cell_size, PAGE_SIZE);
         size_t obj_cnt = sz / cell_size;
         while (obj_cnt < 32) {
@@ -42,7 +43,8 @@ public:
     }
 
     gc_bucket_policy()
-            : m_sz_cls{ {32, 48, 64, 96, 128, 192, 256, 384, 512, 1024, 2048, 4096} }
+        : m_sz_cls{ { 32,  48,  64,  96, 128, 192, 256, 384, 512, 1024, 2048, 4096} }
+        //        { {128, 256,  64, 128,  32,  64,  32,  32,  32,   32,   32,   32} }
     {
         size_t j = 0;
         size_t offsets_table_size = 0;

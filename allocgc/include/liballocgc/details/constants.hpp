@@ -20,7 +20,7 @@ const size_t LARGE_CELL_SIZE      = 1 << LARGE_CELL_SIZE_LOG2;
 
 const size_t GC_POOL_CHUNK_MAXSIZE = 16384;
 
-const size_t GC_POOL_CHUNK_OBJECTS_COUNT = PAGE_SIZE / MIN_CELL_SIZE;
+const size_t GC_POOL_CHUNK_OBJECTS_COUNT = 256;
 
 const size_t GRANULE_SIZE_LOG2 = 4;
 const size_t GRANULE_SIZE = 1 << GRANULE_SIZE_LOG2;
